@@ -53,10 +53,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     offerTransportBtn.addEventListener('click', function() {
         console.log('Kliknięto przycisk OFERUJĘ TRANSPORT (w HTML)');
-        const transportForm = document.getElementById('transport-form');
-        console.log('Wartość transportForm przed usunięciem klasy:', transportForm);
+        const transportFormElement = document.getElementById('transport-form');
+        console.log('Znaleziony element transportForm:', transportFormElement);
+        if (transportFormElement) {
+            transportFormElement.classList.remove('hidden');
+        } else {
+            console.error('Element #transport-form nie został znaleziony!');
+        }
         mapContainer.style.display = 'block';
-        transportForm.classList.remove('hidden');
         transportList.classList.add('hidden');
         mapContainer.style.height = '100%';
         mapContainer.style.width = '100%';
@@ -72,11 +76,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchTransportBtn.addEventListener('click', function() {
         console.log('Kliknięto przycisk SZUKAM TRANSPORTU (w HTML)');
-        const transportForm = document.getElementById('transport-form');
-        console.log('Wartość transportForm przed dodaniem klasy:', transportForm);
+        const transportFormElement = document.getElementById('transport-form');
+        console.log('Znaleziony element transportForm:', transportFormElement);
+        if (transportFormElement) {
+            transportFormElement.classList.add('hidden');
+        } else {
+            console.error('Element #transport-form nie został znaleziony!');
+        }
         mapContainer.style.display = 'block';
         transportList.classList.remove('hidden');
-        transportForm.classList.add('hidden');
         mapContainer.style.height = '100%';
         mapContainer.style.width = '100%';
         offerTransportBtn.style.display = 'none';
