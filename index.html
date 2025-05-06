@@ -45,7 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapContainer = document.getElementById('map-container');
     const transportForm = document.getElementById('transport-form');
     const transportList = document.getElementById('transport-list');
-    const backgroundMap = document.querySelector('.background-map'); // Pobierz element mapy tła
+    const backgroundMap = document.querySelector('.background-map');
+    const offerSubtitle = offerTransportBtn.nextElementSibling; // Pobierz następny element po przycisku "OFERUJĘ"
+    const searchSubtitle = searchTransportBtn.nextElementSibling; // Pobierz następny element po przycisku "SZUKAM"
 
     let mapInitialized = false;
 
@@ -58,7 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
         mapContainer.style.width = '100%';
         offerTransportBtn.style.display = 'none';
         searchTransportBtn.style.display = 'none';
-        backgroundMap.classList.remove('blurred'); // Usuń klasę rozmycia
+        offerSubtitle.style.display = 'none'; // Ukryj "JESTEM PRZEWOŹNIKIEM"
+        searchSubtitle.style.display = 'none'; // Ukryj "JESTEM KLIENTEM"
+        backgroundMap.classList.remove('blurred');
         initMap();
         mapInitialized = true;
     });
@@ -72,7 +76,9 @@ document.addEventListener('DOMContentLoaded', function() {
         mapContainer.style.width = '100%';
         offerTransportBtn.style.display = 'none';
         searchTransportBtn.style.display = 'none';
-        backgroundMap.classList.remove('blurred'); // Usuń klasę rozmycia
+        offerSubtitle.style.display = 'none'; // Ukryj "JESTEM PRZEWOŹNIKIEM"
+        searchSubtitle.style.display = 'none'; // Ukryj "JESTEM KLIENTEM"
+        backgroundMap.classList.remove('blurred');
         initMap();
         mapInitialized = true;
     });
@@ -85,7 +91,7 @@ function initMap() {
     const mapDiv = document.getElementById("map-container");
     map = new google.maps.Map(mapDiv, {
         center: { lat: 53.7797, lng: 20.4900 },
-        zoom: 6, // Zmniejszyłem zoom, aby pokazać większy obszar Europy
+        zoom: 6,
         gestureHandling: 'greedy'
     });
 }
