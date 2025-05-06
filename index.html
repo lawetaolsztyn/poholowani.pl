@@ -1,4 +1,4 @@
-f<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -35,7 +35,7 @@ f<!DOCTYPE html>
         </div>
         <div id="transport-list" class="hidden">
             <h2>Dostępne przejazdy</h2>
-            </div>
+        </div>
     </div>
 
 <script>
@@ -46,8 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const transportForm = document.getElementById('transport-form');
     const transportList = document.getElementById('transport-list');
     const backgroundMap = document.querySelector('.background-map');
-    const offerSubtitle = offerTransportBtn.nextElementSibling; // Pobierz następny element po przycisku "OFERUJĘ"
-    const searchSubtitle = searchTransportBtn.nextElementSibling; // Pobierz następny element po przycisku "SZUKAM"
+    const offerSubtitle = offerTransportBtn.nextElementSibling;
+    const searchSubtitle = searchTransportBtn.nextElementSibling;
+    const siteHeader = document.querySelector('.site-header');
 
     let mapInitialized = false;
 
@@ -60,9 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
         mapContainer.style.width = '100%';
         offerTransportBtn.style.display = 'none';
         searchTransportBtn.style.display = 'none';
-        offerSubtitle.style.display = 'none'; // Ukryj "JESTEM PRZEWOŹNIKIEM"
-        searchSubtitle.style.display = 'none'; // Ukryj "JESTEM KLIENTEM"
-        backgroundMap.classList.remove('blurred');
+        offerSubtitle.style.display = 'none';
+        searchSubtitle.style.display = 'none';
+        backgroundMap.classList.remove('initial-blurred');
+        siteHeader.style.display = 'none';
         initMap();
         mapInitialized = true;
     });
@@ -76,9 +78,10 @@ document.addEventListener('DOMContentLoaded', function() {
         mapContainer.style.width = '100%';
         offerTransportBtn.style.display = 'none';
         searchTransportBtn.style.display = 'none';
-        offerSubtitle.style.display = 'none'; // Ukryj "JESTEM PRZEWOŹNIKIEM"
-        searchSubtitle.style.display = 'none'; // Ukryj "JESTEM KLIENTEM"
-        backgroundMap.classList.remove('blurred');
+        offerSubtitle.style.display = 'none';
+        searchSubtitle.style.display = 'none';
+        backgroundMap.classList.remove('initial-blurred');
+        siteHeader.style.display = 'none';
         initMap();
         mapInitialized = true;
     });
@@ -95,7 +98,6 @@ function initMap() {
         gestureHandling: 'greedy'
     });
 }
-</script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRE07N_PgvsrB2fXzF5JbVJE9mgnf_Eag&callback=initMap"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>
