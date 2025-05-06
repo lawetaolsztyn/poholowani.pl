@@ -1,0 +1,153 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    overflow: hidden; /* Zapobiega przewijaniu, gdy widoczne są tylko przyciski */
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&family=Segoe+UI:wght@400;700&display=swap');
+
+.site-header {
+    background-color: #343a40; /* Ciemniejszy kolor tła, np. ciemny szary */
+    color: #f8f9fa; /* Jaśniejszy kolor tekstu, np. jasny szary */
+    padding: 30px 20px; /* Zwiększamy padding, aby pasek był wyższy */
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Dodajemy subtelny cień */
+}
+
+.site-header h1 {
+    margin-top: 0;
+    font-size: 2.5em; /* Nieco większy tytuł */
+    margin-bottom: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nowocześniejsza czcionka */
+    font-weight: bold; /* Pogrubiony tytuł */
+    letter-spacing: 0.5px; /* Lekkie odstępy między literami */
+}
+
+.site-header p {
+    font-size: 1.3em; /* Większy opis */
+    margin-bottom: 0;
+    font-family: 'Open Sans', sans-serif; /* Inna, czytelna czcionka */
+    color: #ced4da; /* Jaśniejszy szary kolor opisu */
+}
+
+.central-buttons {
+    position: absolute;
+    top: 60%; /* Przesunięte niżej, aby nie nachodziły na baner */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 20px;
+    z-index: 3; /* Nad banerem */
+}
+
+.button-subtitle {
+    font-size: 0.8em;
+    color: #666;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.central-buttons > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.central-buttons button {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 10px; /* Zaokrąglone rogi */
+    border: none;
+    background-color: #007bff; /* Niebieski kolor tła */
+    color: white;
+    transition: background-color 0.3s ease; /* EfektHover */
+}
+
+.central-buttons button:hover {
+    background-color: #0056b3; /* Ciemniejszy niebieski na hover */
+}
+
+#map-container {
+    position: fixed;
+    top: 60px; /* Odsunięcie od góry na wysokość banera */
+    left: 0;
+    width: 100%;
+    /* height: calc(100% - 60px); /* USUNIĘTO LUB ZAKOMENTOWANO TĘ LINIĘ */
+    z-index: 1;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: none; /* Ukryj na starcie */
+}
+
+.background-map {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('map_placeholder.jpg'); /* Zastąp tymczasowym obrazem mapy */
+    background-size: cover;
+    filter: blur(4px);
+    z-index: -1; /* Umieść za innymi elementami */
+}
+
+#transport-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+}
+
+#transport-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#transport-form div {
+    margin-bottom: 10px;
+}
+
+#transport-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#transport-form input[type="text"],
+#transport-form input[type="tel"],
+#transport-form input[type="number"],
+#transport-form input[type="datetime-local"],
+#transport-form select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#transport-form button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    width: 100%;
+}
+
+#transport-list {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.hidden {
+    display: none !important;
+}
