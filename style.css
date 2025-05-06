@@ -151,3 +151,10 @@ body {
 .hidden {
     display: none !important;
 }
+.background-map.initial-blurred {
+    filter: blur(4px);
+}
+
+.background-map {
+    /* Inne style */
+}
