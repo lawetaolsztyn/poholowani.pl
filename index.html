@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const offerTransportBtn = document.getElementById('offer-transport-btn');
     const searchTransportBtn = document.getElementById('search-transport-btn');
     const mapContainer = document.getElementById('map-container');
-    const transportForm = document.getElementById('transport-form');
     const transportList = document.getElementById('transport-list');
     const backgroundMap = document.querySelector('.background-map');
     const offerSubtitle = offerTransportBtn.nextElementSibling;
@@ -54,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     offerTransportBtn.addEventListener('click', function() {
         console.log('Kliknięto przycisk OFERUJĘ TRANSPORT (w HTML)');
+        const transportForm = document.getElementById('transport-form');
         console.log('Wartość transportForm przed usunięciem klasy:', transportForm);
         mapContainer.style.display = 'block';
         transportForm.classList.remove('hidden');
@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchTransportBtn.addEventListener('click', function() {
         console.log('Kliknięto przycisk SZUKAM TRANSPORTU (w HTML)');
+        const transportForm = document.getElementById('transport-form');
         console.log('Wartość transportForm przed dodaniem klasy:', transportForm);
         mapContainer.style.display = 'block';
         transportList.classList.remove('hidden');
