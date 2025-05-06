@@ -53,48 +53,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
     offerTransportBtn.addEventListener('click', function() {
         console.log('Kliknięto przycisk OFERUJĘ TRANSPORT (w HTML)');
-        const transportFormElement = document.getElementById('transport-form');
-        console.log('Znaleziony element transportForm:', transportFormElement);
-        if (transportFormElement) {
-            transportFormElement.classList.remove('hidden');
-        } else {
-            console.error('Element #transport-form nie został znaleziony!');
-        }
-        mapContainer.style.display = 'block';
-        transportList.classList.add('hidden');
-        mapContainer.style.height = '100%';
-        mapContainer.style.width = '100%';
-        offerTransportBtn.style.display = 'none';
-        searchTransportBtn.style.display = 'none';
-        offerSubtitle.style.display = 'none';
-        searchSubtitle.style.display = 'none';
-        backgroundMap.classList.remove('initial-blurred');
-        siteHeader.style.display = 'none';
-        initMap();
-        mapInitialized = true;
+        setTimeout(function() {
+            const transportFormElement = document.getElementById('transport-form');
+            console.log('Znaleziony element transportForm (z opóźnieniem):', transportFormElement);
+            if (transportFormElement) {
+                transportFormElement.classList.remove('hidden');
+            } else {
+                console.error('Element #transport-form nie został znaleziony (z opóźnieniem)!');
+            }
+            mapContainer.style.display = 'block';
+            transportList.classList.add('hidden');
+            mapContainer.style.height = '100%';
+            mapContainer.style.width = '100%';
+            offerTransportBtn.style.display = 'none';
+            searchTransportBtn.style.display = 'none';
+            offerSubtitle.style.display = 'none';
+            searchSubtitle.style.display = 'none';
+            backgroundMap.classList.remove('initial-blurred');
+            siteHeader.style.display = 'none';
+            initMap();
+            mapInitialized = true;
+        }, 50); // Opóźnienie 50 milisekund
     });
 
     searchTransportBtn.addEventListener('click', function() {
         console.log('Kliknięto przycisk SZUKAM TRANSPORTU (w HTML)');
-        const transportFormElement = document.getElementById('transport-form');
-        console.log('Znaleziony element transportForm:', transportFormElement);
-        if (transportFormElement) {
-            transportFormElement.classList.add('hidden');
-        } else {
-            console.error('Element #transport-form nie został znaleziony!');
-        }
-        mapContainer.style.display = 'block';
-        transportList.classList.remove('hidden');
-        mapContainer.style.height = '100%';
-        mapContainer.style.width = '100%';
-        offerTransportBtn.style.display = 'none';
-        searchTransportBtn.style.display = 'none';
-        offerSubtitle.style.display = 'none';
-        searchSubtitle.style.display = 'none';
-        backgroundMap.classList.remove('initial-blurred');
-        siteHeader.style.display = 'none';
-        initMap();
-        mapInitialized = true;
+        setTimeout(function() {
+            const transportFormElement = document.getElementById('transport-form');
+            console.log('Znaleziony element transportForm (z opóźnieniem):', transportFormElement);
+            if (transportFormElement) {
+                transportFormElement.classList.add('hidden');
+            } else {
+                console.error('Element #transport-form nie został znaleziony (z opóźnieniem)!');
+            }
+            mapContainer.style.display = 'block';
+            transportList.classList.remove('hidden');
+            mapContainer.style.height = '100%';
+            mapContainer.style.width = '100%';
+            offerTransportBtn.style.display = 'none';
+            searchTransportBtn.style.display = 'none';
+            offerSubtitle.style.display = 'none';
+            searchSubtitle.style.display = 'none';
+            backgroundMap.classList.remove('initial-blurred');
+            siteHeader.style.display = 'none';
+            initMap();
+            mapInitialized = true;
+        }, 50); // Opóźnienie 50 milisekund
     });
 });
 
