@@ -11,7 +11,7 @@
         <h1>Wykorzystaj puste przebiegi!</h1>
         <p>Znajdź lub zaoferuj transport powrotny lawet i busów w całej Europie. Prosto i szybko!</p>
     </header>
-    <div class="background-map"></div>
+    <div class="background-map blurred"></div>
     <div class="central-buttons">
         <div>
             <button id="offer-transport-btn">OFERUJĘ TRANSPORT</button>
@@ -25,10 +25,17 @@
     <div id="map-container" class="hidden">
         <div id="transport-form" class="hidden">
             <h2>Dodaj swój przejazd</h2>
-            </div>
+            <form>
+                <label for="start_location">Miejsce załadunku:</label><br>
+                <input type="text" id="start_location" name="start_location"><br>
+                <label for="end_location">Miejsce rozładunku:</label><br>
+                <input type="text" id="end_location" name="end_location"><br>
+                <button type="submit">Dodaj przejazd</button>
+            </form>
+        </div>
         <div id="transport-list" class="hidden">
             <h2>Dostępne przejazdy</h2>
-        </div>
+            </div>
     </div>
 
 <script>
@@ -38,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapContainer = document.getElementById('map-container');
     const transportForm = document.getElementById('transport-form');
     const transportList = document.getElementById('transport-list');
+    const backgroundMap = document.querySelector('.background-map'); // Pobierz element mapy tła
 
     let mapInitialized = false;
 
@@ -46,8 +54,11 @@ document.addEventListener('DOMContentLoaded', function() {
         mapContainer.style.display = 'block';
         transportForm.classList.remove('hidden');
         transportList.classList.add('hidden');
-        mapContainer.style.height = '100%'; // Upewnij się, że ta linia jest
-        mapContainer.style.width = '100%';  // Upewnij się, że ta linia jest
+        mapContainer.style.height = '100%';
+        mapContainer.style.width = '100%';
+        offerTransportBtn.style.display = 'none';
+        searchTransportBtn.style.display = 'none';
+        backgroundMap.classList.remove('blurred'); // Usuń klasę rozmycia
         initMap();
         mapInitialized = true;
     });
@@ -57,8 +68,11 @@ document.addEventListener('DOMContentLoaded', function() {
         mapContainer.style.display = 'block';
         transportList.classList.remove('hidden');
         transportForm.classList.add('hidden');
-        mapContainer.style.height = '100%'; // Upewnij się, że ta linia jest
-        mapContainer.style.width = '100%';  // Upewnij się, że ta linia jest
+        mapContainer.style.height = '100%';
+        mapContainer.style.width = '100%';
+        offerTransportBtn.style.display = 'none';
+        searchTransportBtn.style.display = 'none';
+        backgroundMap.classList.remove('blurred'); // Usuń klasę rozmycia
         initMap();
         mapInitialized = true;
     });
@@ -71,7 +85,7 @@ function initMap() {
     const mapDiv = document.getElementById("map-container");
     map = new google.maps.Map(mapDiv, {
         center: { lat: 53.7797, lng: 20.4900 },
-        zoom: 10,
+        zoom: 6, // Zmniejszyłem zoom, aby pokazać większy obszar Europy
         gestureHandling: 'greedy'
     });
 }
