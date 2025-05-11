@@ -19,7 +19,8 @@ const run = async () => {
     process.exit(1)
   }
 
-  console.log(`✅ Usunięto ${data.length} przeterminowanych tras`)
+  console.log(`✅ Usunięto ${data ? data.length : 0} przeterminowanych tras`)
 }
+
 
 run()
