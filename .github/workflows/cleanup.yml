@@ -1,0 +1,28 @@
+name: Supabase Cleanup
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # uruchamiaj co godzinę
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run cleanup
+        env:
+          SUPABASE_URL: ${{ https://lxnjczvmnlxwqfnbbzbt.supabase.co }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4bmpjenZtbmx4d3FmbmJiemJ0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjgyODQ4NSwiZXhwIjoyMDYyNDA0NDg1fQ.HKmLNaMCSdHlAWMx6BQLlGmJKAWDdt0gFcYKzl8Nxz0 }}
+        run: node cleanup.js
