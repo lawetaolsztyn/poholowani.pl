@@ -10,7 +10,7 @@ const run = async () => {
   const cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
   const { data, error } = await supabase
-    .from('trasy')
+    .from('routes')
     .delete()
     .lt('data_transportu', cutoff.toISOString())
 
