@@ -12,7 +12,7 @@ const run = async () => {
   const { data, error } = await supabase
     .from('routes')
     .delete()
-    .lt('data_transportu', cutoff.toISOString())
+    .lt('date', cutoff.toISOString())
 
   if (error) {
     console.error('❌ Błąd przy czyszczeniu tras:', error.message)
