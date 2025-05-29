@@ -3,5 +3,8 @@
   "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.42.0"
+  },
+  "scripts": {
+    "start": "node index.html"
   }
 }
