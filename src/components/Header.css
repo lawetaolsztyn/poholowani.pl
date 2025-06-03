@@ -1,0 +1,8 @@
+.overlay-header {
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.7rem;
+  text-align: center;
+  z-index: 1000;
+  font-size: 1.1rem;
+}

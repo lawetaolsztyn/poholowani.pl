@@ -1,0 +1,12 @@
+.map-cross {
+  position: absolute;
+  top: calc(50% + 250px);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999;
+  font-size: 32px;
+  color: red;
+  pointer-events: none;
+}
+
+<div className="map-cross">+</div>

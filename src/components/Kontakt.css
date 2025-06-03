@@ -1,0 +1,67 @@
+/* Kontakt.css */
+
+.kontakt-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: Arial, sans-serif;
+}
+
+.kontakt-banner {
+  background-color: #004080;
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 40px;
+}
+
+.kontakt-banner h1 {
+  margin: 0 0 10px;
+  font-size: 32px;
+}
+
+.kontakt-banner p {
+  margin: 0;
+  font-size: 18px;
+}
+
+.kontakt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #f8f8f8;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.kontakt-form label {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.kontakt-form input[type="text"],
+.kontakt-form input[type="email"],
+.kontakt-form input[type="file"],
+.kontakt-form textarea {
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.kontakt-form button {
+  background-color: #004080;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.kontakt-form button:hover {
+  background-color: #003060;
+}

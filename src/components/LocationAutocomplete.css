@@ -1,0 +1,96 @@
+/* src/components/LocationAutocomplete.css */
+
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  /* Kolory tła i tekstu będą dziedziczone z index.css lub nadpisane przez media query */
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000; /* Upewnij się, że lista jest na wierzchu */
+  background-color: #fff; /* Czyste białe tło w trybie jasnym */
+  border: 1px solid #ccc; /* Wyraźne obramowanie */
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+}
+
+.autocomplete-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: black; /* Domyślny kolor tekstu w trybie jasnym */
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background-color: #f0f0f0;
+}
+
+.autocomplete-sub {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 2px;
+}
+
+.autocomplete-loading {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* --- Style dla trybu ciemnego dla autouzupełniania --- */
+@media (prefers-color-scheme: dark) {
+  .autocomplete-input {
+    background-color: #333; /* Ciemniejsze tło dla pola autouzupełniania */
+    color: #e0e0e0; /* Jasny tekst w polu autouzupełniania */
+    border: 1px solid #555; /* Ramka */
+  }
+
+  .autocomplete-list {
+    background-color: #333; /* Ciemne tło dla listy autouzupełniania */
+    color: #e0e0e0; /* Jasny tekst */
+    border: 1px solid #555;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .autocomplete-item {
+    color: #e0e0e0; /* Jasny tekst dla elementów listy */
+    border-bottom: 1px solid #444; /* Ciemniejsza linia */
+  }
+
+  .autocomplete-item:hover {
+    background-color: #555; /* Trochę jaśniejsze tło dla najechania */
+  }
+
+  .autocomplete-sub {
+    color: #bbb; /* Jaśniejszy kolor dla sub-tekstu */
+  }
+}

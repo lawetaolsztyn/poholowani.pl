@@ -1,0 +1,35 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #43cea2, #185a9d); /* ten sam co w overlay-header */
+  color: white;
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+}
+
+.navbar a {
+  color: white;
+  margin-right: 1.5rem;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.navbar a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar a.active {
+  background-color: #ff6600;
+  color: white;
+}
+  
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+}

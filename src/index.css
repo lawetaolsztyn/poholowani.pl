@@ -1,0 +1,118 @@
+/* index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark; /* Przeglądarka wie, że strona obsługuje oba tryby */
+  color: rgba(255, 255, 255, 0.87); /* Domyślny kolor tekstu w trybie ciemnym */
+  background-color: #242424; /* Domyślne tło w trybie ciemnym */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  display: block;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* --- Style dla trybu jasnego --- */
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  body {
+    background-color: #f0f2f5; /* Jasne tło dla całej strony */
+    color: #333; /* Ciemny tekst */
+  }
+  /* Style dla pól input, select, textarea w trybie jasnym */
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  select,
+  textarea {
+      background-color: white; /* Białe tło */
+      color: black; /* Czarny tekst */
+      border: 1px solid #ccc; /* Szara ramka */
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+/* --- Style dla trybu ciemnego --- */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a1a; /* Bardzo ciemne tło */
+    color: #e0e0e0; /* Jasny, prawie biały tekst */
+  }
+
+  /* Style dla pól input, select, textarea w trybie ciemnym */
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  select,
+  textarea {
+      background-color: #333; /* Ciemniejsze tło dla pól */
+      color: #e0e0e0; /* Jasny tekst w polach */
+      border: 1px solid #555; /* Trochę jaśniejsza ramka */
+  }
+
+  /* Style dla przycisków w trybie ciemnym */
+  button {
+    background-color: #2a2a2a; /* Ciemniejsze tło przycisku */
+    color: #e0e0e0; /* Jasny tekst przycisku */
+    border-color: #444;
+  }
+  button:hover {
+    border-color: #888;
+    background-color: #3a3a3a;
+  }
+}

@@ -1,0 +1,147 @@
+/* src/components/EditRouteModal.css */
+
+/* Styl dla nakładki (tła zaciemniającego za modalem) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Półprzezroczyste, ciemne tło */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Wysoki z-index, aby modal był zawsze na wierzchu */
+}
+
+/* Styl dla głównego kontenera modala */
+.modal-content {
+  background-color: #fff; /* Białe tło modala w trybie jasnym */
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px; /* Maksymalna szerokość modala */
+  position: relative;
+  max-height: 90vh; /* Ograniczenie wysokości, aby był scroll jeśli za dużo treści */
+  overflow-y: auto; /* Włącz scrollbar jeśli treść wyjdzie poza wysokość */
+}
+
+/* Styl dla nagłówka modala */
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333; /* Ciemny tekst nagłówka w trybie jasnym */
+  text-align: center;
+}
+
+/* Styl dla formularza wewnątrz modala */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Odstępy między polami formularza */
+}
+
+/* Styl dla pól input i select w formularzu modala */
+.modal-form input,
+.modal-form select,
+.modal-form .location-autocomplete-input { /* Dodaj tę klasę dla inputa autocomplete */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box; /* Ważne dla prawidłowej szerokości */
+  background-color: #f9f9f9; /* Lekko szare tło pól w trybie jasnym */
+  color: #333; /* Ciemny tekst w polach */
+}
+
+/* Styl dla focusu na polach */
+.modal-form input:focus,
+.modal-form select:focus,
+.modal-form .location-autocomplete-input:focus {
+  outline: none;
+  border-color: #007bff; /* Podświetlenie ramki przy focusie */
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* Styl dla kontenera przycisków na dole modala */
+.modal-buttons-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+}
+
+/* Styl dla przycisków w modalu */
+.modal-buttons-container button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.modal-buttons-container button[type="button"] { /* Przycisk "Anuluj" */
+  background-color: #6c757d; /* Szary */
+  color: white;
+}
+
+.modal-buttons-container button[type="button"]:hover {
+  background-color: #5a6268;
+}
+
+.modal-buttons-container button[type="submit"] { /* Przycisk "Zapisz" */
+  background-color: #28a745; /* Zielony */
+  color: white;
+}
+
+.modal-buttons-container button[type="submit"]:hover {
+  background-color: #218838;
+}
+
+/* --- Style dla trybu ciemnego --- */
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background-color: #2a2a2a; /* Ciemne tło modala */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+  }
+
+  .modal-content h2 {
+    color: #e0e0e0; /* Jasny tekst nagłówka */
+  }
+
+  .modal-form input,
+  .modal-form select,
+  .modal-form .location-autocomplete-input {
+    background-color: #3b3b3b; /* Ciemniejsze tło pól */
+    color: #e0e0e0; /* Jasny tekst w polach */
+    border-color: #555;
+  }
+
+  .modal-form input:focus,
+  .modal-form select:focus,
+  .modal-form .location-autocomplete-input:focus {
+    border-color: #0099ff; /* Jaśniejsze podświetlenie ramki */
+    box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.3);
+  }
+
+  /* Przyciski w trybie ciemnym */
+  .modal-buttons-container button[type="button"] {
+    background-color: #4a4a4a;
+    color: #e0e0e0;
+  }
+  .modal-buttons-container button[type="button"]:hover {
+    background-color: #606060;
+  }
+
+  .modal-buttons-container button[type="submit"] {
+    background-color: #218838; /* Nadal zielony, ale może być trochę ciemniejszy */
+    color: #e0e0e0;
+  }
+  .modal-buttons-container button[type="submit"]:hover {
+    background-color: #1a6f2c;
+  }
+}
