@@ -1,53 +1,30 @@
-// cleanup.js
-// Node.js script to remove expired routes from Supabase
+import { createClient } from '@supabase/supabase-js'
 
-// Polyfill fetch for Node.js
-import fetch from 'node-fetch';
-if (!globalThis.fetch) globalThis.fetch = fetch;
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-// Load environment variables (if using .env locally)
-import 'dotenv/config';
+const run = async () => {
+  const now = new Date()
+  // odcinamy godziny – zostaje tylko YYYY-MM-DD
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-// Validate ENV vars
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Brakuje zmiennych ENV: SUPABASE_URL i/lub SUPABASE_SERVICE_ROLE_KEY');
-  process.exit(1);
-}
+  const cutoff = new Date(today.getTime() - 24 * 60 * 60 * 1000) // wczorajsza data
 
-// Initialize Supabase client with service role key
-const supabase = createClient(supabaseUrl, supabaseKey);
+  const cutoffISO = cutoff.toISOString().split('T')[0] // tylko YYYY-MM-DD
 
-async function runCleanup() {
-  try {
-    const now = new Date();
-    // Dziś o północy
-    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // Wczorajsza data
-    const cutoff = new Date(todayMidnight.getTime() - 24 * 60 * 60 * 1000);
-    const cutoffISO = cutoff.toISOString().split('T')[0];
+  const { data, error } = await supabase
+    .from('routes')
+    .delete()
+    .lt('date', cutoffISO) // usuwamy jeśli 'date' < wczoraj
 
-    // Usuń trasy starsze niż cutoffISO
-    const { data, error } = await supabase
-      .from('routes')
-      .delete()
-      .lt('date', cutoffISO);
-
-    if (error) {
-      console.error('❌ Błąd przy czyszczeniu tras:', error.message);
-      process.exit(1);
-    }
-
-    console.log(`✅ Usunięto ${data?.length ?? 0} tras starszych niż ${cutoffISO}`);
-    process.exit(0);
-  } catch (e) {
-    console.error('❌ Nieoczekiwany błąd podczas czyszczenia tras:', e.message);
-    process.exit(1);
+  if (error) {
+    console.error('❌ Błąd przy czyszczeniu tras:', error.message)
+    process.exit(1)
   }
+
+  console.log(`✅ Usunięto ${data ? data.length : 0} przeterminowanych tras z datą mniejszą niż ${cutoffISO}`)
 }
 
-// Uruchom skrypt
-runCleanup();
+run()
