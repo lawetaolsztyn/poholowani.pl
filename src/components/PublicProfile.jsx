@@ -280,7 +280,7 @@ export default function PublicProfile() {
           </div>
 
           <div className="text-gray-700 text-lg leading-loose mb-4">
-            {profile.account_type === 'company' && (
+            {profile.role === 'firma' && (
               <>
                 <p><strong>NIP:</strong> {profile.nip || 'Brak danych'}</p>
 <p><strong>Telefon:</strong>{' '}

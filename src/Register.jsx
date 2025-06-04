@@ -59,7 +59,6 @@ export default function Register() {
   password: trimmedPassword,
   options: {
     data: {
-      account_type: role === 'firma' ? 'company' : 'private',
       full_name: fullName || companyName, // wybierz to, co wpisano
       role: role // 'klient' lub 'firma'
     }
