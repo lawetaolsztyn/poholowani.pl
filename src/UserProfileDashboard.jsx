@@ -46,7 +46,7 @@ export default function UserProfileDashboard() {
 
     const baseTabs = ['Moje dane', 'Hasło'];
     // Zmieniono 'driver' na 'company' zgodnie z Twoim kodem
-    if (formData.account_type === 'company') {
+    if (formData.role === 'firma') {
       baseTabs.push('Profil publiczny');
       baseTabs.push('Pomoc drogowa');
     }
@@ -150,7 +150,7 @@ export default function UserProfileDashboard() {
               <input type="text" name="full_name" value={formData.full_name || ''} onChange={handleChange} className="form-input" />
             </label>
 
-            {formData.account_type === 'company' && (
+            {formData.role === 'firma' && (
               <>
                 <label className="form-label">
                   NIP:

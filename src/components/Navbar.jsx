@@ -2,12 +2,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import './Navbar.css';
 import { supabase } from '../supabaseClient';
-import { useUser } from '@supabase/auth-helpers-react';
 
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [accountType, setAccountType] = useState(null);
+  const [role, setRole] = useState(null);
   const [email, setEmail] = useState(null);
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
@@ -19,43 +18,34 @@ export default function Navbar() {
         setEmail(user.email);
         const { data: profile, error: profileError } = await supabase
           .from('users_extended')
-          .select('account_type')
+          .select('role')
           .eq('id', user.id)
           .single();
 
         if (profileError) {
-          console.error('Błąd pobierania typu konta użytkownika z Navbar:', profileError.message);
-          setAccountType(null);
-        } else if (profile?.account_type) {
-          setAccountType(profile.account_type);
-          localStorage.setItem('account_type', profile.account_type);
+          console.error('Błąd pobierania roli użytkownika z Navbar:', profileError.message);
+          setRole(null);
+        } else if (profile?.role) {
+          console.log('🔑 Odczytano rolę z Supabase:', profile.role);
+          setRole(profile.role);
+          localStorage.setItem('role', profile.role);
         } else {
-          setAccountType(null);
-          localStorage.removeItem('account_type');
+          setRole(null);
+          localStorage.removeItem('role');
         }
       } else {
         setEmail(null);
-        setAccountType(null);
-        localStorage.removeItem('account_type');
+        setRole(null);
+        localStorage.removeItem('role');
       }
     };
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        checkUser();
-      } else {
-        setEmail(null);
-        setAccountType(null);
-        localStorage.removeItem('account_type');
-      }
-    });
 
     checkUser();
+  }, [location.pathname]);
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
+  useEffect(() => {
+    console.log('👀 Aktualna rola w stanie Reacta:', role);
+  }, [role]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -64,8 +54,8 @@ export default function Navbar() {
       alert('Wystąpił błąd podczas wylogowywania.');
     } else {
       setEmail(null);
-      setAccountType(null);
-      localStorage.removeItem('account_type');
+      setRole(null);
+      localStorage.removeItem('role');
       navigate('/login');
     }
   };
@@ -106,7 +96,9 @@ export default function Navbar() {
               }}
               onClick={() => navigate('/profil')}
             >
-              🔒 {accountType === 'private' ? 'Klient' : (accountType === 'company' ? 'Firma' : 'Użytkownik')} ({email})
+              🔒 {role?.toUpperCase() === 'KLIENT' ? 'Klient' :
+                   role?.toUpperCase() === 'FIRMA' ? 'Firma' :
+                   'Użytkownik'} ({email})
             </span>
             <button
               onClick={handleLogout}
@@ -127,6 +119,8 @@ export default function Navbar() {
           </>
         )}
       </div>
+
+     
     </nav>
   );
 }

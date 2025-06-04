@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useUser } from '@supabase/auth-helpers-react';
@@ -8,6 +8,38 @@ export default function ChooseRoleAfterOAuth() {
   const [loading, setLoading] = useState(false);
   const user = useUser();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const ensureUserProfile = async () => {
+      if (!user) return;
+
+      const { data: existing, error } = await supabase
+        .from('users_extended')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        console.warn('➡️ Tworzę nowy rekord w users_extended dla:', user.email);
+        const { error: insertError } = await supabase
+          .from('users_extended')
+          .insert([{
+            id: user.id,
+            email: user.email,
+            role: null,
+            full_name: user.user_metadata?.full_name || '',
+            company_name: '',
+            nip: ''
+          }]);
+
+        if (insertError) {
+          console.error('❌ Błąd tworzenia profilu:', insertError.message);
+        }
+      }
+    };
+
+    ensureUserProfile();
+  }, [user]);
 
   const handleSubmit = async () => {
     if (!user) return;
