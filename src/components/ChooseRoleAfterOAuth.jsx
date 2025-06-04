@@ -48,7 +48,7 @@ export default function ChooseRoleAfterOAuth() {
       return;
     }
 
-    const mappedRole = role === 'client' ? 'KLIENT' : 'FIRMA';
+    const mappedRole = role === 'client' ? 'klient' : 'firma';
 
     setLoading(true);
     const { error } = await supabase
