@@ -41,7 +41,7 @@ export default function Login() {
       // Zawsze pobieraj aktualny profil z bazy danych dla decyzyjności
       const { data: profile, error: profileError } = await supabase
         .from('users_extended')
-        .select('role')
+        .select('role') // Pobieramy tylko rolę, aby było szybciej
         .eq('id', user.id)
         .single();
 
@@ -49,11 +49,15 @@ export default function Login() {
         // Jeśli profil nie istnieje (PGRST116) lub inny błąd,
         // kieruj do wyboru roli. Trigger powinien go stworzyć.
         console.error('❌ handleAuthRedirect: Błąd pobierania profilu lub brak profilu:', profileError.message);
-        navigate('/choose-role');
+        navigate('/choose-role'); // Nadal kierujemy na choose-role, jeśli błąd, aby to obsłużyć.
         return;
       }
 
       // Sprawdzamy rolę (konwertując na małe litery dla spójności)
+      // DODAJ TE LOGI, ABY ZOBACZYĆ DOKŁADNIE, CO JEST W profile.role
+      console.log('DEBUG: profile.role z bazy danych w Login.jsx:', profile.role);
+      console.log('DEBUG: profile.role po toLowerCase() w Login.jsx:', profile.role?.toLowerCase());
+
       if (profile.role?.toLowerCase() === 'nieprzypisana') {
         console.log('handleAuthRedirect: Rola użytkownika to "nieprzypisana". Przekierowuję do wyboru roli.');
         navigate('/choose-role');
@@ -69,13 +73,10 @@ export default function Login() {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session);
       if (event === 'SIGNED_IN') {
-        // Gdy użytkownik się zaloguje (np. po OAuth), wywołaj logikę przekierowania
         handleAuthRedirect(session?.user);
       } else if (event === 'SIGNED_OUT') {
-        // Jeśli użytkownik wylogował się, nawiguj do logowania
         navigate('/login');
       }
-      // Nie wywołuj handleAuthRedirect w innych eventach, aby uniknąć niepotrzebnego przetwarzania
     });
 
     // POZA słuchaczem, sprawdzaj sesję tylko raz przy załadowaniu komponentu,
@@ -198,7 +199,7 @@ export default function Login() {
           <hr style={{ margin: '20px 0' }} />
 
           <button onClick={() => handleOAuthLogin('google')} style={{ ...btnStyle, backgroundColor: '#db4437' }}>Zaloguj przez Google</button>
-          <button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
+          <button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnNtnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
 
           {message && <p style={{ marginTop: '20px' }}>{message}</p>}
 
