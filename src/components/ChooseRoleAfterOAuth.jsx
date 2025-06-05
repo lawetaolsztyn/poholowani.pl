@@ -12,7 +12,10 @@ export default function ChooseRoleAfterOAuth() {
   useEffect(() => {
     const ensureUserProfile = async () => {
       if (!user) {
-        setLoading(false);
+        // Jeśli użytkownik nie jest zalogowany, wyjdź.
+        // Ewentualnie możesz tutaj przekierować do logowania,
+        // ale komponent Login.jsx już to obsługuje.
+        setLoading(false); // Zakończ ładowanie, jeśli nie ma użytkownika
         return;
       }
 
@@ -26,21 +29,26 @@ export default function ChooseRoleAfterOAuth() {
 
       if (error && error.code === 'PGRST116') {
         console.warn('➡️ ChooseRoleAfterOAuth: Profil nie znaleziony przy pierwszym sprawdzeniu. Oczekuję, że trigger go stworzy.');
-        setLoading(false);
+        // Pozostajemy na tej stronie, aby umożliwić wybór roli.
+        setLoading(false); // Zakończ ładowanie, aby formularz się pojawił
       } else if (error) {
         console.error('❌ ChooseRoleAfterOAuth: Błąd pobierania profilu:', error.message);
-        setLoading(false);
+        // Możesz tutaj wyświetlić komunikat błędu użytkownikowi lub wylogować go.
+        setLoading(false); // Zakończ ładowanie nawet w przypadku błędu
       } else if (existing && existing.role?.toLowerCase() !== 'nieprzypisana') {
+        // Jeśli profil istnieje I rola NIE JEST 'nieprzypisana' (czyli jest już ustawiona)
         console.log('✅ ChooseRoleAfterOAuth: Rola użytkownika już ustawiona na:', existing.role, '. Przekierowuję do profilu.');
-        navigate('/profil');
-        return;
+        navigate('/profil'); // Przekieruj do profilu
+        // Ważne: nie ustawiaj setLoading(false) tutaj, bo i tak nastąpi przekierowanie
+        return; // Zakończ działanie funkcji, aby uniknąć dalszego renderowania
       } else {
-        setLoading(false);
+        // Profil istnieje, ale rola to 'nieprzypisana', więc pozostajemy na tej stronie.
+        setLoading(false); // Zakończ ładowanie, aby formularz się pojawił
       }
     };
 
     ensureUserProfile();
-  }, [user, navigate]);
+  }, [user, navigate]); // Dodaj 'navigate' do zależności useEffect
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -49,10 +57,10 @@ export default function ChooseRoleAfterOAuth() {
       return;
     }
 
-    // Zmieniono: usunięto 'client' i 'company' na rzecz 'klient' i 'firma'
+    // Upewnij się, że rola jest zawsze zapisywana małymi literami
     const mappedRole = role === 'client' ? 'klient' : 'firma';
 
-    setLoading(true);
+    setLoading(true); // Rozpocznij ładowanie podczas zapisywania
     const { error } = await supabase
       .from('users_extended')
       .update({ role: mappedRole })
@@ -60,13 +68,15 @@ export default function ChooseRoleAfterOAuth() {
 
     if (error) {
       alert('Błąd przy zapisie roli.');
-      setLoading(false);
+      setLoading(false); // Zakończ ładowanie w przypadku błędu zapisu
     } else {
+      // Po pomyślnym zapisie roli, zaktualizuj localStorage i przekieruj
       localStorage.setItem('role', mappedRole);
       navigate('/profil');
     }
   };
 
+  // Warunkowe renderowanie: jeśli loading jest true, pokazujemy komunikat "Ładowanie..."
   if (loading) {
     return (
       <div style={{ textAlign: 'center', marginTop: '50px', fontSize: '1.2rem', color: '#555' }}>
@@ -75,17 +85,18 @@ export default function ChooseRoleAfterOAuth() {
     );
   }
 
+  // Jeśli nie ma loading, renderujemy formularz wyboru roli
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h2>Wybierz swoje konto</h2>
       <div style={{ marginTop: '20px' }}>
         <button
-          onClick={() => setRole('klient')} // Zmieniono na 'klient'
+          onClick={() => setRole('client')}
           style={{
             padding: '10px 20px',
             marginRight: '20px',
-            backgroundColor: role === 'klient' ? '#007bff' : '#f0f0f0',
-            color: role === 'klient' ? '#fff' : '#000',
+            backgroundColor: role === 'client' ? '#007bff' : '#f0f0f0',
+            color: role === 'client' ? '#fff' : '#000',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer'
@@ -94,11 +105,11 @@ export default function ChooseRoleAfterOAuth() {
           KLIENT
         </button>
         <button
-          onClick={() => setRole('firma')} // Zmieniono na 'firma'
+          onClick={() => setRole('company')}
           style={{
             padding: '10px 20px',
-            backgroundColor: role === 'firma' ? '#007bff' : '#f0f0f0',
-            color: role === 'firma' ? '#fff' : '#000',
+            backgroundColor: role === 'company' ? '#007bff' : '#f0f0f0',
+            color: role === 'company' ? '#fff' : '#000',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer'
