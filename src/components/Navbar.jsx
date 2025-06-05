@@ -96,9 +96,9 @@ export default function Navbar() {
               }}
               onClick={() => navigate('/profil')}
             >
-              🔒 {role?.toUpperCase() === 'KLIENT' ? 'Klient' :
-                   role?.toUpperCase() === 'FIRMA' ? 'Firma' :
-                   'Użytkownik'} ({email})
+              🔒 {role === 'klient' ? 'Klient' :
+     role === 'firma' ? 'Firma' :
+     'Użytkownik'} ({email})
             </span>
             <button
               onClick={handleLogout}

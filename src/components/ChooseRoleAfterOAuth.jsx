@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useUser } from '@supabase/auth-helpers-react';
+import Navbar from './Navbar';
+import Header from './Header';
 
 export default function ChooseRoleAfterOAuth() {
   const [role, setRole] = useState('');
@@ -28,7 +30,7 @@ export default function ChooseRoleAfterOAuth() {
             navigate('/profil');
             return;
           }
-          return; // Rola to "nieprzypisana", zostajemy na stronie
+          return;
         }
 
         if (error?.code === 'PGRST116' || !existing) {
@@ -80,54 +82,58 @@ export default function ChooseRoleAfterOAuth() {
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2>Wybierz swoje konto</h2>
-      <div style={{ marginTop: '20px' }}>
-        <button
-          onClick={() => setRole('klient')}
-          style={{
-            padding: '10px 20px',
-            marginRight: '20px',
-            backgroundColor: role === 'klient' ? '#007bff' : '#f0f0f0',
-            color: role === 'klient' ? '#fff' : '#000',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          KLIENT
-        </button>
-        <button
-          onClick={() => setRole('firma')}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: role === 'firma' ? '#007bff' : '#f0f0f0',
-            color: role === 'firma' ? '#fff' : '#000',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          FIRMA
-        </button>
+    <>
+      <Navbar />
+      <Header title="Dokończ rejestrację" subtitle="Wybierz typ swojego konta" />
+      <div style={{ textAlign: 'center', marginTop: '50px' }}>
+        <h2>Wybierz swoje konto</h2>
+        <div style={{ marginTop: '20px' }}>
+          <button
+            onClick={() => setRole('klient')}
+            style={{
+              padding: '10px 20px',
+              marginRight: '20px',
+              backgroundColor: role === 'klient' ? '#007bff' : '#f0f0f0',
+              color: role === 'klient' ? '#fff' : '#000',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            OSOBA PRYWATNA
+          </button>
+          <button
+            onClick={() => setRole('firma')}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: role === 'firma' ? '#007bff' : '#f0f0f0',
+              color: role === 'firma' ? '#fff' : '#000',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            FIRMA
+          </button>
+        </div>
+        <div style={{ marginTop: '30px' }}>
+          <button
+            onClick={handleSubmit}
+            disabled={!role || loading}
+            style={{
+              padding: '10px 30px',
+              backgroundColor: '#28a745',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: role ? 'pointer' : 'not-allowed',
+              opacity: loading ? 0.6 : 1
+            }}
+          >
+            Zatwierdź
+          </button>
+        </div>
       </div>
-      <div style={{ marginTop: '30px' }}>
-        <button
-          onClick={handleSubmit}
-          disabled={!role || loading}
-          style={{
-            padding: '10px 30px',
-            backgroundColor: '#28a745',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: role ? 'pointer' : 'not-allowed',
-            opacity: loading ? 0.6 : 1
-          }}
-        >
-          Zatwierdź
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
