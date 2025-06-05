@@ -199,8 +199,7 @@ export default function Login() {
           <hr style={{ margin: '20px 0' }} />
 
           <button onClick={() => handleOAuthLogin('google')} style={{ ...btnStyle, backgroundColor: '#db4437' }}>Zaloguj przez Google</button>
-          <button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnNtnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
-
+<button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
           {message && <p style={{ marginTop: '20px' }}>{message}</p>}
 
           {showResendEmailButton && (
