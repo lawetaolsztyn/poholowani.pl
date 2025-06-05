@@ -50,7 +50,7 @@ export default function ChooseRoleAfterOAuth() {
     }
 
     // Zmieniono: usunięto 'client' i 'company' na rzecz 'klient' i 'firma'
-    const mappedRole = role; // Teraz 'role' jest już prawidłowe (klient/firma)
+    const mappedRole = role === 'client' ? 'klient' : 'firma';)
 
     setLoading(true);
     const { error } = await supabase
