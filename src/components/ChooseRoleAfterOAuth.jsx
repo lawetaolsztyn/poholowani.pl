@@ -1,120 +1,48 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import { useUser } from '@supabase/auth-helpers-react';
-
-export default function ChooseRoleAfterOAuth() {
-  const [role, setRole] = useState('');
-  const [loading, setLoading] = useState(false);
-  const user = useUser();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-const ensureUserProfile = async () => {
-  if (!user) return;
-
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const { data: existing, error } = await supabase
-      .from('users_extended')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (existing) {
-      if (existing.role?.toLowerCase() !== 'nieprzypisana') {
-        console.log('✅ ChooseRoleAfterOAuth: Rola użytkownika już ustawiona na:', existing.role, '. Przekierowuję do profilu.');
-        navigate('/profil');
-        return;
-      }
-      return; // Rola "nieprzypisana" – zostaje na stronie
-    }
-
-    console.warn(`⏳ Czekam na utworzenie profilu przez trigger (próba ${attempt + 1}/10)`);
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-
-  console.error('❌ ChooseRoleAfterOAuth: Profil nie został utworzony przez trigger.');
-};
-
-
-    ensureUserProfile();
-  }, [user, navigate]); // Dodaj 'navigate' do zależności useEffect
-
-  const handleSubmit = async () => {
+useEffect(() => {
+  const ensureUserProfile = async () => {
     if (!user) return;
-    if (!role) {
-      alert('Wybierz rolę przed przejściem dalej.');
-      return;
+
+    let profileCreated = false;
+
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const { data: existing, error } = await supabase
+        .from('users_extended')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        if (existing.role?.toLowerCase() !== 'nieprzypisana') {
+          console.log('✅ ChooseRoleAfterOAuth: Rola użytkownika już ustawiona na:', existing.role, '. Przekierowuję do profilu.');
+          navigate('/profil');
+          return;
+        }
+        return; // Rola to "nieprzypisana", zostajemy na stronie
+      }
+
+      if (error?.code === 'PGRST116' || !existing) {
+        console.warn(`⏳ Czekam na utworzenie profilu przez trigger (próba ${attempt + 1}/10)`);
+
+        if (attempt === 4 && !profileCreated) {
+          // Tworzymy ręcznie rekord po 5 próbach (czyli po 2,5 sekundy)
+          console.warn('⚠️ Trigger nie utworzył profilu – tworzymy ręcznie.');
+          const { error: insertError } = await supabase
+            .from('users_extended')
+            .insert([{ id: user.id, email: user.email, role: 'nieprzypisana' }]);
+
+          if (insertError) {
+            console.error('❌ Błąd ręcznego tworzenia profilu:', insertError.message);
+          } else {
+            profileCreated = true;
+          }
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    // Upewnij się, że rola jest zawsze zapisywana małymi literami
-    const mappedRole = role === 'client' ? 'klient' : 'firma';
-
-    setLoading(true);
-    const { error } = await supabase
-      .from('users_extended')
-      .update({ role: mappedRole })
-      .eq('id', user.id);
-
-    if (error) {
-      alert('Błąd przy zapisie roli.');
-      setLoading(false);
-    } else {
-      // Po pomyślnym zapisie roli, zaktualizuj localStorage i przekieruj
-      localStorage.setItem('role', mappedRole);
-      navigate('/profil');
-    }
+    console.error('❌ ChooseRoleAfterOAuth: Profil nadal nie istnieje.');
   };
 
-  return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2>Wybierz swoje konto</h2>
-      <div style={{ marginTop: '20px' }}>
-        <button
-          onClick={() => setRole('client')}
-          style={{
-            padding: '10px 20px',
-            marginRight: '20px',
-            backgroundColor: role === 'client' ? '#007bff' : '#f0f0f0',
-            color: role === 'client' ? '#fff' : '#000',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          KLIENT
-        </button>
-        <button
-          onClick={() => setRole('company')}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: role === 'company' ? '#007bff' : '#f0f0f0',
-            color: role === 'company' ? '#fff' : '#000',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          FIRMA
-        </button>
-      </div>
-      <div style={{ marginTop: '30px' }}>
-        <button
-          onClick={handleSubmit}
-          disabled={!role || loading}
-          style={{
-            padding: '10px 30px',
-            backgroundColor: '#28a745',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: role ? 'pointer' : 'not-allowed',
-            opacity: loading ? 0.6 : 1
-          }}
-        >
-          Zatwierdź
-        </button>
-      </div>
-    </div>
-  );
-}
+  ensureUserProfile();
+}, [user, navigate]);
