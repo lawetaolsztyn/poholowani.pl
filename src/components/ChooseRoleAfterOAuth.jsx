@@ -10,35 +10,32 @@ export default function ChooseRoleAfterOAuth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const ensureUserProfile = async () => {
-      if (!user) return; // Jeśli użytkownik nie jest zalogowany, wyjdź
+const ensureUserProfile = async () => {
+  if (!user) return;
 
-      const { data: existing, error } = await supabase
-        .from('users_extended')
-        .select('role') // Optymalizacja: pobieraj tylko rolę
-        .eq('id', user.id)
-        .single();
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const { data: existing, error } = await supabase
+      .from('users_extended')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
 
-      if (error && error.code === 'PGRST116') {
-        // Ten blok powinien być wykonywany TYLKO jeśli profil NIE ISTNIEJE
-        // i jest to pierwsze zalogowanie OAuth, a trigger nie zadziałał.
-        // Jeśli trigger działa, ten blok może być zbędny, a nawet usunięty.
-        // W przeciwnym razie, może generować błąd "duplicate key" jeśli już istnieje.
-        // Zakładamy, że trigger działa i tworzy "nieprzypisana".
-        console.warn('➡️ ChooseRoleAfterOAuth: Profil nie znaleziony przy pierwszym sprawdzeniu. Oczekuję, że trigger go stworzy.');
-        // Usuń stąd kod insertu, jeśli jest, ponieważ to robi trigger.
-      } else if (error) {
-        // Obsługa innych błędów pobierania profilu
-        console.error('❌ ChooseRoleAfterOAuth: Błąd pobierania profilu:', error.message);
-        // Możesz tutaj wyświetlić komunikat błędu użytkownikowi lub wylogować go.
-      } else if (existing && existing.role?.toLowerCase() !== 'nieprzypisana') {
-        // Jeśli profil istnieje I rola NIE JEST 'nieprzypisana' (czyli jest już ustawiona)
+    if (existing) {
+      if (existing.role?.toLowerCase() !== 'nieprzypisana') {
         console.log('✅ ChooseRoleAfterOAuth: Rola użytkownika już ustawiona na:', existing.role, '. Przekierowuję do profilu.');
-        navigate('/profil'); // Przekieruj do profilu
-        return; // Zakończ działanie funkcji, aby uniknąć dalszego renderowania formularza
+        navigate('/profil');
+        return;
       }
-      // Jeśli profil istnieje, ale rola to 'nieprzypisana', pozostajemy na tej stronie, aby użytkownik mógł wybrać rolę.
-    };
+      return; // Rola "nieprzypisana" – zostaje na stronie
+    }
+
+    console.warn(`⏳ Czekam na utworzenie profilu przez trigger (próba ${attempt + 1}/10)`);
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+
+  console.error('❌ ChooseRoleAfterOAuth: Profil nie został utworzony przez trigger.');
+};
+
 
     ensureUserProfile();
   }, [user, navigate]); // Dodaj 'navigate' do zależności useEffect

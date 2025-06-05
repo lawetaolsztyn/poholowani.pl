@@ -43,7 +43,7 @@ export default function Login() {
         .from('users_extended')
         .select('role') // Pobieramy tylko rolę, aby było szybciej
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         // Jeśli profil nie istnieje (PGRST116) lub inny błąd,
