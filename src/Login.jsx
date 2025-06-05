@@ -36,45 +36,33 @@ export default function Login() {
 
         const { data: profile, error: profileError } = await supabase
           .from('users_extended')
-          .select('*')
+          .select('role') // Pobieramy tylko rolę, aby było szybciej
           .eq('id', user.id)
           .single();
 
-        if (profileError && profileError.code === 'PGRST116') {
-  console.warn('⚠️ Brak profilu w users_extended, tworzę...');
-  const { data: newProfile, error: insertError } = await supabase
-    .from('users_extended')
-    .insert([{
-      id: user.id,
-      email: user.email,
-      role: 'nieprzypisana',
-      full_name: user.raw_user_meta_data?.full_name || '',
-      company_name: user.raw_user_meta_data?.company_name || '',
-      nip: user.raw_user_meta_data?.nip || ''
-    }]);
+        if (profileError) {
+          // Jeśli profil nie istnieje (PGRST116) LUB wystąpił inny błąd podczas pobierania,
+          // zawsze przekieruj do wyboru roli. Trigger powinien już utworzyć rekord.
+          console.error('❌ Błąd pobierania profilu lub brak profilu:', profileError.message);
+          navigate('/choose-role');
+          return;
+        }
 
-  if (insertError) {
-    console.error('❌ Błąd tworzenia profilu:', insertError.message);
-    setMessage(`❌ Błąd: ${insertError.message}`);
-    await supabase.auth.signOut();
-    return;
-  }
+        // Sprawdzamy rolę (konwertując na małe litery dla spójności)
+        if (profile.role?.toLowerCase() === 'nieprzypisana') {
+          console.log('Rola użytkownika to "nieprzypisana". Przekierowuję do wyboru roli.');
+          navigate('/choose-role');
+          return;
+        }
 
-  navigate('/choose-role');
-  return;
-} else if (profileError) {
-  console.error('❌ Błąd pobierania profilu:', profileError.message);
-  setMessage(`❌ Błąd: ${profileError.message}`);
-  return;
-}
-
-if (profile.role === 'nieprzypisana') {
-  navigate('/choose-role');
-  return;
-}
-
-navigate('/profil');
-
+        // Jeśli rola jest już ustawiona (np. 'klient' lub 'firma')
+        console.log('Rola użytkownika już ustawiona na:', profile.role, '. Przekierowuję do profilu.');
+        navigate('/profil');
+        
+      } else {
+        // Użytkownik wylogowany, lub sesja wygasła
+        console.log("Użytkownik wylogowany lub brak sesji. Przekierowuję do logowania.");
+        navigate('/login');
       }
     };
 
@@ -87,6 +75,7 @@ navigate('/profil');
       }
     });
 
+    // Wywołaj handleAuthChange również przy pierwszym renderowaniu komponentu
     handleAuthChange();
 
     return () => {

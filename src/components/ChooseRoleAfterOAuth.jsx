@@ -19,23 +19,7 @@ export default function ChooseRoleAfterOAuth() {
         .eq('id', user.id)
         .single();
 
-      if (error && error.code === 'PGRST116') {
-        console.warn('➡️ Tworzę nowy rekord w users_extended dla:', user.email);
-        const { error: insertError } = await supabase
-          .from('users_extended')
-          .insert([{
-            id: user.id,
-            email: user.email,
-            role: null,
-            full_name: user.user_metadata?.full_name || '',
-            company_name: '',
-            nip: ''
-          }]);
-
-        if (insertError) {
-          console.error('❌ Błąd tworzenia profilu:', insertError.message);
-        }
-      }
+    
     };
 
     ensureUserProfile();
