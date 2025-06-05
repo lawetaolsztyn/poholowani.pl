@@ -5,13 +5,18 @@ import { useUser } from '@supabase/auth-helpers-react';
 
 export default function ChooseRoleAfterOAuth() {
   const [role, setRole] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Ustawiamy true domyślnie, aby pokazać ładowanie na początku
   const user = useUser();
   const navigate = useNavigate();
 
   useEffect(() => {
     const ensureUserProfile = async () => {
-      if (!user) return; // Jeśli użytkownik nie jest zalogowany, wyjdź
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      console.log('ChooseRoleAfterOAuth: Użytkownik dostępny:', user.id, user.email);
 
       const { data: existing, error } = await supabase
         .from('users_extended')
@@ -20,28 +25,22 @@ export default function ChooseRoleAfterOAuth() {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // Ten blok powinien być wykonywany TYLKO jeśli profil NIE ISTNIEJE
-        // i jest to pierwsze zalogowanie OAuth, a trigger nie zadziałał.
-        // Jeśli trigger działa, ten blok może być zbędny, a nawet usunięty.
-        // W przeciwnym razie, może generować błąd "duplicate key" jeśli już istnieje.
-        // Zakładamy, że trigger działa i tworzy "nieprzypisana".
         console.warn('➡️ ChooseRoleAfterOAuth: Profil nie znaleziony przy pierwszym sprawdzeniu. Oczekuję, że trigger go stworzy.');
-        // Usuń stąd kod insertu, jeśli jest, ponieważ to robi trigger.
+        setLoading(false);
       } else if (error) {
-        // Obsługa innych błędów pobierania profilu
         console.error('❌ ChooseRoleAfterOAuth: Błąd pobierania profilu:', error.message);
-        // Możesz tutaj wyświetlić komunikat błędu użytkownikowi lub wylogować go.
+        setLoading(false);
       } else if (existing && existing.role?.toLowerCase() !== 'nieprzypisana') {
-        // Jeśli profil istnieje I rola NIE JEST 'nieprzypisana' (czyli jest już ustawiona)
         console.log('✅ ChooseRoleAfterOAuth: Rola użytkownika już ustawiona na:', existing.role, '. Przekierowuję do profilu.');
-        navigate('/profil'); // Przekieruj do profilu
-        return; // Zakończ działanie funkcji, aby uniknąć dalszego renderowania formularza
+        navigate('/profil');
+        return;
+      } else {
+        setLoading(false);
       }
-      // Jeśli profil istnieje, ale rola to 'nieprzypisana', pozostajemy na tej stronie, aby użytkownik mógł wybrać rolę.
     };
 
     ensureUserProfile();
-  }, [user, navigate]); // Dodaj 'navigate' do zależności useEffect
+  }, [user, navigate]);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -50,8 +49,8 @@ export default function ChooseRoleAfterOAuth() {
       return;
     }
 
-    // Upewnij się, że rola jest zawsze zapisywana małymi literami
-    const mappedRole = role === 'client' ? 'klient' : 'firma';
+    // Zmieniono: usunięto 'client' i 'company' na rzecz 'klient' i 'firma'
+    const mappedRole = role; // Teraz 'role' jest już prawidłowe (klient/firma)
 
     setLoading(true);
     const { error } = await supabase
@@ -63,23 +62,30 @@ export default function ChooseRoleAfterOAuth() {
       alert('Błąd przy zapisie roli.');
       setLoading(false);
     } else {
-      // Po pomyślnym zapisie roli, zaktualizuj localStorage i przekieruj
       localStorage.setItem('role', mappedRole);
       navigate('/profil');
     }
   };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px', fontSize: '1.2rem', color: '#555' }}>
+        Ładowanie...
+      </div>
+    );
+  }
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h2>Wybierz swoje konto</h2>
       <div style={{ marginTop: '20px' }}>
         <button
-          onClick={() => setRole('client')}
+          onClick={() => setRole('klient')} // Zmieniono na 'klient'
           style={{
             padding: '10px 20px',
             marginRight: '20px',
-            backgroundColor: role === 'client' ? '#007bff' : '#f0f0f0',
-            color: role === 'client' ? '#fff' : '#000',
+            backgroundColor: role === 'klient' ? '#007bff' : '#f0f0f0',
+            color: role === 'klient' ? '#fff' : '#000',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer'
@@ -88,11 +94,11 @@ export default function ChooseRoleAfterOAuth() {
           KLIENT
         </button>
         <button
-          onClick={() => setRole('company')}
+          onClick={() => setRole('firma')} // Zmieniono na 'firma'
           style={{
             padding: '10px 20px',
-            backgroundColor: role === 'company' ? '#007bff' : '#f0f0f0',
-            color: role === 'company' ? '#fff' : '#000',
+            backgroundColor: role === 'firma' ? '#007bff' : '#f0f0f0',
+            color: role === 'firma' ? '#fff' : '#000',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer'
