@@ -206,6 +206,10 @@ function SearchRoutes() {
     const [toCoords, setToCoords] = useState(null);
     const mapRef = useRef(null);
     const today = new Date().toISOString().split('T')[0];
+// Wymusza odświeżenie geolokalizacji przy każdym wejściu na stronę
+useEffect(() => {
+  setResetTrigger(prev => prev + 1);
+}, []);
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route);
