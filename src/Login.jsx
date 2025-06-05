@@ -28,63 +28,70 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthChange = async () => {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (user) {
-        console.log("✅ Użytkownik zalogowany:", user);
-
-        const { data: profile, error: profileError } = await supabase
-          .from('users_extended')
-          .select('role') // Pobieramy tylko rolę, aby było szybciej
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) {
-          // Jeśli profil nie istnieje (PGRST116) LUB wystąpił inny błąd podczas pobierania,
-          // zawsze przekieruj do wyboru roli. Trigger powinien już utworzyć rekord.
-          console.error('❌ Błąd pobierania profilu lub brak profilu:', profileError.message);
-          navigate('/choose-role');
-          return;
-        }
-
-console.log('DEBUG: profile.role z bazy danych:', profile.role);
-console.log('DEBUG: profile.role po toLowerCase():', profile.role?.toLowerCase());
-
-        // Sprawdzamy rolę (konwertując na małe litery dla spójności)
-        if (profile.role?.toLowerCase() === 'nieprzypisana') {
-          console.log('Rola użytkownika to "nieprzypisana". Przekierowuję do wyboru roli.');
-          navigate('/choose-role');
-          return;
-        }
-
-        // Jeśli rola jest już ustawiona (np. 'klient' lub 'firma')
-        console.log('Rola użytkownika już ustawiona na:', profile.role, '. Przekierowuję do profilu.');
-        navigate('/profil');
-        
-      } else {
+    const handleAuthRedirect = async (user) => {
+      if (!user) {
         // Użytkownik wylogowany, lub sesja wygasła
-        console.log("Użytkownik wylogowany lub brak sesji. Przekierowuję do logowania.");
-        navigate('/login');
+        console.log("handleAuthRedirect: Brak użytkownika. Przekierowuję do logowania.");
+        navigate('/login'); // Zapewnij, że zawsze jesteśmy na /login, jeśli wylogowani
+        return;
       }
+
+      console.log("handleAuthRedirect: Użytkownik zalogowany:", user);
+
+      // Zawsze pobieraj aktualny profil z bazy danych dla decyzyjności
+      const { data: profile, error: profileError } = await supabase
+        .from('users_extended')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        // Jeśli profil nie istnieje (PGRST116) lub inny błąd,
+        // kieruj do wyboru roli. Trigger powinien go stworzyć.
+        console.error('❌ handleAuthRedirect: Błąd pobierania profilu lub brak profilu:', profileError.message);
+        navigate('/choose-role');
+        return;
+      }
+
+      // Sprawdzamy rolę (konwertując na małe litery dla spójności)
+      if (profile.role?.toLowerCase() === 'nieprzypisana') {
+        console.log('handleAuthRedirect: Rola użytkownika to "nieprzypisana". Przekierowuję do wyboru roli.');
+        navigate('/choose-role');
+        return;
+      }
+
+      // Jeśli rola jest już ustawiona (np. 'klient' lub 'firma')
+      console.log('handleAuthRedirect: Rola użytkownika już ustawiona na:', profile.role, '. Przekierowuję do profilu.');
+      navigate('/profil');
     };
 
+    // Nasłuchuj zmian stanu autentykacji
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session);
       if (event === 'SIGNED_IN') {
-        handleAuthChange();
+        // Gdy użytkownik się zaloguje (np. po OAuth), wywołaj logikę przekierowania
+        handleAuthRedirect(session?.user);
       } else if (event === 'SIGNED_OUT') {
+        // Jeśli użytkownik wylogował się, nawiguj do logowania
         navigate('/login');
       }
+      // Nie wywołuj handleAuthRedirect w innych eventach, aby uniknąć niepotrzebnego przetwarzania
     });
 
-    // Wywołaj handleAuthChange również przy pierwszym renderowaniu komponentu
-    handleAuthChange();
+    // POZA słuchaczem, sprawdzaj sesję tylko raz przy załadowaniu komponentu,
+    // aby obsłużyć przypadek, gdy użytkownik jest już zalogowany przy wejściu na stronę /login
+    // i odświeża ją.
+    const checkInitialAuth = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        handleAuthRedirect(user);
+    };
+    checkInitialAuth();
+
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate]); // navigate jako zależność
 
   const handleLogin = async (e) => {
     e.preventDefault();
