@@ -48,6 +48,9 @@ export default function Login() {
           return;
         }
 
+console.log('DEBUG: profile.role z bazy danych:', profile.role);
+console.log('DEBUG: profile.role po toLowerCase():', profile.role?.toLowerCase());
+
         // Sprawdzamy rolę (konwertując na małe litery dla spójności)
         if (profile.role?.toLowerCase() === 'nieprzypisana') {
           console.log('Rola użytkownika to "nieprzypisana". Przekierowuję do wyboru roli.');
