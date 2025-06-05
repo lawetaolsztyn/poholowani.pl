@@ -66,12 +66,12 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
                   📞 <strong style={{ letterSpacing: '1px' }}>{route.phone}</strong>
                 </div>
               )}
-             {route.user_id && (
+             {route.user_id && route.users_extended?.role === 'firma' && (
   <div style={{ fontSize: '14px', color: '#555' }}>
     {route.users_extended?.nip && (
       <div style={{ marginBottom: '8px' }}>
         <span
-          title="Zarejestrowana firma"
+          title="zarejestrowana firma"
           style={{
             display: 'inline-block',
             padding: '4px 8px',
@@ -84,11 +84,11 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
             letterSpacing: '1.5px'
           }}
         >
-          🏢 Firma
+          🏢 firma
         </span>
       </div>
     )}
-    <strong>Profil przewoźnika:</strong>{' '}
+    <strong>profil przewoźnika:</strong>{' '}
     <a
       href={`https://poholowani.pl/profil/${route.user_id}`}
       target="_blank"
@@ -99,6 +99,7 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
     </a>
   </div>
 )}
+
 
             </div>
           ))}

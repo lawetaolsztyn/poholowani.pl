@@ -166,19 +166,20 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
               </a>
             </div>
           )}
-          {route.user_id && (
-            <div>
-              {route.users_extended?.nip && (
-                <div style={{ marginBottom: '8px' }}>
-                  <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>🏢 Firma</span>
-                </div>
-              )}
-              <strong>Profil przewoźnika:</strong>{' '}
-              <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
-                otwórz
-              </a>
-            </div>
-          )}
+         {route.user_id && route.users_extended?.nip && (
+  <div>
+    <div style={{ marginBottom: '8px' }}>
+      <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+        🏢 Firma
+      </span>
+    </div>
+    <strong>Profil przewoźnika:</strong>{' '}
+    <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+      otwórz
+    </a>
+  </div>
+)}
+
         </div>
       </Popup>
     </Polyline>
