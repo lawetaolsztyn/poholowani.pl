@@ -215,14 +215,17 @@ function SearchRoutes() {
     useEffect(() => {
         const fetchRoutes = async () => {
             const { data, error } = await supabase
-                .from('routes')
-                .select(`
-                    *,
-                    users_extended (
-                        nip,
-                        is_premium
-                    )
-                `);
+  .from('routes')
+  .select(`
+    *,
+    users_extended (
+      id,
+      nip,
+      role,
+      is_premium
+    )
+  `);
+
 
             if (error) {
                 console.error('Błąd podczas pobierania tras:', error);
