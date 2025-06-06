@@ -403,7 +403,7 @@ useEffect(() => {
                     <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} style={{ flex: '0 0 auto', minWidth: '120px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}>
                         <option value="">Typ pojazdu</option>
                         <option value="bus">🚌 Bus</option>
-                        <option value="laweta">🛻 Laweta</option>
+                        <option value="laweta">🚚 Laweta</option>
 
                     </select>
   <input
