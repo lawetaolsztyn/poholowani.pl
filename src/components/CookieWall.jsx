@@ -61,7 +61,7 @@ const CookieWall = () => {
     }}>
       <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>Twoja prywatność ma znaczenie</h2>
       <p style={{ maxWidth: '600px', fontSize: '1rem' }}>
-        Aby korzystać z naszego serwisu, musisz wyrazić zgodę na używanie plików cookies oraz na przetwarzanie danych przez Google (reCAPTCHA) i Facebook (logowanie). <br />
+        Aby korzystać z naszego serwisu, musisz wyrazić zgodę na używanie plików cookies oraz na przetwarzanie danych przez Google (reCAPTCHA, logowanie) i Facebook (logowanie). <br />
         Szczegóły znajdziesz w naszej{' '}
         <Link to="/polityka-prywatnosci" style={{ color: '#ffa500', textDecoration: 'underline' }}>
           Polityce prywatności
