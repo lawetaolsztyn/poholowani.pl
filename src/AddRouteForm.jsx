@@ -220,7 +220,7 @@ function AddRouteForm({ onRouteCreated }) {
             <label>Typ pojazdu:</label>
             <select name="vehicleType" value={form.vehicleType} onChange={handleChange} className="uinput">
               <option value="bus">🚌 Bus</option>
-              <option value="laweta">🛻 Laweta</option>
+              <option value="laweta">🚚 Laweta</option>
             </select>
           </div>
           <div style={{ width: '250px', display: 'flex', flexDirection: 'column' }}>
