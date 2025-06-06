@@ -26,12 +26,14 @@ import EdycjaProfilu from './components/EdycjaProfilu';
 import ChooseRoleAfterOAuth from './components/ChooseRoleAfterOAuth';
 import Footer from './components/Footer';
 import { Routes, Route } from 'react-router-dom';
+import CookieWall from './components/CookieWall';
 
 console.log("✅ MAIN.JSX ŁADUJE SIĘ")
 
 function App() {
   return (
     <div className="app">
+	      <CookieWall />
       <div className="main-content">
         <Routes>
           <Route path="/" element={<LandingPage />} />

@@ -171,7 +171,7 @@ body {
 
 /* nadpisujemy App.css w LandingPage */
 .landing-container {
-  height: 100vh    !important;
-  min-height: 100vh!important;
+  height: 75vh    !important;
+  min-height: 75vh!important;
   overflow: hidden !important;
 }
