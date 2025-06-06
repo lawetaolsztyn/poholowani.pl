@@ -408,6 +408,8 @@ useEffect(() => {
                     </select>
   <input
     type="date"
+      value={selectedDate}
+  onChange={(e) => setSelectedDate(e.target.value)}
     style={{
         flex: '0 0 auto',
         minWidth: '140px',
