@@ -30,13 +30,26 @@
   color: white;
 }
   
-.nav-left,
-.nav-right {
-  display: flex;
+/* NAPRAWIONO: Przywrócono pierwotne zachowanie dla dużych ekranów */
+.nav-links {
+  display: flex; /* Pozostał flex */
+  flex-grow: 1; /* Pozwoli na rozciąganie */
+  justify-content: space-between; /* To spowoduje, że nav-left będzie po lewej, nav-right po prawej */
+  align-items: center; /* Wyśrodkowanie pionowe */
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-left {
+  display: flex; /* Ustawiamy z powrotem flex */
   align-items: center;
 }
 
-/* NOWE STYLE DLA MENU HAMBURGEROWEGO */
+.nav-right {
+  display: flex; /* Ustawiamy z powrotem flex */
+  align-items: center;
+}
+
+/* NOWE STYLE DLA MENU HAMBURGEROWEGO (pozostały bez zmian) */
 .hamburger-menu {
   display: none; /* Domyślnie ukryty na dużych ekranach */
   flex-direction: column;
@@ -55,13 +68,6 @@
   transition: all 0.3s ease; /* Animacja dla kresek */
 }
 
-/* Ukryj menu linków na małych ekranach, gdy nie jest otwarte */
-.nav-links {
-  display: flex; /* Domyślnie flexbox */
-  flex-grow: 1; /* Pozwól na rozciąganie się */
-  justify-content: flex-end; /* Wyrównaj do prawej, jeśli są na tej samej linii */
-  transition: all 0.3s ease-in-out; /* Płynne przejście dla wszystkich właściwości */
-}
 
 @media (max-width: 768px) {
   .navbar {
@@ -92,7 +98,7 @@
   }
 
   /* Kiedy menu jest otwarte */
-  .nav-links.open { /* */
+  .nav-links.open {
     height: auto; /* Pozwól na rozciągnięcie się na całą zawartość */
     max-height: 500px; /* Maksymalna wysokość, aby nie było problemów z 'height: auto' */
     opacity: 1; /* W pełni widoczne */
