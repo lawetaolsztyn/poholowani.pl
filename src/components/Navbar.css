@@ -7,6 +7,7 @@
   position: sticky;
   top: 0;
   z-index: 2000;
+  align-items: center; /* Dodane, aby zawartość była wyśrodkowana pionowo */
 }
 
 .navbar a {
@@ -17,6 +18,7 @@
   padding: 0.5rem 1rem;
   border-radius: 5px;
   transition: background-color 0.3s;
+  white-space: nowrap; /* Zapobiega łamaniu się linków na dwie linie */
 }
 
 .navbar a:hover {
@@ -34,35 +36,93 @@
   align-items: center;
 }
 
-/* ... istniejące style ... */
+/* NOWE STYLE DLA MENU HAMBURGEROWEGO */
+.hamburger-menu {
+  display: none; /* Domyślnie ukryty na dużych ekranach */
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px; /* Szerokość ikony */
+  height: 25px; /* Wysokość ikony */
+  cursor: pointer;
+  z-index: 2001; /* Upewnij się, że jest nad menu */
+}
+
+.hamburger-menu .bar {
+  width: 100%;
+  height: 3px;
+  background-color: white;
+  border-radius: 5px;
+  transition: all 0.3s ease; /* Animacja dla kresek */
+}
+
+/* Ukryj menu linków na małych ekranach, gdy nie jest otwarte */
+.nav-links {
+  display: flex; /* Domyślnie flexbox */
+  flex-grow: 1; /* Pozwól na rozciąganie się */
+  justify-content: flex-end; /* Wyrównaj do prawej, jeśli są na tej samej linii */
+  transition: all 0.3s ease-in-out; /* Płynne przejście dla wszystkich właściwości */
+}
 
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: column; /* Ułóż elementy w kolumnie */
-    align-items: flex-start; /* Wyrównaj do lewej */
+    flex-direction: row; /* Zmieniamy z powrotem na row, aby ikona hamburgera była obok loga/tytułu */
+    justify-content: space-between; /* Hamburger po jednej stronie, może logo po drugiej */
+    align-items: center; /* Wyśrodkowanie pionowe */
     padding: 1rem;
+  }
+
+  .hamburger-menu {
+    display: flex; /* Pokaż ikonę hamburgera na małych ekranach */
+    order: 2; /* Ustaw kolejność, np. po prawej stronie */
+  }
+
+  /* Ukryj normalne linki nawigacyjne i ustaw je w kolumnie */
+  .nav-links {
+    position: absolute; /* Pozycjonowanie absolutne, aby wysuwało się z góry */
+    top: 100%; /* Rozpoczyna się tuż pod navbar'em */
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #43cea2, #185a9d); /* Ten sam kolor tła */
+    flex-direction: column; /* Ułóż linki jeden pod drugim */
+    height: 0; /* Domyślna wysokość 0 - ukryte */
+    overflow: hidden; /* Ukryj zawartość, która wychodzi poza wysokość */
+    opacity: 0; /* Niewidoczne */
+    padding: 0; /* Resetuj padding */
+    pointer-events: none; /* Linki nie są klikalne, gdy menu jest ukryte */
+  }
+
+  /* Kiedy menu jest otwarte */
+  .nav-links.open { /* */
+    height: auto; /* Pozwól na rozciągnięcie się na całą zawartość */
+    max-height: 500px; /* Maksymalna wysokość, aby nie było problemów z 'height: auto' */
+    opacity: 1; /* W pełni widoczne */
+    padding: 1rem 0; /* Dodaj padding po otwarciu */
+    pointer-events: auto; /* Linki stają się klikalne */
   }
 
   .nav-left,
   .nav-right {
     flex-direction: column; /* Linki w kolumnie */
-    align-items: flex-start;
+    align-items: center; /* Wyśrodkuj linki */
     width: 100%; /* Zajmij całą szerokość */
   }
 
   .navbar a {
     margin: 0.5rem 0; /* Odstępy pionowe między linkami */
-    width: calc(100% - 1rem); /* Pełna szerokość z paddingiem */
+    width: calc(100% - 2rem); /* Pełna szerokość z paddingiem */
     text-align: center; /* Wyśrodkuj tekst linków */
+    margin-right: 0; /* Usuń marginesy prawe */
   }
 
   .nav-right {
     margin-top: 1rem; /* Odstęp między sekcjami lewą i prawą */
+    border-top: 1px solid rgba(255,255,255,0.2); /* Separator */
+    padding-top: 1rem;
   }
 
   /* Specyficzne dla przycisku wylogowania */
   .nav-right button {
-    width: 100%;
+    width: 90%; /* Zmniejsz szerokość */
     margin-left: 0;
     margin-top: 0.5rem;
   }
