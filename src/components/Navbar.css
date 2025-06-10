@@ -33,3 +33,45 @@
   display: flex;
   align-items: center;
 }
+
+/* ... istniejące style ... */
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column; /* Ułóż elementy w kolumnie */
+    align-items: flex-start; /* Wyrównaj do lewej */
+    padding: 1rem;
+  }
+
+  .nav-left,
+  .nav-right {
+    flex-direction: column; /* Linki w kolumnie */
+    align-items: flex-start;
+    width: 100%; /* Zajmij całą szerokość */
+  }
+
+  .navbar a {
+    margin: 0.5rem 0; /* Odstępy pionowe między linkami */
+    width: calc(100% - 1rem); /* Pełna szerokość z paddingiem */
+    text-align: center; /* Wyśrodkuj tekst linków */
+  }
+
+  .nav-right {
+    margin-top: 1rem; /* Odstęp między sekcjami lewą i prawą */
+  }
+
+  /* Specyficzne dla przycisku wylogowania */
+  .nav-right button {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+
+  /* Dopasowanie dla tekstu użytkownika */
+  .nav-right span {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    width: 100%;
+  }
+}

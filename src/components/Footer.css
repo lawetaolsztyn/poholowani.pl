@@ -61,3 +61,15 @@
 .footer-legal a:hover {
   color: #fff;
 }
+
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column; /* Kolumny stopki jedna pod drugą */
+    align-items: center; /* Wyśrodkuj kolumny */
+  }
+
+  .footer-column {
+    margin-bottom: 1.5rem; /* Odstęp między kolumnami */
+    text-align: center; /* Wyśrodkuj tekst w kolumnach */
+  }
+}
