@@ -29,7 +29,7 @@ const LandingPage = () => {
         src={logo}
         alt="Logo"
         style={{
-          height: '140px',
+          height: '200px',
           maxWidth: '90vw',
         }}
       />
