@@ -104,8 +104,9 @@ body {
 .map-wrapper {
   flex: 1; /* Pozwala mapie rozciągnąć się i zająć dostępną przestrzeń */
   position: relative;
-  /* Upewnij się, że mapa ma wystarczającą wysokość */
-  min-height: 200px; /* Minimalna wysokość, aby mapa była zawsze widoczna */
+  /* Upewnij się, że mapa ma wystarczającą wysokość, jeśli flex:1 nie wystarczy,
+     ale to jest zazwyczaj obsługiwane przez flexbox. */
+  /* min-height: 200px;  Możesz to odkomentować, jeśli mapa nadal będzie niewidoczna */
 }
 
 .map-background {
@@ -126,18 +127,21 @@ body {
 /* ===== PRZYCISKI ===== */
 
 .action-buttons {
-  /* Domyślnie dla większych ekranów */
+  /* PRZYWRÓCONO: pozycjonowanie absolutne dla wszystkich rozmiarów,
+     aby przyciski były zawsze na mapie. */
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1001;
+  top: 50%; /* Środek pionowo */
+  left: 50%; /* Środek poziomo */
+  transform: translate(-50%, -50%); /* Dokładne wyśrodkowanie */
+  z-index: 1001; /* Upewnia się, że są nad mapą */
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  padding: 1rem; /* Dodany padding, aby przyciski nie dotykały krawędzi */
+  padding: 1rem; /* Dodany padding, aby przyciski nie dotykały krawędzi na większych ekranach */
+  width: 100%; /* Upewnia się, że flexbox działa poprawnie do wyśrodkowania */
+  box-sizing: border-box; /* Ważne, aby padding nie powiększał szerokości ponad 100% */
 }
 
 .primary-button,
@@ -220,16 +224,16 @@ body {
   }
 
   .action-buttons {
-    /* Zmieniono pozycjonowanie na relative na małych ekranach,
-       aby przyciski były w normalnym przepływie dokumentu i zajmowały miejsce. */
-    position: relative; /* Zmieniono z absolute na relative */
-    top: auto; /* Usunięto sztywne pozycjonowanie */
-    left: auto; /* Usunięto sztywne pozycjonowanie */
-    transform: none;
-    margin: 2rem auto; /* Wyśrodkowano i dodano marginesy */
+    /* PRZYWRÓCONO: pozycjonowanie absolutne również na małych ekranach.
+       Dostosowano top, aby nie kolidowały z nagłówkiem. */
+    position: absolute; /* Nadal absolute */
+    top: 60%; /* Dostosowano, aby były niżej niż nagłówek, ale nadal na mapie */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0; /* Usunięto marginesy, bo pozycjonowanie absolutne je ignoruje */
     flex-direction: column;
     gap: 1rem;
-    max-width: 400px; /* Ograniczono szerokość kontenera przycisków */
+    max-width: 400px;
     padding: 0; /* Usunięto padding, aby przyciski mogły zająć 100% szerokości */
   }
 
