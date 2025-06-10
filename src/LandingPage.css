@@ -175,3 +175,45 @@ body {
   min-height: 75vh!important;
   overflow: hidden !important;
 }
+
+@media (max-width: 768px) {
+  .overlay-header {
+    flex-direction: column !important;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .overlay-header img {
+    height: 100px;
+    margin-bottom: 1rem;
+  }
+
+  .banner-heading {
+    font-size: 1.5rem;
+  }
+
+  .banner-subheading {
+    font-size: 1rem;
+  }
+
+  .action-buttons {
+    position: static;
+    transform: none;
+    margin: 2rem 0;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    font-size: 1.2rem;
+    width: 90vw;
+    max-width: 300px;
+  }
+
+  .primary-button .subtext,
+  .secondary-button .subtext {
+    font-size: 0.8rem;
+  }
+}
+
