@@ -22,15 +22,15 @@ const LandingPage = () => {
       justifyContent: 'center',
       flexWrap: 'wrap',
       gap: '1.5rem',
-      padding: '2rem 1rem',
       textAlign: 'center'
     }}>
       <img
         src={logo}
         alt="Logo"
         style={{
-          height: '200px',
+          height: '140px',
           maxWidth: '90vw',
+	  
         }}
       />
       <div style={{ textAlign: 'center', maxWidth: '90vw' }}>

@@ -35,19 +35,22 @@ body {
 }
 
 .overlay-header {
-  background: linear-gradient(135deg, #43cea2, #185a9d); /* zieleń do niebieskiego */
+  background: linear-gradient(135deg, #43cea2, #185a9d);
   color: white;
-  padding: 1.5rem 1rem;
+  /* KLUCZOWA ZMIANA: NADPISUJEMY PADDING NA STAŁĄ WARTOŚĆ DLA WIĘKSZYCH EKRANÓW */
+  padding: 0.5rem 1rem !important; /* DODANO !important */
   z-index: 1000;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: center; /* Wyśrodkowuje elementy flex wertykalnie */
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Pozwala na zawijanie elementów */
   gap: 1.5rem;
   text-align: center;
+  /* Upewnij się, że nie ma tu sztywnych wysokości z innych źródeł */
+  height: auto !important; /* DODANO !important */
+  min-height: unset !important; /* DODANO !important */
 }
-
 
 .overlay-header h1 {
   font-family: 'Poppins', sans-serif;
@@ -65,7 +68,7 @@ body {
   color: #e0e0e0;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
   max-width: 800px;
-  margin: 0 auto;
+  margin: 0 auto; /* Upewnij się, że marginesy są kontrolowane */
 }
 
 /* Fade-in animacja nagłówka */
@@ -99,8 +102,7 @@ body {
 .map-wrapper {
   flex: 1;
   position: relative;
-  /* Zwiększono minimalną wysokość mapy, aby zapewnić więcej miejsca */
-  min-height: 300px; /* Zwiększono z 200px na 300px, możesz dostosować */
+  min-height: 300px;
 }
 
 .map-background {
@@ -122,12 +124,12 @@ body {
 
 .action-buttons {
   position: absolute;
-  top: 50%;
+  top: 60%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1001;
   display: flex;
-  gap: 2rem;
+  gap: 3rem;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
@@ -190,11 +192,13 @@ body {
   .overlay-header {
     flex-direction: column !important;
     text-align: center;
-    padding: 1rem;
+    padding: 1rem; /* Ten padding dla telefonów */
+    height: auto; /* Zapewnij auto wysokość */
+    min-height: unset; /* Upewnij się, że nie ma tu min-height */
   }
 
   .overlay-header img {
-    height: 120px;
+    height: 120px; /* Może być konieczne zmniejszenie tej wartości, jeśli logo jest za duże */
     max-width: 90vw;
     margin-bottom: 1rem;
   }
@@ -207,20 +211,13 @@ body {
     font-size: 1rem;
   }
 
-  /* Nowe/zmodyfikowane style dla mapy na małych ekranach */
   .map-wrapper {
-    min-height: 400px; /* Zwiększono min-height mapy dla małych ekranów */
-    /* Możesz spróbować ustawić wysokość na viewport height minus wysokość nagłówka i stopki, jeśli chcesz
-       np. height: calc(100vh - 200px);, ale min-height jest zazwyczaj bezpieczniejsze. */
+    min-height: 400px;
   }
-
 
   .action-buttons {
     position: absolute;
-    /* Zmieniono top, aby przesunąć przyciski niżej, poza obszar banera.
-       top: 75% oznacza, że początek bloku przycisków będzie na 75% wysokości mapy.
-       Dzięki transform: translate(-50%, -50%) będą wyśrodkowane wokół tego punktu. */
-    top: 75%; /* Zwiększono wartość, aby przesunąć przyciski niżej */
+    top: 75%;
     left: 50%;
     transform: translate(-50%, -50%);
     margin: 0;
