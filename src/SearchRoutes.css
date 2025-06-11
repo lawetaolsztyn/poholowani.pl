@@ -236,3 +236,9 @@
         color: #333; /* Ciemniejszy tekst */
     }
 }
+
+@media (pointer: coarse) {
+  .leaflet-container {
+    touch-action: pinch-zoom;
+  }
+}
