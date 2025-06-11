@@ -239,6 +239,6 @@
 
 @media (pointer: coarse) {
   .leaflet-container {
-    touch-action: pinch-zoom;
+    touch-action: none !important;
   }
 }

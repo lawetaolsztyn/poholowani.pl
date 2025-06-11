@@ -423,15 +423,13 @@ useEffect(() => {
                 </div>
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
-  <MapContainer
+ <MapContainer
   center={center}
   zoom={6}
+  style={{ touchAction: 'none', height: '100%', width: '100%', zIndex: 0 }}
   dragging={true}
   tap={false}
-  style={{ height: '100%', width: '100%', zIndex: 0 }}
-  whenCreated={(mapInstance) => {
-    mapRef.current = mapInstance;
-  }}
+  whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
 >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                             <Pane name="routes" style={{ zIndex: 400 }} />
