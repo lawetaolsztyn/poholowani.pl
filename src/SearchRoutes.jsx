@@ -10,6 +10,7 @@ import LocationAutocomplete from './components/LocationAutocomplete';
 import RouteSlider from './RouteSlider';
 import L from 'leaflet';
 import RoadsideMarkers from './components/RoadsideMarkers';
+import './SearchRoutes.css';
 
 const MapContext = createContext(null);
 
@@ -372,7 +373,7 @@ useEffect(() => {
  
             <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 80px)', width: '100%', boxSizing: 'border-box', overflowY: 'auto', paddingBottom: '0px' }}>
 
-                <div style={{ padding: '15px 20px', display: 'flex', flexDirection: 'row', gap: '40px', justifyContent: 'center', alignItems: 'center', background: 'white', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', marginBottom: '20px', minWidth: '900px', width: 'auto', margin: '20px auto', boxSizing: 'border-box', flexWrap: 'wrap' }}>
+                <div className="search-form-container">
                     <LocationAutocomplete
                         placeholder="Skąd"
                         value={fromValue}
@@ -400,7 +401,7 @@ useEffect(() => {
                         }}
                         style={{ flex: '1 1 180px' }}
                     />
-                    <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} style={{ flex: '0 0 auto', minWidth: '120px', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', backgroundColor: 'white', color: '#333' }}>
+                    <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-select-field">
                         <option value="">Typ pojazdu</option>
                         <option value="bus">🚌 Bus</option>
                         <option value="laweta">🚚 Laweta</option>
@@ -410,15 +411,7 @@ useEffect(() => {
   type="date"
   value={selectedDate}
   onChange={(e) => setSelectedDate(e.target.value)}
-  style={{
-      flex: '0 0 auto',
-      minWidth: '140px',
-      padding: '10px',
-      borderRadius: '5px',
-      border: '1px solid #ccc',
-      backgroundColor: 'white',
-      color: '#333'
-  }}
+  className="form-date-field"
 />
                     <button type="button" onClick={handleSearchClick} style={{ flex: '0 0 auto', padding: '10px 25px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>Szukaj</button>
                     <button type="button" onClick={handleResetClick}
