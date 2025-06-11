@@ -385,7 +385,7 @@ useEffect(() => {
                             setFromLocation({ name, lat, lng });
                             setFromCoords([lat, lng]);
                         }}
-                        className="location-autocomplete-field" {/* Dodana klasa */}
+                        className="location-autocomplete-field" 
                     />
                     <LocationAutocomplete
                         placeholder="Dokąd"
@@ -399,9 +399,9 @@ useEffect(() => {
                             setToLocation({ name, lat, lng });
                             setToCoords([lat, lng]);
                         }}
-                        className="location-autocomplete-field" {/* Dodana klasa */}
+                        className="location-autocomplete-field" 
                     />
-                    <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-select-field"> {/* Dodana klasa */}
+                    <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-select-field"> 
                         <option value="">Typ pojazdu</option>
                         <option value="bus">🚌 Bus</option>
                         <option value="laweta">🚚 Laweta</option>
@@ -410,14 +410,14 @@ useEffect(() => {
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className="form-date-field" {/* Dodana klasa */}
+                        className="form-date-field" 
                     />
-                    <button type="button" onClick={handleSearchClick} className="search-button">Szukaj</button> {/* Dodana klasa */}
-                    <button type="button" onClick={handleResetClick} className="reset-button">Reset</button> {/* Dodana klasa */}
+                    <button type="button" onClick={handleSearchClick} className="search-button">Szukaj</button> 
+                    <button type="button" onClick={handleResetClick} className="reset-button">Reset</button> 
                 </div>
                 <div className="map-wrapper"> {/* Nowa klasa dla kontenera mapy */}
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
-                        <MapContainer center={center} zoom={6} className="main-map-container" whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}> {/* Dodana klasa */}
+                        <MapContainer center={center} zoom={6} className="main-map-container" whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}> 
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                             <Pane name="routes" style={{ zIndex: 400 }} />
                             <Pane name="hovered" style={{ zIndex: 500 }} />
