@@ -1,3 +1,5 @@
+/* src/SearchRoutes.css */
+
 .map-cross {
   position: absolute;
   top: calc(50% + 250px);
@@ -9,4 +11,196 @@
   pointer-events: none;
 }
 
-<div className="map-cross">+</div>
+/* Nowe style dla głównego kontenera */
+.main-container {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding-bottom: 0px;
+}
+
+/* Kontener formularza wyszukiwania */
+.search-form-container {
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  min-width: 900px;
+  width: auto;
+  margin: 20px auto;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+/* Style dla pól autouzupełniania */
+.location-autocomplete-field {
+  flex: 1 1 180px;
+}
+
+/* Style dla select i input date (pozostałe pola) */
+.form-select-field,
+.form-date-field {
+  flex: 0 0 auto;
+  min-width: 120px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: white;
+  color: #333;
+}
+
+/* Style dla przycisków */
+.search-button,
+.reset-button {
+  flex: 0 0 auto;
+  padding: 10px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  color: white;
+}
+
+.search-button {
+  background-color: #007bff;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+.reset-button {
+  background-color: #6c757d;
+}
+
+.reset-button:hover {
+  background-color: #5a6268;
+}
+
+/* Kontener mapy */
+.map-wrapper {
+  position: relative;
+  width: 98%;
+  height: 550px;
+  margin: 0 auto;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.main-map-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+/* Kontener slidera tras */
+.route-slider-wrapper {
+  width: 98%;
+  margin: 0 auto 20px auto;
+  padding: 0px 10px 10px 10px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* --- Media Queries dla responsywności --- */
+
+/* Dla ekranów o szerokości mniejszej niż 960px (np. tablety w orientacji pionowej) */
+@media (max-width: 960px) {
+  .search-form-container {
+    min-width: unset;
+    width: 95%;
+    gap: 20px;
+    padding: 15px;
+  }
+
+  .location-autocomplete-field,
+  .form-select-field,
+  .form-date-field,
+  .search-button,
+  .reset-button {
+    flex: 1 1 100%;
+    min-width: unset;
+    width: auto;
+  }
+
+  .map-wrapper {
+    width: 95%;
+    height: 400px;
+  }
+
+  .route-slider-wrapper {
+    width: 95%;
+  }
+}
+
+/* Dla ekranów o szerokości mniejszej niż 600px (np. telefony) */
+@media (max-width: 600px) {
+  .search-form-container {
+    flex-direction: column;
+    padding: 10px;
+    gap: 15px;
+  }
+
+  .location-autocomplete-field,
+  .form-select-field,
+  .form-date-field,
+  .search-button,
+  .reset-button {
+    flex: 1 1 auto;
+  }
+
+  .map-wrapper {
+    height: 300px;
+  }
+
+  .route-slider-wrapper {
+    padding: 5px;
+  }
+}
+
+/* --- Style dla trybu ciemnego (dostosowane dla nowych klas) --- */
+@media (prefers-color-scheme: dark) {
+  .search-form-container,
+  .route-slider-wrapper {
+    background: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .form-select-field,
+  .form-date-field {
+    background-color: white;
+    color: #333;
+    border: 1px solid #555;
+  }
+
+  .search-button {
+    background-color: #0056b3;
+  }
+  .search-button:hover {
+    background-color: #003f7f;
+  }
+
+  .reset-button {
+    background-color: #5a6268;
+  }
+  .reset-button:hover {
+    background-color: #4a5056;
+  }
+
+  .map-cross {
+    color: yellow;
+  }
+}

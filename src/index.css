@@ -91,19 +91,22 @@ button:focus-visible {
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #1a1a1a; /* Bardzo ciemne tło */
-    color: #e0e0e0; /* Jasny, prawie biały tekst */
+    color: #333; /* Zmieniony na ciemniejszy tekst dla całej strony w trybie ciemnym */
   }
 
-  /* Style dla pól input, select, textarea w trybie ciemnym */
-  input[type="text"],
-  input[type="email"],
-  input[type="date"],
-  select,
-  textarea {
-      background-color: #333; /* Ciemniejsze tło dla pól */
-      color: #e0e0e0; /* Jasny tekst w polach */
-      border: 1px solid #555; /* Trochę jaśniejsza ramka */
-  }
+/* Style dla pól input, select, textarea w trybie ciemnym */
+input[type="text"],
+input[type="email"],
+input[type="date"],
+  input[type="number"], /* Dodaj to */
+  input[type="tel"],    /* Dodaj to */
+  input[type="url"],    /* Dodaj to */
+select,
+textarea {
+    background-color: white; /* Ustaw na białe tło */
+    color: #333; /* Ustaw na ciemny tekst */
+    border: 1px solid #ccc; /* Ustaw na jaśniejszą ramkę */
+}
 
   /* Style dla przycisków w trybie ciemnym */
   button {

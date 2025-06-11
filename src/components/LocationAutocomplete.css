@@ -69,28 +69,28 @@
 /* --- Style dla trybu ciemnego dla autouzupełniania --- */
 @media (prefers-color-scheme: dark) {
   .autocomplete-input {
-    background-color: #333; /* Ciemniejsze tło dla pola autouzupełniania */
-    color: #e0e0e0; /* Jasny tekst w polu autouzupełniania */
-    border: 1px solid #555; /* Ramka */
+    background-color: #fff; /* Zmienione na białe tło */
+    color: #333; /* Zmienione na ciemny tekst */
+    border: 1px solid #ccc; /* Dopasuj ramkę do jasnego trybu, jeśli chcesz */
   }
-
+  /* Prawdopodobnie będziesz chciał również zmienić kolory dla listy sugestii, aby były spójne */
   .autocomplete-list {
-    background-color: #333; /* Ciemne tło dla listy autouzupełniania */
-    color: #e0e0e0; /* Jasny tekst */
-    border: 1px solid #555;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    background-color: #fff; /* Zmienione na białe tło */
+    color: #333; /* Zmienione na ciemny tekst */
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Lżejszy cień */
   }
 
   .autocomplete-item {
-    color: #e0e0e0; /* Jasny tekst dla elementów listy */
-    border-bottom: 1px solid #444; /* Ciemniejsza linia */
+    color: #333; /* Zmienione na ciemny tekst */
+    border-bottom: 1px solid #eee; /* Lżejsza linia */
   }
 
   .autocomplete-item:hover {
-    background-color: #555; /* Trochę jaśniejsze tło dla najechania */
+    background-color: #f0f0f0; /* Lżejsze tło dla najechania */
   }
 
   .autocomplete-sub {
-    color: #bbb; /* Jaśniejszy kolor dla sub-tekstu */
+    color: #555; /* Ciemniejszy kolor dla sub-tekstu */
   }
 }
