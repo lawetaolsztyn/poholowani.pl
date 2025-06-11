@@ -423,13 +423,37 @@ useEffect(() => {
                 </div>
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
- <MapContainer
+<MapContainer
   center={center}
   zoom={6}
-  style={{ touchAction: 'none', height: '100%', width: '100%', zIndex: 0 }}
+  style={{ height: '100%', width: '100%', zIndex: 0 }}
+  tap={false} // <== to jest kluczowe
   dragging={true}
-  tap={false}
-  whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
+  zoomControl={true}
+  whenCreated={(mapInstance) => {
+    mapRef.current = mapInstance;
+
+    // 🚫 Blokuj przesuwanie jednym palcem na urządzeniach dotykowych
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      let isTwoFingerTouch = false;
+
+      mapInstance.getContainer().addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isTwoFingerTouch = false;
+          mapInstance.dragging.disable(); // wyłącz przesuwanie jednym palcem
+        } else if (e.touches.length === 2) {
+          isTwoFingerTouch = true;
+          mapInstance.dragging.enable(); // włącz przesuwanie dwoma palcami
+        }
+      });
+
+      mapInstance.getContainer().addEventListener('touchend', () => {
+        if (!isTwoFingerTouch) {
+          mapInstance.dragging.disable();
+        }
+      });
+    }
+  }}
 >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                             <Pane name="routes" style={{ zIndex: 400 }} />
