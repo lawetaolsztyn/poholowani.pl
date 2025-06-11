@@ -204,3 +204,35 @@
     color: yellow;
   }
 }
+
+.map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000; /* Upewnij się, że jest nad mapą */
+  background-color: rgba(0,0,0,0.5); /* Lekkie przyciemnienie */
+  display: flex;
+  flex-direction: column; /* Aby tekst był wyśrodkowany pionowo i instrukcje były pod sobą */
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  cursor: pointer;
+  padding: 10px; /* Dodaj trochę paddingu dla lepszego wyglądu */
+  box-sizing: border-box; /* Ważne, aby padding nie zwiększał całkowitego rozmiaru */
+}
+
+.map-overlay p {
+    margin: 5px 0; /* Odstęp między wierszami tekstu */
+}
+
+/* Style dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+    .map-overlay {
+        background-color: rgba(255,255,255,0.2); /* Jaśniejsze przyciemnienie */
+        color: #333; /* Ciemniejszy tekst */
+    }
+}

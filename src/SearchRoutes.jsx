@@ -205,6 +205,7 @@ function SearchRoutes() {
     const [resetTrigger, setResetTrigger] = useState(0);
     const [fromCoords, setFromCoords] = useState(null);
     const [toCoords, setToCoords] = useState(null);
+    const [mapActive, setMapActive] = useState(false);
     const mapRef = useRef(null);
     const today = new Date().toISOString().split('T')[0];
 // Wymusza odświeżenie geolokalizacji przy każdym wejściu na stronę
@@ -216,6 +217,16 @@ useEffect(() => {
         setSelectedRoute(route);
         setSelectedRouteTrigger(prev => prev + 1);
     };
+// useEffect, który reaguje na zmianę stanu mapActive
+    useEffect(() => {
+        if (mapRef.current) {
+            if (mapActive) {
+                activateMapInteractions();
+            } else {
+                deactivateMapInteractions();
+            }
+        }
+    }, [mapActive]); // Zależność od mapActive
 
     useEffect(() => {
         const fetchRoutes = async () => {
@@ -367,61 +378,91 @@ useEffect(() => {
         }
     };
 
+ const activateMapInteractions = () => {
+        if (mapRef.current) {
+            mapRef.current.scrollWheelZoom.enable();
+            mapRef.current.dragging.enable();
+            mapRef.current.touchZoom.enable();
+            mapRef.current.doubleClickZoom.enable();
+            mapRef.current.boxZoom.enable();
+            mapRef.current.keyboard.enable();
+        }
+    };
+
+    const deactivateMapInteractions = () => {
+        if (mapRef.current) {
+            mapRef.current.scrollWheelZoom.disable();
+            mapRef.current.dragging.disable();
+            mapRef.current.touchZoom.disable();
+            mapRef.current.doubleClickZoom.disable();
+            mapRef.current.boxZoom.disable();
+            mapRef.current.keyboard.disable();
+        }
+    };
+
     return (
         <>
             <Navbar />
- 
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 80px)', width: '100%', boxSizing: 'border-box', overflowY: 'auto', paddingBottom: '0px' }}>
-
+            <div className="main-container">
                 <div className="search-form-container">
-                    <LocationAutocomplete
-                        placeholder="Skąd"
-                        value={fromValue}
-                        onSelectLocation={(label, loc) => {
-                            const name = loc.properties.locality || loc.properties.name || '';
-                            const lat = loc.geometry.coordinates[1];
-                            const lng = loc.geometry.coordinates[0];
-                            setFromValue(label);
-                            setFromLocation({ name, lat, lng });
-                            setFromCoords([lat, lng]);
-                        }}
-                        className="location-autocomplete-field"
-                    />
-                    <LocationAutocomplete
-                        placeholder="Dokąd"
-                        value={toValue}
-                        onSelectLocation={(label, loc) => {
-                            const name = loc.properties.locality || loc.properties.name || '';
-                            const lat = loc.geometry.coordinates[1];
-                            const lng = loc.geometry.coordinates[0];
-
-                            setToValue(label);
-                            setToLocation({ name, lat, lng });
-                            setToCoords([lat, lng]);
-                        }}
-                       className="location-autocomplete-field"
-                    />
+                    {/* Używaj className zamiast style dla responsywności */}
+                    <LocationAutocomplete className="location-autocomplete-field" placeholder="Skąd" value={fromValue} onSelectLocation={(label, loc) => {
+                        const name = loc.properties.locality || loc.properties.name || '';
+                        const lat = loc.geometry.coordinates[1];
+                        const lng = loc.geometry.coordinates[0];
+                        setFromValue(label);
+                        setFromLocation({ name, lat, lng });
+                        setFromCoords([lat, lng]);
+                    }} />
+                    <LocationAutocomplete className="location-autocomplete-field" placeholder="Dokąd" value={toValue} onSelectLocation={(label, loc) => {
+                        const name = loc.properties.locality || loc.properties.name || '';
+                        const lat = loc.geometry.coordinates[1];
+                        const lng = loc.geometry.coordinates[0];
+                        setToValue(label);
+                        setToLocation({ name, lat, lng });
+                        setToCoords([lat, lng]);
+                    }} />
                     <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-select-field">
                         <option value="">Typ pojazdu</option>
                         <option value="bus">🚌 Bus</option>
                         <option value="laweta">🚚 Laweta</option>
-
                     </select>
-<input
-  type="date"
-  value={selectedDate}
-  onChange={(e) => setSelectedDate(e.target.value)}
-  className="form-date-field"
-/>
-                    <button type="button" onClick={handleSearchClick} style={{ flex: '0 0 auto', padding: '10px 25px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>Szukaj</button>
-                    <button type="button" onClick={handleResetClick}
-                        style={{ flex: '0 0 auto', padding: '10px 25px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '16px' }}>
-                        Reset
-                    </button>
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="form-date-field"
+                    />
+                    <button type="button" onClick={handleSearchClick} className="search-button">Szukaj</button>
+                    <button type="button" onClick={handleResetClick} className="reset-button">Reset</button>
                 </div>
-                <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
+
+                <div className="map-wrapper">
+                    {/* Warstwa blokująca interakcje z mapą */}
+                    {!mapActive && (
+                        <div
+                            className="map-overlay" // Nowa klasa CSS
+                            onClick={() => setMapActive(true)}       // Aktywuj mapę po kliknięciu
+                            onTouchStart={() => setMapActive(true)} // Aktywuj mapę po dotknięciu
+                        >
+                            <p>Dotknij, aby używać mapy</p>
+                            <p>(Przewiń stronę jednym palcem)</p>
+                        </div>
+                    )}
+
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
-                        <MapContainer center={center} zoom={6} style={{ height: '100%', width: '100%', zIndex: 0 }} whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}>
+                        <MapContainer
+                            center={center}
+                            zoom={6}
+                            // Początkowo interakcje będą wyłączone przez useEffect i deactivateMapInteractions
+                            // gdy mapActive jest false
+                            whenCreated={(mapInstance) => {
+                                mapRef.current = mapInstance;
+                                // Wyłącz interakcje mapy zaraz po utworzeniu instancji
+                                deactivateMapInteractions();
+                            }}
+                            className="main-map-container"
+                        >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                             <Pane name="routes" style={{ zIndex: 400 }} />
                             <Pane name="hovered" style={{ zIndex: 500 }} />
@@ -435,43 +476,38 @@ useEffect(() => {
                                 selectedRoute={selectedRoute}
                                 selectedRouteTrigger={selectedRouteTrigger}
                             />
-
-                            {center && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
-                      {filteredRoutes.map((route) => (
-  <HighlightedRoute
-    key={route.id}
-    route={route}
-    isHovered={route.id === hoveredRouteId}
-    onPolylineMouseOver={setHoveredRouteId}
-    onPolylineMouseOut={setHoveredRouteId}
-  />
-
-))}
-
-{hoveredRouteId && (() => {
-  const hoveredRoute = filteredRoutes.find(r => r.id === hoveredRouteId);
-  return hoveredRoute ? (
-    <HighlightedRoute
-      key={`hover-${hoveredRoute.id}`}
-      route={hoveredRoute}
-      isHovered={true}
-      onPolylineMouseOver={setHoveredRouteId}
-      onPolylineMouseOut={setHoveredRouteId}
-    />
-  ) : null;
-})()}
-
+                            {center && (<div className="map-cross">+</div>)}
+                            {filteredRoutes.map((route) => (
+                                <HighlightedRoute
+                                    key={route.id}
+                                    route={route}
+                                    isHovered={route.id === hoveredRouteId}
+                                    onPolylineMouseOver={setHoveredRouteId}
+                                    onPolylineMouseOut={setHoveredRouteId}
+                                />
+                            ))}
+                            {hoveredRouteId && (() => {
+                                const hoveredRoute = filteredRoutes.find(r => r.id === hoveredRouteId);
+                                return hoveredRoute ? (
+                                    <HighlightedRoute
+                                        key={`hover-${hoveredRoute.id}`}
+                                        route={hoveredRoute}
+                                        isHovered={true}
+                                        onPolylineMouseOver={setHoveredRouteId}
+                                        onPolylineMouseOut={setHoveredRouteId}
+                                    />
+                                ) : null;
+                            })()}
                             <RoadsideMarkers />
-
                         </MapContainer>
                     </MapContext.Provider>
                 </div>
-                <div style={{ width: '98%', margin: '0 auto 20px auto', padding: '0px 10px 10px 10px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
+                <div className="route-slider-wrapper">
                     <RouteSlider
                         routes={filteredRoutes}
                         onHover={(id) => setHoveredRouteId(id)}
                         onClickRoute={handleRouteClick}
-                    />                
+                    />
                 </div>
             </div>
         </>
