@@ -385,7 +385,7 @@ useEffect(() => {
                             setFromLocation({ name, lat, lng });
                             setFromCoords([lat, lng]);
                         }}
-                        style={{ flex: '1 1 180px' }}
+                        className="location-autocomplete-field"
                     />
                     <LocationAutocomplete
                         placeholder="Dokąd"
@@ -399,7 +399,7 @@ useEffect(() => {
                             setToLocation({ name, lat, lng });
                             setToCoords([lat, lng]);
                         }}
-                        style={{ flex: '1 1 180px' }}
+                       className="location-autocomplete-field"
                     />
                     <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-select-field">
                         <option value="">Typ pojazdu</option>
