@@ -1,3 +1,5 @@
+// src/components/CookieWall.jsx
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -11,17 +13,10 @@ const CookieWall = () => {
     }
   }, []);
 
-  const loadRecaptcha = () => {
-    const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.src = 'https://www.google.com/recaptcha/api.js?render=6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr';
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  };
+  // USUNIĘTO: Funkcja loadRecaptcha() - teraz skrypt jest w index.html
 
   const loadFacebookSDK = () => {
+    // Zachowujemy to, jeśli chcesz ładować FB SDK dynamicznie po zgodzie
     if (!document.getElementById('facebook-jssdk')) {
       const script = document.createElement('script');
       script.id = 'facebook-jssdk';
@@ -35,8 +30,8 @@ const CookieWall = () => {
   const acceptCookies = () => {
     localStorage.setItem('cookieConsent', 'accepted');
     setShowWall(false);
-    loadRecaptcha();
-    loadFacebookSDK(); // tylko jeśli korzystasz z logowania przez FB
+    // USUNIĘTO: loadRecaptcha();
+    loadFacebookSDK(); // Tylko jeśli korzystasz z logowania przez FB
   };
 
   if (!showWall) return null;
@@ -48,7 +43,7 @@ const CookieWall = () => {
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.6)', // półprzezroczyste
+      backgroundColor: 'rgba(0, 0, 0, 0.8)', // Użyłem 0.8 dla lepszego zaciemnienia
       color: 'white',
       zIndex: 99999,
       display: 'flex',
