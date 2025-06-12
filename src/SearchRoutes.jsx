@@ -152,7 +152,7 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
           </div>
           <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
           <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
-          <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
+         <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
           <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
           {route.phone && (
             <div style={{ marginBottom: '10px' }}>
@@ -421,12 +421,33 @@ useEffect(() => {
 <MapContainer
   center={center}
   zoom={6}
-  className="main-map-container" // Użyj klasy z CSS
+  style={{ height: '100%', width: '100%', zIndex: 0 }}
+  tap={false} // zostaw tap={false}
+  dragging={true} // zostaw dragging={true}
   zoomControl={true}
-  gestureHandling={true} // <== Dodaj tę właściwość!
   whenCreated={(mapInstance) => {
     mapRef.current = mapInstance;
-    // Twoja własna logika touch-action jest zbędna, usunąłem ją
+
+    // Przywróć swoją logikę blokowania przeciągania jednym palcem
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      let isTwoFingerTouch = false;
+
+      mapInstance.getContainer().addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isTwoFingerTouch = false;
+          mapInstance.dragging.disable();
+        } else if (e.touches.length === 2) {
+          isTwoFingerTouch = true;
+          mapInstance.dragging.enable();
+        }
+      });
+
+      mapInstance.getContainer().addEventListener('touchend', () => {
+        if (!isTwoFingerTouch) {
+          mapInstance.dragging.disable();
+        }
+      });
+    }
   }}
 >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
