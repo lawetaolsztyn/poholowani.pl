@@ -26,7 +26,7 @@ html, body {
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
   width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
-  min-height: 250px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
+  min-height: 150px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
   height: auto; /* Wysokość dopasowuje się do zawartości */
   box-sizing: border-box; /* Ważne dla paddingu */
   /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
@@ -143,7 +143,7 @@ html, body {
 /* Media Queries dla responsywności */
 @media (max-width: 768px) {
   .overlay-header {
-    min-height: 180px; /* Mniejsza minimalna wysokość dla telefonów */
+    min-height: 120px; /* Mniejsza minimalna wysokość dla telefonów */
     padding: 15px 10px; /* Padding dla banera na telefonach */
     /* Flex-direction i gap dla zawartości headera są w Header.css dla mobilnego układu */
   }
