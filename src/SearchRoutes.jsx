@@ -428,13 +428,14 @@ useEffect(() => {
   zoom={6}
   style={{ height: '100%', width: '100%', zIndex: 0 }}
   tap={false}
-  dragging={false}
+  dragging={true} // ← ważne! na starcie ma być włączone (dla komputera)
   zoomControl={true}
-  touchZoom={false}
-  doubleClickZoom={false}
+  touchZoom={true} // ← włączone, ale i tak będziemy tym sterować
+  doubleClickZoom={true}
   whenCreated={(mapInstance) => {
     mapRef.current = mapInstance;
 
+    // 🔍 tylko na ekranach dotykowych
     if (window.matchMedia('(pointer: coarse)').matches) {
       mapInstance.dragging.disable();
       mapInstance.touchZoom.disable();
