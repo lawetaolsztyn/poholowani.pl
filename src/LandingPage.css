@@ -6,7 +6,7 @@
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d);
   width: 100%;
-  min-height: 130px; /* **KLUCZOWE: Twoja preferowana wysokość (np. 130px, dostosuj!)** */
+  min-height: 100px; /* **KLUCZOWE: Twoja preferowana wysokość (np. 130px, dostosuj!)** */
   height: auto;
   box-sizing: border-box;
 }
