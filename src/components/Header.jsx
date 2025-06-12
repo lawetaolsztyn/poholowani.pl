@@ -1,10 +1,16 @@
-import './Header.css';
+// src/components/Header.jsx
 
-export default function Header({ title = "Wykorzystaj puste przebiegi!", subtitle = "Znajdź lub zaoferuj transport powrotny lawet i busów w całej Europie. Prosto i szybko!" }) {
+import './Header.css';
+import logo from '../assets/logo.png'; // Upewnij się, że ta ścieżka jest poprawna!
+
+export default function Header({ title, subtitle }) {
   return (
-    <div className="overlay-header">
-      <h1>{title}</h1>
-      <p>{subtitle}</p>
+    <div className="header-component"> {/* To jest kontener WNĘTRZA headera */}
+      <img src={logo} alt="Poholowani.pl Logo" className="header-logo" />
+      <div className="header-text-content"> {/* Kontener dla tekstu */}
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
+      </div>
     </div>
   );
 }
