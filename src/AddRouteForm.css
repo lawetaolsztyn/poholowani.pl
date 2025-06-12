@@ -9,43 +9,64 @@
 
 .form-row {
   display: flex;
-  flex-wrap: wrap; /* Pozwoli elementom zawijać się na mniejszych ekranach */
-  gap: 20px; /* Zmniejszony odstęp dla lepszego wykorzystania miejsca */
+  flex-wrap: wrap;
+  gap: 30px; /* Zwiększ odstęp między polami */
   margin-bottom: 20px;
-  justify-content: flex-start; /* Upewnij się, że elementy zaczynają się od lewej */
+  justify-content: flex-start;
+  align-items: flex-start; /* Ważne dla wyrównania etykiet */
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  flex: 1 1 calc(50% - 10px); /* Dwa pola na wiersz na szerszych ekranach, odejmij gap/2 */
-  min-width: 250px; /* Minimalna szerokość pola, aby nie było za małe */
+  /* Elastyczna szerokość dla desktopa, aby pasowały 2-3 pola, max-width ograniczy szerokość */
+  flex: 0 0 auto; /* Nie rozciągaj automatycznie */
+  width: 280px; /* Stała, węższa szerokość dla pola na desktopie */
+  max-width: 100%; /* Upewnij się, że nie wyjdzie poza kontener na małych ekranach */
+  box-sizing: border-box; /* Ważne, aby padding i border nie zwiększały szerokości */
 }
 
-/* Dostosowanie szerokości inputów i selectów */
+.form-field label {
+  margin-bottom: 5px; /* Odstęp między etykietą a polem */
+  font-weight: bold;
+  color: #333; /* Domyślny kolor etykiet (jasny tryb) */
+  text-align: left; /* Etykiety wyrównane do lewej */
+  white-space: nowrap; /* Zapobiega zawijaniu się etykiet, jeśli są krótkie */
+}
+
+
+/* Dostosowanie szerokości inputów i selectów wewnątrz form-field */
 .uinput, .narrow-autocomplete input {
-  width: 100%;
+  width: 100%; /* Wewnątrz form-field zawsze zajmuje 100% dostępnej szerokości */
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  box-sizing: border-box; /* Ważne, aby padding nie powiększał elementu */
+  box-sizing: border-box;
+  background-color: #ffffff; /* Jasne tło dla inputów w jasnym trybie */
+  color: #333; /* Ciemny tekst w inputach */
+}
+
+.uinput:focus, .narrow-autocomplete input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 .submit-button {
   padding: 12px 25px;
-  background-color: #007bff;
+  background-color: #28a745; /* Zielony kolor dla przycisku zapisu */
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 1.1rem;
   transition: background-color 0.3s ease;
-  width: auto; /* Domyślnie dopasowuje się do treści */
+  width: auto;
   margin-top: 20px;
 }
 
 .submit-button:hover {
-  background-color: #0056b3;
+  background-color: #218838; /* Ciemniejszy zielony na hover */
 }
 
 /* Media Queries dla mniejszych ekranów (np. telefony) */
@@ -56,8 +77,8 @@
   }
 
   .form-field {
-    flex: 1 1 100%; /* Każde pole zajmuje całą dostępną szerokość */
-    min-width: unset; /* Usuń minimalną szerokość */
+    width: 100%; /* Każde pole zajmuje całą dostępną szerokość */
+    min-width: unset; /* Usuń minimalną szerokość, jeśli jest */
   }
 
   .route-form {
@@ -74,23 +95,27 @@
 /* Dark mode styles for AddRouteForm */
 @media (prefers-color-scheme: dark) {
   .route-form {
-    background-color: #2a2a2a;
+    background-color: #2a2a2a; /* Ciemne tło formularza */
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
 
+  .form-field label {
+    color: #e0e0e0; /* Jasny kolor etykiet w ciemnym trybie */
+  }
+
   .uinput, .narrow-autocomplete input {
-    background-color: #3b3b3b;
-    color: #e0e0e0;
-    border-color: #555;
+    background-color: #3b3b3b; /* Ciemniejsze tło dla inputów */
+    color: #e0e0e0; /* Jasny tekst w inputach */
+    border-color: #555; /* Ciemniejsza ramka */
   }
 
   .uinput:focus, .narrow-autocomplete input:focus {
-    border-color: #0099ff;
+    border-color: #0099ff; /* Jaśniejsze podświetlenie ramki */
     box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.3);
   }
 
   .submit-button {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Odpowiedni kolor przycisku dla ciemnego trybu */
   }
 
   .submit-button:hover {
