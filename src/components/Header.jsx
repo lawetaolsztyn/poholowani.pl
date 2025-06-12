@@ -1,4 +1,4 @@
-import './Header.css';
+import './components/Header.css';
 
 export default function Header({ title = "Wykorzystaj puste przebiegi!", subtitle = "Znajdź lub zaoferuj transport powrotny lawet i busów w całej Europie. Prosto i szybko!" }) {
   return (
