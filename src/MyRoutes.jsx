@@ -2,6 +2,8 @@ import EditRouteModal from './EditRouteModal';
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css'; // Upewnij się, że jest zaimportowane, jeśli nie było
+import './MyRoutes.css'; // Importujemy nowy plik CSS
 
 const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
@@ -147,33 +149,15 @@ export default function MyRoutes() {
   };
 
   return (
-    <div
-      style={{
-        maxHeight: 'calc(100vh - 180px)',
-        overflowY: 'auto',
-        padding: '20px',
-        boxSizing: 'border-box',
-      }}
-    >
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'flex-start' }}>
+    <div className="my-routes-container"> {/* Dodana klasa */}
+      <div className="routes-grid"> {/* Nowa klasa do siatki kart */}
         {routes.map((r, idx) => (
           <div
             key={r.id}
             onMouseEnter={() => setHoveredIndex(idx)}
             onMouseLeave={() => setHoveredIndex(null)}
-            style={{
-              background: '#fff',
-              border: '1px solid #ccc',
-              borderRadius: '10px',
-              padding: '15px',
-              width: 'calc(30% - 20px)',
-              maxWidth: '300px',
-              minWidth: '260px',
-              flex: '1 1 auto',
-              boxShadow: hoveredIndex === idx ? '0 0 10px red' : '0 0 5px rgba(0,0,0,0.1)',
-              position: 'relative',
-              transition: 'box-shadow 0.3s ease',
-            }}
+            className="route-card" /* Nowa klasa dla pojedynczej karty */
+            style={{ boxShadow: hoveredIndex === idx ? '0 0 10px red' : '0 0 5px rgba(0,0,0,0.1)' }}
           >
             <strong>{r.from_city} → {r.to_city}</strong><br />
             🗓️ {r.date}<br />
@@ -186,37 +170,33 @@ export default function MyRoutes() {
             ) : '-'}
 
             {hoveredIndex === idx && (
-              <div style={{
-                position: 'absolute',
-                bottom: '10px',
-                right: '10px',
-                display: 'flex',
-                gap: '10px',
-              }}>
-                <button style={btnStyle} onClick={() => handleDelete(r.id)}>🗑️ Usuń</button>
-                <button style={btnStyle} onClick={() => setEditingRoute(r)}>✏️ Edytuj</button>
+              <div className="card-buttons-container"> {/* Nowa klasa dla kontenera przycisków */}
+                <button className="card-button delete-button" onClick={() => handleDelete(r.id)}>🗑️ Usuń</button> {/* Nowe klasy */}
+                <button className="card-button edit-button" onClick={() => setEditingRoute(r)}>✏️ Edytuj</button> {/* Nowe klasy */}
               </div>
             )}
           </div>
         ))}
       </div>
 
-      <div style={{ height: '600px', marginTop: '30px' }}>
+      <div className="my-routes-map-container"> {/* Nowa klasa dla kontenera mapy */}
         <MapContainer
           center={[52.0, 19.0]}
           zoom={6}
-          style={{ height: '100%', width: '100%' }}
+          className="my-routes-map" /* Nowa klasa dla mapy */
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {routes.map((r, idx) => (
-            <Polyline
-              key={r.id}
-              positions={r.geojson.features[0].geometry.coordinates.map(([lng, lat]) => [lat, lng])}
-              pathOptions={{
-                color: hoveredIndex === idx ? 'red' : 'blue',
-                weight: hoveredIndex === idx ? 6 : 4,
-              }}
-            />
+            r.geojson && r.geojson.features && r.geojson.features[0] && ( /* Sprawdź, czy geojson istnieje i ma cechy */
+              <Polyline
+                key={r.id}
+                positions={r.geojson.features[0].geometry.coordinates.map(([lng, lat]) => [lat, lng])}
+                pathOptions={{
+                  color: hoveredIndex === idx ? 'red' : 'blue',
+                  weight: hoveredIndex === idx ? 6 : 4,
+                }}
+              />
+            )
           ))}
         </MapContainer>
       </div>
@@ -231,13 +211,3 @@ export default function MyRoutes() {
     </div>
   );
 }
-
-const btnStyle = {
-  padding: '4px 10px',
-  fontSize: '0.9rem',
-  backgroundColor: '#3182ce',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-};
