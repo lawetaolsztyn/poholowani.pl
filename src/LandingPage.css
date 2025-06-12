@@ -1,108 +1,44 @@
-/* ===== CZCIONKA I NAGŁÓWKI ===== */
+/* src/LandingPage.css */
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', sans-serif;
-}
-
-.banner-heading {
-  font-family: 'Poppins', sans-serif;
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
-}
-
-.banner-subheading {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #f0f0f0;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* ===== STRONA GŁÓWNA ===== */
-
+/* ===== STRONA GŁÓWNA - GŁÓWNY KONTENER ===== */
 .landing-container {
   position: relative;
   height: auto;
   min-height: 100vh;
-  width: 100vw;
-  overflow: hidden;
+  width: 100%; /* KLUCZOWE: Kontener główny na 100% szerokości */
   display: flex;
   flex-direction: column;
+  padding: 0; /* Upewnij się, że nie ma paddingu */
 }
 
+/* Styl dla CAŁEGO PASKA BANERA (gdzie jest komponent Header) */
 .overlay-header {
-  background: linear-gradient(135deg, #43cea2, #185a9d);
-  color: white;
-  /* KLUCZOWA ZMIANA: NADPISUJEMY PADDING NA STAŁĄ WARTOŚĆ DLA WIĘKSZYCH EKRANÓW */
-  padding: 0.5rem 1rem !important; /* DODANO !important */
-  z-index: 1000;
-  display: flex;
-  flex-direction: row;
-  align-items: center; /* Wyśrodkowuje elementy flex wertykalnie */
-  justify-content: center;
-  flex-wrap: wrap; /* Pozwala na zawijanie elementów */
-  gap: 1.5rem;
-  text-align: center;
-  /* Upewnij się, że nie ma tu sztywnych wysokości z innych źródeł */
-  height: auto !important; /* DODANO !important */
-  min-height: unset !important; /* DODANO !important */
+  background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
+  width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
+  min-height: 130px; /* Twoja preferowana wysokość */
+  height: auto; /* Wysokość dopasowuje się do zawartości */
+  box-sizing: border-box; /* Ważne */
+  /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
 }
 
-.overlay-header h1 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 2.4rem;
-  font-weight: 700;
-  margin-bottom: 0.6rem;
-  margin-top: 0;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-}
-
-.overlay-header p {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 500;
-  color: #e0e0e0;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  max-width: 800px;
-  margin: 0 auto; /* Upewnij się, że marginesy są kontrolowane */
-}
-
-/* Fade-in animacja nagłówka */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+/* Tryb ciemny dla TŁA BANERA */
+@media (prefers-color-scheme: dark) {
+  .overlay-header {
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
   }
 }
 
-.overlay-header h1,
-.overlay-header p {
-  opacity: 0;
-  animation: fadeIn 1s ease-out forwards;
-}
-
-.overlay-header h1 {
-  animation-delay: 0.2s;
-}
-
-.overlay-header p {
-  animation-delay: 0.6s;
-}
 
 /* ===== MAPA ===== */
 
 .map-wrapper {
   flex: 1;
   position: relative;
-  min-height: 300px;
+  min-height: 500px; /* Dobra wysokość dla mapy na desktopie */
+  width: 100%; /* KLUCZOWE: Mapa na 100% szerokości */
+  box-sizing: border-box;
+  padding: 0; /* Upewnij się, że nie ma paddingu */
+  margin: 0; /* Dodane: Zeruj marginesy zewnętrzne map-wrapper */
 }
 
 .map-background {
@@ -112,19 +48,26 @@ body {
   top: 0;
   left: 0;
   z-index: 0;
-}
-
-/* TYLKO NA LANDING PAGE – rozmycie */
-.landing-blurred-map {
   filter: blur(2px) brightness(0.8);
   pointer-events: none;
+  margin: 0; /* Dodane: Zeruj marginesy zewnętrzne map-background */
+  padding: 0; /* Dodane: Zeruj paddingi map-background */
+}
+
+/* Styl dla kontenera Leaflet MapContainer, który jest wewnątrz map-background */
+.leaflet-map-container {
+  height: 100%;
+  width: 100%;
+  margin: 0 !important; /* WAŻNE: Zerowanie marginesów Leaflet */
+  padding: 0 !important; /* WAŻNE: Zerowanie paddingów Leaflet */
+  border-radius: 0 !important; /* Usunięcie zaokrągleń, które mogą powodować białe rogi */
+  box-shadow: none !important; /* Usunięcie cienia, który mógłby być widoczny */
 }
 
 /* ===== PRZYCISKI ===== */
-
 .action-buttons {
   position: absolute;
-  top: 60%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1001;
@@ -148,7 +91,9 @@ body {
   cursor: pointer;
   border-radius: 10px;
   text-align: center;
+  text-decoration: none;
   transition: background-color 0.3s ease;
+  white-space: nowrap;
 }
 
 .primary-button:hover,
@@ -161,10 +106,10 @@ body {
   font-size: 0.9rem;
   margin-top: 0.5rem;
   color: #ccc;
+  display: block;
 }
 
 /* ===== FORMULARZ WYSZUKIWANIA ===== */
-
 .search-container {
   display: flex;
   flex-direction: column;
@@ -184,46 +129,28 @@ body {
   align-items: flex-end;
   justify-content: center;
   z-index: 1001;
-  margin-top: 20px; /* Odstęp pod banerem */
+  margin-top: 20px;
 }
 
 
+/* Media Queries dla responsywności */
 @media (max-width: 768px) {
   .overlay-header {
-    flex-direction: column !important;
-    text-align: center;
-    padding: 1rem; /* Ten padding dla telefonów */
-    height: auto; /* Zapewnij auto wysokość */
-    min-height: unset; /* Upewnij się, że nie ma tu min-height */
-  }
-
-  .overlay-header img {
-    height: 120px; /* Może być konieczne zmniejszenie tej wartości, jeśli logo jest za duże */
-    max-width: 90vw;
-    margin-bottom: 1rem;
-  }
-
-  .banner-heading {
-    font-size: 1.5rem;
-  }
-
-  .banner-subheading {
-    font-size: 1rem;
+    min-height: 120px;
+    padding: 15px 10px;
   }
 
   .map-wrapper {
-    min-height: 400px;
+    min-height: 350px;
   }
 
   .action-buttons {
-    position: absolute;
-    top: 75%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
+    top: auto;
+    bottom: 5%;
+    transform: translateX(-50%);
     flex-direction: column;
     gap: 1rem;
-    max-width: 400px;
+    max-width: 90vw;
     padding: 0;
   }
 
@@ -238,5 +165,37 @@ body {
   .primary-button .subtext,
   .secondary-button .subtext {
     font-size: 0.8rem;
+  }
+}
+
+/* Tryb ciemny dla LandingPage */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  .landing-container {
+    box-shadow: none;
+  }
+
+  .overlay-header {
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
+  }
+
+  .action-buttons .primary-button,
+  .action-buttons .secondary-button {
+    background-color: #0056b3;
+    color: white;
+  }
+
+  .action-buttons .primary-button:hover,
+  .action-buttons .secondary-button:hover {
+    background-color: #003f8c;
+  }
+
+  .primary-button .subtext,
+  .secondary-button .subtext {
+    color: #b0b0b0;
   }
 }
