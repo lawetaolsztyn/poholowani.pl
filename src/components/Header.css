@@ -1,8 +1,86 @@
-.overlay-header {
-  background-color: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 0.7rem;
+/* src/components/Header.css */
+
+/* Główne opakowanie komponentu Header (wewnątrz overlay-header z LandingPage.css) */
+.header-component {
+  display: flex;
+  flex-direction: row; /* Logo i tekst obok siebie na desktopie */
+  align-items: center; /* Wyśrodkuj pionowo */
+  justify-content: center; /* Wyśrodkuj poziomo */
+  flex-wrap: wrap; /* Pozwoli na zawijanie elementów na mniejszych ekranach */
+  gap: 1.5rem; /* Odstęp między logo a kontenerem tekstowym */
+  
+  padding: 20px 15px; /* Padding wewnętrzny dla tekstu i logo, aby odsunąć od krawędzi BANERA */
   text-align: center;
   z-index: 1000;
-  font-size: 1.1rem;
+  width: 100%; /* Rozciągnij Header na całą szerokość rodzica (.overlay-header) */
+  box-sizing: border-box; /* Ważne */
+}
+
+/* Styl dla logo POHOLOWANI */
+.header-logo {
+  max-height: 140px; /* Maksymalna wysokość logo na desktopie */
+  width: auto; /* Zachowaj proporcje */
+  display: block;
+  margin: 0;
+}
+
+/* Styl dla kontenera tekstu (h1 i p) */
+.header-text-content {
+  text-align: center;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column; /* h1 i p JEDEN POD DRUGIM */
+  align-items: center; /* Wyśrodkuj tekst poziomo wewnątrz kontenera */
+  justify-content: center;
+}
+
+/* Style dla tytułu (h1) w banerze */
+.header-component h1 {
+  font-size: 2.5rem;
+  margin: 0;
+  color: white; /* **KLUCZOWE: Tekst ma być biały** */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* Style dla podtytułu (p) w banerze */
+.header-component p {
+  font-size: 1.2rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  color: white; /* **KLUCZOWE: Tekst ma być biały** */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsywność tekstu i logo w HEADERZE */
+@media (max-width: 768px) {
+  .header-component {
+    flex-direction: column; /* Logo i kontener tekstowy w kolumnie na telefonach */
+    gap: 0.5rem; /* Mniejszy odstęp */
+    padding: 15px 10px; /* Mniejszy padding na telefonach */
+  }
+
+  .header-logo {
+    max-height: 80px;
+  }
+
+  .header-text-content {
+    max-width: 90vw;
+  }
+
+  .header-component h1 {
+    font-size: 1.8rem;
+  }
+
+  .header-component p {
+    font-size: 1rem;
+  }
+}
+
+/* Tryb ciemny dla HEADERA: tekst pozostaje biały, cień może być mocniejszy */
+@media (prefers-color-scheme: dark) {
+  .header-component h1,
+  .header-component p {
+    color: white; /* Tekst pozostaje biały na ciemniejszym tle */
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+  }
 }
