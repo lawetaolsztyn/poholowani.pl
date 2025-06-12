@@ -235,8 +235,7 @@
         background-color: rgba(255,255,255,0.2); /* Jaśniejsze przyciemnienie */
         color: #333; /* Ciemniejszy tekst */
     }
-}
+/* 🚫 NIE używaj touch-action: none */
 .leaflet-container {
-  touch-action: pan-y; /* ✅ pozwala scrollować stronę jednym palcem */
+  touch-action: pan-y; /* Pozwala przesuwać stronę jednym palcem */
 }
-
