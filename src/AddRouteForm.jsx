@@ -3,6 +3,7 @@ import LocationAutocomplete from './components/LocationAutocomplete';
 import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import './AddRouteForm.css'; // Importujemy nowy plik CSS
 
 const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
@@ -172,9 +173,9 @@ function AddRouteForm({ onRouteCreated }) {
 
   return (
     <>
-      <form className="route-form" onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', gap: '32px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', width: '250px' }}>
+      <form className="route-form" onSubmit={handleSubmit}> {/* Dodana klasa .route-form */}
+        <div className="form-row"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Skąd:</label>
             <LocationAutocomplete
               value={form.from}
@@ -183,7 +184,7 @@ function AddRouteForm({ onRouteCreated }) {
               className="narrow-autocomplete"
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', width: '250px' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Dokąd:</label>
             <LocationAutocomplete
               value={form.to}
@@ -192,7 +193,7 @@ function AddRouteForm({ onRouteCreated }) {
               className="narrow-autocomplete"
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', width: '250px' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Punkt pośredni:</label>
             <LocationAutocomplete
               value={form.via}
@@ -201,7 +202,7 @@ function AddRouteForm({ onRouteCreated }) {
               className="narrow-autocomplete"
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', width: '250px' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Data przejazdu:</label>
             <input
               type="date"
@@ -215,23 +216,23 @@ function AddRouteForm({ onRouteCreated }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'flex-start', marginTop: '10px' }}>
-          <div style={{ width: '250px', display: 'flex', flexDirection: 'column' }}>
+        <div className="form-row"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Typ pojazdu:</label>
             <select name="vehicleType" value={form.vehicleType} onChange={handleChange} className="uinput">
               <option value="bus">🚌 Bus</option>
               <option value="laweta">🚚 Laweta</option>
             </select>
           </div>
-          <div style={{ width: '250px', display: 'flex', flexDirection: 'column' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Ładowność (kg):</label>
             <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
           </div>
-          <div style={{ width: '250px', display: 'flex', flexDirection: 'column' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Ilość osób do zabrania:</label>
             <input type="number" name="passengerCount" value={form.passengerCount} onChange={handleChange} className="uinput" />
           </div>
-          <div style={{ width: '250px', display: 'flex', flexDirection: 'column' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Ile km możesz zjechać z trasy:</label>
             <select name="maxDetour" value={form.maxDetour} onChange={handleChange} className="uinput">
               <option value="25">25 km</option>
@@ -240,17 +241,17 @@ function AddRouteForm({ onRouteCreated }) {
               <option value="100">100 km</option>
             </select>
           </div>
-          <div style={{ width: '250px', display: 'flex', flexDirection: 'column' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Numer telefonu:</label>
             <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="uinput" />
           </div>
-          <div style={{ width: '250px', display: 'flex', flexDirection: 'column' }}>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Messenger: (link)</label>
             <input type="url" name="messenger" value={form.messenger} onChange={handleChange} className="uinput" />
           </div>
         </div>
 
-        <button type="submit" style={{ marginTop: '20px' }} disabled={isSaving}>
+        <button type="submit" className="submit-button" disabled={isSaving}> {/* Dodana klasa .submit-button */}
           💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
         </button>
       </form>
