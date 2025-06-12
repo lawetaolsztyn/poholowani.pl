@@ -1,8 +1,63 @@
+/* src/components/Header.css */
+
 .overlay-header {
-  background-color: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 0.7rem;
+  /* Podstawowe style dla kontenera nagłówka */
+  background-color: #f0f0f0; /* Zmieniono domyślne tło na jasne dla trybu jasnego */
+  color: #333; /* Domyślny kolor tekstu na ciemny dla trybu jasnego */
+  padding: 20px 15px; /* Zwiększony padding góra/dół i dodany po bokach */
   text-align: center;
   z-index: 1000;
   font-size: 1.1rem;
+
+  /* Responsywność i kontrola szerokości */
+  width: 100%; /* Upewnij się, że zajmuje całą dostępną szerokość */
+  max-width: 1200px; /* Ogranicz maksymalną szerokość na bardzo dużych ekranach */
+  margin: 0 auto; /* Wyśrodkuj baner na stronie */
+  box-sizing: border-box; /* Kluczowe: padding jest wliczony w szerokość */
+  border-radius: 8px; /* Lekkie zaokrąglenie rogów, jeśli chcesz */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05); /* Delikatny cień */
+}
+
+.overlay-header h1 {
+  font-size: 2.5rem; /* Większa czcionka dla tytułu */
+  margin-bottom: 10px; /* Odstęp pod tytułem */
+  color: inherit; /* Dziedzicz kolor od rodzica */
+}
+
+.overlay-header p {
+  font-size: 1.2rem; /* Czcionka dla podtytułu */
+  color: inherit; /* Dziedzicz kolor od rodzica */
+  max-width: 800px; /* Ogranicz szerokość podtytułu, aby się nie rozjeżdżał */
+  margin: 0 auto; /* Wyśrodkuj podtytuł */
+}
+
+/* Media Queries dla responsywności na mniejszych ekranach */
+@media (max-width: 768px) {
+  .overlay-header {
+    padding: 15px 10px; /* Mniejszy padding na telefonach */
+    font-size: 1rem;
+    border-radius: 0; /* Bez zaokrągleń na małych ekranach, żeby lepiej wypełniać szerokość */
+  }
+
+  .overlay-header h1 {
+    font-size: 1.8rem; /* Mniejszy rozmiar tytułu */
+  }
+
+  .overlay-header p {
+    font-size: 1rem; /* Mniejszy rozmiar podtytułu */
+  }
+}
+
+/* Tryb ciemny */
+@media (prefers-color-scheme: dark) {
+  .overlay-header {
+    background-color: #2a2a2a; /* Ciemne tło dla nagłówka w trybie ciemnym */
+    color: #e0e0e0; /* Jasny tekst w trybie ciemnym */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Ciemniejszy cień */
+  }
+
+  .overlay-header h1,
+  .overlay-header p {
+    color: inherit; /* Zapewnij, że tekst dziedziczy jasny kolor */
+  }
 }
