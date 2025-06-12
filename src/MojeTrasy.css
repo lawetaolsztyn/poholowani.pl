@@ -1,6 +1,6 @@
 /* src/MojeTrasy.css */
 
-.landing-container {
+.my-routes-page-container {
   overflow-y: auto; /* Zachowaj to, jeśli strona ma być przewijalna wewnątrz kontenera */
   padding-bottom: 80px; /* Dodatkowe miejsce na dole */
   padding-left: 20px; /* Domyślny padding po bokach */
