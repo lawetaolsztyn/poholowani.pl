@@ -13,6 +13,12 @@ import RoadsideMarkers from './components/RoadsideMarkers';
 import './SearchRoutes.css';
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 import 'leaflet-gesture-handling'; // To jest import, który rejestruje wtyczkę
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
 
 
 const MapContext = createContext(null);
