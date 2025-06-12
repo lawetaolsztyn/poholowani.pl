@@ -1,34 +1,24 @@
 /* src/LandingPage.css */
 
-/* ===== STRONA GŁÓWNA - GŁÓWNY KONTENER ===== */
-.landing-container {
-  position: relative;
-  height: auto;
-  min-height: 100vh;
-  width: 100%; /* KLUCZOWE: Kontener główny na 100% szerokości */
-  display: flex;
-  flex-direction: column;
-  padding: 0; /* Upewnij się, że nie ma paddingu */
-}
+/* ... (pozostały kod CSS - globalne style, landing-container - bez zmian) ... */
 
-/* Styl dla CAŁEGO PASKA BANERA (gdzie jest komponent Header) */
+/* Styl dla CAŁEGO PASKA BANERA (który zawiera komponent Header) */
 .overlay-header {
-  background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
-  width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
-  min-height: 130px; /* Twoja preferowana wysokość */
-  height: auto; /* Wysokość dopasowuje się do zawartości */
-  box-sizing: border-box; /* Ważne */
-  /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
+  background: linear-gradient(135deg, #43cea2, #185a9d);
+  width: 100%;
+  min-height: 130px; /* **KLUCZOWE: Twoja preferowana wysokość (np. 130px, dostosuj!)** */
+  height: auto;
+  box-sizing: border-box;
 }
 
 /* Tryb ciemny dla TŁA BANERA */
 @media (prefers-color-scheme: dark) {
   .overlay-header {
-    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47);
   }
 }
 
-/* Fade-in animacja (DEFINTION) */
+/* **KLUCZOWE: Fade-in animacja (DEFINTION) - MUSI BYĆ TUTAJ** */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -40,13 +30,14 @@
   }
 }
 
+
 /* ===== MAPA ===== */
 
 .map-wrapper {
   flex: 1;
   position: relative;
   min-height: 500px; /* Dobra wysokość dla mapy na desktopie */
-  width: 100%; /* KLUCZOWE: Mapa na 100% szerokości */
+  width: 100%; /* **KLUCZOWE: Mapa na 100% szerokości** */
   box-sizing: border-box;
   padding: 0; /* **KLUCZOWE: Upewnij się, że nie ma paddingu** */
   margin: 0; /* **KLUCZOWE: Zeruj marginesy zewnętrzne map-wrapper** */
@@ -74,6 +65,8 @@
   border-radius: 0 !important; /* Usunięcie zaokrągleń, które mogą powodować białe rogi */
   box-shadow: none !important; /* Usunięcie cienia, który mógłby być widoczny */
 }
+
+/* ... (pozostały kod CSS - przyciski, formularze, media queries - bez zmian) ... */
 
 /* ===== PRZYCISKI ===== */
 .action-buttons {
