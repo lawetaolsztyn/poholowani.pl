@@ -1,9 +1,15 @@
 /* ===== GLOBALNE STYLE DLA CAŁEJ STRONY ===== */
-body {
+html, body {
+  height: 100%; /* **KLUCZOWE: Zapewnij 100% wysokości dla html i body** */
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
   overflow-x: hidden; /* KLUCZOWE: Zapobiega poziomemu przewijaniu */
+  box-sizing: border-box; /* **KLUCZOWE: Globalny box-sizing** */
+}
+
+*, *::before, *::after {
+  box-sizing: inherit; /* Dziedziczenie box-sizing dla wszystkich elementów */
 }
 
 /* ===== STRONA GŁÓWNA - GŁÓWNY KONTENER ===== */
@@ -16,14 +22,14 @@ body {
   flex-direction: column;
 }
 
-/* Styl dla CAŁEGO PASKA BANERA (gdzie jest logo i tekst z Header.jsx) */
+/* Styl dla CAŁEGO PASKA BANERA (który zawiera komponent Header) */
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
   width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
   min-height: 250px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
   height: auto; /* Wysokość dopasowuje się do zawartości */
   box-sizing: border-box; /* Ważne dla paddingu */
-  /* Pamiętaj, że padding wewnętrzny i układ (flex) zawartości są w Header.css */
+  /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
 }
 
 /* Tryb ciemny dla TŁA BANERA */
@@ -34,7 +40,6 @@ body {
 }
 
 /* Animacje nagłówka - zostawiamy tak, jak są w Header.css */
-/* @keyframes fadeIn { ... } */
 
 
 /* ===== MAPA ===== */
@@ -58,6 +63,12 @@ body {
   /* KLUCZOWE: Blur i brightness dla mapy */
   filter: blur(2px) brightness(0.8); /* Włączamy blur z powrotem */
   pointer-events: none;
+}
+
+/* Styl dla kontenera Leaflet MapContainer, który jest wewnątrz map-background */
+.leaflet-map-container {
+  height: 100%; /* Musi wypełnić 100% wysokości map-background */
+  width: 100%; /* Musi wypełnić 100% szerokości map-background */
 }
 
 /* ===== PRZYCISKI ===== */
@@ -106,7 +117,27 @@ body {
 }
 
 /* ===== FORMULARZ WYSZUKIWANIA ===== (BEZ ZMIAN) */
-/* ... */
+.search-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  font-family: sans-serif;
+  background-color: #f8f9fa;
+}
+
+.search-form {
+  background-color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1001;
+  margin-top: 20px;
+}
 
 
 /* Media Queries dla responsywności */
@@ -114,7 +145,7 @@ body {
   .overlay-header {
     min-height: 180px; /* Mniejsza minimalna wysokość dla telefonów */
     padding: 15px 10px; /* Padding dla banera na telefonach */
-    /* flex-direction: column i gap są w Header.css dla mobilnego układu wewnątrz headera */
+    /* Flex-direction i gap dla zawartości headera są w Header.css dla mobilnego układu */
   }
 
   .map-wrapper {
