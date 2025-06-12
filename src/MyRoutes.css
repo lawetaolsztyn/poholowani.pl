@@ -102,29 +102,56 @@
 
 /* Dark mode styles for MyRoutes */
 @media (prefers-color-scheme: dark) {
+  .my-routes-container {
+    /* Możesz dostosować tło głównego kontenera w trybie ciemnym, jeśli to konieczne */
+    /* background-color: #1a1a1a; */
+  }
+
+  .routes-grid {
+    /* Brak zmian potrzebnych tutaj, to tylko kontener flex */
+  }
+
   .route-card {
-    background: #2a2a2a;
-    border-color: #555;
+    background: #2a2a2a; /* Ciemne tło dla kafelków w trybie ciemnym */
+    border-color: #555; /* Ciemniejsza ramka */
     box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    color: #e0e0e0; /* Ustawienie jasnego koloru tekstu dla całej karty */
   }
 
   .route-card:hover {
     box-shadow: 0 0 10px red; /* Zachowaj czerwony cień hover */
+    /* Jeśli chcesz jaśniejsze tło na hover w ciemnym trybie: */
+    /* background-color: #3b3b3b; */
   }
 
-  .route-card strong, .route-card span, .route-card a {
-    color: #e0e0e0;
+  /* Upewnij się, że tekst wewnątrz karty jest jasny, nawet jeśli dziedziczy */
+  .route-card strong,
+  .route-card span,
+  .route-card p,
+  .route-card br {
+    color: #e0e0e0; /* Jawne ustawienie jasnego koloru dla wszelkich tekstów */
+  }
+
+  .route-card a {
+    color: #0099ff; /* Jasny, widoczny kolor dla linków (np. Messenger) */
+  }
+  .route-card a:hover {
+    color: #007bff;
+  }
+
+  .card-button {
+    color: #e0e0e0; /* Jasny tekst dla przycisków w trybie ciemnym */
   }
 
   .delete-button {
-    background-color: #a72838;
+    background-color: #a72838; /* Ciemniejszy czerwony */
   }
   .delete-button:hover {
     background-color: #92212e;
   }
 
   .edit-button {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Ciemniejszy niebieski */
   }
   .edit-button:hover {
     background-color: #003f8c;
