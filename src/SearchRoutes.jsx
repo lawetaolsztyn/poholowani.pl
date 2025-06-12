@@ -1,4 +1,4 @@
-// src/SearchRoutes.jsx
+// src/SearchRoutes.jsx {/* */}
 import { useEffect, useState, useRef, createContext, useContext } from 'react';
 import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents } from 'react-leaflet';
@@ -9,8 +9,8 @@ import LocationAutocomplete from './components/LocationAutocomplete';
 import RouteSlider from './RouteSlider';
 import L from 'leaflet';
 import RoadsideMarkers from './components/RoadsideMarkers';
-import './SearchRoutes.css';
-import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
+// import './SearchRoutes.css'; //
+// import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css'; //
 import 'leaflet-gesture-handling'; // To jest import, który rejestruje wtyczkę
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
