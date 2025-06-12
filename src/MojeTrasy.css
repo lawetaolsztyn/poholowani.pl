@@ -1,0 +1,78 @@
+/* src/MojeTrasy.css */
+
+.landing-container {
+  overflow-y: auto; /* Zachowaj to, jeśli strona ma być przewijalna wewnątrz kontenera */
+  padding-bottom: 80px; /* Dodatkowe miejsce na dole */
+  padding-left: 20px; /* Domyślny padding po bokach */
+  padding-right: 20px; /* Domyślny padding po bokach */
+}
+
+.overlay-header {
+  text-align: center;
+  padding: 20px 0;
+  background-color: #f0f0f0; /* Lekkie tło dla nagłówka */
+  border-bottom: 1px solid #ddd;
+}
+
+.overlay-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.overlay-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.my-routes-section {
+  padding: 20px 0; /* Padding góra/dół */
+}
+
+.section-title {
+  margin: 40px 0 10px;
+  font-size: 2rem;
+  color: #333;
+}
+
+/* Media Queries dla mniejszych ekranów */
+@media (max-width: 768px) {
+  .landing-container {
+    padding-left: 10px; /* Mniejszy padding po bokach na telefonach */
+    padding-right: 10px;
+    padding-bottom: 60px; /* Mniejszy padding na dole */
+  }
+
+  .overlay-header h1 {
+    font-size: 1.8rem; /* Mniejszy rozmiar nagłówka */
+  }
+
+  .overlay-header p {
+    font-size: 0.95rem; /* Mniejszy rozmiar tekstu */
+  }
+
+  .section-title {
+    font-size: 1.5rem; /* Mniejszy rozmiar tytułu sekcji */
+    margin: 20px 0 10px; /* Mniejszy margines */
+  }
+}
+
+/* Dark mode styles for MojeTrasy */
+@media (prefers-color-scheme: dark) {
+  .overlay-header {
+    background-color: #222;
+    border-color: #444;
+  }
+
+  .overlay-header h1 {
+    color: #e0e0e0;
+  }
+
+  .overlay-header p {
+    color: #b0b0b0;
+  }
+
+  .section-title {
+    color: #e0e0e0;
+  }
+}
