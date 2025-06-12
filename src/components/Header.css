@@ -1,50 +1,54 @@
 /* src/components/Header.css */
 
 .overlay-header {
-  /* Usunięto background i color, bo będzie ustawiony niżej na całej stronie (albo przez sam komponent, jeśli jest to baner) */
-  /* background-color: #f0f0f0;  */ /* Usuń to, gradient z LandingPage przejmie */
-  /* color: #333; */ /* Usuń to, będzie w LandingPage */
-  padding: 20px 15px; /* Zwiększony padding góra/dół i dodany po bokach */
+  /* Padding wewnętrzny dla tekstu i logo wewnątrz banera */
+  /* Ten padding odsunie zawartość od krawędzi, ale sam baner będzie na 100% szerokości */
+  padding: 20px 15px; 
   text-align: center;
   z-index: 1000;
   font-size: 1.1rem;
 
-  width: 100%;
-  max-width: 1200px; /* Nadal ogranicz maksymalną szerokość */
-  margin: 0 auto; /* Wyśrodkuj baner */
-  box-sizing: border-box;
-  border-radius: 8px; /* Jeśli chcesz */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05); /* Jeśli chcesz */
-
-  /* Dodaj te linie, aby zdefiniować kolory tekstu dla trybu jasnego */
-  /* Zakładamy, że domyślnie to jest jasny tryb */
-  color: white; /* Tekst powinien być biały na tle gradientu */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cień tekstu */
+  /* Upewnij się, że nie ma tu stylów background-color, color, text-shadow, box-shadow, border-radius */
+  /* Te style będą w LandingPage.css, bo są związane z tłem i wyglądem całego bloku. */
+  /* Kontrola szerokości i wyśrodkowania całego header'a - to już LandingPage.css */
 }
+
+/* Styl dla samego logo - UPEWNIJ SIĘ, ŻE TO LOGO JEST W HEADER.JSX JAKO <img class="header-logo" ... /> */
+.header-logo {
+  max-height: 120px; /* Maksymalna wysokość, aby kontrolować rozmiar */
+  width: auto; /* Zachowaj proporcje */
+  display: block; /* Ustaw jako blok, aby działały marginesy i wyśrodkowanie */
+  margin: 0 auto 10px auto; /* Wyśrodkuj logo i dodaj odstęp od tekstu poniżej */
+  z-index: 1; /* Upewnij się, że logo jest nad tłem */
+}
+
 
 .overlay-header h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;
   margin-top: 0;
-  color: inherit;
-  text-shadow: inherit; /* Dziedzicz cień tekstu */
+  color: white; /* Tekst ma być biały - bez dziedziczenia */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cień tekstu */
 }
 
 .overlay-header p {
   font-size: 1.2rem;
-  color: inherit;
-  text-shadow: inherit; /* Dziedzicz cień tekstu */
-  max-width: 800px;
-  margin: 0 auto;
+  color: white; /* Tekst ma być biały - bez dziedziczenia */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cień tekstu */
+  max-width: 800px; /* Ogranicz szerokość podtytułu dla czytelności */
+  margin: 0 auto; /* Wyśrodkuj podtytuł */
 }
 
-/* Media Queries dla responsywności na mniejszych ekranach */
+/* Media Queries dla responsywności tekstu i logo */
 @media (max-width: 768px) {
   .overlay-header {
-    padding: 15px 10px;
+    padding: 15px 10px; /* Mniejszy padding na telefonach */
     font-size: 1rem;
-    border-radius: 0;
-    box-shadow: none; /* Usuń cień na telefonach dla czystszego wyglądu */
+  }
+
+  .header-logo {
+    max-height: 80px; /* Mniejsza wysokość logo na telefonach */
+    margin-bottom: 5px; /* Mniejszy odstęp na telefonach */
   }
 
   .overlay-header h1 {
@@ -56,18 +60,11 @@
   }
 }
 
-/* Tryb ciemny dla HEADER'a (tylko kolory tekstu, tło będzie z LandingPage.css) */
+/* Tryb ciemny dla HEADERA: tekst pozostaje biały, ale cień może być mocniejszy */
 @media (prefers-color-scheme: dark) {
-  .overlay-header {
-    /* Upewnij się, że tekst jest jasny, ponieważ tło będzie gradientem */
-    color: white; /* Tekst będzie biały */
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cień tekstu */
-    /* background-color i box-shadow są teraz w LandingPage.css dla ogólnego gradientu */
-  }
-
   .overlay-header h1,
   .overlay-header p {
-    color: inherit;
-    text-shadow: inherit;
+    color: white; /* Tekst pozostaje biały na ciemniejszym tle */
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8); /* Potencjalnie mocniejszy cień */
   }
 }
