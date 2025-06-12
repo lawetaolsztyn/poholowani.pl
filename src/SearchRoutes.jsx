@@ -428,32 +428,31 @@ useEffect(() => {
   zoom={6}
   style={{ height: '100%', width: '100%', zIndex: 0 }}
   tap={false}
-  dragging={true}           // domyślnie włączone (dla desktop)
   zoomControl={true}
-  touchZoom={false}         // WYŁĄCZONY zoom pinch na telefonach
-  doubleClickZoom={false}
   whenCreated={(mapInstance) => {
     mapRef.current = mapInstance;
 
     const container = mapInstance.getContainer();
 
-    // ✅ DEKSTOP: działa normalnie
-    if (!window.matchMedia('(pointer: coarse)').matches) {
-      mapInstance.dragging.enable();
-      return;
+    // DOMYŚLNIE: włącz wszystko
+    mapInstance.dragging.enable();
+    mapInstance.touchZoom.enable();
+
+    // Tylko dla ekranów dotykowych
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      mapInstance.dragging.disable();       // domyślnie zablokuj
+      mapInstance.touchZoom.disable();
+
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          mapInstance.dragging.enable();    // ✌️ włącz przesuwanie
+          mapInstance.touchZoom.enable();   // ✌️ włącz zoom
+        } else {
+          mapInstance.dragging.disable();   // ☝️ blokuj przesuwanie
+          mapInstance.touchZoom.disable();  // ☝️ blokuj zoom
+        }
+      });
     }
-
-    // 📱 TELEFON: tylko dwa palce mogą przesuwać mapę
-    mapInstance.dragging.disable();
-    mapInstance.touchZoom.disable();
-
-    container.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 2) {
-        mapInstance.dragging.enable();      // ✌️ Włącz przesuwanie
-      } else {
-        mapInstance.dragging.disable();     // ☝️ Zablokuj przesuwanie
-      }
-    });
   }}
 >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
