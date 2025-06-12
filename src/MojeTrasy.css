@@ -1,78 +1,88 @@
 /* src/MojeTrasy.css */
 
+/* Zmieniona nazwa głównego kontenera, aby nie kolidować z .landing-container ze strony głównej */
 .my-routes-page-container {
-  overflow-y: auto; /* <-- TA LINIA */
-  padding-bottom: 80px;
-  padding-left: 20px;
-  padding-right: 20px;
+  overflow-y: auto; /* Zachowaj to, jeśli strona ma być przewijalna wewnątrz kontenera */
+  padding-bottom: 80px; /* Dodatkowe miejsce na dole */
+  padding-left: 20px; /* Domyślny padding po bokach */
+  padding-right: 20px; /* Domyślny padding po bokach */
 }
 
-.overlay-header {
-  text-align: center;
-  padding: 20px 0;
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #ddd;
+/* ZMIENIONA NAZWA KLASY NA .my-routes-header (aby była unikalna dla tej strony) */
+/* Ten selektor stylizuje nagłówek TYLKO na stronie Moje Trasy */
+.my-routes-header {
+  text-align: center;
+  padding: 20px 0;
+  background-color: #f0f0f0; /* Lekkie tło dla nagłówka */
+  border-bottom: 1px solid #ddd;
 }
 
-.my-routes-page-container .overlay-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  color: #333;
+/* ZMIENIONE: Używamy .my-routes-header jako rodzica dla h1 (zwiększona specyficzność) */
+.my-routes-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  color: #333; /* Ten kolor jest OK dla strony MojeTrasy, bo tam tło jest jasne */
 }
 
-.my-routes-page-container .overlay-header p {
-  font-size: 1.1rem;
-  color: #666;
+/* ZMIENIONE: Używamy .my-routes-header jako rodzica dla p (zwiększona specyficzność) */
+.my-routes-header p {
+  font-size: 1.1rem;
+  color: #666;
 }
 
 .my-routes-section {
-  padding: 20px 0;
+  padding: 20px 0; /* Padding góra/dół */
 }
 
 .section-title {
-  margin: 40px 0 10px;
-  font-size: 2rem;
-  color: #333;
+  margin: 40px 0 10px;
+  font-size: 2rem;
+  color: #333;
 }
 
 /* Media Queries dla mniejszych ekranów */
 @media (max-width: 768px) {
-  .my-routes-page-container {
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-bottom: 60px;
-  }
+  .my-routes-page-container {
+    padding-left: 10px; /* Mniejszy padding po bokach na telefonach */
+    padding-right: 10px;
+    padding-bottom: 60px; /* Mniejszy padding na dole */
+  }
 
-  .my-routes-page-container .overlay-header h1 {
-    font-size: 1.8rem;
-  }
+  /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla h1 w media query */
+  .my-routes-header h1 {
+    font-size: 1.8rem;
+  }
 
-  .my-routes-page-container .overlay-header p {
-    font-size: 0.95rem;
-  }
+  /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla p w media query */
+  .my-routes-header p {
+    font-size: 0.95rem;
+  }
 
-  .section-title {
-    font-size: 1.5rem;
-    margin: 20px 0 10px;
-  }
+  .section-title {
+    font-size: 1.5rem;
+    margin: 20px 0 10px;
+  }
 }
 
 /* Dark mode styles for MojeTrasy */
 @media (prefers-color-scheme: dark) {
-  .my-routes-page-container .overlay-header {
-    background-color: #222;
-    border-color: #444;
-  }
+  /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla trybu ciemnego */
+  .my-routes-header {
+    background-color: #222;
+    border-color: #444;
+  }
 
-  .my-routes-page-container .overlay-header h1 {
-    color: #e0e0e0;
-  }
+  /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla h1 w trybie ciemnym */
+  .my-routes-header h1 {
+    color: #e0e0e0;
+  }
 
-  .my-routes-page-container .overlay-header p {
-    color: #b0b0b0;
-  }
+  /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla p w trybie ciemnym */
+  .my-routes-header p {
+    color: #b0b0b0;
+  }
 
-  .section-title {
-    color: #e0e0e0;
-  }
+  .section-title {
+    color: #e0e0e0;
+  }
 }
