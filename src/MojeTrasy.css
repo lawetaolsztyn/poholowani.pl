@@ -4,8 +4,8 @@
 .my-routes-page-container {
   overflow-y: auto;
   padding-bottom: 80px; /* Dodatkowe miejsce na dole */
-  padding-left: 20px; /* Domyślny padding po bokach */
-  padding-right: 20px; /* Domyślny padding po bokach */
+  padding-left: 20px;
+  padding-right: 20px; /* Domyślny padding po bokach */
 }
 
 /* ZMIENIONA NAZWA KLASY NA .my-routes-header (aby była unikalna dla tej strony) */
