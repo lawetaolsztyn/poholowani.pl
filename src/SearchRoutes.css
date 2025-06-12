@@ -1,12 +1,5 @@
 /* src/SearchRoutes.css */
 
-/* Nadpisanie box-sizing dla elementów Leaflet */
-.leaflet-container *,
-.leaflet-container *:before,
-.leaflet-container *:after {
-  box-sizing: content-box;
-}
-
 .map-cross {
   position: absolute;
   top: calc(50% + 250px);
