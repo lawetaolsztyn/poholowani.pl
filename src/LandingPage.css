@@ -6,7 +6,7 @@
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d);
   width: 100%;
-  min-height: 100px; /* **KLUCZOWE: Twoja preferowana wysokość (np. 130px, dostosuj!)** */
+  min-height: 120px; /* **KLUCZOWE: Twoja preferowana wysokość (np. 130px, dostosuj!)** */
   height: auto;
   box-sizing: border-box;
 }
@@ -36,7 +36,7 @@
 .map-wrapper {
   flex: 1;
   position: relative;
-  min-height: 500px; /* Dobra wysokość dla mapy na desktopie */
+  min-height: 600px; /* Dobra wysokość dla mapy na desktopie */
   width: 100%; /* **KLUCZOWE: Mapa na 100% szerokości** */
   box-sizing: border-box;
   padding: 0; /* **KLUCZOWE: Upewnij się, że nie ma paddingu** */
@@ -59,7 +59,7 @@
 /* Styl dla kontenera Leaflet MapContainer, który jest wewnątrz map-background */
 .leaflet-map-container {
   height: 100%;
-  width: 100%;
+  width: 100% !important; 
   margin: 0 !important; /* WAŻNE: Zerowanie marginesów Leaflet */
   padding: 0 !important; /* WAŻNE: Zerowanie paddingów Leaflet */
   border-radius: 0 !important; /* Usunięcie zaokrągleń, które mogą powodować białe rogi */

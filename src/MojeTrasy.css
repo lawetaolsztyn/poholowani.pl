@@ -15,75 +15,77 @@
   padding: 20px 0;
   
   background-color: #f0f0f0; /* Lekkie tło dla nagłówka */
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla h1 (zwiększona specyficzność) */
 .my-routes-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  color: #333; /* Ten kolor jest OK dla strony MojeTrasy, bo tam tło jest jasne */
+font-size: 2.5rem;
+margin-bottom: 10px;
+color: #333, 
 }
 
 /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla p (zwiększona specyficzność) */
 .my-routes-header p {
-  font-size: 1.1rem;
-  color: #666;
+font-size: 1.1rem;
+color: #666
+
 }
 
 .my-routes-section {
-  padding: 20px 0; /* Padding góra/dół */
+padding: 20px 0; 
 }
 
 .section-title {
-  margin: 40px 0 10px;
-  font-size: 2rem;
-  color: #333;
+margin: 40px 0 10px;
+font-size: 2rem;
+color: #333
+
 }
 
 /* Media Queries dla mniejszych ekranów */
 @media (max-width: 768px) {
   .my-routes-page-container {
-    padding-left: 10px; /* Mniejszy padding po bokach na telefonach */
-    padding-right: 10px;
-    padding-bottom: 60px; /* Mniejszy padding na dole */
-  }
+padding-left: 10px; /* Mniejszy padding po bokach na telefonach */
+padding-right: 10px;
+padding-bottom: 60px; /* Mniejszy padding na dole */
+}
 
   /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla h1 w media query */
   .my-routes-header h1 {
-    font-size: 1.8rem;
-  }
+font-size: 1.8rem;
+}
 
   /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla p w media query */
   .my-routes-header p {
-    font-size: 0.95rem;
-  }
+font-size: 0.95rem;
+}
 
   .section-title {
-    font-size: 1.5rem;
-    margin: 20px 0 10px;
-  }
+font-size: 1.5rem;
+margin: 20px 0 10px;
+}
 }
 
 /* Dark mode styles for MojeTrasy */
 @media (prefers-color-scheme: dark) {
   /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla trybu ciemnego */
   .my-routes-header {
-    background-color: #222;
-    border-color: #444;
-  }
+background-color: #222;
+border-color: #444;
+}
 
   /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla h1 w trybie ciemnym */
   .my-routes-header h1 {
-    color: #e0e0e0;
-  }
+color: #e0e0e0;
+}
 
   /* ZMIENIONE: Używamy .my-routes-header jako rodzica dla p w trybie ciemnym */
   .my-routes-header p {
-    color: #b0b0b0;
-  }
+color: #b0b0b0;
+}
 
   .section-title {
-    color: #e0e0e0;
-  }
+color: #e0e0e0;
+}
 }

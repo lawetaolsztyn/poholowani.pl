@@ -106,10 +106,12 @@ console.error("❌ Pełny błąd Supabase:", signUpError);
   return (
     <>
       <Navbar />
+<div className="overlay-header">
 <Header
   title="Utwórz konto"
   subtitle="Zarejestruj się jako osoba prywatna lub firma – szybko i wygodnie"
 />
+</div>
       <div style={wrapper}>
         <div style={innerWrapper}>
           <h2>Rejestracja</h2>

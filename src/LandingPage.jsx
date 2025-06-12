@@ -1,14 +1,15 @@
 import Navbar from './components/Navbar';
-import { MapContainer, TileLayer } from 'react-leaflet';
+// { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './LandingPage.css';
 import { useNavigate } from 'react-router-dom';
-import { useRef } from 'react';
+// { useRef } from 'react';
 import Header from './components/Header'; // Importujemy komponent Header
+import CustomMap from './components/MapComponent';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const mapRef = useRef(null);
+  // mapRef = useRef(null);
 
   return (
     <>
@@ -19,30 +20,14 @@ const LandingPage = () => {
           {/* Komponent Header renderuje logo i tekst wewnątrz overlay-header */}
           <Header
             title="Wykorzystaj puste przebiegi!"
-            subtitle="Znajdź lub zaoferuj transport powrotny lawet i busów w całej Europie. Prosto i szybko!"
+            subtitle="Znajdź lub zaoferuj transport powrotny lawet i busów w całej Europie."
           />
         </div>
 
         {/* SEKCJA MAPY */}
         <div className="map-wrapper">
           <div className="map-background">
-            <MapContainer
-              center={[52.0, 19.0]}
-              zoom={6}
-              className="leaflet-map-container"
-              dragging={false}
-              zoomControl={false}
-              scrollWheelZoom={false}
-              doubleClickZoom={false}
-              boxZoom={false}
-              keyboard={false}
-              touchZoom={false}
-              whenCreated={(mapInstance) => {
-                mapRef.current = mapInstance;
-              }}
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            </MapContainer>
+            <CustomMap /> {/* Użyj nowego komponentu mapy tutaj */}
           </div>
 
           {/* PRZYCISKI AKCJI - W map-wrapper */}

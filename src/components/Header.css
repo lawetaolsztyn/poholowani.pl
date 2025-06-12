@@ -18,7 +18,7 @@
 
 /* Styl dla logo POHOLOWANI */
 .header-logo {
-  max-height: 140px; /* Maksymalna wysokość logo na desktopie */
+  max-height: 100px; /* Maksymalna wysokość logo na desktopie */
   width: auto; /* Zachowaj proporcje */
   display: block;
   margin: 0;

@@ -1,5 +1,3 @@
-// src/Login.jsx
-
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -7,14 +5,25 @@ import Navbar from './components/Navbar';
 import Header from './components/Header';
 import './LandingPage.css';
 
+// Klucz witryny reCAPTCHA - pobierany ze zmiennych środowiskowych Vite.
+// Upewnij się, że masz plik .env.local w katalogu głównym projektu z wpisem:
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+// Adres URL Edge Function Supabase - pobierany ze zmiennych środowiskowych Vite.
+// Upewnij się, że masz plik .env.local w katalogu głównym projektu z wpisem:
+
+const SUPABASE_EDGE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL;
+
+
 // Zaktualizowana funkcja do uzyskiwania tokena reCAPTCHA
 const getRecaptchaToken = async () => {
   return new Promise((resolve) => {
     const checkRecaptcha = () => {
       if (window.grecaptcha && window.grecaptcha.ready) {
         window.grecaptcha.ready(() => {
-          // WAŻNE: Upewnij się, że '6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr' to Twój klucz witryny reCAPTCHA v3.
-          window.grecaptcha.execute('6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr', { action: 'login' }).then((token) => {
+          // Użyj zmiennej środowiskowej dla klucza witryny
+          window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'login' }).then((token) => {
             resolve(token);
           }).catch(err => {
             console.error("Błąd wykonania reCAPTCHA:", err); // Logowanie błędu, jeśli execute zawiedzie
@@ -121,15 +130,18 @@ export default function Login() {
 
     // =====================================================================
     // WAŻNE: WERYFIKACJA reCAPTCHA PO STRONIE SERWERA JEST KLUCZOWA DLA BEZPIECZEŃSTWA!
-    // Poniżej znajduje się placeholder, który MUSISZ zaimplementować.
-    // Bez tego, każdy bot może obejść reCAPTCHA.
+    // Poniżej znajduje się implementacja z użyciem Supabase Edge Function.
     // =====================================================================
 
     try {
-      const response = await fetch('/api/verify-recaptcha', { // Upewnij się, że ten endpoint istnieje i jest dostępny
+      // Użyj zmiennej środowiskowej dla adresu URL Edge Function
+      const response = await fetch(SUPABASE_EDGE_FUNCTION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Jeśli funkcja wymaga API klucza, możesz dodać:
+          // 'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`
+          // Ale dla tej funkcji zazwyczaj nie jest to wymagane.
         },
         body: JSON.stringify({ recaptchaToken: recaptchaToken }),
       });
@@ -139,7 +151,6 @@ export default function Login() {
       if (!response.ok || !verificationResult.success || verificationResult.score < 0.5) { // Domyślny próg dla reCAPTCHA v3 to 0.5
         console.error('❌ Weryfikacja reCAPTCHA po stronie serwera nie powiodła się:', verificationResult.errors);
         setMessage('❌ Nie udało się zweryfikować reCAPTCHA. Proszę spróbować ponownie.');
-        // Możesz tutaj dodać logikę resetowania reCAPTCHA, jeśli to reCAPTCHA v2 lub jeśli chcesz wymusić odświeżenie
         return;
       }
       console.log('✅ Weryfikacja reCAPTCHA po stronie serwera pomyślna. Wynik:', verificationResult.score);
@@ -151,7 +162,7 @@ export default function Login() {
     }
 
     // =====================================================================
-    // KONIEC PLACHOLDERA WERYFIKACJI SERWEROWEJ
+    // KONIEC IMPLEMENTACJI WERYFIKACJI SERWEROWEJ
     // =====================================================================
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -222,7 +233,9 @@ export default function Login() {
   return (
     <>
       <Navbar />
-      <Header title="Zaloguj się do swojego konta" subtitle="Zarządzaj zleceniami i trasami w jednym miejscu" />
+      <div className="overlay-header">
+        <Header title="Zaloguj się do swojego konta" subtitle="Zarządzaj zleceniami i trasami w jednym miejscu" />
+      </div>
       <div className="landing-container">
         <div style={wrapper}>
           <h2 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem', color: '#333' }}>
