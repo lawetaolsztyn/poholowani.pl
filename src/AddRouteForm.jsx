@@ -255,45 +255,19 @@ function AddRouteForm({ onRouteCreated }) {
         </button>
       </form>
 
-    <MapContainer
-  center={center}
-  zoom={6}
-  style={{ height: '100%', width: '100%', zIndex: 0 }}
-  tap={false}
-  dragging={true}
-  zoomControl={true}
-  touchZoom={true}
-  doubleClickZoom={true}
-  whenCreated={(mapInstance) => {
-    mapRef.current = mapInstance;
-
-    if (window.matchMedia('(pointer: coarse)').matches) {
-      mapInstance.dragging.disable();
-      mapInstance.touchZoom.disable();
-      mapInstance.doubleClickZoom.disable();
-
-      mapInstance.getContainer().addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-          mapInstance.dragging.enable();
-          mapInstance.touchZoom.enable();
-          mapInstance.doubleClickZoom.enable();
-        } else {
-          mapInstance.dragging.disable();
-          mapInstance.touchZoom.disable();
-          mapInstance.doubleClickZoom.disable();
-        }
-      });
-    }
-  }}
->
-  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-  {routeData && (
-    <Polyline
-      positions={routeData.features[0].geometry.coordinates.map(([lng, lat]) => [lat, lng])}
-      pathOptions={{ color: 'blue', weight: 5 }}
-    />
-  )}
-</MapContainer>
+      <MapContainer
+        center={[52.0, 19.0]}
+        zoom={6}
+        style={{ height: '600px', width: '100%', marginTop: '30px' }}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        {routeData && (
+          <Polyline
+            positions={routeData.features[0].geometry.coordinates.map(([lng, lat]) => [lat, lng])}
+            pathOptions={{ color: 'blue', weight: 5 }}
+          />
+        )}
+      </MapContainer>
     </>
   );
 }
