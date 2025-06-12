@@ -26,7 +26,7 @@ html, body {
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
   width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
-  min-height: 150px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
+  min-height: 130px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
   height: auto; /* Wysokość dopasowuje się do zawartości */
   box-sizing: border-box; /* Ważne dla paddingu */
   /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
