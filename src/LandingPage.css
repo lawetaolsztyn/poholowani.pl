@@ -16,87 +16,26 @@ body {
   flex-direction: column;
 }
 
-/* Styl dla CAŁEGO PASKA BANERA (obejmującego logo i tekst) */
+/* Styl dla CAŁEGO PASKA BANERA (gdzie jest logo i tekst z Header.jsx) */
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
   width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
   min-height: 250px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
-  height: auto; /* Wysokość dopasuje się do zawartości */
+  height: auto; /* Wysokość dopasowuje się do zawartości */
   box-sizing: border-box; /* Ważne dla paddingu */
-
-  /* Układ elementów wewnątrz banera (logo i kontener tekstowy) */
-  display: flex;
-  flex-direction: row; /* Logo i tekst obok siebie na desktopie */
-  align-items: center; /* Wyśrodkuj pionowo */
-  justify-content: center; /* Wyśrodkuj poziomo */
-  flex-wrap: wrap; /* Pozwoli na zawijanie na mniejszych ekranach */
-  gap: 1.5rem; /* Odstęp między logo a tekstem */
-  padding: 20px 15px; /* Padding wewnętrzny banera */
-  text-align: center; /* Wyśrodkowanie tekstu */
-  z-index: 1000;
+  /* Pamiętaj, że padding wewnętrzny i układ (flex) zawartości są w Header.css */
 }
 
-/* Styl dla logo w banerze */
-.header-logo {
-  max-height: 140px; /* Wysokość logo */
-  width: auto; /* Zachowaj proporcje */
-  max-width: 90vw; /* Zapobiegaj przepełnieniu na bardzo małych ekranach */
-  display: block; /* Ustaw jako blok, aby działały marginesy */
-  /* margin: 0 auto; - usunięte, bo flexbox to ogarnia */
-}
-
-/* Kontener dla tekstu w banerze (h1 i p) */
-.header-text-container {
-  text-align: center;
-  max-width: 90vw; /* Ogranicz szerokość tekstu na małych ekranach */
-}
-
-/* Style dla tytułu (h1) w banerze */
-.banner-heading {
-  font-family: 'Poppins', sans-serif;
-  font-size: 2.5rem; /* Powiększony font */
-  font-weight: 700;
-  margin: 0; /* Usunięte marginesy inline */
-  color: white; /* KLUCZOWE: Tekst ma być biały */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cień tekstu */
-}
-
-/* Style dla podtytułu (p) w banerze */
-.banner-subheading {
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.2rem; /* Powiększony font */
-  font-weight: 500;
-  margin-top: 0.5rem; /* Margines górny */
-  margin-bottom: 0; /* Usunięte marginesy inline */
-  color: white; /* KLUCZOWE: Tekst ma być biały */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cień tekstu */
-}
-
-/* Fade-in animacja nagłówka - zostawiamy tak, jak są */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+/* Tryb ciemny dla TŁA BANERA */
+@media (prefers-color-scheme: dark) {
+  .overlay-header {
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
   }
 }
 
-.banner-heading,
-.banner-subheading {
-  opacity: 0;
-  animation: fadeIn 1s ease-out forwards;
-}
+/* Animacje nagłówka - zostawiamy tak, jak są w Header.css */
+/* @keyframes fadeIn { ... } */
 
-.banner-heading {
-  animation-delay: 0.2s;
-}
-
-.banner-subheading {
-  animation-delay: 0.6s;
-}
 
 /* ===== MAPA ===== */
 
@@ -116,7 +55,8 @@ body {
   top: 0;
   left: 0;
   z-index: 0;
-  filter: blur(2px) brightness(0.8); /* KLUCZOWE: Blur i brightness dla mapy */
+  /* KLUCZOWE: Blur i brightness dla mapy */
+  filter: blur(2px) brightness(0.8); /* Włączamy blur z powrotem */
   pointer-events: none;
 }
 
@@ -166,27 +106,7 @@ body {
 }
 
 /* ===== FORMULARZ WYSZUKIWANIA ===== (BEZ ZMIAN) */
-.search-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
-  font-family: sans-serif;
-  background-color: #f8f9fa;
-}
-
-.search-form {
-  background-color: white;
-  padding: 1rem 2rem;
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 1001;
-  margin-top: 20px;
-}
+/* ... */
 
 
 /* Media Queries dla responsywności */
@@ -194,21 +114,7 @@ body {
   .overlay-header {
     min-height: 180px; /* Mniejsza minimalna wysokość dla telefonów */
     padding: 15px 10px; /* Padding dla banera na telefonach */
-    flex-direction: column; /* Na telefonach logo i tekst w kolumnie */
-    gap: 0.5rem; /* Mniejszy odstęp */
-  }
-
-  .header-logo {
-    max-height: 80px; /* Mniejsza wysokość logo na telefonach */
-    margin-bottom: 0.5rem; /* Mniejszy odstęp */
-  }
-
-  .banner-heading {
-    font-size: 1.8rem; /* Mniejsza czcionka dla tytułu */
-  }
-
-  .banner-subheading {
-    font-size: 1.1rem; /* Mniejsza czcionka dla podtytułu */
+    /* flex-direction: column i gap są w Header.css dla mobilnego układu wewnątrz headera */
   }
 
   .map-wrapper {
