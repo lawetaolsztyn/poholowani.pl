@@ -4,22 +4,26 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
+  overflow-x: hidden; /* ZAPOBIEGANIE POZIOMEMU SCROLLOWANIU */
 }
 
+/* Upewnij się, że te style dla banner-heading i banner-subheading są używane w komponencie Header.jsx */
+/* Jeśli Header.jsx używa h1 i p bezpośrednio, to te style są mniej istotne */
+/* Zamiast tego, w Header.css h1 i p dziedziczą color i text-shadow */
 .banner-heading {
   font-family: 'Poppins', sans-serif;
   font-size: 2.2rem;
   font-weight: 700;
-  color: #ffffff;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+  color: #ffffff; /* Powinien być nadpisany przez overlay-header w Header.css */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Powinien być nadpisany przez overlay-header w Header.css */
 }
 
 .banner-subheading {
   font-family: 'Poppins', sans-serif;
   font-size: 1.1rem;
   font-weight: 500;
-  color: #f0f0f0;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+  color: #f0f0f0; /* Powinien być nadpisany przez overlay-header w Header.css */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Powinien być nadpisany przez overlay-header w Header.css */
 }
 
 /* ===== STRONA GŁÓWNA ===== */
@@ -28,29 +32,46 @@ body {
   position: relative;
   height: auto;
   min-height: 100vh;
-  width: 100vw;
-  overflow: hidden;
+  width: 100%; /* Zmieniono z 100vw na 100% dla lepszego zachowania z overflow-x */
+  /* overflow: hidden; */ /* USUŃ TO, to może powodować ucinanie, przenieśliśmy overflow-x na body */
   display: flex;
   flex-direction: column;
 }
 
+/* ZMIANY W TEJ KLASIE SĄ KLUCZOWE */
 .overlay-header {
+  /* Główny gradient dla banera */
   background: linear-gradient(135deg, #43cea2, #185a9d);
-  color: white;
-  /* KLUCZOWA ZMIANA: NADPISUJEMY PADDING NA STAŁĄ WARTOŚĆ DLA WIĘKSZYCH EKRANÓW */
-  padding: 0.5rem 1rem !important; /* DODANO !important */
+  color: white; /* Domyślny kolor tekstu na gradientowym tle */
+  padding: 20px; /* Ujednolicony padding dla całej sekcji */
+  text-align: center;
   z-index: 1000;
   display: flex;
   flex-direction: row;
-  align-items: center; /* Wyśrodkowuje elementy flex wertykalnie */
+  align-items: center;
   justify-content: center;
-  flex-wrap: wrap; /* Pozwala na zawijanie elementów */
+  flex-wrap: wrap;
   gap: 1.5rem;
-  text-align: center;
-  /* Upewnij się, że nie ma tu sztywnych wysokości z innych źródeł */
-  height: auto !important; /* DODANO !important */
-  min-height: unset !important; /* DODANO !important */
+  box-sizing: border-box; /* WAŻNE: padding jest wliczony w szerokość */
+
+  /* Usunięto !important i stałe wysokości */
+  height: auto;
+  min-height: unset;
+
+  /* Dodaj style dla trybu ciemnego do gradientu (gradient nie zmienia się automatycznie) */
+  /* Możesz użyć jaśniejszego/innego gradientu dla trybu ciemnego lub po prostu ciemnego koloru tła */
+  /* PRZYKŁAD: Jeśli chcesz, aby background-color z Header.css zadziałał, usuń gradient stąd. */
+  /* Jeśli chcesz gradient, to ten gradient nie zmieni się na ciemny tryb, tekst musi być czytelny na nim. */
 }
+
+/* Tryb ciemny dla OGÓLNEGO TŁA HEADER'a (jeśli chcesz inny gradient lub jednolity kolor) */
+@media (prefers-color-scheme: dark) {
+  .overlay-header {
+    background: linear-gradient(135deg, #185a9d, #0f3d6a); /* Ciemniejszy gradient dla trybu ciemnego */
+    /* background-color: #2a2a2a; */ /* Możesz też użyć jednolitego ciemnego koloru */
+  }
+}
+
 
 .overlay-header h1 {
   font-family: 'Poppins', sans-serif;
@@ -58,20 +79,20 @@ body {
   font-weight: 700;
   margin-bottom: 0.6rem;
   margin-top: 0;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+  /* text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); */ /* To już jest w Header.css */
 }
 
 .overlay-header p {
   font-family: 'Poppins', sans-serif;
   font-size: 1.15rem;
   font-weight: 500;
-  color: #e0e0e0;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  /* color: #e0e0e0; */ /* To już jest w Header.css */
+  /* text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4); */ /* To już jest w Header.css */
   max-width: 800px;
-  margin: 0 auto; /* Upewnij się, że marginesy są kontrolowane */
+  margin: 0 auto;
 }
 
-/* Fade-in animacja nagłówka */
+/* Fade-in animacja nagłówka - zostawiamy */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -102,7 +123,9 @@ body {
 .map-wrapper {
   flex: 1;
   position: relative;
-  min-height: 300px;
+  min-height: 450px; /* Zwiększ min-height, żeby mapa była bardziej widoczna */
+  width: 100%; /* WAŻNE: upewnij się, że mapa zajmuje całą szerokość */
+  box-sizing: border-box; /* WAŻNE: padding jest wliczony w szerokość */
 }
 
 .map-background {
@@ -124,7 +147,8 @@ body {
 
 .action-buttons {
   position: absolute;
-  top: 60%;
+  /* top: 60%; */ /* Usunąłem procent, bo może się rozjeżdżać, użyjemy bottom na telefonach */
+  top: 50%; /* Domyślne centrowanie */
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1001;
@@ -184,59 +208,92 @@ body {
   align-items: flex-end;
   justify-content: center;
   z-index: 1001;
-  margin-top: 20px; /* Odstęp pod banerem */
+  margin-top: 20px;
 }
 
 
+/* Media Queries dla responsywności */
 @media (max-width: 768px) {
   .overlay-header {
-    flex-direction: column !important;
+    flex-direction: column; /* Usunięto !important, bo już jest domyślne flex-direction: column */
     text-align: center;
-    padding: 1rem; /* Ten padding dla telefonów */
-    height: auto; /* Zapewnij auto wysokość */
-    min-height: unset; /* Upewnij się, że nie ma tu min-height */
+    padding: 15px 10px; /* Zmieniono na konkretne piksele, bo 1rem było za małe */
+    height: auto;
+    min-height: unset;
+    border-radius: 0; /* Bez zaokrągleń na małych ekranach */
   }
 
   .overlay-header img {
-    height: 120px; /* Może być konieczne zmniejszenie tej wartości, jeśli logo jest za duże */
+    height: 100px; /* Zmniejszyłem trochę logo, jeśli jest tam obrazek */
     max-width: 90vw;
     margin-bottom: 1rem;
   }
 
   .banner-heading {
-    font-size: 1.5rem;
+    font-size: 1.8rem; /* Mniejszy nagłówek */
   }
 
   .banner-subheading {
-    font-size: 1rem;
+    font-size: 1.1rem; /* Mniejszy podtytuł */
   }
 
   .map-wrapper {
-    min-height: 400px;
+    min-height: 350px; /* Zmniejsz wysokość mapy na telefonach */
   }
 
   .action-buttons {
-    position: absolute;
-    top: 75%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    /* Ustawienie na dole mapy na telefonach */
+    top: auto;
+    bottom: 5%; /* Przesuń na dół */
+    transform: translateX(-50%); /* Tylko translateX, bo top/bottom jest ustawiony */
     margin: 0;
     flex-direction: column;
     gap: 1rem;
-    max-width: 400px;
+    max-width: 90vw; /* Ogranicz szerokość */
     padding: 0;
   }
 
   .primary-button,
   .secondary-button {
     font-size: 1.2rem;
-    width: 90vw;
+    width: 90vw; /* Zapewnij, że przyciski są szersze */
     max-width: 300px;
-    margin: 0.5rem auto;
+    margin: 0.5rem auto; /* Wyśrodkuj przyciski */
   }
 
   .primary-button .subtext,
   .secondary-button .subtext {
     font-size: 0.8rem;
+  }
+}
+
+/* Tryb ciemny dla LandingPage */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a1a; /* Ciemne tło dla całej strony */
+    color: #e0e0e0; /* Jasny tekst */
+  }
+  
+  .landing-container {
+    box-shadow: none; /* Usuń cień, jeśli byłby widoczny na ciemnym tle */
+  }
+
+  .overlay-header {
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
+    /* Usuń color i text-shadow stąd, bo Header.css to ogarnie */
+  }
+
+  .action-buttons button {
+    background-color: #0056b3; /* Ciemniejszy niebieski dla przycisków */
+    color: white;
+  }
+
+  .action-buttons button:hover {
+    background-color: #003f8c; /* Ciemniejszy niebieski na hover */
+  }
+
+  .primary-button .subtext,
+  .secondary-button .subtext {
+    color: #b0b0b0; /* Jaśniejszy szary dla subtextu */
   }
 }
