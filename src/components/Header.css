@@ -1,6 +1,6 @@
 /* src/components/Header.css */
 
-/* Styl dla kontenera Header'a - to będzie tylko "opakowanie" dla zawartości */
+/* Kontener Header'a - to będzie tylko "opakowanie" dla zawartości */
 .overlay-header {
   padding: 20px 15px; /* Wewnętrzny padding dla tekstu i logo */
   text-align: center;
@@ -20,14 +20,14 @@
   font-size: 2.5rem;
   margin-bottom: 10px;
   margin-top: 0;
-  color: white; /* KLUCZOWE: Tekst ma być biały */
+  color: white; /* **KLUCZOWE: Tekst ma być biały** */
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cieć tekstu dla czytelności */
 }
 
 /* Style dla podtytułu (p) w banerze */
 .overlay-header p {
   font-size: 1.2rem;
-  color: white; /* KLUCZOWE: Tekst ma być biały */
+  color: white; /* **KLUCZOWE: Tekst ma być biały** */
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cieć tekstu dla czytelności */
   max-width: 800px; /* Ogranicz szerokość podtytułu dla czytelności na szerokich ekranach */
   margin: 0 auto; /* Wyśrodkuj podtytuł */
@@ -37,7 +37,6 @@
 @media (max-width: 768px) {
   .overlay-header {
     padding: 15px 10px; /* Mniejszy padding na telefonach */
-    /* font-size jest dziedziczony, nie trzeba tu zmieniać */
   }
 
   .header-logo {
