@@ -1,15 +1,17 @@
+/* src/LandingPage.css */
+
 /* ===== GLOBALNE STYLE DLA CAŁEJ STRONY ===== */
 html, body {
-  height: 100%; /* **KLUCZOWE: Zapewnij 100% wysokości dla html i body** */
+  height: 100%;
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
-  overflow-x: hidden; /* KLUCZOWE: Zapobiega poziomemu przewijaniu */
-  box-sizing: border-box; /* **KLUCZOWE: Globalny box-sizing** */
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 *, *::before, *::after {
-  box-sizing: inherit; /* Dziedziczenie box-sizing dla wszystkich elementów */
+  box-sizing: inherit;
 }
 
 /* ===== STRONA GŁÓWNA - GŁÓWNY KONTENER ===== */
@@ -20,15 +22,17 @@ html, body {
   width: 100%; /* KLUCZOWE: Kontener główny na 100% szerokości */
   display: flex;
   flex-direction: column;
+  /* KLUCZOWA ZMIANA: USUŃ PADDING STĄD */
+  padding: 0; /* Upewnij się, że padding jest zerowy! */
 }
 
 /* Styl dla CAŁEGO PASKA BANERA (który zawiera komponent Header) */
 .overlay-header {
-  background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
-  width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
-  min-height: 130px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
-  height: auto; /* Wysokość dopasowuje się do zawartości */
-  box-sizing: border-box; /* Ważne dla paddingu */
+  background: linear-gradient(135deg, #43cea2, #185a9d);
+  width: 100%; /* KLUCZOWE: Baner na 100% szerokości */
+  min-height: 130px; /* Twoja preferowana wysokość */
+  height: auto;
+  box-sizing: border-box; /* Ważne */
   /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
 }
 
