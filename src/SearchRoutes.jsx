@@ -426,31 +426,26 @@ useEffect(() => {
 <MapContainer
   center={center}
   zoom={6}
-  style={{ height: '100%', width: '100%', zIndex: 0, touchAction: 'none' }} // <== ważne
+  style={{ height: '100%', width: '100%', zIndex: 0 }}
   tap={false}
-  dragging={false} // <- domyślnie wyłączone
+  dragging={true} // 🔓 domyślnie włączone – zadziała na komputerze
   zoomControl={true}
-  touchZoom={false} // <- też domyślnie wyłączone
-  doubleClickZoom={false}
+  touchZoom={true}
+  doubleClickZoom={true}
   whenCreated={(mapInstance) => {
     mapRef.current = mapInstance;
 
     const container = mapInstance.getContainer();
 
-    if ('ontouchstart' in window) {
+    // 📱 Na telefonie — ogranicz przesuwanie do dwóch palców
+    if (window.matchMedia('(pointer: coarse)').matches) {
       container.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
-          mapInstance.dragging.enable();
-          mapInstance.touchZoom.enable();
+          mapInstance.dragging.enable();     // 👉 Włącz przesuwanie
         } else {
-          mapInstance.dragging.disable();
-          mapInstance.touchZoom.disable();
+          mapInstance.dragging.disable();    // ❌ Zablokuj przy jednym palcu
         }
       });
-    } else {
-      // Komputer – zostaw pełną interakcję
-      mapInstance.dragging.enable();
-      mapInstance.touchZoom.enable();
     }
   }}
 >
