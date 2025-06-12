@@ -427,29 +427,25 @@ useEffect(() => {
   center={center}
   zoom={6}
   style={{ height: '100%', width: '100%', zIndex: 0 }}
-  tap={false} // <== to jest kluczowe
-  dragging={true}
+  tap={false}
+  dragging={false}
   zoomControl={true}
+  touchZoom={false}
+  doubleClickZoom={false}
   whenCreated={(mapInstance) => {
     mapRef.current = mapInstance;
 
-    // 🚫 Blokuj przesuwanie jednym palcem na urządzeniach dotykowych
     if (window.matchMedia('(pointer: coarse)').matches) {
-      let isTwoFingerTouch = false;
+      mapInstance.dragging.disable();
+      mapInstance.touchZoom.disable();
 
       mapInstance.getContainer().addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-          isTwoFingerTouch = false;
-          mapInstance.dragging.disable(); // wyłącz przesuwanie jednym palcem
-        } else if (e.touches.length === 2) {
-          isTwoFingerTouch = true;
-          mapInstance.dragging.enable(); // włącz przesuwanie dwoma palcami
-        }
-      });
-
-      mapInstance.getContainer().addEventListener('touchend', () => {
-        if (!isTwoFingerTouch) {
+        if (e.touches.length === 2) {
+          mapInstance.dragging.enable();
+          mapInstance.touchZoom.enable();
+        } else {
           mapInstance.dragging.disable();
+          mapInstance.touchZoom.disable();
         }
       });
     }
