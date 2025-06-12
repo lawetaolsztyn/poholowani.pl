@@ -1,0 +1,22 @@
+/* src/OferujeTransport.css */
+
+.oferuje-transport-container {
+  padding: 20px; /* Domyślny padding na desktopie */
+  text-align: center; /* Wyśrodkowanie treści */
+}
+
+/* Media Queries dla mniejszych ekranów */
+@media (max-width: 768px) {
+  .oferuje-transport-container {
+    padding: 10px; /* Mniejszy padding na telefonach */
+  }
+}
+
+/* Dark mode styles for OferujeTransport */
+@media (prefers-color-scheme: dark) {
+  /* Możesz dodać style dla całego kontenera, jeśli potrzebujesz, np. koloru tła */
+  /* body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  } */
+}
