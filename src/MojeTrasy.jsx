@@ -32,7 +32,7 @@ export default function MojeTrasy() {
   return (
     <>
       <Navbar />
-      <div className="landing-container"> {/* Usunięte style inline */}
+      <div className="my-routes-page-container"> {/* Usunięte style inline */}
         <div className="overlay-header">
           <h1>📍 Moje trasy</h1>
           <p>Lista tras dodanych przez Ciebie jako przewoźnik</p>
