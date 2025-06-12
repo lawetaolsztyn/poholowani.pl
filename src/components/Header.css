@@ -1,45 +1,44 @@
 /* src/components/Header.css */
 
+/* Kontener overlay-header - ten styl powinien mieć jedynie padding wewnętrzny dla zawartości */
 .overlay-header {
-  /* Padding wewnętrzny dla tekstu i logo wewnątrz banera */
-  /* Ten padding odsunie zawartość od krawędzi, ale sam baner będzie na 100% szerokości */
-  padding: 20px 15px; 
+  padding: 20px 15px; /* Padding wewnętrzny dla tekstu i logo */
   text-align: center;
-  z-index: 1000;
-  font-size: 1.1rem;
-
-  /* Upewnij się, że nie ma tu stylów background-color, color, text-shadow, box-shadow, border-radius */
-  /* Te style będą w LandingPage.css, bo są związane z tłem i wyglądem całego bloku. */
-  /* Kontrola szerokości i wyśrodkowania całego header'a - to już LandingPage.css */
+  z-index: 1000; /* Upewnij się, że jest nad mapą */
+  
+  /* Usuwamy stąd wszelkie:
+     background-color, color, text-shadow, font-size, width, max-width, margin, box-sizing, border-radius, box-shadow
+     Te style będą definiowane w LandingPage.css, bo dotyczą całego paska banera.
+  */
 }
 
-/* Styl dla samego logo - UPEWNIJ SIĘ, ŻE TO LOGO JEST W HEADER.JSX JAKO <img class="header-logo" ... /> */
+/* Styl dla logo POHOLOWANI */
 .header-logo {
-  max-height: 120px; /* Maksymalna wysokość, aby kontrolować rozmiar */
+  max-height: 120px; /* Maksymalna wysokość logo */
   width: auto; /* Zachowaj proporcje */
-  display: block; /* Ustaw jako blok, aby działały marginesy i wyśrodkowanie */
+  display: block; /* Ustaw jako blok, aby działały marginesy */
   margin: 0 auto 10px auto; /* Wyśrodkuj logo i dodaj odstęp od tekstu poniżej */
   z-index: 1; /* Upewnij się, że logo jest nad tłem */
 }
 
-
+/* Style dla tytułu (h1) i podtytułu (p) w banerze */
 .overlay-header h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;
   margin-top: 0;
-  color: white; /* Tekst ma być biały - bez dziedziczenia */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cień tekstu */
+  color: white; /* **KLUCZOWE: Tekst zawsze biały** */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cieć tekstu */
 }
 
 .overlay-header p {
   font-size: 1.2rem;
-  color: white; /* Tekst ma być biały - bez dziedziczenia */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cień tekstu */
+  color: white; /* **KLUCZOWE: Tekst zawsze biały** */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cieć tekstu */
   max-width: 800px; /* Ogranicz szerokość podtytułu dla czytelności */
   margin: 0 auto; /* Wyśrodkuj podtytuł */
 }
 
-/* Media Queries dla responsywności tekstu i logo */
+/* Responsywność dla tekstu i logo w HEADERZE */
 @media (max-width: 768px) {
   .overlay-header {
     padding: 15px 10px; /* Mniejszy padding na telefonach */
@@ -60,11 +59,11 @@
   }
 }
 
-/* Tryb ciemny dla HEADERA: tekst pozostaje biały, ale cień może być mocniejszy */
+/* Tryb ciemny dla HEADERA: tekst pozostaje biały, cień może być mocniejszy */
 @media (prefers-color-scheme: dark) {
   .overlay-header h1,
   .overlay-header p {
-    color: white; /* Tekst pozostaje biały na ciemniejszym tle */
+    color: white; /* Tekst pozostaje biały */
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8); /* Potencjalnie mocniejszy cień */
   }
 }
