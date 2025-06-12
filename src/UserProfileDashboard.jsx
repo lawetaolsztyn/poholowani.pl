@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
 import './UserProfileDashboard.css';
-import MyRoutes from './MyRoutes'; // Import komponentu MyRoutes
+// import MyRoutes from './MyRoutes'; // <-- USUWAMY TEN IMPORT, BO NIE BĘDZIEMY RENDEROWAĆ KOMPONENTU BEZPOŚREDNIO TUTAJ
 
 export default function UserProfileDashboard() {
   const [activeTab, setActiveTab] = useState('Moje dane');
@@ -15,7 +15,7 @@ export default function UserProfileDashboard() {
   const [message, setMessage] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordMessage, setPasswordMessage] = '';
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -31,9 +31,6 @@ export default function UserProfileDashboard() {
         if (!error) {
           setUserData(data);
           setFormData(data);
-          // Możesz ustawić domyślną zakładkę, np. na 'Moje dane'
-          // lub na 'Moje trasy', jeśli chcesz by to było priorytetowe dla każdego.
-          // setActiveTab('Moje trasy'); // Jeśli chcesz, żeby "Moje trasy" były domyślne dla wszystkich
         } else {
           console.error("Błąd ładowania danych użytkownika:", error.message);
           setMessage("Błąd ładowania danych użytkownika.");
@@ -48,9 +45,8 @@ export default function UserProfileDashboard() {
   const getTabs = () => {
     if (!formData) return [];
 
-    const baseTabs = ['Moje dane', 'Hasło', 'Moje trasy']; // <-- ZMIANA: "Moje trasy" zawsze widoczne
+    const baseTabs = ['Moje dane', 'Hasło']; // <-- ZMIANA: "Moje trasy" usunięte stąd, będzie jako link
     
-    // Dodatkowe zakładki specyficzne dla roli 'firma'
     if (formData.role === 'firma') {
       baseTabs.push('Profil publiczny');
       baseTabs.push('Pomoc drogowa');
@@ -226,22 +222,23 @@ export default function UserProfileDashboard() {
           </form>
         );
 
-      case 'Moje trasy': // Nowa sekcja dla "Moich tras"
-        return (
-          <div className="dashboard-form-section">
-            <h3>Moje trasy</h3>
-            <p>Tutaj znajdziesz wszystkie dodane przez Ciebie trasy.</p> {/* Możesz dodać krótki opis */}
-            <MyRoutes /> {/* RENDEROWANIE KOMPONENTU MyRoutes */}
-            {/* Opcjonalnie możesz dodać przycisk "Dodaj nową trasę", który np. przekieruje do /oferuje-transport */}
-            <button
-              onClick={() => window.location.href = '/oferuje-transport'} // Przekierowanie do strony dodawania trasy
-              className="form-button"
-              style={{ backgroundColor: '#007bff', marginTop: '20px' }}
-            >
-              ➕ Dodaj nową trasę
-            </button>
-          </div>
-        );
+      // --- USUWAMY CAŁY TEN CASE, BO NIE BĘDZIEMY TEGO RENDEROWAĆ TUTAJ ---
+      // case 'Moje trasy':
+      //   return (
+      //     <div className="dashboard-form-section">
+      //       <h3>Moje trasy</h3>
+      //       <p>Tutaj znajdziesz wszystkie dodane przez Ciebie trasy.</p>
+      //       <MyRoutes />
+      //       <button
+      //         onClick={() => window.location.href = '/oferuje-transport'}
+      //         className="form-button"
+      //         style={{ backgroundColor: '#007bff', marginTop: '20px' }}
+      //       >
+      //         ➕ Dodaj nową trasę
+      //       </button>
+      //     </div>
+      //   );
+      // --- KONIEC USUNIĘTEGO CASE'A ---
 
       case 'Profil publiczny':
         return (
@@ -339,6 +336,19 @@ export default function UserProfileDashboard() {
                 {tab}
               </button>
             ))}
+            {/* DODANO: Przycisk/link "Moje trasy" niezależny od aktywnej zakładki, który przekierowuje */}
+            {/* Renderuj tylko jeśli użytkownik jest zalogowany (lub formData istnieje) i jest to rola "firma" */}
+            {/* Poprawka: Moje Trasy ma być dla każdego, więc warunek 'firma' nie jest potrzebny tutaj */}
+            {formData && ( // Sprawdź, czy formData istnieje, aby pokazać link po załadowaniu danych
+              <a 
+                href="/moje-trasy" // <-- ZMIANA: To jest faktyczny link
+                className={`dashboard-tab-button ${activeTab === 'Moje trasy' ? 'active' : ''}`} // Użyj tej samej klasy dla stylów
+                onClick={() => setActiveTab('Moje trasy')} // Zachowaj activeTab dla ewentualnego podświetlenia, ale główna akcja to przekierowanie
+                style={{ marginLeft: '10px' }} // Mały odstęp od pozostałych przycisków
+              >
+                Moje trasy
+              </a>
+            )}
           </div>
         )}
         <div>{renderTab()}</div>
