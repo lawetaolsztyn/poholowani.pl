@@ -37,7 +37,7 @@
 
 /* Media Queries dla mniejszych ekranów */
 @media (max-width: 768px) {
-  .landing-container {
+  .my-routes-page-container {
     padding-left: 10px; /* Mniejszy padding po bokach na telefonach */
     padding-right: 10px;
     padding-bottom: 60px; /* Mniejszy padding na dole */
