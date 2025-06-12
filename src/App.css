@@ -1,41 +1,54 @@
 /* App.css */
 
+/* App.css */
+
 /* Reset wysokości i odblokowanie scrolla */
+/* Usuniemy overflow-y: auto tutaj, bo body w LandingPage.css ma overflow-x: hidden.
+   Lepiej zarządzać overflow globalnie i spójnie w jednym miejscu.
+*/
 html, body, #root {
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  overflow-y: auto;
+  min-height: 100%;
+  margin: 0; /* Zapewnij zerowe marginesy */
+  padding: 0; /* Zapewnij zerowe paddingi */
+  font-family: Arial, sans-serif;
+  /* overflow-y: auto; */ /* USUNIĘTE - zarządzaj overflow w body w LandingPage.css */
 }
 
-/* Kontener całej aplikacji */
 /* Kontener całej aplikacji */
 .app {
-  display: flex;
-  flex-direction: column;
-  /* height auto by default (no fixed height) */
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* KLUCZOWE: Upewnij się, że .app zajmuje 100% szerokości */
+  /* height auto by default (no fixed height) */
+  /* TUTAJ NIE MOŻE BYĆ ŻADNYCH max-width LUB margin: auto. */
 }
 
 
-/* Główna część z mapą i przyciskiem */
 /* Główna część z mapą i przyciskiem */
 .main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  /* dynamic height, pozwala na rozwijanie strony */
-  background-color: #f7fafc;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* KLUCZOWE: Upewnij się, że .main-content zajmuje 100% szerokości */
+  /* dynamic height, pozwala na rozwijanie strony */
+  background-color: #f7fafc;
+  /* TUTAJ NIE MOŻE BYĆ ŻADNYCH max-width LUB margin: auto. */
 }
 
-
-/* Landing container - pozwala na pełny scroll i rozwijanie zawartości */
+/* Landing container - te style są już w LandingPage.css, tutaj nie powinny być powtórzone */
+/* Jeśli LandingPage.css jest importowany po App.css, to style z LandingPage.css nadpiszą te,
+   ale lepiej ich nie powielać, żeby uniknąć konfliktów.
+   Jeśli to jest jedyna definicja .landing-container, to OK, ale znowu, bez max-width i margin:auto.
+*/
 .landing-container {
- /* min-height: 100vh; */
-  padding-bottom: 0px;
-  overflow-y: auto;
-  overflow-x: hidden;
+ /* min-height: 100vh; */
+  padding-bottom: 0px;
+  /* overflow-y: auto; */ /* USUNIĘTE, jeśli zarządzamy w body */
+  /* overflow-x: hidden; */ /* USUNIĘTE, jeśli zarządzamy w body */
+  /* TUTAJ NIE MOŻE BYĆ ŻADNYCH max-width LUB margin: auto. */
 }
+
+/* ... (pozostałe style App.css - prawdopodobnie nie wpływają na szerokość) ... */
 
 /* Górny pasek */
 .top-bar {
