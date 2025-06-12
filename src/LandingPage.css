@@ -1,60 +1,108 @@
-/* src/LandingPage.css */
+/* ===== CZCIONKA I NAGŁÓWKI ===== */
 
-/* ===== GLOBALNE STYLE DLA CAŁEJ STRONY ===== */
-html, body {
-  height: 100%;
+body {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
-  overflow-x: hidden;
-  box-sizing: border-box;
 }
 
-*, *::before, *::after {
-  box-sizing: inherit;
+.banner-heading {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-/* ===== STRONA GŁÓWNA - GŁÓWNY KONTENER ===== */
+.banner-subheading {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #f0f0f0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== STRONA GŁÓWNA ===== */
+
 .landing-container {
   position: relative;
   height: auto;
   min-height: 100vh;
-  width: 100%; /* KLUCZOWE: Kontener główny na 100% szerokości */
+  width: 100vw;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  /* KLUCZOWA ZMIANA: USUŃ PADDING STĄD */
-  padding: 0; /* Upewnij się, że padding jest zerowy! */
 }
 
-/* Styl dla CAŁEGO PASKA BANERA (który zawiera komponent Header) */
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d);
-  width: 100%; /* KLUCZOWE: Baner na 100% szerokości */
-  min-height: 130px; /* Twoja preferowana wysokość */
-  height: auto;
-  box-sizing: border-box; /* Ważne */
-  /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
+  color: white;
+  /* KLUCZOWA ZMIANA: NADPISUJEMY PADDING NA STAŁĄ WARTOŚĆ DLA WIĘKSZYCH EKRANÓW */
+  padding: 0.5rem 1rem !important; /* DODANO !important */
+  z-index: 1000;
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* Wyśrodkowuje elementy flex wertykalnie */
+  justify-content: center;
+  flex-wrap: wrap; /* Pozwala na zawijanie elementów */
+  gap: 1.5rem;
+  text-align: center;
+  /* Upewnij się, że nie ma tu sztywnych wysokości z innych źródeł */
+  height: auto !important; /* DODANO !important */
+  min-height: unset !important; /* DODANO !important */
 }
 
-/* Tryb ciemny dla TŁA BANERA */
-@media (prefers-color-scheme: dark) {
-  .overlay-header {
-    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
+.overlay-header h1 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  margin-top: 0;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.overlay-header p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #e0e0e0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  max-width: 800px;
+  margin: 0 auto; /* Upewnij się, że marginesy są kontrolowane */
+}
+
+/* Fade-in animacja nagłówka */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Animacje nagłówka - zostawiamy tak, jak są w Header.css */
+.overlay-header h1,
+.overlay-header p {
+  opacity: 0;
+  animation: fadeIn 1s ease-out forwards;
+}
 
+.overlay-header h1 {
+  animation-delay: 0.2s;
+}
+
+.overlay-header p {
+  animation-delay: 0.6s;
+}
 
 /* ===== MAPA ===== */
 
 .map-wrapper {
   flex: 1;
   position: relative;
-  min-height: 500px; /* Dobra wysokość dla mapy na desktopie. Dostosuj! */
-  width: 100%; /* KLUCZOWE: Mapa na 100% szerokości */
-  box-sizing: border-box; /* Ważne */
-  padding: 0; /* Upewnij się, że nie ma paddingu, jeśli ma być na 100% szerokości */
+  min-height: 300px;
 }
 
 .map-background {
@@ -64,47 +112,43 @@ html, body {
   top: 0;
   left: 0;
   z-index: 0;
-  /* KLUCZOWE: Blur i brightness dla mapy */
-  filter: blur(2px) brightness(0.8); /* Włączamy blur z powrotem */
+}
+
+/* TYLKO NA LANDING PAGE – rozmycie */
+.landing-blurred-map {
+  filter: blur(2px) brightness(0.8);
   pointer-events: none;
 }
 
-/* Styl dla kontenera Leaflet MapContainer, który jest wewnątrz map-background */
-.leaflet-map-container {
-  height: 100%; /* Musi wypełnić 100% wysokości map-background */
-  width: 100%; /* Musi wypełnić 100% szerokości map-background */
-}
-
 /* ===== PRZYCISKI ===== */
+
 .action-buttons {
-  position: absolute; /* Pozycjonowanie absolutne względem .map-wrapper */
-  top: 50%; /* Centruj pionowo */
-  left: 50%; /* Centruj poziomo */
-  transform: translate(-50%, -50%); /* Dokładne centrowanie */
-  z-index: 1001; /* Upewnij się, że są nad mapą */
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
   display: flex;
   gap: 3rem;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  width: 100%; /* Zapewnij, że kontener przycisków jest szeroki */
+  width: 100%;
   box-sizing: border-box;
 }
 
 .primary-button,
 .secondary-button {
   background-color: #007bff;
-  color: white; /* KLUCZOWE: Tekst biały */
+  color: white;
   font-size: 1.5rem;
   padding: 1rem 2rem;
   border: none;
   cursor: pointer;
   border-radius: 10px;
   text-align: center;
-  text-decoration: none; /* Usuń podkreślenie (dla linków, jeśli to są <a>) */
   transition: background-color 0.3s ease;
-  white-space: nowrap; /* Zapobiega zawijaniu się tekstu w przycisku */
 }
 
 .primary-button:hover,
@@ -117,10 +161,10 @@ html, body {
   font-size: 0.9rem;
   margin-top: 0.5rem;
   color: #ccc;
-  display: block; /* Upewnij się, że subtext jest w nowej linii */
 }
 
-/* ===== FORMULARZ WYSZUKIWANIA ===== (BEZ ZMIAN) */
+/* ===== FORMULARZ WYSZUKIWANIA ===== */
+
 .search-container {
   display: flex;
   flex-direction: column;
@@ -140,30 +184,46 @@ html, body {
   align-items: flex-end;
   justify-content: center;
   z-index: 1001;
-  margin-top: 20px;
+  margin-top: 20px; /* Odstęp pod banerem */
 }
 
 
-/* Media Queries dla responsywności */
 @media (max-width: 768px) {
   .overlay-header {
-    min-height: 120px; /* Mniejsza minimalna wysokość dla telefonów */
-    padding: 15px 10px; /* Padding dla banera na telefonach */
-    /* Flex-direction i gap dla zawartości headera są w Header.css dla mobilnego układu */
+    flex-direction: column !important;
+    text-align: center;
+    padding: 1rem; /* Ten padding dla telefonów */
+    height: auto; /* Zapewnij auto wysokość */
+    min-height: unset; /* Upewnij się, że nie ma tu min-height */
+  }
+
+  .overlay-header img {
+    height: 120px; /* Może być konieczne zmniejszenie tej wartości, jeśli logo jest za duże */
+    max-width: 90vw;
+    margin-bottom: 1rem;
+  }
+
+  .banner-heading {
+    font-size: 1.5rem;
+  }
+
+  .banner-subheading {
+    font-size: 1rem;
   }
 
   .map-wrapper {
-    min-height: 350px; /* Zmniejsz wysokość mapy na telefonach */
+    min-height: 400px;
   }
 
-  /* Przyciski na telefonach */
   .action-buttons {
-    top: auto;
-    bottom: 5%;
-    transform: translateX(-50%);
+    position: absolute;
+    top: 75%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
     flex-direction: column;
     gap: 1rem;
-    max-width: 90vw;
+    max-width: 400px;
     padding: 0;
   }
 
@@ -178,37 +238,5 @@ html, body {
   .primary-button .subtext,
   .secondary-button .subtext {
     font-size: 0.8rem;
-  }
-}
-
-/* Tryb ciemny dla LandingPage */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #1a1a1a;
-    color: #e0e0e0;
-  }
-
-  .landing-container {
-    box-shadow: none;
-  }
-
-  .overlay-header {
-    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
-  }
-
-  .action-buttons .primary-button,
-  .action-buttons .secondary-button {
-    background-color: #0056b3;
-    color: white;
-  }
-
-  .action-buttons .primary-button:hover,
-  .action-buttons .secondary-button:hover {
-    background-color: #003f8c;
-  }
-
-  .primary-button .subtext,
-  .secondary-button .subtext {
-    color: #b0b0b0;
   }
 }
