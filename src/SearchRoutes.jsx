@@ -426,21 +426,19 @@ useEffect(() => {
 <MapContainer
   center={center}
   zoom={6}
-  style={{ height: '100%', width: '100%', zIndex: 0 }}
+  style={{ height: '100%', width: '100%', zIndex: 0, touchAction: 'none' }} // <== ważne
   tap={false}
-  dragging={true} // ← ważne! na starcie ma być włączone (dla komputera)
+  dragging={false} // <- domyślnie wyłączone
   zoomControl={true}
-  touchZoom={true} // ← włączone, ale i tak będziemy tym sterować
-  doubleClickZoom={true}
+  touchZoom={false} // <- też domyślnie wyłączone
+  doubleClickZoom={false}
   whenCreated={(mapInstance) => {
     mapRef.current = mapInstance;
 
-    // 🔍 tylko na ekranach dotykowych
-    if (window.matchMedia('(pointer: coarse)').matches) {
-      mapInstance.dragging.disable();
-      mapInstance.touchZoom.disable();
+    const container = mapInstance.getContainer();
 
-      mapInstance.getContainer().addEventListener('touchstart', (e) => {
+    if ('ontouchstart' in window) {
+      container.addEventListener('touchstart', (e) => {
         if (e.touches.length === 2) {
           mapInstance.dragging.enable();
           mapInstance.touchZoom.enable();
@@ -449,6 +447,10 @@ useEffect(() => {
           mapInstance.touchZoom.disable();
         }
       });
+    } else {
+      // Komputer – zostaw pełną interakcję
+      mapInstance.dragging.enable();
+      mapInstance.touchZoom.enable();
     }
   }}
 >
