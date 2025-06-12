@@ -252,6 +252,8 @@ useEffect(() => {
                 fetchRoutes();
             })
             .subscribe();
+        console.log("Current center:", center);
+    console.log("Reset trigger:", resetTrigger);
 
         return () => {
             supabase.removeChannel(channel);
