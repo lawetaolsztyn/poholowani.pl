@@ -1,28 +1,5 @@
 /* src/LandingPage.css */
 
-/*
-   UWAGA: Ten plik LandingPage.css nie zawiera globalnych resetów z html, body, *
-   oraz stylów dla .app, .main-content. Te powinny być w index.css i App.css.
-   Upewnij się, że index.css i App.css są zgodne z moimi wcześniejszymi propozycjami globalnych resetów.
-*/
-
-/* ===== GLOBALNE STYLE DLA CAŁEJ STRONY (jeśli nie w index.css/App.css) ===== */
-/* Jeśli te style są już w index.css lub App.css, możesz je stąd usunąć. */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: 'Poppins', sans-serif;
-  overflow-x: hidden; /* KLUCZOWE: Zapobiega poziomemu przewijaniu */
-  box-sizing: border-box; /* Globalny box-sizing */
-}
-
-/* Upewnij się, że box-sizing jest dziedziczony przez wszystkie elementy */
-*, *::before, *::after {
-  box-sizing: inherit;
-}
-
-
 /* ===== STRONA GŁÓWNA - GŁÓWNY KONTENER ===== */
 .landing-container {
   position: relative;
@@ -31,22 +8,17 @@ html, body {
   width: 100%; /* KLUCZOWE: Kontener główny na 100% szerokości */
   display: flex;
   flex-direction: column;
-  padding: 0; /* Upewnij się, że nie ma paddingu, który powodowałby marginesy */
+  padding: 0; /* Upewnij się, że nie ma paddingu */
 }
 
 /* Styl dla CAŁEGO PASKA BANERA (gdzie jest komponent Header) */
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
   width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
-  min-height: 130px; /* Twoja preferowana wysokość banera */
+  min-height: 130px; /* Twoja preferowana wysokość */
   height: auto; /* Wysokość dopasowuje się do zawartości */
   box-sizing: border-box; /* Ważne */
-  
-  /* Poniższe style zostały usunięte z tego bloku, ponieważ kontroluje je Header.css (klasa .header-component)
-     lub są zbędne, jeśli Header.jsx jest używany prawidłowo:
-     color, padding, z-index, display, flex-direction, align-items, justify-content, flex-wrap, gap, text-align
-     banner-heading, banner-subheading (te selektory też usuń, bo są w Header.css)
-  */
+  /* Padding wewnętrzny i układ (flex) zawartości są w Header.css */
 }
 
 /* Tryb ciemny dla TŁA BANERA */
@@ -56,7 +28,7 @@ html, body {
   }
 }
 
-/* Fade-in animacja (DEFINTION) - musi być tutaj, bo jest używana na LandingPage */
+/* Fade-in animacja (DEFINTION) */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -68,7 +40,6 @@ html, body {
   }
 }
 
-
 /* ===== MAPA ===== */
 
 .map-wrapper {
@@ -77,8 +48,8 @@ html, body {
   min-height: 500px; /* Dobra wysokość dla mapy na desktopie */
   width: 100%; /* KLUCZOWE: Mapa na 100% szerokości */
   box-sizing: border-box;
-  padding: 0; /* Upewnij się, że nie ma paddingu */
-  margin: 0; /* Zeruj marginesy zewnętrzne map-wrapper */
+  padding: 0; /* **KLUCZOWE: Upewnij się, że nie ma paddingu** */
+  margin: 0; /* **KLUCZOWE: Zeruj marginesy zewnętrzne map-wrapper** */
 }
 
 .map-background {
@@ -88,10 +59,10 @@ html, body {
   top: 0;
   left: 0;
   z-index: 0;
-  filter: blur(2px) brightness(0.8); /* Włączamy blur z powrotem */
+  filter: blur(2px) brightness(0.8);
   pointer-events: none;
-  margin: 0; /* Zeruj marginesy zewnętrzne map-background */
-  padding: 0; /* Zeruj paddingi map-background */
+  margin: 0; /* **KLUCZOWE: Zeruj marginesy zewnętrzne map-background** */
+  padding: 0; /* **KLUCZOWE: Zeruj paddingi map-background** */
 }
 
 /* Styl dla kontenera Leaflet MapContainer, który jest wewnątrz map-background */
