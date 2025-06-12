@@ -1,15 +1,10 @@
 /* src/components/Header.css */
 
-/* Kontener overlay-header - ten styl powinien mieć jedynie padding wewnętrzny dla zawartości */
+/* Styl dla kontenera Header'a - to będzie tylko "opakowanie" dla zawartości */
 .overlay-header {
-  padding: 20px 15px; /* Padding wewnętrzny dla tekstu i logo */
+  padding: 20px 15px; /* Wewnętrzny padding dla tekstu i logo */
   text-align: center;
   z-index: 1000; /* Upewnij się, że jest nad mapą */
-  
-  /* Usuwamy stąd wszelkie:
-     background-color, color, text-shadow, font-size, width, max-width, margin, box-sizing, border-radius, box-shadow
-     Te style będą definiowane w LandingPage.css, bo dotyczą całego paska banera.
-  */
 }
 
 /* Styl dla logo POHOLOWANI */
@@ -18,31 +13,31 @@
   width: auto; /* Zachowaj proporcje */
   display: block; /* Ustaw jako blok, aby działały marginesy */
   margin: 0 auto 10px auto; /* Wyśrodkuj logo i dodaj odstęp od tekstu poniżej */
-  z-index: 1; /* Upewnij się, że logo jest nad tłem */
 }
 
-/* Style dla tytułu (h1) i podtytułu (p) w banerze */
+/* Style dla tytułu (h1) w banerze */
 .overlay-header h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;
   margin-top: 0;
-  color: white; /* **KLUCZOWE: Tekst zawsze biały** */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cieć tekstu */
+  color: white; /* KLUCZOWE: Tekst ma być biały */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cieć tekstu dla czytelności */
 }
 
+/* Style dla podtytułu (p) w banerze */
 .overlay-header p {
   font-size: 1.2rem;
-  color: white; /* **KLUCZOWE: Tekst zawsze biały** */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cieć tekstu */
-  max-width: 800px; /* Ogranicz szerokość podtytułu dla czytelności */
+  color: white; /* KLUCZOWE: Tekst ma być biały */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cieć tekstu dla czytelności */
+  max-width: 800px; /* Ogranicz szerokość podtytułu dla czytelności na szerokich ekranach */
   margin: 0 auto; /* Wyśrodkuj podtytuł */
 }
 
-/* Responsywność dla tekstu i logo w HEADERZE */
+/* Responsywność tekstu i logo w HEADERZE */
 @media (max-width: 768px) {
   .overlay-header {
     padding: 15px 10px; /* Mniejszy padding na telefonach */
-    font-size: 1rem;
+    /* font-size jest dziedziczony, nie trzeba tu zmieniać */
   }
 
   .header-logo {
@@ -63,7 +58,7 @@
 @media (prefers-color-scheme: dark) {
   .overlay-header h1,
   .overlay-header p {
-    color: white; /* Tekst pozostaje biały */
+    color: white; /* Tekst pozostaje biały na ciemniejszym tle */
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8); /* Potencjalnie mocniejszy cień */
   }
 }
