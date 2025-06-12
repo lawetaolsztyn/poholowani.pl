@@ -236,5 +236,7 @@
         color: #333; /* Ciemniejszy tekst */
     }
 }
-
+.leaflet-container {
+  touch-action: pan-y; /* ✅ pozwala scrollować stronę jednym palcem */
+}
 
