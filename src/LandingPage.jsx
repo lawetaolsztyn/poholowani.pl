@@ -1,10 +1,11 @@
 import Navbar from './components/Navbar';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import './LandingPage.css'; // Ten plik będzie teraz zawierał WSZYSTKIE style
+import './LandingPage.css'; // Ten plik będzie teraz zawierał WSZYSTKIE style DLA LANDING PAGE
 import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
-import logo from './assets/logo.png'; // Upewnij się, że ścieżka do logo jest poprawna
+// import logo from './assets/logo.png'; // Usuwamy, bo logo jest w Header.jsx
+import Header from './components/Header'; // <-- KLUCZOWE: IMPORTUJEMY KOMPONENT HEADER
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -14,22 +15,8 @@ const LandingPage = () => {
     <>
       <Navbar />
       <div className="landing-container">
-        {/* BANER Z LOGO I TEKSTEM */}
-        <div className="overlay-header"> {/* Wszystkie style tego bloku będą w LandingPage.css */}
-          <img
-            src={logo}
-            alt="Poholowani.pl Logo"
-            className="header-logo" // Dodajemy klasę dla logo
-          />
-          <div className="header-text-container"> {/* Dodajemy kontener dla tekstu, aby łatwiej nim zarządzać */}
-            <h1 className="banner-heading"> {/* Stylizowany w LandingPage.css */}
-              Wykorzystaj puste przebiegi!
-            </h1>
-            <p className="banner-subheading"> {/* Stylizowany w LandingPage.css */}
-              Znajdź lub zaoferuj transport powrotny lawet i busów w całej Europie. Prosto i szybko!
-            </p>
-          </div>
-        </div>
+        {/* BANER Z LOGO I TEKSTEM - TERAZ UŻYWAMY KOMPONENTU HEADER */}
+        <Header /> {/* Komponent Header, stylizowany przez Header.css, tło z LandingPage.css */}
 
         {/* SEKCJA MAPY */}
         <div className="map-wrapper">
@@ -65,7 +52,7 @@ const LandingPage = () => {
           {/* 
           <button
             className="primary-button"
-            style={{ backgroundColor: '#ff6600' }} // Ten inline style można przenieść do CSS jako nową klasę, np. .zlecam-button
+            // style={{ backgroundColor: '#ff6600' }} // Usuwamy, jeśli chcesz, żeby to była klasa CSS
             onClick={() => navigate('/zlecam')}
           >
             ZLECAM TRANSPORT
