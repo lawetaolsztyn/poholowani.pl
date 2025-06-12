@@ -9,7 +9,7 @@ import LocationAutocomplete from './components/LocationAutocomplete';
 import RouteSlider from './RouteSlider';
 import L from 'leaflet';
 import RoadsideMarkers from './components/RoadsideMarkers';
-// import './SearchRoutes.css'; //
+import './SearchRoutes.css';
 // import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css'; //
 import 'leaflet-gesture-handling'; // To jest import, który rejestruje wtyczkę
 delete L.Icon.Default.prototype._getIconUrl;
