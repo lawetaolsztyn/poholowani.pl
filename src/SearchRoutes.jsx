@@ -3,7 +3,6 @@ import { useEffect, useState, useRef, createContext, useContext } from 'react';
 import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents } from 'react-leaflet';
 import * as turf from '@turf/turf';
-import './public/leaflet.css';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
 import LocationAutocomplete from './components/LocationAutocomplete';
