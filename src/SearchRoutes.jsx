@@ -12,8 +12,8 @@ import L from 'leaflet';
 import RoadsideMarkers from './components/RoadsideMarkers';
 import './SearchRoutes.css';
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
-import { GestureHandling } from 'leaflet-gesture-handling';
-import 'leaflet-gesture-handling';
+import 'leaflet-gesture-handling'; // To jest import, który rejestruje wtyczkę
+
 
 const MapContext = createContext(null);
 
@@ -22,7 +22,6 @@ function MapEvents() {
     const { setCenter, resetTrigger } = useContext(MapContext);
 
     useEffect(() => {
-        // Ta część kodu będzie się uruchamiać przy każdym odświeżeniu resetTrigger (w tym przy pierwszym renderowaniu)
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -30,17 +29,15 @@ function MapEvents() {
                     map.setView([position.coords.latitude, position.coords.longitude], 10);
                 },
                 () => {
-                    // Fallback jeśli geolokalizacja się nie uda
                     setCenter([52.2297, 21.0122]); // Warszawa
                     map.setView([52.2297, 21.0122], 6);
                 }
             );
         } else {
-            // Fallback jeśli przeglądarka nie wspiera geolokalizacji
             setCenter([52.2297, 21.0122]); // Warszawa
             map.setView([52.2297, 21.0122], 6);
         }
-    }, [resetTrigger]); // resetTrigger jest zależnością
+    }, [resetTrigger]);
 
     useMapEvents({
         moveend: (event) => {
@@ -155,7 +152,7 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
           </div>
           <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
           <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
-          <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
+          <div style={{ marginBottom: '6px' }> {route.passenger_count || '–'}</div>
           <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
           {route.phone && (
             <div style={{ marginBottom: '10px' }}>
@@ -204,13 +201,12 @@ function SearchRoutes() {
     const [vehicleType, setVehicleType] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
     const [searchTrigger, setSearchTrigger] = useState(0);
-    // Zmieniamy początkową wartość resetTrigger, aby geolokalizacja uruchomiła się od razu
     const [resetTrigger, setResetTrigger] = useState(0);
     const [fromCoords, setFromCoords] = useState(null);
     const [toCoords, setToCoords] = useState(null);
     const mapRef = useRef(null);
     const today = new Date().toISOString().split('T')[0];
-// Wymusza odświeżenie geolokalizacji przy każdym wejściu na stronę
+
 useEffect(() => {
   setResetTrigger(prev => prev + 1);
 }, []);
@@ -299,7 +295,7 @@ useEffect(() => {
                 const fromDist = turf.distance(fromPoint, fromSnap, { units: 'kilometers' });
                 const toDist = turf.distance(toPoint, toSnap, { units: 'kilometers' });
 
-                const fromPos = fromSnap.properties.location; // odległość od początku trasy w km
+                const fromPos = fromSnap.properties.location;
                 const toPos = toSnap.properties.location;
 
                 const isInRange = fromDist <= detourKm && toDist <= detourKm;
@@ -308,11 +304,11 @@ useEffect(() => {
                 return isInRange && isCorrectOrder;
 
             } else if (fromLocation) {
-                return checkPointInRange(fromLocation); // tylko początek
+                return checkPointInRange(fromLocation);
             } else if (toLocation) {
-                return checkPointInRange(toLocation); // tylko koniec
+                return checkPointInRange(toLocation);
             } else {
-                return false; // nic nie wpisano? nie pokazuj nic
+                return false;
             }
 
         });
@@ -356,10 +352,9 @@ useEffect(() => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     setCenter([lat, lng]);
-                    setResetTrigger(prev => prev + 1); // Zwiększenie resetTrigger, aby odświeżyć geolokalizację w MapEvents
+                    setResetTrigger(prev => prev + 1);
                 },
                 () => {
-                    // fallback jeśli geolokalizacja się nie uda
                     setCenter([52.2297, 21.0122]); // Warszawa
                     setResetTrigger(prev => prev + 1);
                 }
@@ -374,7 +369,7 @@ useEffect(() => {
         <>
             <Navbar />
  
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 80px)', width: '100%', boxSizing: 'border-box', overflowY: 'auto', paddingBottom: '0px' }}>
+            <div className="main-container"> {/* Użyj klasy z CSS */}
 
                 <div className="search-form-container">
                     <LocationAutocomplete
@@ -421,38 +416,17 @@ useEffect(() => {
                         Reset
                     </button>
                 </div>
-                <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
+                <div className="map-wrapper"> {/* Użyj klasy z CSS */}
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
 <MapContainer
   center={center}
   zoom={6}
-  style={{ height: '100%', width: '100%', zIndex: 0 }}
-  tap={false} // <== to jest kluczowe
-  dragging={true}
+  className="main-map-container" // Użyj klasy z CSS
   zoomControl={true}
+  gestureHandling={true} // <== Dodaj tę właściwość!
   whenCreated={(mapInstance) => {
     mapRef.current = mapInstance;
-
-    // 🚫 Blokuj przesuwanie jednym palcem na urządzeniach dotykowych
-    if (window.matchMedia('(pointer: coarse)').matches) {
-      let isTwoFingerTouch = false;
-
-      mapInstance.getContainer().addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-          isTwoFingerTouch = false;
-          mapInstance.dragging.disable(); // wyłącz przesuwanie jednym palcem
-        } else if (e.touches.length === 2) {
-          isTwoFingerTouch = true;
-          mapInstance.dragging.enable(); // włącz przesuwanie dwoma palcami
-        }
-      });
-
-      mapInstance.getContainer().addEventListener('touchend', () => {
-        if (!isTwoFingerTouch) {
-          mapInstance.dragging.disable();
-        }
-      });
-    }
+    // Twoja własna logika touch-action jest zbędna, usunąłem ją
   }}
 >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -470,7 +444,8 @@ useEffect(() => {
                                 selectedRouteTrigger={selectedRouteTrigger}
                             />
 
-                            {center && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
+                            {/* Użyj klasy z CSS dla krzyżyka, nie inline style */}
+                            {center && (<div className="map-cross">+</div>)}
                       {filteredRoutes.map((route) => (
   <HighlightedRoute
     key={route.id}
@@ -498,9 +473,17 @@ useEffect(() => {
                             <RoadsideMarkers />
 
                         </MapContainer>
+                        {/* Możesz dodać warstwę overlay, jeśli chcesz pokazać instrukcje dla użytkownika */}
+                        {/* W CSS jest klasa .map-overlay, możesz jej użyć do warunkowego wyświetlania */}
+                        {/*
+                        <div className="map-overlay">
+                            <p>Przesuń mapę dwoma palcami.</p>
+                            <p>Powiększ/zmniejsz, rozciągając/ściskając palce.</p>
+                        </div>
+                        */}
                     </MapContext.Provider>
                 </div>
-                <div style={{ width: '98%', margin: '0 auto 20px auto', padding: '0px 10px 10px 10px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
+                <div className="route-slider-wrapper"> {/* Użyj klasy z CSS */}
                     <RouteSlider
                         routes={filteredRoutes}
                         onHover={(id) => setHoveredRouteId(id)}
