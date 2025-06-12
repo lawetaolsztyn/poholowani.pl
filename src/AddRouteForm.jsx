@@ -256,10 +256,37 @@ function AddRouteForm({ onRouteCreated }) {
       </form>
 
       <MapContainer
-        center={[52.0, 19.0]}
-        zoom={6}
-        style={{ height: '600px', width: '100%', marginTop: '30px' }}
-      >
+  center={center}
+  zoom={6}
+  style={{ height: '100%', width: '100%', zIndex: 0 }}
+  tap={false}               // ważne dla dotykowych
+  dragging={true}           // domyślnie włączamy (komputer)
+  zoomControl={true}
+  touchZoom={true}          // domyślnie włączamy (komputer)
+  doubleClickZoom={true}    // domyślnie włączamy (komputer)
+  whenCreated={(mapInstance) => {
+    mapRef.current = mapInstance;
+
+    // Sprawdzamy czy urządzenie dotykowe
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      // Na start wyłączamy dragging i touchZoom,
+      // bo domyślnie w MapContainer jest enabled = true
+      mapInstance.dragging.disable();
+      mapInstance.touchZoom.disable();
+      mapInstance.doubleClickZoom.disable();
+
+      mapInstance.getContainer().addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          // Włącz przesuwanie i zoom tylko przy dwóch palcach
+          mapInstance.dragging.enable();
+          mapInstance.touchZoom.enable();
+          mapInstance.doubleClickZoom.enable();
+        } else {
+          // Jednym palcem wyłącz wszystko
+          mapInstance.dragging.disable();
+          mapInstance.touchZoom.disable();
+          mapInstance.doubleClickZoom.disable();
+        }
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {routeData && (
           <Polyline
