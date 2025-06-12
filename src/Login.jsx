@@ -7,14 +7,27 @@ import Navbar from './components/Navbar';
 import Header from './components/Header';
 import './LandingPage.css';
 
+// Zaktualizowana funkcja do uzyskiwania tokena reCAPTCHA
 const getRecaptchaToken = async () => {
   return new Promise((resolve) => {
-    if (!window.grecaptcha) return resolve(null);
-    window.grecaptcha.ready(() => {
-      window.grecaptcha.execute('6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr', { action: 'login' }).then((token) => {
-        resolve(token);
-      });
-    });
+    const checkRecaptcha = () => {
+      if (window.grecaptcha && window.grecaptcha.ready) {
+        window.grecaptcha.ready(() => {
+          // WAŻNE: Upewnij się, że '6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr' to Twój klucz witryny reCAPTCHA v3.
+          window.grecaptcha.execute('6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr', { action: 'login' }).then((token) => {
+            resolve(token);
+          }).catch(err => {
+            console.error("Błąd wykonania reCAPTCHA:", err); // Logowanie błędu, jeśli execute zawiedzie
+            resolve(null); // Zwróć null w przypadku błędu wykonania
+          });
+        });
+      } else {
+        // Jeśli grecaptcha jeszcze nie jest dostępne, poczekaj i spróbuj ponownie
+        // To jest kluczowe, ponieważ skrypt jest ładowany dynamicznie przez CookieWall
+        setTimeout(checkRecaptcha, 100); // Spróbuj ponownie za 100ms
+      }
+    };
+    checkRecaptcha();
   });
 };
 
@@ -54,7 +67,6 @@ export default function Login() {
       }
 
       // Sprawdzamy rolę (konwertując na małe litery dla spójności)
-      // DODAJ TE LOGI, ABY ZOBACZYĆ DOKŁADNIE, CO JEST W profile.role
       console.log('DEBUG: profile.role z bazy danych w Login.jsx:', profile.role);
       console.log('DEBUG: profile.role po toLowerCase() w Login.jsx:', profile.role?.toLowerCase());
 
@@ -83,11 +95,10 @@ export default function Login() {
     // aby obsłużyć przypadek, gdy użytkownik jest już zalogowany przy wejściu na stronę /login
     // i odświeża ją.
     const checkInitialAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        handleAuthRedirect(user);
+      const { data: { user } } = await supabase.auth.getUser();
+      handleAuthRedirect(user);
     };
     checkInitialAuth();
-
 
     return () => {
       authListener.subscription.unsubscribe();
@@ -99,12 +110,49 @@ export default function Login() {
     setMessage('');
     setShowResendEmailButton(false);
 
-    const token = await getRecaptchaToken();
-    if (!token) {
-      setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
+    const recaptchaToken = await getRecaptchaToken(); // Zmieniono nazwę zmiennej dla jasności
+    if (!recaptchaToken) {
+      setMessage('❌ Nie udało się zweryfikować reCAPTCHA. Brak tokena.');
+      // Dodatkowy log, który pomoże zdiagnozować, dlaczego token jest null
+      console.error("getRecaptchaToken() zwróciło null. Sprawdź, czy skrypt reCAPTCHA jest załadowany.");
       return;
     }
-    console.log('✅ Token reCAPTCHA:', token);
+    console.log('✅ Token reCAPTCHA:', recaptchaToken);
+
+    // =====================================================================
+    // WAŻNE: WERYFIKACJA reCAPTCHA PO STRONIE SERWERA JEST KLUCZOWA DLA BEZPIECZEŃSTWA!
+    // Poniżej znajduje się placeholder, który MUSISZ zaimplementować.
+    // Bez tego, każdy bot może obejść reCAPTCHA.
+    // =====================================================================
+
+    try {
+      const response = await fetch('/api/verify-recaptcha', { // Upewnij się, że ten endpoint istnieje i jest dostępny
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recaptchaToken: recaptchaToken }),
+      });
+
+      const verificationResult = await response.json();
+
+      if (!response.ok || !verificationResult.success || verificationResult.score < 0.5) { // Domyślny próg dla reCAPTCHA v3 to 0.5
+        console.error('❌ Weryfikacja reCAPTCHA po stronie serwera nie powiodła się:', verificationResult.errors);
+        setMessage('❌ Nie udało się zweryfikować reCAPTCHA. Proszę spróbować ponownie.');
+        // Możesz tutaj dodać logikę resetowania reCAPTCHA, jeśli to reCAPTCHA v2 lub jeśli chcesz wymusić odświeżenie
+        return;
+      }
+      console.log('✅ Weryfikacja reCAPTCHA po stronie serwera pomyślna. Wynik:', verificationResult.score);
+
+    } catch (error) {
+      console.error('❌ Błąd komunikacji z endpointem weryfikacji reCAPTCHA:', error);
+      setMessage('❌ Wystąpił problem z weryfikacją reCAPTCHA. Spróbuj ponownie.');
+      return;
+    }
+
+    // =====================================================================
+    // KONIEC PLACHOLDERA WERYFIKACJI SERWEROWEJ
+    // =====================================================================
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -112,8 +160,8 @@ export default function Login() {
       const errorMap = {
         'Invalid login credentials': '❌ Nieprawidłowy e-mail lub hasło',
         'Email not confirmed': '❌ Nie potwierdzono adresu e-mail.',
-        'User already registered': '❌ E-mail już zarejestrowany.',
-        'User not found': '❌ Nie znaleziono użytkownika.',
+        'User already registered': '❌ E-mail już zarejestrowany.', // To błąd rejestracji, a nie logowania
+        'User not found': '❌ Nie znaleziono użytkownika.', // Bardziej generyczny błąd
       };
 
       const friendlyMessage = errorMap[error.message] || `❌ Błąd: ${error.message}`;
@@ -199,7 +247,7 @@ export default function Login() {
           <hr style={{ margin: '20px 0' }} />
 
           <button onClick={() => handleOAuthLogin('google')} style={{ ...btnStyle, backgroundColor: '#db4437' }}>Zaloguj przez Google</button>
-<button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
+          <button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
           {message && <p style={{ marginTop: '20px' }}>{message}</p>}
 
           {showResendEmailButton && (
@@ -260,4 +308,3 @@ const linkStyle = {
   textAlign: 'center',
   textDecoration: 'none'
 };
-// test
