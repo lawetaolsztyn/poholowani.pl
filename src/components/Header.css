@@ -38,8 +38,13 @@
 .header-component h1 {
   font-size: 2.5rem;
   margin: 0;
-  color: white; /* **KLUCZOWE: Tekst ma być biały** */
+  color: white;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+
+  /* **KLUCZOWE: Dodanie animacji** */
+  opacity: 0; /* Zaczyna niewidoczne */
+  animation: fadeIn 1s ease-out forwards; /* Nazwa animacji, czas, itp. */
+  animation-delay: 0.2s; /* Opóźnienie startu */
 }
 
 /* Style dla podtytułu (p) w banerze */
@@ -47,8 +52,13 @@
   font-size: 1.2rem;
   margin-top: 0.5rem;
   margin-bottom: 0;
-  color: white; /* **KLUCZOWE: Tekst ma być biały** */
+  color: white;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+  
+  /* **KLUCZOWE: Dodanie animacji** */
+  opacity: 0; /* Zaczyna niewidoczne */
+  animation: fadeIn 1s ease-out forwards; /* Nazwa animacji, czas, itp. */
+  animation-delay: 0.6s; /* Opóźnienie startu */
 }
 
 /* Responsywność tekstu i logo w HEADERZE */
