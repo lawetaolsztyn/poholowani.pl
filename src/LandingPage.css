@@ -1,70 +1,95 @@
-/* src/components/Header.css */
+/* ===== CZCIONKA I NAGŁÓWKI ===== */
 
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden; /* ZAPOBIEGANIE POZIOMEMU SCROLLOWANIU */
+}
+
+/* Te style banner-heading i banner-subheading są zbędne, ponieważ Header.css teraz to definiuje. Możesz je usunąć.*/
+/* .banner-heading { ... } */
+/* .banner-subheading { ... } */
+
+/* ===== STRONA GŁÓWNA ===== */
+
+.landing-container {
+  position: relative;
+  height: auto;
+  min-height: 100vh;
+  width: 100%; /* Zapewnij, że główny kontener zajmuje 100% */
+  display: flex;
+  flex-direction: column;
+  /* Usuwamy overflow: hidden; stąd, bo już jest na body */
+}
+
+/* KLUCZOWE ZMIANY DLA BANERA (overlay-header) */
 .overlay-header {
-  /* Padding wewnętrzny dla tekstu i logo wewnątrz banera */
-  /* Ten padding odsunie zawartość od krawędzi, ale sam baner będzie na 100% szerokości */
-  padding: 20px 15px; 
+  /* TŁO I PODSTAWOWE WŁAŚCIWOŚCI CAŁEGO PASKA BANERA */
+  background: linear-gradient(135deg, #43cea2, #185a9d); /* Gradient tła */
+  width: 100%; /* Rozciągnij baner na całą szerokość */
+  height: auto; /* Wysokość dopasowuje się do zawartości */
+  min-height: 200px; /* Upewnij się, że jest wystarczająco wysoki dla treści i logo. Dostosuj! */
+  box-sizing: border-box; /* Ważne, aby padding był wliczony */
+
+  /* Pozostałe style (text-align, z-index, display, flex-direction, align-items, justify-content, flex-wrap, gap) */
+  /* są przeniesione z Header.css (gdzie były powtórzone) lub skorygowane tutaj. */
   text-align: center;
   z-index: 1000;
-  font-size: 1.1rem;
+  display: flex;
+  flex-direction: column; /* Aby logo i tekst układały się pionowo */
+  align-items: center; /* Wyśrodkuj zawartość w poziomie */
+  justify-content: center; /* Wyśrodkuj zawartość w pionie */
+  gap: 1.5rem; /* Odstęp między elementami flex (np. logo i tytułem) */
 
-  /* Upewnij się, że nie ma tu stylów background-color, color, text-shadow, box-shadow, border-radius */
-  /* Te style będą w LandingPage.css, bo są związane z tłem i wyglądem całego bloku. */
-  /* Kontrola szerokości i wyśrodkowania całego header'a - to już LandingPage.css */
+  /* Usuwamy: color, padding, text-shadow, box-shadow, border-radius - bo to Header.css */
+  /* To .overlay-header w Header.css definiuje padding wewnętrzny dla swojej zawartości. */
 }
 
-/* Styl dla samego logo - UPEWNIJ SIĘ, ŻE TO LOGO JEST W HEADER.JSX JAKO <img class="header-logo" ... /> */
-.header-logo {
-  max-height: 120px; /* Maksymalna wysokość, aby kontrolować rozmiar */
-  width: auto; /* Zachowaj proporcje */
-  display: block; /* Ustaw jako blok, aby działały marginesy i wyśrodkowanie */
-  margin: 0 auto 10px auto; /* Wyśrodkuj logo i dodaj odstęp od tekstu poniżej */
-  z-index: 1; /* Upewnij się, że logo jest nad tłem */
+/* Tryb ciemny dla TŁA BANERA */
+@media (prefers-color-scheme: dark) {
+  .overlay-header {
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
+  }
 }
 
+/* Animacje zostawiamy bez zmian */
+/* @keyframes fadeIn { ... } */
+/* .overlay-header h1, .overlay-header p { ... } */
 
-.overlay-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  margin-top: 0;
-  color: white; /* Tekst ma być biały - bez dziedziczenia */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Cień tekstu */
+
+/* ===== MAPA ===== */
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+  min-height: 450px;
+  width: 100%; /* WAŻNE: Mapa zajmuje całą szerokość */
+  box-sizing: border-box; /* Ważne */
+  padding: 0; /* Upewnij się, że nie ma paddingu, jeśli ma być na 100% szerokości */
 }
 
-.overlay-header p {
-  font-size: 1.2rem;
-  color: white; /* Tekst ma być biały - bez dziedziczenia */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4); /* Cień tekstu */
-  max-width: 800px; /* Ogranicz szerokość podtytułu dla czytelności */
-  margin: 0 auto; /* Wyśrodkuj podtytuł */
+.map-background {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
 }
 
-/* Media Queries dla responsywności tekstu i logo */
+/* ... (reszta stylów, np. dla .action-buttons i media queries) ... */
+
+/* Media Queries dla responsywności */
 @media (max-width: 768px) {
   .overlay-header {
-    padding: 15px 10px; /* Mniejszy padding na telefonach */
-    font-size: 1rem;
+    min-height: 180px; /* Mniejsza minimalna wysokość dla telefonów */
+    padding: 15px 10px; /* Padding dla banera na telefonach */
   }
 
-  .header-logo {
-    max-height: 80px; /* Mniejsza wysokość logo na telefonach */
-    margin-bottom: 5px; /* Mniejszy odstęp na telefonach */
+  .map-wrapper {
+    min-height: 350px; /* Zmniejsz wysokość mapy na telefonach */
   }
 
-  .overlay-header h1 {
-    font-size: 1.8rem;
-  }
-
-  .overlay-header p {
-    font-size: 1rem;
-  }
-}
-
-/* Tryb ciemny dla HEADERA: tekst pozostaje biały, ale cień może być mocniejszy */
-@media (prefers-color-scheme: dark) {
-  .overlay-header h1,
-  .overlay-header p {
-    color: white; /* Tekst pozostaje biały na ciemniejszym tle */
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8); /* Potencjalnie mocniejszy cień */
-  }
+  /* ... (reszta media queries) ... */
 }
