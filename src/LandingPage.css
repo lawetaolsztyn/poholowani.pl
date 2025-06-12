@@ -1,11 +1,7 @@
 /* ===== CZCIONKA I NAGŁÓWKI (Te sekcje są już niepotrzebne, bo Header.css definiuje je bezpośrednio) ===== */
-/* Możesz usunąć te bloki, jeśli nie są używane nigdzie indziej */
-/* body { ... } */
-/* .banner-heading { ... } */
-/* .banner-subheading { ... } */
+/* Możesz usunąć te bloki: .banner-heading, .banner-subheading */
 
-/* ===== STRONA GŁÓWNA ===== */
-
+/* ===== GLOBALNE STYLE DLA CAŁEJ STRONY ===== */
 body {
   margin: 0;
   padding: 0;
@@ -13,27 +9,27 @@ body {
   overflow-x: hidden; /* KLUCZOWE: Zapobiega poziomemu przewijaniu */
 }
 
+/* ===== STRONA GŁÓWNA - GŁÓWNY KONTENER ===== */
 .landing-container {
   position: relative;
   height: auto;
   min-height: 100vh;
-  width: 100%; /* Upewnij się, że główny kontener strony zawsze jest na 100% szerokości */
+  width: 100%; /* KLUCZOWE: Kontener główny na 100% szerokości */
   display: flex;
   flex-direction: column;
-  /* Usuń overflow: hidden; stąd, bo jest na body */
 }
 
-/* Styl dla CAŁEGO PASKA BANERA (który zawiera to, co Header.jsx renderuje) */
+/* Styl dla CAŁEGO PASKA BANERA (gdzie jest logo i tekst) */
 .overlay-header {
-  background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła** */
+  background: linear-gradient(135deg, #43cea2, #185a9d); /* **KLUCZOWE: Gradient tła banera** */
   width: 100%; /* **KLUCZOWE: Baner na 100% szerokości** */
-  min-height: 200px; /* Minimalna wysokość, żeby wszystko się zmieściło. Dostosuj! */
-  height: auto; /* Wysokość dopasuje się do zawartości */
-  box-sizing: border-box; /* Ważne */
-  
-  /* Usunięto z tego bloku style, które są w Header.css:
-     color, padding, text-align, z-index, font-size, display, flex-direction, align-items, justify-content, flex-wrap, gap
-     Te są teraz w Header.css, a ten .overlay-header służy jako pasek tła.
+  min-height: 200px; /* Minimalna wysokość banera. Dostosuj, aby tekst i logo się mieściły! */
+  height: auto; /* Wysokość dopasowuje się do zawartości */
+  box-sizing: border-box; /* Ważne dla paddingu */
+
+  /* Reszta stylów (display, flex-direction, align-items, justify-content, gap)
+     powinna być w Header.css, bo steruje układem WNĘTRZA headera.
+     Tutaj definiujemy tylko to, co jest tłem i jego szerokością.
   */
 }
 
@@ -44,7 +40,7 @@ body {
   }
 }
 
-/* Animacje nagłówka - zostawiamy */
+/* Animacje nagłówka - zostawiamy tak, jak są */
 /* @keyframes fadeIn { ... } */
 /* .overlay-header h1, .overlay-header p { ... } */
 
@@ -53,9 +49,9 @@ body {
 
 .map-wrapper {
   flex: 1; /* Pozwala mapie rozciągnąć się na dostępną przestrzeń */
-  position: relative; /* **KLUCZOWE: Aby przyciski action-buttons były pozycjonowane względem mapy** */
+  position: relative; /* KLUCZOWE: Aby przyciski action-buttons były pozycjonowane względem mapy */
   min-height: 500px; /* Dobra wysokość dla mapy na desktopie. Dostosuj! */
-  width: 100%; /* **KLUCZOWE: Mapa na 100% szerokości** */
+  width: 100%; /* KLUCZOWE: Mapa na 100% szerokości */
   box-sizing: border-box; /* Ważne */
   padding: 0; /* Upewnij się, że nie ma paddingu, jeśli ma być na 100% szerokości */
 }
@@ -67,14 +63,10 @@ body {
   top: 0;
   left: 0;
   z-index: 0;
-  /* Blur i brightness należą tutaj */
-  filter: blur(2px) brightness(0.8); /* **KLUCZOWE: Włączamy blur z powrotem** */
+  /* KLUCZOWE: Blur i brightness dla mapy */
+  filter: blur(2px) brightness(0.8); /* Włączamy blur z powrotem */
   pointer-events: none;
 }
-
-/* TYLKO NA LANDING PAGE – rozmycie (ta klasa jest teraz zbędna, bo styl jest w .map-background) */
-/* .landing-blurred-map { ... } */
-
 
 /* ===== PRZYCISKI ===== */
 .action-buttons {
@@ -96,14 +88,14 @@ body {
 .primary-button,
 .secondary-button {
   background-color: #007bff;
-  color: white; /* **KLUCZOWE: Tekst biały** */
+  color: white; /* KLUCZOWE: Tekst biały */
   font-size: 1.5rem;
   padding: 1rem 2rem;
   border: none;
   cursor: pointer;
   border-radius: 10px;
   text-align: center;
-  text-decoration: none; /* **KLUCZOWE: Usuń podkreślenie, bo to tekst linku** */
+  text-decoration: none; /* Usuń podkreślenie (dla linków, jeśli to są <a>) */
   transition: background-color 0.3s ease;
   white-space: nowrap; /* Zapobiega zawijaniu się tekstu w przycisku */
 }
@@ -185,7 +177,7 @@ body {
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #1a1a1a;
-    color: #e0e0e0;
+    color: #e0e0e0; /* Ten color jest dla tekstu poza .overlay-header i przyciskami */
   }
 
   .landing-container {
@@ -207,8 +199,8 @@ body {
     background-color: #003f8c;
   }
 
-  .action-buttons .primary-button .subtext,
-  .action-buttons .secondary-button .subtext {
+  .primary-button .subtext,
+  .secondary-button .subtext {
     color: #b0b0b0;
   }
 }
