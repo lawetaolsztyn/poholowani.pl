@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
-import './UserProfileDashboard.css'; // <-- WAŻNE: Upewnij się, że ten import jest
+import './UserProfileDashboard.css';
+import MyRoutes from './MyRoutes'; // Import komponentu MyRoutes
 
 export default function UserProfileDashboard() {
   const [activeTab, setActiveTab] = useState('Moje dane');
@@ -30,6 +31,9 @@ export default function UserProfileDashboard() {
         if (!error) {
           setUserData(data);
           setFormData(data);
+          // Możesz ustawić domyślną zakładkę, np. na 'Moje dane'
+          // lub na 'Moje trasy', jeśli chcesz by to było priorytetowe dla każdego.
+          // setActiveTab('Moje trasy'); // Jeśli chcesz, żeby "Moje trasy" były domyślne dla wszystkich
         } else {
           console.error("Błąd ładowania danych użytkownika:", error.message);
           setMessage("Błąd ładowania danych użytkownika.");
@@ -44,8 +48,9 @@ export default function UserProfileDashboard() {
   const getTabs = () => {
     if (!formData) return [];
 
-    const baseTabs = ['Moje dane', 'Hasło'];
-    // Zmieniono 'driver' na 'company' zgodnie z Twoim kodem
+    const baseTabs = ['Moje dane', 'Hasło', 'Moje trasy']; // <-- ZMIANA: "Moje trasy" zawsze widoczne
+    
+    // Dodatkowe zakładki specyficzne dla roli 'firma'
     if (formData.role === 'firma') {
       baseTabs.push('Profil publiczny');
       baseTabs.push('Pomoc drogowa');
@@ -60,12 +65,11 @@ export default function UserProfileDashboard() {
     });
   };
 
-  const handleSave = async (e) => { // Zmieniono na handler onSubmit dla form
-    e.preventDefault(); // Zapobiega domyślnemu przeładowaniu strony
+  const handleSave = async (e) => {
+    e.preventDefault();
     setSaving(true);
     setMessage('');
 
-    // Logika geokodowania dla pomocy drogowej
     if (formData.is_pomoc_drogowa) {
       const address = `${formData.roadside_street} ${formData.roadside_number}, ${formData.roadside_city}`;
       try {
@@ -92,29 +96,29 @@ export default function UserProfileDashboard() {
       if (error) throw error;
 
       setMessage('✅ Dane zapisane pomyślnie!');
-      setUserData(formData); // Aktualizuj userData po zapisie
+      setUserData(formData);
     } catch (error) {
       console.error('Błąd zapisu danych:', error.message);
       setMessage(`❌ Błąd zapisu danych: ${error.message}`);
     } finally {
       setSaving(false);
-      setTimeout(() => setMessage(''), 3000); // Usuń wiadomość po 3 sekundach
+      setTimeout(() => setMessage(''), 3000);
     }
   };
 
-  const handlePasswordReset = async (e) => { // Zmieniono na handler onSubmit dla form
-    e.preventDefault(); // Zapobiega domyślnemu przeładowaniu strony
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
     setPasswordMessage('');
     if (password !== confirm) {
       setPasswordMessage('❌ Hasła nie pasują do siebie.');
       return;
     }
-    if (password.length < 6) { // Dodano walidację długości hasła
+    if (password.length < 6) {
       setPasswordMessage('❌ Hasło musi mieć co najmniej 6 znaków.');
       return;
     }
 
-    setSaving(true); // Użyj saving state również dla hasła
+    setSaving(true);
     try {
       const { data, error } = await supabase.auth.updateUser({ password: password });
       if (error) throw error;
@@ -126,7 +130,7 @@ export default function UserProfileDashboard() {
       setPasswordMessage(`❌ Błąd zmiany hasła: ${error.message}`);
     } finally {
       setSaving(false);
-      setTimeout(() => setPasswordMessage(''), 3000); // Usuń wiadomość po 3 sekundach
+      setTimeout(() => setPasswordMessage(''), 3000);
     }
   };
 
@@ -135,13 +139,13 @@ export default function UserProfileDashboard() {
       return <p>Ładowanie danych użytkownika...</p>;
     }
     if (!formData) {
-      return <p className="dashboard-message error">Nie udało się załadować danych użytkownika.</p>; // Dodano klasę
+      return <p className="dashboard-message error">Nie udało się załadować danych użytkownika.</p>;
     }
 
     switch (activeTab) {
       case 'Moje dane':
         return (
-          <form onSubmit={handleSave} className="dashboard-form-section"> {/* Użyto form tagu i onSubmit */}
+          <form onSubmit={handleSave} className="dashboard-form-section">
             <h3>Moje dane</h3>
             {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>}
 
@@ -205,7 +209,7 @@ export default function UserProfileDashboard() {
 
       case 'Hasło':
         return (
-          <form onSubmit={handlePasswordReset} className="dashboard-form-section"> {/* Użyto form tagu i onSubmit */}
+          <form onSubmit={handlePasswordReset} className="dashboard-form-section">
             <h3>Zmiana hasła</h3>
             {passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p>}
             <label className="form-label">
@@ -222,15 +226,32 @@ export default function UserProfileDashboard() {
           </form>
         );
 
+      case 'Moje trasy': // Nowa sekcja dla "Moich tras"
+        return (
+          <div className="dashboard-form-section">
+            <h3>Moje trasy</h3>
+            <p>Tutaj znajdziesz wszystkie dodane przez Ciebie trasy.</p> {/* Możesz dodać krótki opis */}
+            <MyRoutes /> {/* RENDEROWANIE KOMPONENTU MyRoutes */}
+            {/* Opcjonalnie możesz dodać przycisk "Dodaj nową trasę", który np. przekieruje do /oferuje-transport */}
+            <button
+              onClick={() => window.location.href = '/oferuje-transport'} // Przekierowanie do strony dodawania trasy
+              className="form-button"
+              style={{ backgroundColor: '#007bff', marginTop: '20px' }}
+            >
+              ➕ Dodaj nową trasę
+            </button>
+          </div>
+        );
+
       case 'Profil publiczny':
         return (
-          <div className="dashboard-form-section"> {/* Użyto klasy dla sekcji */}
+          <div className="dashboard-form-section">
             <h3>Profil publiczny</h3>
             <p>Twój profil publiczny jest widoczny pod tym linkiem:</p>
             <button
               onClick={() => window.open(`/profil/${formData.id}`, '_blank')}
-              className="form-button" // Użyto klasy
-              style={{ backgroundColor: '#007bff' }} // Drobna korekta koloru dla przycisku, jeśli potrzebujesz innego niż domyślny zielony
+              className="form-button"
+              style={{ backgroundColor: '#007bff' }}
             >
               Przejdź do profilu publicznego
             </button>
@@ -239,7 +260,7 @@ export default function UserProfileDashboard() {
 
       case 'Pomoc drogowa':
         return (
-          <form onSubmit={handleSave} className="dashboard-form-section"> {/* Użyto form tagu i onSubmit */}
+          <form onSubmit={handleSave} className="dashboard-form-section">
             <h3>Pomoc drogowa</h3>
 
             <label className="form-label">
@@ -285,11 +306,11 @@ export default function UserProfileDashboard() {
                   {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
                 </button>
 
-                <div className="dashboard-form-section" style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}> {/* Dodatkowy styl dla separacji */}
+                <div className="dashboard-form-section" style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
                   <button
                     onClick={() => window.open(`/pomoc-drogowa/${formData.roadside_slug}`, '_blank')}
                     className="form-button"
-                    style={{ backgroundColor: '#007bff' }} // Możesz tu dać inny kolor, np. zielony, jeśli chcesz
+                    style={{ backgroundColor: '#007bff' }}
                   >
                     Przejdź do profilu pomocy drogowej
                   </button>
@@ -306,17 +327,17 @@ export default function UserProfileDashboard() {
   return (
     <>
       <Navbar />
-      <div className="user-dashboard-container"> {/* Użyto klasy */}
+      <div className="user-dashboard-container">
         {formData && (
-          <div className="dashboard-tabs-wrapper"> {/* Użyto klasy */}
+          <div className="dashboard-tabs-wrapper">
             {getTabs().map(tab => (
               <button
-  key={tab}
-  onClick={() => setActiveTab(tab)}
-  className={`dashboard-tab-button ${activeTab === tab ? 'active' : ''}`}
->
-  {tab}
-</button>
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`dashboard-tab-button ${activeTab === tab ? 'active' : ''}`}
+              >
+                {tab}
+              </button>
             ))}
           </div>
         )}
