@@ -425,34 +425,17 @@ useEffect(() => {
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
 <MapContainer
   center={center}
-  zoom={6}
-  style={{ height: '100%', width: '100%', zIndex: 0 }}
-  tap={false}
-  zoomControl={true}
-  whenCreated={(mapInstance) => {
-    mapRef.current = mapInstance;
-
-    const container = mapInstance.getContainer();
-
-    // DOMYŚLNIE: włącz wszystko
-    mapInstance.dragging.enable();
-    mapInstance.touchZoom.enable();
-
-    // Tylko dla ekranów dotykowych
-    if (window.matchMedia('(pointer: coarse)').matches) {
-      mapInstance.dragging.disable();       // domyślnie zablokuj
-      mapInstance.touchZoom.disable();
-
-      container.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-          mapInstance.dragging.enable();    // ✌️ włącz przesuwanie
-          mapInstance.touchZoom.enable();   // ✌️ włącz zoom
-        } else {
-          mapInstance.dragging.disable();   // ☝️ blokuj przesuwanie
-          mapInstance.touchZoom.disable();  // ☝️ blokuj zoom
-        }
-      });
-    }
+  zoom={10}
+  whenCreated={mapInstance => mapRef.current = mapInstance}
+  style={{ height: '80vh', width: '100%' }}
+  gestureHandling={true} // włączamy obsługę gestów
+  gestureHandlingOptions={{
+    // pozwalamy przesuwać mapę tylko dwoma palcami
+    touch: true,
+    text: 'Użyj dwóch palców, aby przesunąć mapę',
+    duration: 1000,
+    tap: false, // tap pojedynczy nie przesuwa mapy
+    twoFingerPan: true // przesuwanie dwoma palcami aktywne
   }}
 >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
