@@ -22,4 +22,5 @@ export default defineConfig({
     port: 8080, // ZMIEŃ TO: Twardo ustawiamy na 8080
     host: true
   }
+envPrefix: 'VITE_'
 })
