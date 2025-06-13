@@ -13,11 +13,13 @@ RUN npm install
 # Skopiuj resztę plików aplikacji
 COPY . .
 
+# ⚠️ Skopiuj plik środowiskowy do środka kontenera
+COPY .env .env
+
 # Zbuduj aplikację Vite
 RUN npm run build
 
 # Stage 2: Serve the app with a lightweight web server (Nginx)
-# Użyj lekkiego obrazu Nginx
 FROM nginx:alpine
 
 # Skopiuj zbudowaną aplikację do katalogu Nginx
@@ -26,13 +28,11 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Usuń domyślny plik konfiguracyjny Nginx
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Dodaj niestandardowy plik konfiguracyjny Nginx (np. dla historii routera)
+# Dodaj własny plik konfiguracyjny Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Wystaw port, na którym Nginx będzie nasłuchiwał
-# To musi być ten sam port, który skonfigurowałeś w vite.config.js (czyli 8080)
+# Wystaw port (zgodny z vite.config.js)
 EXPOSE 8080
 
-# Komenda uruchomienia Nginx
+# Uruchom Nginx
 CMD ["nginx", "-g", "daemon off;"]
-
