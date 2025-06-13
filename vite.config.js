@@ -9,7 +9,7 @@ export default defineConfig({
   ],
   publicDir: 'public',
   // DODAJ envPrefix TUTAJ (na tym samym poziomie co plugins, publicDir itp.)
-  envPrefix: 'VITE_', // PRZENIEŚ TĘ LINIĘ TUTAJ
+  envPrefix: 'VITE_',
 
   server: {
     https: true,
