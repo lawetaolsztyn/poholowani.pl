@@ -6,17 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
 import './LandingPage.css';
+import { getRecaptchaToken } from './utils/getRecaptchaToken';
 
-const getRecaptchaToken = async () => {
-  return new Promise((resolve) => {
-    if (!window.grecaptcha) return resolve(null);
-    window.grecaptcha.ready(() => {
-      window.grecaptcha.execute('6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr', { action: 'login' }).then((token) => {
-        resolve(token);
-      });
-    });
-  });
-};
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -99,11 +91,11 @@ export default function Login() {
     setMessage('');
     setShowResendEmailButton(false);
 
-    const token = await getRecaptchaToken();
-    if (!token) {
-      setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
-      return;
-    }
+    const token = await getRecaptchaToken('login');
+if (!token) {
+  setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
+  return;
+}
     console.log('✅ Token reCAPTCHA:', token);
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -174,7 +166,9 @@ export default function Login() {
   return (
     <>
       <Navbar />
+<div className="overlay-header">
       <Header title="Zaloguj się do swojego konta" subtitle="Zarządzaj zleceniami i trasami w jednym miejscu" />
+</div>
       <div className="landing-container">
         <div style={wrapper}>
           <h2 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem', color: '#333' }}>
