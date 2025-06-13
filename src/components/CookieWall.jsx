@@ -15,8 +15,8 @@ const CookieWall = () => {
     const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
     if (!existingScript) {
       const script = document.createElement('script');
-      script.src = 'https://www.google.com/recaptcha/api.js?render=6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr';
-      script.async = true;
+script.src = `https://www.google.com/recaptcha/api.js?render=${import.meta.env.VITE_RECAPTCHA_SITE_KEY}`;
+script.async = true;
       document.body.appendChild(script);
     }
   };
