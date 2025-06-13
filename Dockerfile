@@ -35,3 +35,4 @@ EXPOSE 8080
 
 # Komenda uruchomienia Nginx
 CMD ["nginx", "-g", "daemon off;"]
+
