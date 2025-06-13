@@ -1,0 +1,6 @@
+{
+  "login-with-recaptcha": {
+    "verifyJWT": false,
+    "entrypointPath": "supabase/functions/login-with-recaptcha/index.ts"
+  }
+}
