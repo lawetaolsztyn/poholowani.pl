@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "node_modules/.bin/vite preview",
+    "preview": "npx vite preview",
 "start": "npm run preview"
   },
   "dependencies": {
