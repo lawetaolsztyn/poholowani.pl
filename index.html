@@ -12,17 +12,7 @@
   </head>
   <body>
     <div id="root"></div>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const cookiesAccepted = document.cookie.includes("cookie_wall_accepted=true");
-    if (cookiesAccepted) {
-      const script = document.createElement("script");
-script.src = `https://www.google.com/recaptcha/api.js?render=${import.meta.env.VITE_RECAPTCHA_SITE_KEY}`;
-script.async = true;
-      document.head.appendChild(script);
-    }
-  });
-</script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
