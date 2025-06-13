@@ -5,7 +5,7 @@
 # Definiuje fazy budowania
 [phases.setup]
 # Użyj Node.js i npm
-nixPkgs = ["nodejs", "npm"]
+nixPkgs = ["nodejs"]
 
 [phases.build]
 # Komendy budowania dla aplikacji Vite
