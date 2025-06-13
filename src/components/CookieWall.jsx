@@ -1,28 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// Klucz witryny reCAPTCHA - pobierany ze zmiennych środowiskowych Vite.
-// Upewnij się, że masz plik .env (lub .env.local) w katalogu głównym projektu z wpisem:
-
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY; //
-
 const CookieWall = () => {
   const [showWall, setShowWall] = useState(false);
 
-  // Funkcja ładująca skrypt reCAPTCHA
+  useEffect(() => {
+    const consent = localStorage.getItem('cookieConsent');
+    if (consent !== 'accepted') {
+      setShowWall(true);
+    }
+  }, []);
+
   const loadRecaptcha = () => {
     const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
     if (!existingScript) {
       const script = document.createElement('script');
-      // Używamy zmiennej środowiskowej dla klucza witryny reCAPTCHA.
-      script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`; //
+      script.src = 'https://www.google.com/recaptcha/api.js?render=6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr';
       script.async = true;
-      script.defer = true; // Dodane defer dla lepszego zarządzania ładowaniem
       document.body.appendChild(script);
     }
   };
 
-  // Funkcja ładująca Facebook SDK
   const loadFacebookSDK = () => {
     if (!document.getElementById('facebook-jssdk')) {
       const script = document.createElement('script');
@@ -34,27 +32,14 @@ const CookieWall = () => {
     }
   };
 
-  useEffect(() => {
-    const consent = localStorage.getItem('cookieConsent');
-    if (consent !== 'accepted') {
-      // Jeśli zgoda nie została zaakceptowana, pokaż ścianę z ciasteczkami
-      setShowWall(true);
-    } else {
-      // Jeśli zgoda jest już zaakceptowana, od razu załaduj skrypty
-      loadRecaptcha(); //
-      loadFacebookSDK(); //
-    }
-  }, []); // Pusta tablica zależności - useEffect uruchamia się raz po zamontowaniu komponentu
-
   const acceptCookies = () => {
     localStorage.setItem('cookieConsent', 'accepted');
     setShowWall(false);
-    // Po akceptacji również ładuj skrypty (na wypadek, gdyby to była pierwsza akceptacja w danej sesji)
-    loadRecaptcha(); //
-    loadFacebookSDK(); //
+    loadRecaptcha();
+    loadFacebookSDK(); // tylko jeśli korzystasz z logowania przez FB
   };
 
-  if (!showWall) return null; // Jeśli showWall jest false (zgoda zaakceptowana lub niepotrzebna), nie renderuj ściany
+  if (!showWall) return null;
 
   return (
     <div style={{
@@ -63,9 +48,9 @@ const CookieWall = () => {
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.6)', // półprzezroczyste tło
+      backgroundColor: 'rgba(0, 0, 0, 0.6)', // półprzezroczyste
       color: 'white',
-      zIndex: 99999, // Upewnij się, że jest na wierzchu
+      zIndex: 99999,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
