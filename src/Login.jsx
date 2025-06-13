@@ -87,38 +87,44 @@ export default function Login() {
   }, [navigate]); // navigate jako zależność
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    setShowResendEmailButton(false);
+  e.preventDefault();
+  setMessage('');
+  setShowResendEmailButton(false);
 
-    const token = await getRecaptchaToken('login');
-if (!token) {
-  setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
-  return;
-}
-    console.log('✅ Token reCAPTCHA:', token);
+  const token = await getRecaptchaToken('login');
+  if (!token) {
+    setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
+    return;
+  }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  try {
+    const response = await fetch('/api/functions/v1/login-with-recaptcha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, recaptchaToken: token }),
+    });
 
-    if (error) {
-      const errorMap = {
-        'Invalid login credentials': '❌ Nieprawidłowy e-mail lub hasło',
-        'Email not confirmed': '❌ Nie potwierdzono adresu e-mail.',
-        'User already registered': '❌ E-mail już zarejestrowany.',
-        'User not found': '❌ Nie znaleziono użytkownika.',
-      };
+    const data = await response.json();
 
-      const friendlyMessage = errorMap[error.message] || `❌ Błąd: ${error.message}`;
-      setMessage(friendlyMessage);
-      console.error('❌ Błąd logowania:', error);
-
-      if (error.message === 'Email not confirmed') {
-        setShowResendEmailButton(true);
-      }
-    } else {
-      console.log('✅ Zalogowano:', data);
+    if (!response.ok) {
+      setMessage(`❌ Błąd logowania: ${data.error || 'Nieznany błąd'}`);
+      return;
     }
-  };
+
+    // Ustaw sesję ręcznie
+    await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+
+    setMessage('✅ Zalogowano pomyślnie');
+    navigate('/profil');
+  } catch (err) {
+    setMessage('❌ Błąd logowania');
+    console.error(err);
+  }
+};
+
 
   const handleOAuthLogin = async (provider) => {
     const { error } = await supabase.auth.signInWithOAuth({
