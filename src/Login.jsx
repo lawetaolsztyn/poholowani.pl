@@ -98,11 +98,11 @@ export default function Login() {
   }
 
   try {
-    const response = await fetch('/api/functions/v1/login-with-recaptcha', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, recaptchaToken: token }),
-    });
+    const response = await fetch(import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password, recaptchaToken: token }),
+});
 
     const data = await response.json();
 
