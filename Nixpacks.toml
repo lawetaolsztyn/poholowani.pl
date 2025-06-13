@@ -1,23 +1,26 @@
-# Nixpacks.toml
-# Jawnie informuje Nixpacks, że to jest aplikacja Node.js
+# nixpacks.toml
+# Jawnie informuje Nixpacks, że to jest aplikacja Node.js/React.
+# W ten sposób ignoruje wykrycie Deno dla glownego serwisu.
+
+# Definiuje fazy budowania
 [phases.setup]
+# Użyj Node.js i npm
 nixPkgs = ["nodejs", "npm"]
 
-# Jawnie definiuje komendy build i start dla aplikacji Vite/React
 [phases.build]
+# Komendy budowania dla aplikacji Vite
 commands = ["npm install", "npm run build"]
 
 [phases.start]
-# To jest komenda, która faktycznie uruchomi serwer produkcyjny Vite
-# Upewnij się, że Twój vite.config.js jest ustawiony na port 8080 lub 8000
-# i że w Railway dodasz zmienną PORT=8080 lub PORT=8000
-commands = ["npm run start"]
-# Lub commands = ["npm run preview"] jeżeli taki masz skrypt startowy
+# Komenda uruchomienia serwera produkcyjnego Vite
+# Pamiętaj, że w vite.config.js musisz mieć preview.port: 8080 i host: true
+commands = ["npm run start"] # Skrypt "start" z package.json, który uruchamia "npm run preview"
 
-# Ustaw port, na którym aplikacja nasłuchuje w kontenerze
-# Sprawdź, czy Railway oczekuje 8000 czy 8080 (z logów upstreamAddress)
-# W Twoim przypadku z logów wynikało, że Railway próbowało na 8080.
-# W Twoim vite.config.js ustawiliśmy preview.port i server.port na 8080.
-# Upewnij się, że ta zmienna PORT też jest ustawiona w Railway na 8080.
+# Definiuje, na którym porcie aplikacja nasłuchuje
+# To jest kluczowe, aby Railway mogło się połączyć
 [start]
-cmd = "npm run start" # lub "npm run preview"
+# Określ port, na którym aplikacja nasłuchuje (zgodnie z vite.config.js)
+# Railway używa tej wartości do przekierowania ruchu
+cmd = "npm run start" # Możesz też spróbować "npm run preview" bezpośrednio
+# Upewnij się, że ten port jest zgodny z tym, co ustawiasz w vite.config.js (czyli 8080)
+# I że zmienna PORT w Railway też jest ustawiona na 8080.
