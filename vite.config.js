@@ -8,19 +8,21 @@ export default defineConfig({
     basicSsl()
   ],
   publicDir: 'public',
+  // DODAJ envPrefix TUTAJ (na tym samym poziomie co plugins, publicDir itp.)
+  envPrefix: 'VITE_', // PRZENIEŚ TĘ LINIĘ TUTAJ
+
   server: {
     https: true,
     fs: { strict: false },
     historyApiFallback: true,
-    port: 8080, // ZMIEŃ TO: Twardo ustawiamy na 8080
+    port: 8080,
     host: true
   },
   build: {
     outDir: 'dist'
   },
   preview: {
-    port: 8080, // ZMIEŃ TO: Twardo ustawiamy na 8080
+    port: 8080,
     host: true
   }
-envPrefix: 'VITE_'
 })
