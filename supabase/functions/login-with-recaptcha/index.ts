@@ -10,14 +10,14 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 // ===== DODANE: Nagłówki CORS =====
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://poholowani.pl', // Zezwól na Twoją domenę z 'www'
+  'Access-Control-Allow-Origin': 'https://www.poholowani.pl', // Zezwól na Twoją domenę z 'www'
   'Access-Control-Allow-Methods': 'POST, OPTIONS', // Dozwolone metody dla tej funkcji
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', // Dozwolone nagłówki
   'Vary': 'Origin',
 };
 // ===================================
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   console.log("Login-with-recaptcha function invoked");
   console.log("RECAPTCHA_SECRET_KEY:", RECAPTCHA_SECRET ? "✔️" : "❌");
   console.log("SUPABASE_URL:", SUPABASE_URL || "❌");
