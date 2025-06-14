@@ -37,6 +37,9 @@ Deno.serve(async (req) => {
   };
 
   if (req.method !== "POST") {
+console.log("loginResponse.ok:", loginResponse.ok);
+console.log("loginData:", loginData);
+console.log("loginResponse.status:", loginResponse.status);
     return jsonResponse({ error: "Method Not Allowed" }, 405);
   }
 
