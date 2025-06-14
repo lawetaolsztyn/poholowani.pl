@@ -19,6 +19,7 @@ Deno.serve(async (req) => {
   console.log("SUPABASE_URL:", SUPABASE_URL || "❌");
   console.log("SUPABASE_ANON_KEY:", SUPABASE_ANON_KEY ? "✔️" : "❌");
 
+  // Obsługa preflight requestów
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       status: 200,
@@ -26,7 +27,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const jsonResponse = (data, status = 200) => {
+  const jsonResponse = (data: any, status = 200) => {
     return new Response(JSON.stringify(data), {
       status,
       headers: {
@@ -36,10 +37,8 @@ Deno.serve(async (req) => {
     });
   };
 
+  // Blokada innych metod niż POST
   if (req.method !== "POST") {
-console.log("loginResponse.ok:", loginResponse.ok);
-console.log("loginData:", loginData);
-console.log("loginResponse.status:", loginResponse.status);
     return jsonResponse({ error: "Method Not Allowed" }, 405);
   }
 
@@ -51,7 +50,7 @@ console.log("loginResponse.status:", loginResponse.status);
       return jsonResponse({ error: "Brak wymaganych danych." }, 400);
     }
 
-    // Sprawdzenie reCAPTCHA
+    // Weryfikacja reCAPTCHA
     const params = new URLSearchParams();
     params.append("secret", RECAPTCHA_SECRET || "");
     params.append("response", recaptchaToken);
@@ -65,13 +64,14 @@ console.log("loginResponse.status:", loginResponse.status);
     console.log("reCAPTCHA response:", recaptchaData);
 
     if (!recaptchaData.success || recaptchaData.score < 0.5) {
-      return jsonResponse({ error: "Nieudana weryfikacja reCAPTCHA.", details: recaptchaData['error-codes'] }, 403);
+      return jsonResponse({ error: "Nieudana weryfikacja reCAPTCHA.", details: recaptchaData["error-codes"] }, 403);
     }
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       return jsonResponse({ error: "Brak konfiguracji Supabase." }, 500);
     }
 
+    // Próba logowania użytkownika przez Supabase Auth REST API
     const loginResponse = await fetch(`${SUPABASE_URL}/auth/v1/token`, {
       method: "POST",
       headers: {
@@ -86,10 +86,12 @@ console.log("loginResponse.status:", loginResponse.status);
     });
 
     const loginData = await loginResponse.json();
-    console.log("Supabase login response:", loginData);
+    console.log("loginResponse.ok:", loginResponse.ok);
+    console.log("loginResponse.status:", loginResponse.status);
+    console.log("loginData:", loginData);
 
     if (!loginResponse.ok || loginData.error) {
-      return jsonResponse({ error: loginData.error_description || loginData.error || 'Błąd logowania' }, 401);
+      return jsonResponse({ error: loginData.error_description || loginData.error || "Błąd logowania" }, 401);
     }
 
     return jsonResponse({
