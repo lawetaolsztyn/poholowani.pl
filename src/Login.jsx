@@ -96,7 +96,7 @@ export default function Login() {
     setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
     return;
   }
-
+console.log("URL edge function:", import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL);
   try {
     const response = await fetch(import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL, {
   method: 'POST',
