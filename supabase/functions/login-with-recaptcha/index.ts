@@ -79,19 +79,21 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Brak konfiguracji Supabase." }, 500);
     }
 
-    const loginResponse = await fetch(`${SUPABASE_URL}/auth/v1/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: Deno.env.get("SUPABASE_ANON_KEY") || "",
-Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY") || ""}`,
-      },
-      body: JSON.stringify({
-        grant_type: "password",
-        email,
-        password,
-      }),
-    });
+const loginResponse = await fetch(`${SUPABASE_URL}/auth/v1/token`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    // Użyj Service Role Key dla apikey
+    apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "", // Zmieniono na SERVICE_ROLE_KEY
+    // Użyj Service Role Key dla nagłówka Authorization
+    Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""}`, // Zmieniono na SERVICE_ROLE_KEY
+  },
+  body: JSON.stringify({
+    grant_type: "password",
+    email,
+    password,
+  }),
+});
 
     const loginData = await loginResponse.json();
     console.log("Supabase login response:", loginData);
