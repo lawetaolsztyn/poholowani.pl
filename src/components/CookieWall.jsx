@@ -34,11 +34,24 @@ script.async = true;
   };
 
   const acceptCookies = () => {
-    localStorage.setItem('cookieConsent', 'accepted');
-    setShowWall(false);
-    loadRecaptcha();
-    loadFacebookSDK(); // tylko jeśli korzystasz z logowania przez FB
-  };
+  localStorage.setItem('cookieConsent', 'accepted');
+  setShowWall(false);
+
+  const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
+  if (!existingScript) {
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${import.meta.env.VITE_RECAPTCHA_SITE_KEY}`;
+    script.async = true;
+    // Dodaj listener na załadowanie skryptu
+    script.onload = () => {
+      console.log('reCAPTCHA script loaded!');
+      // Opcjonalnie: Ustaw stan globalny lub użyj eventu, aby poinformować inne komponenty
+      // że reCAPTCHA jest teraz dostępna i gotowa.
+    };
+    document.body.appendChild(script);
+  }
+  loadFacebookSDK(); // tylko jeśli korzystasz z logowania przez FB
+};
 
   if (!showWall) return null;
 

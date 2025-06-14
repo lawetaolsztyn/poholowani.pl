@@ -3,6 +3,8 @@ const RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 const RECAPTCHA_SECRET = Deno.env.get("RECAPTCHA_SECRET_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
 
 // ===== CORS =====
 // UWAGA: Używaj '*' tylko do testów lokalnych. W produkcji podaj pełną domenę np. 'https://www.poholowani.pl'
