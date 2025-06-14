@@ -1,27 +1,29 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// TESTOWY KOMENTARZ - DO USUNIĘCIA PO SUKCESIE
 
 const CookieWall = () => {
   const [showWall, setShowWall] = useState(false);
 
-  useEffect(() => {
-    const consent = localStorage.getItem('cookieConsent');
-    if (consent !== 'accepted') {
-      setShowWall(true);
-    }
-  }, []);
-
+  // Funkcja ładująca reCAPTCHA
   const loadRecaptcha = () => {
     const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
     if (!existingScript) {
       const script = document.createElement('script');
-script.src = `https://www.google.com/recaptcha/api.js?render=${import.meta.env.VITE_RECAPTCHA_SITE_KEY}`;
-script.async = true;
+      script.src = `https://www.google.com/recaptcha/api.js?render=${import.meta.env.VITE_RECAPTCHA_SITE_KEY}`;
+      script.async = true;
+      script.onload = () => {
+        console.log('✅ reCAPTCHA script loaded successfully!'); // Potwierdzenie ładowania
+        // Tutaj można by też wywołać setIsRecaptchaLoaded(true) w Login.jsx za pomocą Context API,
+        // ale na razie skupmy się na samym ładowaniu skryptu.
+      };
+      script.onerror = () => {
+        console.error('❌ Failed to load reCAPTCHA script.');
+      };
       document.body.appendChild(script);
     }
   };
 
+  // Funkcja ładująca Facebook SDK
   const loadFacebookSDK = () => {
     if (!document.getElementById('facebook-jssdk')) {
       const script = document.createElement('script');
@@ -29,29 +31,32 @@ script.async = true;
       script.src = 'https://connect.facebook.net/pl_PL/sdk.js';
       script.async = true;
       script.defer = true;
+      script.onload = () => console.log('✅ Facebook SDK loaded successfully!');
+      script.onerror = () => console.error('❌ Failed to load Facebook SDK.');
       document.body.appendChild(script);
     }
   };
 
-  const acceptCookies = () => {
-  localStorage.setItem('cookieConsent', 'accepted');
-  setShowWall(false);
+  useEffect(() => {
+    const consent = localStorage.getItem('cookieConsent');
+    if (consent === 'accepted') {
+      setShowWall(false);
+      // JEŚLI ZGODA JEST, ŁADUJ SKRYPTY OD RAZU
+      loadRecaptcha();
+      loadFacebookSDK();
+    } else {
+      setShowWall(true);
+    }
+  }, []); // Puste zależności, uruchamia się raz po zamontowaniu
 
-  const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
-  if (!existingScript) {
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${import.meta.env.VITE_RECAPTCHA_SITE_KEY}`;
-    script.async = true;
-    // Dodaj listener na załadowanie skryptu
-    script.onload = () => {
-      console.log('reCAPTCHA script loaded!');
-      // Opcjonalnie: Ustaw stan globalny lub użyj eventu, aby poinformować inne komponenty
-      // że reCAPTCHA jest teraz dostępna i gotowa.
-    };
-    document.body.appendChild(script);
-  }
-  loadFacebookSDK(); // tylko jeśli korzystasz z logowania przez FB
-};
+  const acceptCookies = () => {
+    localStorage.setItem('cookieConsent', 'accepted');
+    setShowWall(false);
+    // Nadal wywołujemy tutaj, na wypadek gdyby użytkownik kliknął przycisk po raz pierwszy
+    // w danej sesji (np. po czyszczeniu localStorage)
+    loadRecaptcha();
+    loadFacebookSDK();
+  };
 
   if (!showWall) return null;
 
@@ -62,7 +67,7 @@ script.async = true;
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.6)', // półprzezroczyste
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
       color: 'white',
       zIndex: 99999,
       display: 'flex',
