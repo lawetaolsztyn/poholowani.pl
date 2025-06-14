@@ -25,9 +25,12 @@ serve(async (req) => {
 
   // ===== DODANE: Obsługa preflight OPTIONS request =====
   // Przeglądarka wysyła OPTIONS request przed POSTem, aby sprawdzić CORS
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+ if (req.method === 'OPTIONS') {
+  return new Response('ok', {
+    status: 200, // <- to jest kluczowe!
+    headers: corsHeaders,
+  });
+}
   // ====================================================
 
   try {
