@@ -7,7 +7,9 @@ export const getRecaptchaToken = async (action = 'submit') => {
     }
 
     window.grecaptcha.ready(() => {
-      window.grecaptcha.execute('6LeqFVIrAAAAAHYmk1g43t4CyWuNKDKK3EAJDmhr', { action })
+      // Upewnij się, że używasz nowego Klucza Witryny tutaj
+      // który jest w zmiennej środowiskowej VITE_RECAPTCHA_SITE_KEY
+      window.grecaptcha.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action })
         .then((token) => {
           resolve(token);
         })
