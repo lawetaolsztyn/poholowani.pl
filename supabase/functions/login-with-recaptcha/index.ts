@@ -1,6 +1,6 @@
 // supabase/functions/login-with-recaptcha/index.ts
 
-import { serve } from "https://deno.land/std@0.224.2/http/server.ts"; // Ta linia nadal powinna być zakomentowana, bo używasz Deno.serve
+// import { serve } from "https://deno.land/std@0.224.2/http/server.ts"; // Ta linia nadal powinna być zakomentowana, bo używasz Deno.serve
 
 const RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
