@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "apikey": SUPABASE_SERVICE_ROLE_KEY, // KLUCZOWA ZMIANA, Upewnij się, że SUPABASE_SERVICE_ROLE_KEY jest poprawnie ustawiony jako zmienna środowiskowa w Supabase
+        "apikey": SUPABASE_ANON_KEY, // KLUCZOWA ZMIANA, Upewnij się, że SUPABASE_SERVICE_ROLE_KEY jest poprawnie ustawiony jako zmienna środowiskowa w Supabase
       },
       body: JSON.stringify({
         grant_type: "password",
