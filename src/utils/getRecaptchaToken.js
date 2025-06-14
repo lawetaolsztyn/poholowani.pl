@@ -1,4 +1,3 @@
-// src/utils/getRecaptchaToken.js
 export const getRecaptchaToken = async (action = 'submit') => {
   return new Promise((resolve) => {
     if (!window.grecaptcha) {
@@ -7,10 +6,9 @@ export const getRecaptchaToken = async (action = 'submit') => {
     }
 
     window.grecaptcha.ready(() => {
-      // Upewnij się, że używasz nowego Klucza Witryny tutaj
-      // który jest w zmiennej środowiskowej VITE_RECAPTCHA_SITE_KEY
       window.grecaptcha.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action })
         .then((token) => {
+          console.log("Wygenerowany token reCAPTCHA:", token); // <-- Dodaj ten log
           resolve(token);
         })
         .catch((err) => {

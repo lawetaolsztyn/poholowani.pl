@@ -1,0 +1,41 @@
+{
+  "version": "5",
+  "remote": {
+    "https://deno.land/x/dotenv@v3.2.2/load.ts": "cbd76a0aee01aad8d09222afaa1dd04b84d9d3e44637503b01bf77a91df9e041",
+    "https://deno.land/x/dotenv@v3.2.2/mod.ts": "077b48773de9205266a0b44c3c3a3c3083449ed64bb0b6cc461b95720678d38e",
+    "https://deno.land/x/dotenv@v3.2.2/util.ts": "693730877b13f8ead2b79b2aa31e2a0652862f7dc0c5f6d2f313f4d39c7b7670"
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@eslint/js@^9.25.0",
+        "npm:@supabase/auth-helpers-react@0.5",
+        "npm:@supabase/supabase-js@^2.49.4",
+        "npm:@tailwindcss/postcss@^4.1.8",
+        "npm:@turf/turf@^7.2.0",
+        "npm:@types/react-dom@^19.1.2",
+        "npm:@types/react@^19.1.2",
+        "npm:@vitejs/plugin-basic-ssl@2",
+        "npm:@vitejs/plugin-react@^4.4.1",
+        "npm:autoprefixer@^10.4.21",
+        "npm:axios@^1.9.0",
+        "npm:dotenv@^16.5.0",
+        "npm:eslint-plugin-react-hooks@^5.2.0",
+        "npm:eslint-plugin-react-refresh@~0.4.19",
+        "npm:eslint@^9.25.0",
+        "npm:globals@16",
+        "npm:leaflet-gesture-handling@^1.2.2",
+        "npm:leaflet@^1.9.4",
+        "npm:node-fetch@^2.7.0",
+        "npm:postcss@^8.5.4",
+        "npm:react-dom@^19.1.0",
+        "npm:react-google-recaptcha@^3.1.0",
+        "npm:react-leaflet@5",
+        "npm:react-router-dom@^7.6.0",
+        "npm:react@^19.1.0",
+        "npm:tailwindcss@^3.4.17",
+        "npm:vite@^6.3.5"
+      ]
+    }
+  }
+}
