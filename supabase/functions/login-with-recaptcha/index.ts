@@ -96,6 +96,7 @@ Deno.serve(async (req) => {
     // Logowanie body żądania (bez hasła!)
     console.log("Login request body:", JSON.stringify({ grant_type: "password", email })); // Dodano
 
+
     const loginResponse = await fetch(`${SUPABASE_URL}/auth/v1/token`, {
       method: "POST",
       headers: {
