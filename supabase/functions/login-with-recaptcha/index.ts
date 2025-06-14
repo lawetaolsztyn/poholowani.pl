@@ -1,6 +1,6 @@
 // supabase/functions/login-with-recaptcha/index.ts
 
-// import { serve } from "https://deno.land/std@0.224.2/http/server.ts"; // Ta linia nadal powinna być zakomentowana, bo używasz Deno.serve
+import { serve } from "https://deno.land/std@0.224.2/http/server.ts"; // Ta linia nadal powinna być zakomentowana, bo używasz Deno.serve
 
 const RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
@@ -13,6 +13,7 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://www.poholowani.pl', // Zezwól na Twoją domenę z 'www'
   'Access-Control-Allow-Methods': 'POST, OPTIONS', // Dozwolone metody dla tej funkcji
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', // Dozwolone nagłówki
+  'Vary': 'Origin',
 };
 // ===================================
 
@@ -79,8 +80,8 @@ serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: Deno.env.get("SUPABASE_ANON_KEY") || "",
+Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY") || ""}`,
       },
       body: JSON.stringify({
         grant_type: "password",
