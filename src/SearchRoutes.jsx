@@ -76,17 +76,19 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, center, resetTrigger, 
     }, [resetTrigger]);
 
     useEffect(() => {
-        if (selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
-            const coords = selectedRoute.geojson.features[0].geometry.coordinates
-                .filter(pair => Array.isArray(pair) && pair.length === 2)
-                .map(([lng, lat]) => [lat, lng]);
+    if (selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+        const coords = selectedRoute.geojson.features[0].geometry.coordinates
+            .filter(pair => Array.isArray(pair) && pair.length === 2)
+            .map(([lng, lat]) => [lat, lng]);
 
-            if (coords.length > 1) {
-                const bounds = L.latLngBounds(coords);
-                map.fitBounds(bounds, { padding: [50, 50] });
-            }
+        if (coords.length > 1) {
+            const bounds = L.latLngBounds(coords);
+            const paddedBounds = bounds.pad(0.1); // 10% margines
+
+            map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
         }
-    }, [selectedRouteTrigger]);
+    }
+}, [selectedRouteTrigger]);
 
     return null;
 }
