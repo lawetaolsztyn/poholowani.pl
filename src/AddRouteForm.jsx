@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import './AddRouteForm.css'; // Importujemy nowy plik CSS
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 import 'leaflet-gesture-handling';
+import RouteMap from './RouteMap';
 
 const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
@@ -258,20 +259,7 @@ function AddRouteForm({ onRouteCreated }) {
         </button>
       </form>
 
-      <MapContainer
-        center={[52.0, 19.0]}
-        zoom={6}
-        style={{ height: '600px', width: '100%', marginTop: '30px' }}
-gestureHandling={true}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        {routeData && (
-          <Polyline
-            positions={routeData.features[0].geometry.coordinates.map(([lng, lat]) => [lat, lng])}
-            pathOptions={{ color: 'blue', weight: 5 }}
-          />
-        )}
-      </MapContainer>
+      <RouteMap routeData={routeData} />
     </>
   );
 }
