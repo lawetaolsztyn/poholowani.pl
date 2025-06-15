@@ -3,18 +3,50 @@ import { useState, useEffect } from 'react';
 export default function RouteSlider({ routes, onHover, onClickRoute }) {
   const [startIndex, setStartIndex] = useState(0);
   const [hoveredId, setHoveredId] = useState(null);
-  const visibleCount = 6;
+  // Dodajemy nowy stan dla liczby widocznych kafelków
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  // Efekt do ustawienia początkowej liczby kafelków i nasłuchiwania zmian rozmiaru
+  useEffect(() => {
+    const handleResize = () => {
+      // Ustal próg dla urządzeń mobilnych, np. 768px
+      if (window.innerWidth <= 768) {
+        setVisibleCount(3);
+      } else {
+        setVisibleCount(6);
+      }
+    };
+
+    // Ustaw początkową wartość przy pierwszym renderowaniu
+    handleResize();
+
+    // Dodaj nasłuchiwanie na zmianę rozmiaru okna
+    window.addEventListener('resize', handleResize);
+
+    // Usuń nasłuchiwanie przy odmontowaniu komponentu
+    return () => window.removeEventListener('resize', handleResize);
+  }, []); // Pusta tablica zależności oznacza, że efekt uruchomi się tylko raz po zamontowaniu
 
   useEffect(() => {
-    setStartIndex(0); // Resetuj do początku po każdej zmianie listy tras
-  }, [routes]);
+    // Resetuj do początku po każdej zmianie listy tras lub zmianie visibleCount
+    // To ważne, bo jeśli zmienimy visibleCount (np. z 6 na 3),
+    // startIndex może wskazywać poza zakres lub pokazywać niepoprawne elementy.
+    setStartIndex(0);
+  }, [routes, visibleCount]);
 
   const handlePrev = () => {
-    if (startIndex > 0) setStartIndex(startIndex - visibleCount);
+    if (startIndex > 0) {
+      // Przesuwaj o aktualną liczbę widocznych elementów
+      setStartIndex(prevIndex => Math.max(0, prevIndex - visibleCount));
+    }
   };
 
   const handleNext = () => {
-    if (startIndex + visibleCount < routes.length) setStartIndex(startIndex + visibleCount);
+    // Sprawdź, czy są jeszcze elementy do wyświetlenia
+    if (startIndex + visibleCount < routes.length) {
+      // Przesuwaj o aktualną liczbę widocznych elementów
+      setStartIndex(prevIndex => Math.min(routes.length - visibleCount, prevIndex + visibleCount));
+    }
   };
 
   const visibleRoutes = routes.slice(startIndex, startIndex + visibleCount);
@@ -67,41 +99,38 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
                 </div>
               )}
             {route.user_id && route.users_extended?.role === 'firma' && (
-  <div style={{ fontSize: '14px', color: '#555' }}>
-    {route.users_extended.nip ? (
-      <div style={{ marginBottom: '8px' }}>
-        <span
-          title="zarejestrowana firma"
-          style={{
-            display: 'inline-block',
-            padding: '4px 8px',
-            backgroundColor: '#007bff',
-            color: '#FFC107',
-            borderRadius: '5px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            letterSpacing: '1.5px'
-          }}
-        >
-          🏢 firma
-        </span>
-      </div>
-    ) : null}
-    <strong>profil przewoźnika:</strong>{' '}
-    <a
-      href={`https://poholowani.pl/profil/${route.user_id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ fontWeight: 'bold' }}
-    >
-      otwórz
-    </a>
-  </div>
-)}
-
-
-
+              <div style={{ fontSize: '14px', color: '#555' }}>
+                {route.users_extended.nip ? (
+                  <div style={{ marginBottom: '8px' }}>
+                    <span
+                      title="zarejestrowana firma"
+                      style={{
+                        display: 'inline-block',
+                        padding: '4px 8px',
+                        backgroundColor: '#007bff',
+                        color: '#FFC107',
+                        borderRadius: '5px',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1.5px'
+                      }}
+                    >
+                      🏢 firma
+                    </span>
+                  </div>
+                ) : null}
+                <strong>profil przewoźnika:</strong>{' '}
+                <a
+                  href={`https://poholowani.pl/profil/${route.user_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontWeight: 'bold' }}
+                >
+                  otwórz
+                </a>
+              </div>
+            )}
             </div>
           ))}
 
