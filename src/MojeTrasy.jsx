@@ -32,12 +32,7 @@ export default function MojeTrasy() {
   return (
     <>
       <Navbar />
-      <div className="my-routes-page-container">
-        {/* ZMIENIONA KLASA TUTAJ: .my-routes-header */}
-        <div className="my-routes-header"> {/* <--- ZMIENIONA KLASA */}
-          <h1>📍 Moje trasy</h1>
-          <p>Lista tras dodanych przez Ciebie jako przewoźnik</p>
-        </div>
+ 
 
         <div className="my-routes-section">
           <center><h2 className="section-title">🗺️ Podgląd tras na mapie</h2></center>

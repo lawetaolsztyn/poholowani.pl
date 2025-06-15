@@ -11,7 +11,7 @@
 /* ZMIENIONA NAZWA KLASY NA .my-routes-header (aby była unikalna dla tej strony) */
 /* Ten selektor stylizuje nagłówek TYLKO na stronie Moje Trasy */
 .my-routes-header {
-  test-aling: center;
+  test-align: center;
   padding: 20px 0;
   
   background-color: #f0f0f0; /* Lekkie tło dla nagłówka */
