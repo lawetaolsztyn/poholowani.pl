@@ -415,6 +415,7 @@ useEffect(() => {
   value={selectedDate}
   onChange={(e) => setSelectedDate(e.target.value)}
   className="form-date-field"
+min={today}
 />
                     <button type="button" onClick={handleSearchClick} className="search-button">Szukaj</button>
                     <button type="button" onClick={handleResetClick} className="reset-button">
