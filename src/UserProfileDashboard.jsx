@@ -339,15 +339,20 @@ export default function UserProfileDashboard() {
             {/* DODANO: Przycisk/link "Moje trasy" niezależny od aktywnej zakładki, który przekierowuje */}
             {/* Renderuj tylko jeśli użytkownik jest zalogowany (lub formData istnieje) i jest to rola "firma" */}
             {/* Poprawka: Moje Trasy ma być dla każdego, więc warunek 'firma' nie jest potrzebny tutaj */}
-            {formData && ( // Sprawdź, czy formData istnieje, aby pokazać link po załadowaniu danych
-              <a 
-                href="/moje-trasy" // <-- ZMIANA: To jest faktyczny link
-                className={`dashboard-tab-button ${activeTab === 'Moje trasy' ? 'active' : ''}`} // Użyj tej samej klasy dla stylów
-                onClick={() => setActiveTab('Moje trasy')} // Zachowaj activeTab dla ewentualnego podświetlenia, ale główna akcja to przekierowanie
-                style={{ marginLeft: '10px' }} // Mały odstęp od pozostałych przycisków
-              >
-                Moje trasy
-              </a>
+            {formData && ( // Sprawdź, czy formData istnieje, aby pokazać przycisk po załadowaniu danych
+  <button // <--- ZMIANA: ZASTĄP <a> NA <button>
+    key="moje-trasy-button" // Dodaj unikalny klucz dla elementu mapowanego (jeśli nie jest w mapie, to unikalny string)
+    onClick={() => {
+      setActiveTab('Moje trasy'); // Podświetlenie zakładki
+      // Przekierowanie do nowej strony. Użycie window.location.href jest proste
+      window.location.href = '/moje-trasy'; 
+    }}
+    className={`dashboard-tab-button ${activeTab === 'Moje trasy' ? 'active' : ''}`}
+    // style={{ marginLeft: '10px' }} // <--- USUŃ TEN INLINE'OWY STYL (BĘDZIEMY TO ROBIĆ PRZEZ CSS)
+  >
+    Moje trasy
+  </button>
+)}
             )}
           </div>
         )}
