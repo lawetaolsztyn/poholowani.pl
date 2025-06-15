@@ -244,9 +244,10 @@ export default function PomocDrogowaProfil() {
           <div className="mb-8 mt-8"> {/* Dodany margines od góry, aby oddzielić od mapy */}
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Galeria zdjęć</h2>
-              {isOwner && ( // Pokaż przycisk "Edytuj" tylko jeśli jest właścicielem
+              {isOwner && (
                 <button
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200"
+                  // ZMIANA: Dodajemy padding, zmieniamy rozmiar czcionki i wagi
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200"
                   onClick={() => setEditingSection('images')}
                 >
                   ✏ Edytuj
@@ -324,13 +325,15 @@ export default function PomocDrogowaProfil() {
             ) : (
               // Tryb wyświetlania zdjęć (dla wszystkich)
               <div>
-                {(roadsideImageUrls.length > 0) ? ( // <--- UŻYWAMY roadsideImageUrls
+                {(roadsideImageUrls.length > 0) ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {roadsideImageUrls.map((url, index) => ( // <--- UŻYWAMY roadsideImageUrls
+                    {roadsideImageUrls.map((url, index) => (
                       <div
                         key={index}
-                        className="w-full h-auto aspect-square overflow-hidden rounded-lg shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105"
-                        onClick={() => openLightbox(index)} // Otwieranie lightboxa
+                        // ZMIANA: Zastąp w-full h-auto aspect-square na konkretne wymiary
+                        // Tak jak w PublicProfile.jsx
+                        className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 overflow-hidden rounded-lg shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105"
+                        onClick={() => openLightbox(index)}
                       >
                         <img src={url} alt={`Galeria ${index + 1}`} className="w-full h-full object-cover" />
                       </div>
