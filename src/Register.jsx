@@ -58,7 +58,9 @@ export default function Register() {
         options: {
           data: {
             full_name: fullName || companyName,
-            role: role
+            role: role,
+ company_name: companyName, // Dodaj nazwę firmy
+      nip: nip // Dodaj NIP
           }
         }
       });
