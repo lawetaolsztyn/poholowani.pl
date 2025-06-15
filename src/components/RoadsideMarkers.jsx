@@ -106,9 +106,10 @@ export default function RoadsideMarkers() {
             closeButton={true}
           >
             <div style={{ pointerEvents: 'auto' }}>
-              <strong style={{ fontSize: '16px', lineHeight: '1.6' }}>🚨 POMOC DROGOWA</strong><br />
-              <span style={{ fontSize: '14px', lineHeight: '1.5' }}>{item.roadside_slug}</span><br />
-              <span style={{ fontSize: '14px', lineHeight: '1.5' }}>📞 {item.roadside_phone}</span><br />
+             <strong style={{ fontSize: '16px', lineHeight: '1.6' }}>🚨 POMOC DROGOWA</strong><br />
+<span style={{ fontSize: '14px', lineHeight: '1.5' }}>{item.company_name || item.roadside_slug}</span><br /> {/* Może nazwa firmy zamiast sluga */}
+<span style={{ fontSize: '14px', lineHeight: '1.5' }}>{item.roadside_street} {item.roadside_number}, {item.roadside_city}</span><br />
+<span style={{ fontSize: '14px', lineHeight: '1.5' }}>📞 <a href={`tel:${item.roadside_phone}`} style={{ color: '#007bff', textDecoration: 'underline' }}>{item.roadside_phone}</a></span><br />
               <Link
                 to={`/pomoc-drogowa/${item.roadside_slug}`}
                 target="_blank"
