@@ -65,3 +65,24 @@
 .kontakt-form button:hover {
   background-color: #003060;
 }
+
+@media (prefers-color-scheme: dark) {
+  /* ... (istniejące style trybu ciemnego) ... */
+
+  .kontakt-form {
+    background: #333; /* Ciemniejsze tło formularza w dark mode */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .kontakt-form label {
+    color: #b0b0b0; /* Zmień kolor etykiet na jasnoszary */
+  }
+
+  .kontakt-form input[type="text"],
+  .kontakt-form input[type="email"],
+  .kontakt-form input[type="file"],
+  .kontakt-form textarea {
+    background-color: #444; /* Ciemniejsze tło inputów */
+    color: #e0e0e0; /* Jasny tekst w inputach */
+    border-color: #666; /* Ciemniejsza ramka */
+  }
