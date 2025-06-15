@@ -352,7 +352,7 @@ export default function UserProfileDashboard() {
   >
     Moje trasy
   </button>
-)}
+
             )}
           </div>
         )}
