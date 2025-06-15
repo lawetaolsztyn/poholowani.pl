@@ -267,27 +267,27 @@ export default function PomocDrogowaProfil() {
                   className="w-full p-2 border rounded-lg"
                 />
                 {newImages.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                    {newImages.map((file, index) => (
-                      <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={`Nowe zdjęcie ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={() => handleRemoveNewImage(index)}
-                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          X
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(128px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mt-4">
+                  {newImages.map((file, index) => (
+                    <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Nowe zdjęcie ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => handleRemoveNewImage(index)}
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        X
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
                 {/* Istniejące zdjęcia */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(128px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mt-4">
                   {(profileData.roadside_image_urls || []).map((url, index) => ( // <--- UŻYWAMY roadside_image_urls
                     <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
                       <img
@@ -325,8 +325,9 @@ export default function PomocDrogowaProfil() {
             ) : (
               // Tryb wyświetlania zdjęć (dla wszystkich)
               <div>
-                {(roadsideImageUrls.length > 0) ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-start"> {/* <--- DODANO justify-start */}
+              {(roadsideImageUrls.length > 0) ? (
+                  // ZMIANA: Użycie auto-fit i stałej szerokości kolumn
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(128px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4">
                     {roadsideImageUrls.map((url, index) => (
                       <div
                         key={index}
