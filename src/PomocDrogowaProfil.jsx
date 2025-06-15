@@ -10,7 +10,7 @@ import './PomocDrogowaProfil.css'; // Upewnij się, że masz ten plik CSS
 
 const towIcon = new L.Icon({
   iconUrl: '/icons/pomoc-drogowa.png',
-  iconSize: [90, 120],
+  iconSize: [80, 120],
   iconAnchor: [45, 120],
   popupAnchor: [0, -120],
   className: 'custom-marker-icon'
@@ -231,7 +231,7 @@ export default function PomocDrogowaProfil() {
                 </a>
               ) : 'Brak telefonu'}
             </p>
-          </div>
+          </div>	
 
           {/* Sekcja Opisu Usługi Pomocy Drogowej (roadside_description) */}
           {profileData.roadside_description && (
