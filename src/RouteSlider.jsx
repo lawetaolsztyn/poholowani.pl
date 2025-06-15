@@ -102,7 +102,7 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
        >
       {route.phone}
     </a>
-    {route.usesWhatsapp && (
+    {route.uses_whatsapp && (
       <div style={{ marginTop: '4px' }}>
         <a
           href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
