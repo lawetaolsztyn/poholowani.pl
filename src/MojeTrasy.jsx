@@ -31,14 +31,14 @@ export default function MojeTrasy() {
 
   return (
     <>
-      <Navbar />
- 
-
+        <Navbar />
+      {/* <--- TUTAJ DODAJ BRAKUJĄCY DIV KONTENERA */}
+      <div className="my-routes-page-container">
         <div className="my-routes-section">
           <center><h2 className="section-title">🗺️ Podgląd tras na mapie</h2></center>
           {userId && <MyRoutes hoveredRouteId={hoveredRouteId} />}
         </div>
-      </div>
+      </div> {/* <--- TEN ZAMYKAJĄCY DIV BYŁ JUŻ, TYLKO TERAZ MA OTWIERAJĄCY*/}
     </>
   );
 }
