@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { useParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
-import './PomocDrogowaProfil.css'; // Upewnij się, że masz ten plik CSS
+import './PomocDrogowaProfil.css';
 
 const towIcon = new L.Icon({
   iconUrl: '/icons/pomoc-drogowa.png',
@@ -20,10 +20,10 @@ export default function PomocDrogowaProfil() {
   const { slug } = useParams();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isOwner, setIsOwner] = useState(false); // Potrzebne do trybu edycji
-  const [editingSection, setEditingSection] = useState(null); // Nowy stan do zarządzania sekcjami edycji
+  const [isOwner, setIsOwner] = useState(false);
+  const [editingSection, setEditingSection] = useState(null);
 
-  // --- STANY DLA GALERII I LIGHTBOXA (Z PublicProfile.jsx) ---
+  // --- STANY DLA GALERII I LIGHTBOXA (TERAZ DLA POMOCY DROGOWEJ) ---
   const [showLightbox, setShowLightbox] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [newImages, setNewImages] = useState([]); // Przechowuje pliki do przesłania
@@ -37,18 +37,24 @@ export default function PomocDrogowaProfil() {
         const { data: userData } = await supabase.auth.getUser();
         const { data, error } = await supabase
           .from('users_extended')
-          .select('*') // Pobieramy wszystkie kolumny, w tym image_urls i roadside_description
+          .select('*') // Pobieramy wszystkie kolumny, w tym roadside_image_urls
           .eq('roadside_slug', slug)
           .eq('is_pomoc_drogowa', true)
           .single();
 
         if (error) throw error;
 
-        // --- PARSOWANIE DANYCH JSON (TYLKO image_urls, jak w PublicProfile.jsx) ---
-        if (typeof data.image_urls === 'string') {
+        // --- PARSOWANIE DANYCH JSON (TERAZ roadside_image_urls) ---
+        if (typeof data.image_urls === 'string') { // Nadal parsowanie image_urls (dla ogólnego profilu)
           try { data.image_urls = JSON.parse(data.image_urls); } catch { data.image_urls = []; }
         } else if (!Array.isArray(data.image_urls)) {
           data.image_urls = [];
+        }
+
+        if (typeof data.roadside_image_urls === 'string') { // <--- NOWE PARSOWANIE
+          try { data.roadside_image_urls = JSON.parse(data.roadside_image_urls); } catch { data.roadside_image_urls = []; }
+        } else if (!Array.isArray(data.roadside_image_urls)) {
+          data.roadside_image_urls = [];
         }
         // --- KONIEC PARSOWANIA ---
 
@@ -64,7 +70,9 @@ export default function PomocDrogowaProfil() {
     fetchData();
   }, [slug]);
 
-  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA (Z PublicProfile.jsx) ---
+  // ... (funkcja getFleetIcon) ...
+
+  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA (TERAZ UŻYWAJĄ roadside_image_urls) ---
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file => {
@@ -75,8 +83,9 @@ export default function PomocDrogowaProfil() {
       return true;
     });
 
-    if ((profileData.image_urls || []).length + newImages.length + validFiles.length > 5) {
-      alert("Możesz mieć maksymalnie 5 zdjęć w galerii.");
+    // Zmieniamy image_urls.length na roadside_image_urls.length
+    if ((profileData.roadside_image_urls || []).length + newImages.length + validFiles.length > 5) {
+      alert("Możesz mieć maksymalnie 5 zdjęć w galerii pomocy drogowej.");
       return;
     }
     setNewImages(prev => [...prev, ...validFiles]);
@@ -88,14 +97,15 @@ export default function PomocDrogowaProfil() {
 
   const handleRemoveExistingImage = (indexToRemove) => {
     setProfileData(prev => {
-      const updatedImageUrls = prev.image_urls.filter((_, index) => index !== indexToRemove);
-      return { ...prev, image_urls: updatedImageUrls };
+      // Zmieniamy profile.image_urls na profile.roadside_image_urls
+      const updatedImageUrls = (prev.roadside_image_urls || []).filter((_, index) => index !== indexToRemove);
+      return { ...prev, roadside_image_urls: updatedImageUrls }; // Aktualizujemy roadside_image_urls
     });
   };
 
   const handleSaveImages = async () => {
     setUploadingImages(true);
-    let updatedImageUrls = [...(profileData.image_urls || [])];
+    let updatedImageUrls = [...(profileData.roadside_image_urls || [])]; // Użyj roadside_image_urls
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -121,12 +131,12 @@ export default function PomocDrogowaProfil() {
 
       const { error: updateError } = await supabase
         .from('users_extended')
-        .update({ image_urls: updatedImageUrls })
+        .update({ roadside_image_urls: updatedImageUrls }) // <--- ZMIANA: Aktualizujemy roadside_image_urls
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      setProfileData(prev => ({ ...prev, image_urls: updatedImageUrls }));
+      setProfileData(prev => ({ ...prev, roadside_image_urls: updatedImageUrls })); // Aktualizujemy roadside_image_urls w stanie
       setNewImages([]);
       setEditingSection(null);
       alert('Zdjęcia zapisane pomyślnie!');
@@ -139,7 +149,7 @@ export default function PomocDrogowaProfil() {
   };
   // --- KONIEC FUNKCJI OBSŁUGUJĄCYCH ZDJĘCIA ---
 
-  // --- FUNKCJE OBSŁUGUJĄCE LIGHTBOX (Z PublicProfile.jsx) ---
+  // --- FUNKCJE OBSŁUGUJĄCE LIGHTBOX (UŻYWAJĄ roadside_image_urls) ---
   const openLightbox = (index) => {
     setCurrentImageIndex(index);
     setShowLightbox(true);
@@ -152,14 +162,16 @@ export default function PomocDrogowaProfil() {
   };
 
   const goToNextImage = () => {
+    // Zmieniamy profile.image_urls na profileData.roadside_image_urls
     setCurrentImageIndex((prevIndex) =>
-      (prevIndex + 1) % profileData.image_urls.length
+      (prevIndex + 1) % profileData.roadside_image_urls.length
     );
   };
 
   const goToPrevImage = () => {
+    // Zmieniamy profile.image_urls na profileData.roadside_image_urls
     setCurrentImageIndex((prevIndex) =>
-      (prevIndex - 1 + profileData.image_urls.length) % profileData.image_urls.length
+      (prevIndex - 1 + profileData.roadside_image_urls.length) % profileData.roadside_image_urls.length
     );
   };
   // --- KONIEC FUNKCJI OBSŁUGUJĄCYCH LIGHTBOX ---
@@ -187,7 +199,8 @@ export default function PomocDrogowaProfil() {
     );
   }
 
-  const imageUrls = Array.isArray(profileData.image_urls) ? profileData.image_urls : [];
+  // Upewniamy się, że roadside_image_urls jest tablicą
+  const roadsideImageUrls = Array.isArray(profileData.roadside_image_urls) ? profileData.roadside_image_urls : [];
 
   return (
     <>
@@ -274,7 +287,7 @@ export default function PomocDrogowaProfil() {
 
                 {/* Istniejące zdjęcia */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                  {(profileData.image_urls || []).map((url, index) => (
+                  {(profileData.roadside_image_urls || []).map((url, index) => ( // <--- UŻYWAMY roadside_image_urls
                     <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
                       <img
                         src={url}
@@ -311,9 +324,9 @@ export default function PomocDrogowaProfil() {
             ) : (
               // Tryb wyświetlania zdjęć (dla wszystkich)
               <div>
-                {(imageUrls.length > 0) ? (
+                {(roadsideImageUrls.length > 0) ? ( // <--- UŻYWAMY roadsideImageUrls
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {imageUrls.map((url, index) => (
+                    {roadsideImageUrls.map((url, index) => ( // <--- UŻYWAMY roadsideImageUrls
                       <div
                         key={index}
                         className="w-full h-auto aspect-square overflow-hidden rounded-lg shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105"
@@ -331,7 +344,7 @@ export default function PomocDrogowaProfil() {
           </div>
 
           {/* Lightbox dla zdjęć (z PublicProfile.jsx) */}
-          {showLightbox && profileData && profileData.image_urls && profileData.image_urls.length > 0 && (
+          {showLightbox && profileData && profileData.roadside_image_urls && profileData.roadside_image_urls.length > 0 && ( // <--- UŻYWAMY roadside_image_urls
             <div
               className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
               onClick={closeLightbox}
@@ -345,12 +358,12 @@ export default function PomocDrogowaProfil() {
                 </button>
 
                 <img
-                  src={profileData.image_urls[currentImageIndex]}
+                  src={profileData.roadside_image_urls[currentImageIndex]} // <--- UŻYWAMY roadside_image_urls
                   alt={`Zdjęcie ${currentImageIndex + 1}`}
                   className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-xl"
                 />
 
-                {profileData.image_urls.length > 1 && (
+                {profileData.roadside_image_urls.length > 1 && ( // <--- UŻYWAMY roadside_image_urls
                   <>
                     <button
                       onClick={goToPrevImage}
