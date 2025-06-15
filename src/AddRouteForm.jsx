@@ -165,6 +165,13 @@ function AddRouteForm({ onRouteCreated }) {
       }
 
       onRouteCreated(routeData);
+
+setForm(prevForm => ({
+  ...prevForm,
+  from: '',
+  to: '',
+  via: ''
+}));
       alert('✅ Trasa zapisana do bazy danych!');
     } catch (err) {
       console.error('Błąd wyznaczania lub zapisu trasy:', err);
