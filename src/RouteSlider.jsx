@@ -58,19 +58,20 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
           ◀
         </button>
 
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: isMobile ? 'nowrap' : 'wrap',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: '20px',
-            justifyContent: 'center',
-            maxHeight: isMobile ? `${visibleCountMobile * 150}px` : 'auto',
-            overflowY: isMobile ? 'auto' : 'visible',
-            overflowX: 'hidden',
-            width: isMobile ? '220px' : 'auto'
-          }}
-        >
+<div
+  style={{
+    display: 'flex',
+    flexWrap: isMobile ? 'nowrap' : 'wrap',
+    flexDirection: isMobile ? 'column' : 'row',
+    gap: '20px',
+    justifyContent: 'center',
+    maxHeight: isMobile ? `calc(3 * 150px + 2 * 20px)` : 'auto',
+    overflowY: isMobile ? 'auto' : 'visible',
+    overflowX: 'hidden',
+    width: isMobile ? '220px' : 'auto',
+    paddingBottom: isMobile ? '10px' : '0'
+  }}
+>
           {visibleRoutes.map((route) => (
             <div
               key={route.id}
