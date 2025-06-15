@@ -349,7 +349,7 @@ export default function PomocDrogowaProfil() {
           {/* Lightbox dla zdjęć (z PublicProfile.jsx) */}
           {showLightbox && profileData && profileData.roadside_image_urls && profileData.roadside_image_urls.length > 0 && ( // <--- UŻYWAMY roadside_image_urls
             <div
-              className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[9999] p-4"
               onClick={closeLightbox}
             >
               <div className="relative max-w-4xl max-h-full" onClick={(e) => e.stopPropagation()}>
