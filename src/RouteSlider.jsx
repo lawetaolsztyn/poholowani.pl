@@ -3,26 +3,14 @@ import { useState, useEffect } from 'react';
 export default function RouteSlider({ routes, onHover, onClickRoute }) {
   const [startIndex, setStartIndex] = useState(0);
   const [hoveredId, setHoveredId] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const visibleCount = 6;
 
-  const visibleCountDesktop = 6;
-  const visibleCountMobile = 3;
+  // Detekcja urządzenia mobilnego (prosta, na szerokość okna)
+  const isMobile = window.innerWidth <= 768;
 
-  // Sprawdź czy ekran jest wąski (mobile)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Resetuj startIndex przy zmianie tras
-  useEffect(() => {
-    setStartIndex(0);
+    setStartIndex(0); // Resetuj do początku po każdej zmianie listy tras
   }, [routes]);
-
-  const visibleCount = isMobile ? visibleCountMobile : visibleCountDesktop;
-  const visibleRoutes = routes.slice(startIndex, startIndex + visibleCount);
 
   const handlePrev = () => {
     if (startIndex > 0) setStartIndex(startIndex - visibleCount);
@@ -31,6 +19,8 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
   const handleNext = () => {
     if (startIndex + visibleCount < routes.length) setStartIndex(startIndex + visibleCount);
   };
+
+  const visibleRoutes = routes.slice(startIndex, startIndex + visibleCount);
 
   return (
     <div
@@ -58,20 +48,20 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
           ◀
         </button>
 
-<div
-  style={{
-    display: 'flex',
-    flexWrap: isMobile ? 'nowrap' : 'wrap',
-    flexDirection: isMobile ? 'column' : 'row',
-    gap: '20px',
-    justifyContent: 'center',
-    maxHeight: isMobile ? `calc(3 * 150px + 2 * 20px)` : 'auto',
-    overflowY: isMobile ? 'auto' : 'visible',
-    overflowX: 'hidden',
-    width: isMobile ? '220px' : 'auto',
-    paddingBottom: isMobile ? '10px' : '0'
-  }}
->
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: isMobile ? 'nowrap' : 'wrap',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: '20px',
+            justifyContent: 'center',
+            maxHeight: isMobile ? `calc(3 * 160px + 2 * 20px)` : 'auto',
+            overflowY: isMobile ? 'auto' : 'visible',
+            overflowX: 'hidden',
+            width: isMobile ? '240px' : 'auto',
+            paddingBottom: isMobile ? '10px' : '0',
+          }}
+        >
           {visibleRoutes.map((route) => (
             <div
               key={route.id}
@@ -92,8 +82,9 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
                 backgroundColor: 'white',
                 cursor: 'pointer',
                 width: '220px',
+                height: '160px',
                 transition: 'border 0.2s ease-in-out',
-                flexShrink: 0
+                boxSizing: 'border-box'
               }}
             >
               <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }}>
