@@ -1,0 +1,134 @@
+/* src/Register.css */
+
+.register-page-container {
+  /* To jest główny kontener, który będzie zawierał formularz rejestracji */
+  /* Zastępuje styleinline 'wrapper' */
+  background: #fff;
+  padding: 40px;
+  max-width: 500px;
+  margin: 20px auto;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.register-inner-wrapper {
+  /* To jest kontener dla nagłówka i formularza, jeśli potrzebujesz dodatkowego paddingu */
+  /* Zastępuje styleinline 'innerWrapper' */
+  padding: 20px;
+}
+
+.register-heading {
+  /* Styl dla nagłówka H2 "Rejestracja" */
+  color: #333; /* Domyślny kolor dla trybu jasnego */
+  text-align: center; /* Wyśrodkowanie nagłówka */
+  margin-bottom: 20px; /* Odstęp pod nagłówkiem */
+}
+
+.register-form {
+  /* Styl dla całego formularza */
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Odstęp między polami formularza */
+}
+
+.register-input {
+  /* Styl dla pól input (email, password, text) */
+  /* Zastępuje styleinline 'inputStyle' */
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  box-sizing: border-box; /* Upewnij się, że padding nie zwiększa szerokości */
+}
+
+.register-button {
+  /* Styl dla przycisku "Zarejestruj" */
+  /* Zastępuje styleinline 'btnStyle' */
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.register-button:hover {
+  background-color: #0056b3;
+}
+
+.register-message {
+  /* Styl dla wiadomości o sukcesie/błędzie */
+  /* Zastępuje styleinline 'messageStyle' */
+  margin-top: 20px;
+  color: red;
+  font-weight: bold;
+  text-align: center; /* Wyśrodkowanie wiadomości */
+}
+
+.register-status-message {
+  /* Styl dla wiadomości o statusie e-maila */
+  color: orange;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.radio-group {
+  /* Styl dla grupy radio buttonów */
+  /* Zastępuje styleinline 'radioGroupStyle' */
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center; /* Wyśrodkowanie radio buttonów */
+  gap: 20px; /* Odstęp między radio buttonami */
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #333; /* Domyślny kolor dla trybu jasnego */
+}
+
+.radio-group input[type="radio"] {
+  margin-right: 8px;
+}
+
+
+/* ===== TRYB CIEMNY ===== */
+@media (prefers-color-scheme: dark) {
+  .register-page-container {
+    background: #2a2a2a; /* Ciemne tło głównego kontenera */
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  }
+
+  .register-heading {
+    color: #e0e0e0; /* Jasny kolor dla nagłówka */
+  }
+
+  .register-input {
+    background-color: #3b3b3b; /* Ciemniejsze tło inputów */
+    color: #e0e0e0; /* Jasny tekst w inputach */
+    border-color: #555; /* Ciemniejsza ramka */
+  }
+
+  .register-button {
+    background-color: #0056b3; /* Kolor przycisku dla dark mode */
+    color: #fff;
+  }
+
+  .register-button:hover {
+    background-color: #003f8c;
+  }
+
+  .register-message,
+  .register-status-message {
+    color: #ffb3b3; /* Lżejszy kolor błędów/statusu w dark mode */
+  }
+
+  .radio-group label {
+    color: #b0b0b0; /* Jasny kolor etykiet radio buttonów */
+  }
+}

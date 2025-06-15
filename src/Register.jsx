@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { supabase } from './supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import './LandingPage.css';
+import './LandingPage.css'; // Ten import pozostaje, ponieważ używasz .overlay-header
+import './Register.css'; // <-- NOWY IMPORT DLA STYLÓW REJESTRACJI
 import Header from './components/Header';
 
 export default function Register() {
@@ -51,46 +52,36 @@ export default function Register() {
     }
 
     try {
-      // Krok 1: Rejestracja użytkownika w Supabase Auth
-      // WAŻNE: Supabase signUp domyślnie NIE loguje użytkownika automatycznie,
-      // co wymaga potwierdzenia e-maila.
-    const { data, error: signUpError } = await supabase.auth.signUp({
-  email: trimmedEmail,
-  password: trimmedPassword,
-  options: {
-    data: {
-      full_name: fullName || companyName, // wybierz to, co wpisano
-      role: role // 'klient' lub 'firma'
-    }
-  }
-});
-
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password: trimmedPassword,
+        options: {
+          data: {
+            full_name: fullName || companyName,
+            role: role
+          }
+        }
+      });
 
       if (signUpError) {
-console.error("❌ Pełny błąd Supabase:", signUpError);
+        console.error("❌ Pełny błąd Supabase:", signUpError);
         console.error("❌ Błąd rejestracji Supabase Auth:", signUpError.message);
         const errorMap = {
           'User already registered': '❌ Ten adres e-mail jest już zarejestrowany.',
-          // Dodaj inne błędy, jeśli znasz ich komunikaty z Supabase
         };
         setMessage(errorMap[signUpError.message] || `❌ Błąd rejestracji: ${signUpError.message}`);
         return;
       }
 
-      // Krok 2: Użytkownik został zarejestrowany w auth.users.
-      // Teraz informujemy go o konieczności aktywacji e-maila.
-      // Dalsze dane do users_extended dodamy po aktywacji konta.
       if (data.user) {
         console.log("✅ Użytkownik Supabase Auth zarejestrowany:", data.user);
         setMessage('✅ Rejestracja zakończona sukcesem! Sprawdź swoją skrzynkę e-mail, aby aktywować konto.');
         setEmailStatusMessage('Wysłano link aktywacyjny na Twój adres e-mail. Sprawdź folder SPAM, jeśli go nie widzisz.');
-        // Opcjonalnie: możesz zapisać w localStorage rolę i e-mail, aby odtworzyć je po aktywacji
         localStorage.setItem('pending_registration_email', trimmedEmail);
         localStorage.setItem('pending_registration_role', role);
         localStorage.setItem('pending_registration_full_name', fullName);
         localStorage.setItem('pending_registration_company_name', companyName);
         localStorage.setItem('pending_registration_nip', nip);
-
       } else {
         setMessage('❌ Rejestracja nieudana. Spróbuj ponownie.');
       }
@@ -100,23 +91,25 @@ console.error("❌ Pełny błąd Supabase:", signUpError);
     }
   };
 
-
-  // Reszta kodu komponentu Register pozostaje bez zmian
-  // ... (renderowanie formularza)
   return (
     <>
       <Navbar />
-<div className="overlay-header">
-<Header
-  title="Utwórz konto"
-  subtitle="Zarejestruj się jako osoba prywatna lub firma – szybko i wygodnie"
-/>
-</div>
-      <div style={wrapper}>
-        <div style={innerWrapper}>
-          <h2>Rejestracja</h2>
-          <form onSubmit={handleRegister}>
-            <div style={radioGroupStyle}>
+      <div className="overlay-header">
+        <Header
+          title="Utwórz konto"
+          subtitle="Zarejestruj się jako osoba prywatna lub firma – szybko i wygodnie"
+        />
+      </div>
+      {/* Użycie nowej klasy register-page-container */}
+      <div className="register-page-container">
+        {/* Użycie nowej klasy register-inner-wrapper */}
+        <div className="register-inner-wrapper">
+          {/* Użycie nowej klasy register-heading */}
+          <h2 className="register-heading">Rejestracja</h2>
+          {/* Użycie nowej klasy register-form */}
+          <form onSubmit={handleRegister} className="register-form">
+            {/* Użycie nowej klasy radio-group */}
+            <div className="radio-group">
               <label>
                 <input
                   type="radio"
@@ -126,24 +119,24 @@ console.error("❌ Pełny błąd Supabase:", signUpError);
                 />
                 Osoba Prywatna
               </label>
-              <label style={{ marginLeft: '20px' }}>
+              <label className="radio-label"> {/* Opcjonalnie: dodana klasa dla lepszej kontroli odstępu */}
                 <input
                   type="radio"
                   value="firma"
                   checked={role === 'firma'}
                   onChange={() => setRole('firma')}
-                  // Usuń console.log(e.target.value) - tylko do debugowania
                 />
                 Firma
               </label>
             </div>
 
+            {/* Użycie nowej klasy register-input dla wszystkich inputów */}
             <input
               type="email"
               placeholder="E-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={inputStyle}
+              className="register-input"
               required
             />
             <input
@@ -151,7 +144,7 @@ console.error("❌ Pełny błąd Supabase:", signUpError);
               placeholder="Hasło (min. 6 znaków)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={inputStyle}
+              className="register-input"
               required
             />
 
@@ -161,7 +154,7 @@ console.error("❌ Pełny błąd Supabase:", signUpError);
                 placeholder="Imię i Nazwisko"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                style={inputStyle}
+                className="register-input"
                 required
               />
             )}
@@ -173,7 +166,7 @@ console.error("❌ Pełny błąd Supabase:", signUpError);
                   placeholder="Nazwa Firmy"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  style={inputStyle}
+                  className="register-input"
                   required
                 />
                 <input
@@ -181,64 +174,23 @@ console.error("❌ Pełny błąd Supabase:", signUpError);
                   placeholder="NIP"
                   value={nip}
                   onChange={(e) => setNip(e.target.value)}
-                  style={inputStyle}
+                  className="register-input"
                   required
                 />
               </>
             )}
 
-            <button type="submit" style={btnStyle}>Zarejestruj</button>
+            {/* Użycie nowej klasy register-button */}
+            <button type="submit" className="register-button">Zarejestruj</button>
           </form>
 
-          {message && <p style={messageStyle}>{message}</p>}
-          {emailStatusMessage && <p style={{ ...messageStyle, color: 'orange' }}>{emailStatusMessage}</p>}
+          {/* Użycie nowych klas dla komunikatów */}
+          {message && <p className="register-message">{message}</p>}
+          {emailStatusMessage && <p className="register-status-message">{emailStatusMessage}</p>}
         </div>
       </div>
     </>
   );
 }
 
-// Style inline (nie zmienione, pozostawione jak w oryginale)
-const wrapper = {
-  background: '#fff',
-  padding: '40px',
-  maxWidth: '500px',
-  margin: '20px auto',
-  borderRadius: '12px',
-  boxShadow: '0 0 15px rgba(0,0,0,0.1)',
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '12px',
-  marginBottom: '15px',
-  borderRadius: '6px',
-  border: '1px solid #ccc',
-  fontSize: '1rem',
-};
-
-const btnStyle = {
-  width: '100%',
-  padding: '12px',
-  backgroundColor: '#007bff',
-  color: '#fff',
-  fontSize: '1rem',
-  border: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease',
-};
-
-const messageStyle = {
-  marginTop: '20px',
-  color: 'red',
-  fontWeight: 'bold',
-};
-
-const radioGroupStyle = {
-  marginBottom: '20px',
-};
-
-const innerWrapper = {
-  padding: '20px',
-};
+// <-- Usunięto tutaj wszystkie stałe ze stylami inline'owymi -->
