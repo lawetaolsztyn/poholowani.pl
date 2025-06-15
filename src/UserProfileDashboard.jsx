@@ -298,6 +298,18 @@ export default function UserProfileDashboard() {
                   Numer telefonu:
                   <input type="text" name="roadside_phone" value={formData.roadside_phone || ''} onChange={handleChange} className="form-input" />
                 </label>
+		<label className="form-label">
+            Opis usługi pomocy drogowej (max 500 znaków):
+            <textarea
+              name="roadside_description"
+              value={formData.roadside_description || ''}
+              onChange={handleChange}
+              maxLength={500} // Ograniczenie do 500 znaków
+              className="form-input resize-y min-h-[100px]" // Dodaj resize-y dla pionowej zmiany rozmiaru i min-h
+              placeholder="Opisz swoje usługi pomocy drogowej, specjalizacje, dostępność 24/7 itp."
+            ></textarea>
+          </label>
+
 
                 <button type="submit" disabled={saving} className="form-button">
                   {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
