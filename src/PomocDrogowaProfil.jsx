@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { useParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
-import './PomocDrogowaProfil.css';
+import './PomocDrogowaProfil.css'; // Upewnij się, że masz ten plik CSS
 
 const towIcon = new L.Icon({
   iconUrl: '/icons/pomoc-drogowa.png',
@@ -20,10 +20,10 @@ export default function PomocDrogowaProfil() {
   const { slug } = useParams();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isOwner, setIsOwner] = useState(false);
-  const [editingSection, setEditingSection] = useState(null);
+  const [isOwner, setIsOwner] = useState(false); // Potrzebne do trybu edycji
+  const [editingSection, setEditingSection] = useState(null); // Nowy stan do zarządzania sekcjami edycji
 
-  // --- STANY DLA GALERII I LIGHTBOXA (TERAZ DLA POMOCY DROGOWEJ) ---
+  // --- STANY DLA GALERII I LIGHTBOXA ---
   const [showLightbox, setShowLightbox] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [newImages, setNewImages] = useState([]); // Przechowuje pliki do przesłania
@@ -37,21 +37,21 @@ export default function PomocDrogowaProfil() {
         const { data: userData } = await supabase.auth.getUser();
         const { data, error } = await supabase
           .from('users_extended')
-          .select('*') // Pobieramy wszystkie kolumny, w tym roadside_image_urls
+          .select('*') // Pobieramy wszystkie kolumny, w tym roadside_image_urls i roadside_description
           .eq('roadside_slug', slug)
           .eq('is_pomoc_drogowa', true)
           .single();
 
         if (error) throw error;
 
-        // --- PARSOWANIE DANYCH JSON (TERAZ roadside_image_urls) ---
-        if (typeof data.image_urls === 'string') { // Nadal parsowanie image_urls (dla ogólnego profilu)
+        // --- PARSOWANIE DANYCH JSON (dla image_urls i roadside_image_urls) ---
+        if (typeof data.image_urls === 'string') {
           try { data.image_urls = JSON.parse(data.image_urls); } catch { data.image_urls = []; }
         } else if (!Array.isArray(data.image_urls)) {
           data.image_urls = [];
         }
 
-        if (typeof data.roadside_image_urls === 'string') { // <--- NOWE PARSOWANIE
+        if (typeof data.roadside_image_urls === 'string') {
           try { data.roadside_image_urls = JSON.parse(data.roadside_image_urls); } catch { data.roadside_image_urls = []; }
         } else if (!Array.isArray(data.roadside_image_urls)) {
           data.roadside_image_urls = [];
@@ -70,9 +70,24 @@ export default function PomocDrogowaProfil() {
     fetchData();
   }, [slug]);
 
-  // ... (funkcja getFleetIcon) ...
+  // Funkcja getFleetIcon (z PublicProfile)
+  const getFleetIcon = (type) => {
+    switch (type) {
+      case 'auto osobowe': return '🚗';
+      case 'bus': return '🚌';
+      case 'autolaweta': return '🛻';
+      case 'przyczepa towarowa': return '🚛';
+      case 'przyczepa laweta': return '🚜';
+      case 'przyczepa laweta podwójna': return '🚚';
+      case 'pojazd ciężarowy': return '🚚';
+      case 'naczepa ciężarowa': return '🚛';
+      case 'przyczepa ciężarowa': return '🚛';
+      case 'dostawczak': return '🚌';
+      default: return '❓';
+    }
+  };
 
-  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA (TERAZ UŻYWAJĄ roadside_image_urls) ---
+  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA ---
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file => {
@@ -83,7 +98,6 @@ export default function PomocDrogowaProfil() {
       return true;
     });
 
-    // Zmieniamy image_urls.length na roadside_image_urls.length
     if ((profileData.roadside_image_urls || []).length + newImages.length + validFiles.length > 5) {
       alert("Możesz mieć maksymalnie 5 zdjęć w galerii pomocy drogowej.");
       return;
@@ -97,15 +111,14 @@ export default function PomocDrogowaProfil() {
 
   const handleRemoveExistingImage = (indexToRemove) => {
     setProfileData(prev => {
-      // Zmieniamy profile.image_urls na profile.roadside_image_urls
       const updatedImageUrls = (prev.roadside_image_urls || []).filter((_, index) => index !== indexToRemove);
-      return { ...prev, roadside_image_urls: updatedImageUrls }; // Aktualizujemy roadside_image_urls
+      return { ...prev, roadside_image_urls: updatedImageUrls };
     });
   };
 
   const handleSaveImages = async () => {
     setUploadingImages(true);
-    let updatedImageUrls = [...(profileData.roadside_image_urls || [])]; // Użyj roadside_image_urls
+    let updatedImageUrls = [...(profileData.roadside_image_urls || [])];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -131,12 +144,12 @@ export default function PomocDrogowaProfil() {
 
       const { error: updateError } = await supabase
         .from('users_extended')
-        .update({ roadside_image_urls: updatedImageUrls }) // <--- ZMIANA: Aktualizujemy roadside_image_urls
+        .update({ roadside_image_urls: updatedImageUrls })
         .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      setProfileData(prev => ({ ...prev, roadside_image_urls: updatedImageUrls })); // Aktualizujemy roadside_image_urls w stanie
+      setProfileData(prev => ({ ...prev, roadside_image_urls: updatedImageUrls }));
       setNewImages([]);
       setEditingSection(null);
       alert('Zdjęcia zapisane pomyślnie!');
@@ -149,7 +162,7 @@ export default function PomocDrogowaProfil() {
   };
   // --- KONIEC FUNKCJI OBSŁUGUJĄCYCH ZDJĘCIA ---
 
-  // --- FUNKCJE OBSŁUGUJĄCE LIGHTBOX (UŻYWAJĄ roadside_image_urls) ---
+  // --- FUNKCJE OBSŁUGUJĄCE LIGHTBOX ---
   const openLightbox = (index) => {
     setCurrentImageIndex(index);
     setShowLightbox(true);
@@ -162,14 +175,12 @@ export default function PomocDrogowaProfil() {
   };
 
   const goToNextImage = () => {
-    // Zmieniamy profile.image_urls na profileData.roadside_image_urls
     setCurrentImageIndex((prevIndex) =>
       (prevIndex + 1) % profileData.roadside_image_urls.length
     );
   };
 
   const goToPrevImage = () => {
-    // Zmieniamy profile.image_urls na profileData.roadside_image_urls
     setCurrentImageIndex((prevIndex) =>
       (prevIndex - 1 + profileData.roadside_image_urls.length) % profileData.roadside_image_urls.length
     );
@@ -199,7 +210,6 @@ export default function PomocDrogowaProfil() {
     );
   }
 
-  // Upewniamy się, że roadside_image_urls jest tablicą
   const roadsideImageUrls = Array.isArray(profileData.roadside_image_urls) ? profileData.roadside_image_urls : [];
 
   return (
@@ -244,9 +254,8 @@ export default function PomocDrogowaProfil() {
           <div className="mb-8 mt-8"> {/* Dodany margines od góry, aby oddzielić od mapy */}
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Galeria zdjęć</h2>
-              {isOwner && (
+              {isOwner && ( // Pokaż przycisk "Edytuj" tylko jeśli jest właścicielem
                 <button
-                  // ZMIANA: Dodajemy padding, zmieniamy rozmiar czcionki i wagi
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200"
                   onClick={() => setEditingSection('images')}
                 >
@@ -267,29 +276,29 @@ export default function PomocDrogowaProfil() {
                   className="w-full p-2 border rounded-lg"
                 />
                 {newImages.length > 0 && (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(128px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mt-4">
-                  {newImages.map((file, index) => (
-                    <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Nowe zdjęcie ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => handleRemoveNewImage(index)}
-                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        X
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                  <div className="flex flex-wrap gap-4 mt-4"> {/* <--- ZMIANA TUTAJ: Flexbox */}
+                    {newImages.map((file, index) => (
+                      <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40"> {/* Ustawione stałe rozmiary */}
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Nowe zdjęcie ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => handleRemoveNewImage(index)}
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          X
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Istniejące zdjęcia */}
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(128px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mt-4">
-                  {(profileData.roadside_image_urls || []).map((url, index) => ( // <--- UŻYWAMY roadside_image_urls
-                    <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
+                <div className="flex flex-wrap gap-4 mt-4"> {/* <--- ZMIANA TUTAJ: Flexbox */}
+                  {(profileData.roadside_image_urls || []).map((url, index) => (
+                    <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40"> {/* Ustawione stałe rozmiary */}
                       <img
                         src={url}
                         alt={`Zdjęcie ${index + 1}`}
@@ -325,9 +334,8 @@ export default function PomocDrogowaProfil() {
             ) : (
               // Tryb wyświetlania zdjęć (dla wszystkich)
               <div>
-              {(roadsideImageUrls.length > 0) ? (
-                  // ZMIANA: Użycie auto-fit i stałej szerokości kolumn
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(128px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4">
+                {(roadsideImageUrls.length > 0) ? (
+                  <div className="flex flex-wrap gap-4"> {/* <--- ZMIANA TUTAJ: Flexbox */}
                     {roadsideImageUrls.map((url, index) => (
                       <div
                         key={index}
@@ -345,8 +353,8 @@ export default function PomocDrogowaProfil() {
             )}
           </div>
 
-          {/* Lightbox dla zdjęć (z PublicProfile.jsx) */}
-          {showLightbox && profileData && profileData.roadside_image_urls && profileData.roadside_image_urls.length > 0 && ( // <--- UŻYWAMY roadside_image_urls
+          {/* Lightbox dla zdjęć */}
+          {showLightbox && profileData && profileData.roadside_image_urls && profileData.roadside_image_urls.length > 0 && (
             <div
               className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[9999] p-4"
               onClick={closeLightbox}
@@ -360,12 +368,12 @@ export default function PomocDrogowaProfil() {
                 </button>
 
                 <img
-                  src={profileData.roadside_image_urls[currentImageIndex]} // <--- UŻYWAMY roadside_image_urls
+                  src={profileData.roadside_image_urls[currentImageIndex]}
                   alt={`Zdjęcie ${currentImageIndex + 1}`}
                   className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-xl"
                 />
 
-                {profileData.roadside_image_urls.length > 1 && ( // <--- UŻYWAMY roadside_image_urls
+                {profileData.roadside_image_urls.length > 1 && (
                   <>
                     <button
                       onClick={goToPrevImage}
