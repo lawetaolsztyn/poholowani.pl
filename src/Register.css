@@ -2,18 +2,19 @@
 
 .register-page-container {
   /* To jest główny kontener, który będzie zawierał formularz rejestracji */
-  /* Zastępuje styleinline 'wrapper' */
   background: #fff;
   padding: 40px;
-  max-width: 500px;
+  /* Domyślna szerokość dla mniejszych ekranów (telefony, mniejsze tablety) */
+  width: 90%; /* Niech zajmuje 90% szerokości dostępnej */
+  max-width: 500px; /* Maksymalna szerokość na tych mniejszych ekranach */
   margin: 20px auto;
   border-radius: 12px;
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  box-sizing: border-box; /* Ważne, aby padding był wliczony w szerokość */
 }
 
 .register-inner-wrapper {
   /* To jest kontener dla nagłówka i formularza, jeśli potrzebujesz dodatkowego paddingu */
-  /* Zastępuje styleinline 'innerWrapper' */
   padding: 20px;
 }
 
@@ -33,7 +34,6 @@
 
 .register-input {
   /* Styl dla pól input (email, password, text) */
-  /* Zastępuje styleinline 'inputStyle' */
   width: 100%;
   padding: 12px;
   border-radius: 6px;
@@ -44,7 +44,6 @@
 
 .register-button {
   /* Styl dla przycisku "Zarejestruj" */
-  /* Zastępuje styleinline 'btnStyle' */
   width: 100%;
   padding: 12px;
   background-color: #007bff;
@@ -62,7 +61,6 @@
 
 .register-message {
   /* Styl dla wiadomości o sukcesie/błędzie */
-  /* Zastępuje styleinline 'messageStyle' */
   margin-top: 20px;
   color: red;
   font-weight: bold;
@@ -78,7 +76,6 @@
 
 .radio-group {
   /* Styl dla grupy radio buttonów */
-  /* Zastępuje styleinline 'radioGroupStyle' */
   margin-bottom: 20px;
   display: flex;
   justify-content: center; /* Wyśrodkowanie radio buttonów */
@@ -94,6 +91,16 @@
 
 .radio-group input[type="radio"] {
   margin-right: 8px;
+}
+
+
+/* ===== MEDIA QUERY DLA KOMPUTERÓW (EKRANY POWYŻEJ 768px) ===== */
+@media (min-width: 769px) { /* Używamy min-width, aby celować w większe ekrany */
+  .register-page-container {
+    max-width: 700px; /* Zwiększona szerokość tylko na komputerze (np. 700px) */
+    /* Możesz też dać inną wartość procentową, jeśli chcesz elastyczności, np. 70% */
+    /* width: 70%; */
+  }
 }
 
 
