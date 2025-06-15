@@ -3,11 +3,26 @@ import { useState, useEffect } from 'react';
 export default function RouteSlider({ routes, onHover, onClickRoute }) {
   const [startIndex, setStartIndex] = useState(0);
   const [hoveredId, setHoveredId] = useState(null);
-  const visibleCount = 6;
+  const [isMobile, setIsMobile] = useState(false);
 
+  const visibleCountDesktop = 6;
+  const visibleCountMobile = 3;
+
+  // Sprawdź czy ekran jest wąski (mobile)
   useEffect(() => {
-    setStartIndex(0); // Resetuj do początku po każdej zmianie listy tras
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Resetuj startIndex przy zmianie tras
+  useEffect(() => {
+    setStartIndex(0);
   }, [routes]);
+
+  const visibleCount = isMobile ? visibleCountMobile : visibleCountDesktop;
+  const visibleRoutes = routes.slice(startIndex, startIndex + visibleCount);
 
   const handlePrev = () => {
     if (startIndex > 0) setStartIndex(startIndex - visibleCount);
@@ -17,20 +32,45 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
     if (startIndex + visibleCount < routes.length) setStartIndex(startIndex + visibleCount);
   };
 
-  const visibleRoutes = routes.slice(startIndex, startIndex + visibleCount);
-
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', paddingBottom: '20px' }}>
+    <div
+      style={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginTop: '10px',
+        paddingBottom: '20px'
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <button
           onClick={handlePrev}
           disabled={startIndex === 0}
-          style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#e2e8f0', border: 'none', cursor: 'pointer' }}
+          style={{
+            padding: '12px',
+            borderRadius: '10px',
+            backgroundColor: '#e2e8f0',
+            border: 'none',
+            cursor: 'pointer'
+          }}
         >
           ◀
         </button>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: isMobile ? 'nowrap' : 'wrap',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: '20px',
+            justifyContent: 'center',
+            maxHeight: isMobile ? `${visibleCountMobile * 150}px` : 'auto',
+            overflowY: isMobile ? 'auto' : 'visible',
+            overflowX: 'hidden',
+            width: isMobile ? '220px' : 'auto'
+          }}
+        >
           {visibleRoutes.map((route) => (
             <div
               key={route.id}
@@ -52,6 +92,7 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
                 cursor: 'pointer',
                 width: '220px',
                 transition: 'border 0.2s ease-in-out',
+                flexShrink: 0
               }}
             >
               <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }}>
@@ -60,48 +101,47 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
               <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>📅 {route.date}</div>
               <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>📦 {route.load_capacity || '-'}</div>
               <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>🧍 {route.passenger_count || '-'}</div>
-              <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
+              <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>
+                🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}
+              </div>
               {route.phone && (
                 <div style={{ fontSize: '16px', color: '#555', marginBottom: '10px' }}>
                   📞 <strong style={{ letterSpacing: '1px' }}>{route.phone}</strong>
                 </div>
               )}
-            {route.user_id && route.users_extended?.role === 'firma' && (
-  <div style={{ fontSize: '14px', color: '#555' }}>
-    {route.users_extended.nip ? (
-      <div style={{ marginBottom: '8px' }}>
-        <span
-          title="zarejestrowana firma"
-          style={{
-            display: 'inline-block',
-            padding: '4px 8px',
-            backgroundColor: '#007bff',
-            color: '#FFC107',
-            borderRadius: '5px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            letterSpacing: '1.5px'
-          }}
-        >
-          🏢 firma
-        </span>
-      </div>
-    ) : null}
-    <strong>profil przewoźnika:</strong>{' '}
-    <a
-      href={`https://poholowani.pl/profil/${route.user_id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ fontWeight: 'bold' }}
-    >
-      otwórz
-    </a>
-  </div>
-)}
-
-
-
+              {route.user_id && route.users_extended?.role === 'firma' && (
+                <div style={{ fontSize: '14px', color: '#555' }}>
+                  {route.users_extended.nip ? (
+                    <div style={{ marginBottom: '8px' }}>
+                      <span
+                        title="zarejestrowana firma"
+                        style={{
+                          display: 'inline-block',
+                          padding: '4px 8px',
+                          backgroundColor: '#007bff',
+                          color: '#FFC107',
+                          borderRadius: '5px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          textTransform: 'uppercase',
+                          letterSpacing: '1.5px'
+                        }}
+                      >
+                        🏢 firma
+                      </span>
+                    </div>
+                  ) : null}
+                  <strong>profil przewoźnika:</strong>{' '}
+                  <a
+                    href={`https://poholowani.pl/profil/${route.user_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontWeight: 'bold' }}
+                  >
+                    otwórz
+                  </a>
+                </div>
+              )}
             </div>
           ))}
 
@@ -115,7 +155,13 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
         <button
           onClick={handleNext}
           disabled={startIndex + visibleCount >= routes.length}
-          style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#e2e8f0', border: 'none', cursor: 'pointer' }}
+          style={{
+            padding: '12px',
+            borderRadius: '10px',
+            backgroundColor: '#e2e8f0',
+            border: 'none',
+            cursor: 'pointer'
+          }}
         >
           ▶
         </button>
