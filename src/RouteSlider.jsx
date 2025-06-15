@@ -95,7 +95,11 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
               <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
 {route.phone && (
   <div style={{ fontSize: '16px', color: '#555', marginBottom: '10px' }}>
-    📞 <a href={`tel:${route.phone}`} style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}>
+    📞 <a
+         href={`tel:${route.phone}`}
+         style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}
+         onClick={(e) => e.stopPropagation()} // <--- DODAĆ TO
+       >
       {route.phone}
     </a>
     {route.usesWhatsapp && (
@@ -105,6 +109,7 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
           target="_blank"
           rel="noopener noreferrer"
           title="Napisz na WhatsApp"
+          onClick={(e) => e.stopPropagation()} // <--- DODAĆ TO
           style={{ textDecoration: 'none', color: '#25D366', fontSize: '18px', display: 'inline-block', marginTop: '4px' }}
         >
           🟢 WhatsApp
