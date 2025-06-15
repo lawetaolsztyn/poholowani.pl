@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { useParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
-import './PomocDrogowaProfil.css';
+import './PomocDrogowaProfil.css'; // Upewnij się, że masz ten plik CSS
 
 const towIcon = new L.Icon({
   iconUrl: '/icons/pomoc-drogowa.png',
@@ -22,50 +22,38 @@ export default function PomocDrogowaProfil() {
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false); // Potrzebne do trybu edycji
   const [editingSection, setEditingSection] = useState(null); // Nowy stan do zarządzania sekcjami edycji
-  
-  // --- NOWE STANY DLA GALERII I LIGHTBOXA ---
+
+  // --- STANY DLA GALERII I LIGHTBOXA (Z PublicProfile.jsx) ---
   const [showLightbox, setShowLightbox] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [newImages, setNewImages] = useState([]); // Przechowuje pliki do przesłania
   const [uploadingImages, setUploadingImages] = useState(false); // Stan ładowania plików
-  // --- KONIEC NOWYCH STANÓW ---
+  // --- KONIEC STANÓW ---
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: userData } = await supabase.auth.getUser(); // Pobieramy info o zalogowanym użytkowniku
+        const { data: userData } = await supabase.auth.getUser();
         const { data, error } = await supabase
           .from('users_extended')
-          .select('*') // Pobieramy wszystkie kolumny, w tym image_urls, roadside_description
+          .select('*') // Pobieramy wszystkie kolumny, w tym image_urls i roadside_description
           .eq('roadside_slug', slug)
           .eq('is_pomoc_drogowa', true)
           .single();
 
         if (error) throw error;
 
-        // --- PARSOWANIE DANYCH JSON (jak w PublicProfile.jsx) ---
-        if (typeof data.fleet_flags === 'string') {
-          try { data.fleet_flags = JSON.parse(data.fleet_flags); } catch { data.fleet_flags = []; }
-        } else if (!Array.isArray(data.fleet_flags)) {
-          data.fleet_flags = [];
-        }
-
+        // --- PARSOWANIE DANYCH JSON (TYLKO image_urls, jak w PublicProfile.jsx) ---
         if (typeof data.image_urls === 'string') {
           try { data.image_urls = JSON.parse(data.image_urls); } catch { data.image_urls = []; }
         } else if (!Array.isArray(data.image_urls)) {
           data.image_urls = [];
         }
-
-        if (typeof data.routes === 'string') {
-          try { data.routes = JSON.parse(data.routes); } catch { data.routes = []; }
-        } else if (!Array.isArray(data.routes)) {
-          data.routes = [];
-        }
         // --- KONIEC PARSOWANIA ---
 
         setProfileData(data);
-        setIsOwner(userData?.user?.id === data.id); // Sprawdzamy, czy zalogowany użytkownik jest właścicielem profilu
+        setIsOwner(userData?.user?.id === data.id);
       } catch (error) {
         console.error("Błąd ładowania profilu pomocy drogowej:", error.message);
         setProfileData(null);
@@ -76,24 +64,7 @@ export default function PomocDrogowaProfil() {
     fetchData();
   }, [slug]);
 
-  // Funkcja getFleetIcon (tak jak w PublicProfile)
-  const getFleetIcon = (type) => {
-    switch (type) {
-      case 'auto osobowe': return '🚗';
-      case 'bus': return '🚌';
-      case 'autolaweta': return '🛻';
-      case 'przyczepa towarowa': return '🚛';
-      case 'przyczepa laweta': return '🚜';
-      case 'przyczepa laweta podwójna': return '🚚';
-      case 'pojazd ciężarowy': return '🚚';
-      case 'naczepa ciężarowa': return '🚛';
-      case 'przyczepa ciężarowa': return '🚛';
-      case 'dostawczak': return '🚌';
-      default: return '❓';
-    }
-  };
-
-  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA (SKOPIOWANE Z PublicProfile.jsx) ---
+  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA (Z PublicProfile.jsx) ---
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file => {
@@ -124,11 +95,11 @@ export default function PomocDrogowaProfil() {
 
   const handleSaveImages = async () => {
     setUploadingImages(true);
-    let updatedImageUrls = [...(profileData.image_urls || [])]; // Użyj profileData zamiast profile
+    let updatedImageUrls = [...(profileData.image_urls || [])];
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.id !== profileData.id) throw new Error("Brak autoryzacji do edycji."); // Użyj profileData.id
+      if (!user || user.id !== profileData.id) throw new Error("Brak autoryzacji do edycji.");
 
       for (const file of newImages) {
         const formData = new FormData();
@@ -151,7 +122,7 @@ export default function PomocDrogowaProfil() {
       const { error: updateError } = await supabase
         .from('users_extended')
         .update({ image_urls: updatedImageUrls })
-        .eq('id', user.id); // Upewnij się, że aktualizujesz właściwy profil
+        .eq('id', user.id);
 
       if (updateError) throw updateError;
 
@@ -168,16 +139,16 @@ export default function PomocDrogowaProfil() {
   };
   // --- KONIEC FUNKCJI OBSŁUGUJĄCYCH ZDJĘCIA ---
 
-  // --- FUNKCJE OBSŁUGUJĄCE LIGHTBOX (SKOPIOWANE Z PublicProfile.jsx) ---
+  // --- FUNKCJE OBSŁUGUJĄCE LIGHTBOX (Z PublicProfile.jsx) ---
   const openLightbox = (index) => {
     setCurrentImageIndex(index);
     setShowLightbox(true);
-    document.body.style.overflow = 'hidden'; // Zablokuj scrollowanie strony
+    document.body.style.overflow = 'hidden';
   };
 
   const closeLightbox = () => {
     setShowLightbox(false);
-    document.body.style.overflow = 'unset'; // Odblokuj scrollowanie
+    document.body.style.overflow = 'unset';
   };
 
   const goToNextImage = () => {
@@ -233,7 +204,7 @@ export default function PomocDrogowaProfil() {
             <p className="text-blue-600 text-xl font-semibold">📞 {profileData.roadside_phone || 'Brak telefonu'}</p>
           </div>
 
-          {/* Sekcja Opisu Usługi Pomocy Drogowej */}
+          {/* Sekcja Opisu Usługi Pomocy Drogowej (roadside_description) */}
           {profileData.roadside_description && (
             <div className="mb-8 pb-4 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800 mb-3">O naszych usługach</h2>
@@ -243,34 +214,21 @@ export default function PomocDrogowaProfil() {
             </div>
           )}
 
-          {/* Sekcja Pojazdy we flocie (włączona) */}
-          {profileData.fleet_flags && profileData.fleet_flags.length > 0 && (
-            <div className="mb-8 pb-4 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">Nasza flota</h2>
-              <ul className="list-none p-0 m-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {profileData.fleet_flags.map((flag, index) => (
-                  <li key={index} className="flex items-center text-gray-700 text-lg">
-                    {getFleetIcon(flag)} <span className="ml-2">{flag}</span>
-                  </li>
-                ))}
-              </ul>
+          {/* Sekcja Mapy */}
+          {profileData.latitude && profileData.longitude && (
+            <div className="w-full h-[450px] rounded-xl overflow-hidden shadow-md border border-gray-200 mt-8">
+              <MapContainer center={[profileData.latitude, profileData.longitude]} zoom={13} className="h-full w-full">
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="&copy; OpenStreetMap contributors"
+                />
+                <Marker position={[profileData.latitude, profileData.longitude]} icon={towIcon} />
+              </MapContainer>
             </div>
           )}
-
-          {/* Sekcja Najczęstsze trasy (włączona) */}
-          {profileData.routes && profileData.routes.length > 0 && (
-            <div className="mb-8 pb-4 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-800 mb-3">Najczęstsze trasy</h2>
-              <ul className="list-disc list-inside p-0 m-0">
-                {profileData.routes.map((route, index) => (
-                  <li key={index} className="text-gray-700 mb-1 text-lg">{route}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Sekcja Galerii zdjęć (włączona) */}
-          <div className="mb-8">
+          
+          {/* SEKCJA GALERII ZDJĘĆ - TAK JAK W PUBLICPROFILE.JSX - POD MAPĄ */}
+          <div className="mb-8 mt-8"> {/* Dodany margines od góry, aby oddzielić od mapy */}
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Galeria zdjęć</h2>
               {isOwner && ( // Pokaż przycisk "Edytuj" tylko jeśli jest właścicielem
@@ -372,13 +330,13 @@ export default function PomocDrogowaProfil() {
             )}
           </div>
 
-          {/* Lightbox dla zdjęć (włączony) */}
+          {/* Lightbox dla zdjęć (z PublicProfile.jsx) */}
           {showLightbox && profileData && profileData.image_urls && profileData.image_urls.length > 0 && (
             <div
               className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
-              onClick={closeLightbox} // Kliknięcie poza obrazem zamyka lightbox
+              onClick={closeLightbox}
             >
-              <div className="relative max-w-4xl max-h-full" onClick={(e) => e.stopPropagation()}> {/* Zapobieganie zamknięciu przy kliknięciu na obraz */}
+              <div className="relative max-w-4xl max-h-full" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={closeLightbox}
                   className="absolute top-4 right-4 text-white text-3xl font-bold bg-gray-800 bg-opacity-70 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-100 transition-colors"
@@ -412,18 +370,6 @@ export default function PomocDrogowaProfil() {
             </div>
           )}
 
-          {/* Sekcja Mapy */}
-          {profileData.latitude && profileData.longitude && (
-            <div className="w-full h-[450px] rounded-xl overflow-hidden shadow-md border border-gray-200 mt-8"> {/* Dodany margines od góry */}
-              <MapContainer center={[profileData.latitude, profileData.longitude]} zoom={13} className="h-full w-full">
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution="&copy; OpenStreetMap contributors"
-                />
-                <Marker position={[profileData.latitude, profileData.longitude]} icon={towIcon} />
-              </MapContainer>
-            </div>
-          )}
         </div>
       </div>
     </>
