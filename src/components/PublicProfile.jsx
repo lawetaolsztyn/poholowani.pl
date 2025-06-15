@@ -283,9 +283,16 @@ export default function PublicProfile() {
             {profile.role === 'firma' && (
               <>
                 <p><strong>NIP:</strong> {profile.nip || 'Brak danych'}</p>
-<p><strong>Telefon:</strong>{' '}
-  <span dangerouslySetInnerHTML={{ __html: (profile.phone || '').replace(/./g, (c) => `&#${c.charCodeAt(0)};`) }} />
-</p>              </>
+<p>
+  <strong>Telefon:</strong>{' '}
+  {profile.phone ? (
+    <a href={`tel:${profile.phone.replace(/\s/g, '')}`} className="text-blue-600 hover:underline">
+      {profile.phone}
+    </a>
+  ) : (
+    'Brak danych'
+  )}
+</p>             </>
             )}
             {profile.full_name && <p><strong>Osoba kontaktowa:</strong> {profile.full_name}</p>}
             <p><strong>Adres:</strong> {profile.street} {profile.building_number}, {profile.postal_code} {profile.city}, {profile.country}</p>

@@ -224,7 +224,13 @@ export default function PomocDrogowaProfil() {
             <p className="text-gray-600 text-lg mb-1">
               <strong>Adres:</strong> {profileData.roadside_street} {profileData.roadside_number}, {profileData.roadside_city}, {profileData.country || 'Polska'}
             </p>
-            <p className="text-blue-600 text-xl font-semibold">📞 {profileData.roadside_phone || 'Brak telefonu'}</p>
+           <p className="text-blue-600 text-xl font-semibold">
+              📞 {profileData.roadside_phone ? (
+                <a href={`tel:${profileData.roadside_phone}`} className="hover:underline">
+                  {profileData.roadside_phone}
+                </a>
+              ) : 'Brak telefonu'}
+            </p>
           </div>
 
           {/* Sekcja Opisu Usługi Pomocy Drogowej (roadside_description) */}

@@ -55,12 +55,20 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '10px', paddingBottom: '20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <button
-          onClick={handlePrev}
-          disabled={startIndex === 0}
-          style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#e2e8f0', border: 'none', cursor: 'pointer' }}
-        >
-          ◀
-        </button>
+          onClick={handlePrev}
+          disabled={startIndex === 0}
+          style={{
+            padding: '12px',
+            borderRadius: '10px',
+            backgroundColor: startIndex === 0 ? '#e2e8f0' : '#cbd5e1', // ZMIANA TUTAJ
+            color: startIndex === 0 ? '#a0aec0' : '#2d3748', // ZMIANA TUTAJ
+            border: 'none',
+            cursor: startIndex === 0 ? 'not-allowed' : 'pointer', // ZMIANA TUTAJ
+            transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out' // DODANO
+          }}
+        >
+          ◀
+        </button>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
           {visibleRoutes.map((route) => (
@@ -145,7 +153,7 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
                   href={`https://poholowani.pl/profil/${route.user_id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontWeight: 'bold' }}
+                  style={{ fontWeight: 'bold', color: '#007bff' }}
                 >
                   otwórz
                 </a>
@@ -162,12 +170,20 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
         </div>
 
         <button
-          onClick={handleNext}
-          disabled={startIndex + visibleCount >= routes.length}
-          style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#e2e8f0', border: 'none', cursor: 'pointer' }}
-        >
-          ▶
-        </button>
+          onClick={handleNext}
+          disabled={startIndex + visibleCount >= routes.length}
+          style={{
+            padding: '12px',
+            borderRadius: '10px',
+            backgroundColor: startIndex + visibleCount >= routes.length ? '#e2e8f0' : '#cbd5e1', // ZMIANA TUTAJ
+            color: startIndex + visibleCount >= routes.length ? '#a0aec0' : '#2d3748', // ZMIANA TUTAJ
+            border: 'none',
+            cursor: startIndex + visibleCount >= routes.length ? 'not-allowed' : 'pointer', // ZMIANA TUTAJ
+            transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out' // DODANO
+          }}
+        >
+          ▶
+        </button>
       </div>
     </div>
   );
