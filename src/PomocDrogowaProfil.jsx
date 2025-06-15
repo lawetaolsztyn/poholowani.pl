@@ -326,12 +326,10 @@ export default function PomocDrogowaProfil() {
               // Tryb wyświetlania zdjęć (dla wszystkich)
               <div>
                 {(roadsideImageUrls.length > 0) ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-start"> {/* <--- DODANO justify-start */}
                     {roadsideImageUrls.map((url, index) => (
                       <div
                         key={index}
-                        // ZMIANA: Zastąp w-full h-auto aspect-square na konkretne wymiary
-                        // Tak jak w PublicProfile.jsx
                         className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 overflow-hidden rounded-lg shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105"
                         onClick={() => openLightbox(index)}
                       >
