@@ -5,7 +5,7 @@ import { supabase } from './supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import './LandingPage.css'; // Ten import pozostaje, ponieważ używasz .overlay-header
-import './Register.css'; // <-- NOWY IMPORT DLA STYLÓW REJESTRACJI
+import './Register.css'; // <-- IMPORT DLA STYLÓW REJESTRACJI
 import Header from './components/Header';
 
 export default function Register() {
@@ -57,10 +57,11 @@ export default function Register() {
         password: trimmedPassword,
         options: {
           data: {
-            full_name: fullName || companyName,
+            // ZMIANA TUTAJ: Wysyłaj 'full_name' tylko jeśli rola to 'klient'
+            full_name: role === 'klient' ? fullName : undefined, 
             role: role,
- company_name: companyName, // Dodaj nazwę firmy
-      nip: nip // Dodaj NIP
+            company_name: companyName, // Wysyłaj zawsze, bo kolumna istnieje
+            nip: nip // Wysyłaj zawsze, bo kolumna istnieje
           }
         }
       });
@@ -81,6 +82,10 @@ export default function Register() {
         setEmailStatusMessage('Wysłano link aktywacyjny na Twój adres e-mail. Sprawdź folder SPAM, jeśli go nie widzisz.');
         localStorage.setItem('pending_registration_email', trimmedEmail);
         localStorage.setItem('pending_registration_role', role);
+        // localStorage.setItem dla full_name, company_name, nip powinno być zaktualizowane,
+        // aby odzwierciedlać, co *faktycznie* zostało wysłane.
+        // Jeśli chcesz, aby w pending_registration_full_name było tylko pełne imię,
+        // a dla firmy było null, to zmień tutaj. Obecnie zachowuje to, co było przed zmianą logiki wysyłania.
         localStorage.setItem('pending_registration_full_name', fullName);
         localStorage.setItem('pending_registration_company_name', companyName);
         localStorage.setItem('pending_registration_nip', nip);
@@ -121,7 +126,7 @@ export default function Register() {
                 />
                 Osoba Prywatna
               </label>
-              <label className="radio-label"> {/* Opcjonalnie: dodana klasa dla lepszej kontroli odstępu */}
+              <label className="radio-label">
                 <input
                   type="radio"
                   value="firma"
