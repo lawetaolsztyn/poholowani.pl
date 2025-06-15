@@ -93,11 +93,26 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
               <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>📦 {route.load_capacity || '-'}</div>
               <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>🧍 {route.passenger_count || '-'}</div>
               <div style={{ fontSize: '14px', color: '#555', marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-              {route.phone && (
-                <div style={{ fontSize: '16px', color: '#555', marginBottom: '10px' }}>
-                  📞 <strong style={{ letterSpacing: '1px' }}>{route.phone}</strong>
-                </div>
-              )}
+{route.phone && (
+  <div style={{ fontSize: '16px', color: '#555', marginBottom: '10px' }}>
+    📞 <a href={`tel:${route.phone}`} style={{ textDecoration: 'none', color: '#007bff', fontWeight: 'bold' }}>
+      {route.phone}
+    </a>
+    {route.usesWhatsapp && (
+      <div style={{ marginTop: '4px' }}>
+        <a
+          href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Napisz na WhatsApp"
+          style={{ textDecoration: 'none', color: '#25D366', fontSize: '18px', display: 'inline-block', marginTop: '4px' }}
+        >
+          🟢 WhatsApp
+        </a>
+      </div>
+    )}
+  </div>
+)}
             {route.user_id && route.users_extended?.role === 'firma' && (
               <div style={{ fontSize: '14px', color: '#555' }}>
                 {route.users_extended.nip ? (

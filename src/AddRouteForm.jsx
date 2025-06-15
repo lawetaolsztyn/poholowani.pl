@@ -33,7 +33,8 @@ function AddRouteForm({ onRouteCreated }) {
     maxDetour: '50',
     passengerCount: '',
     phone: '',
-    messenger: ''
+    messenger: '',
+ usesWhatsapp: false,
   });
 
   const [routeData, setRouteData] = useState(null);
@@ -150,6 +151,7 @@ function AddRouteForm({ onRouteCreated }) {
         geojson: routeData,
         created_at: new Date().toISOString(),
         phone: form.phone || null,
+	uses_whatsapp: form.usesWhatsapp,
         messenger_link: form.messenger || null,
         user_id: userId || null,
         browser_token: browserToken || null
@@ -255,6 +257,17 @@ setForm(prevForm => ({
             <label>Numer telefonu:</label>
             <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="uinput" />
           </div>
+<div className="form-field">
+  <label>
+    <input
+      type="checkbox"
+      name="usesWhatsapp"
+      checked={form.usesWhatsapp}
+      onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
+    />
+    Kontakt WhatsApp
+  </label>
+</div>
           <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Messenger: (link)</label>
             <input type="url" name="messenger" value={form.messenger} onChange={handleChange} className="uinput" />
