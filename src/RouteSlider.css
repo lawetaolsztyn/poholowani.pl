@@ -128,6 +128,14 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Ciemniejszy cień */
   }
 
+/* Messenger link w trybie ciemnym */
+.route-card-item a[href*="messenger.com"] {
+  color: #3390FF; /* Jaśniejszy odcień Messengera */
+}
+
+.route-card-item a[href*="messenger.com"]:hover {
+  color: #66A9FF;
+}
   .route-card-item:hover {
     border: 2px solid red; /* Nadal czerwona ramka na hover */
   }
@@ -152,6 +160,18 @@
   .route-card-item a[href^="https://wa.me/"] {
     color: #25D366; /* Domyślny zielony kolor WhatsApp */
   }
+.route-card-item a[href*="messenger.com"] {
+  font-size: 18px;
+  display: inline-block;
+  color: #0084FF;
+  font-weight: bold;
+  margin-top: 4px;
+  text-decoration: none;
+}
+
+.route-card-item a[href*="messenger.com"]:hover {
+  text-decoration: underline;
+}
 
   .route-card-item a[href^="https://wa.me/"]:hover {
     color: #2CD97B; /* Jaśniejszy zielony na hover */
