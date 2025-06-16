@@ -109,7 +109,7 @@
 .secondary-button .subtext {
   font-size: 0.9rem;
   margin-top: 0.5rem;
-  color: #ccc;
+  color: #FFFFFF;
   display: block;
 }
 
@@ -200,6 +200,6 @@
 
   .primary-button .subtext,
   .secondary-button .subtext {
-    color: #b0b0b0;
+    color: #FFFFFF;
   }
 }
