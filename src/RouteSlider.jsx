@@ -108,7 +108,7 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
       href={route.messenger_link}
       target="_blank"
       rel="noopener noreferrer"
-      style={{ textDecoration: 'none', color: '#0084FF', fontSize: '18px', fontWeight: 'bold' }}
+      style={{ color: '#0084FF', fontSize: '18px', fontWeight: 'bold' }}
     >
       🔵 Messenger
     </a>
