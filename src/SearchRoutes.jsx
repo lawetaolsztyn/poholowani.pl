@@ -93,8 +93,6 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, center, resetTrigger, 
     return null;
 }
 
-// ... (pozostały kod HighlightedRoute przed return) ...
-
 function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
   const popupRef = useRef(null);
   const map = useMap();
@@ -118,62 +116,39 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
   if (coords.length === 0) return null;
 
   return (
-    <> {/* <--- WAŻNE: Dodajemy React Fragment, bo zwracamy WIĘCEJ NIŻ JEDEN ELEMENT */}
-      {/* 1. Niewidzialna, GRUBSZA polilinia do obsługi dotyku/kliknięcia */}
-      <Polyline
-        positions={coords}
-        pane={isHovered ? 'hovered' : 'routes'} // Zachowaj ten sam pane
-        pathOptions={{
-          color: 'transparent', // Zrób ją niewidzialną
-          weight: 20,           // Nadaj jej dużą grubość dla łatwiejszego trafiania (np. 20px)
-          opacity: 0,           // Całkowicie przezroczysta
-          interactive: true     // Upewnij się, że jest interaktywna
-        }}
-        // TUTAJ PRZENOSIMY WSZYSTKIE eventHandlers Z ORYGINALNEJ POLILINII
-        eventHandlers={{
-          mouseover: (e) => {
-            if (closeTimeoutRef.current) {
-              clearTimeout(closeTimeoutRef.current);
-              closeTimeoutRef.current = null;
-            }
-            // Zamiast e.target.setStyle({ color: 'red' });
-            // Wywołujemy onPolylineMouseOver, który zmieni stan hoveredRouteId i odświeży WIZUALNĄ linię
-            if (onPolylineMouseOver) onPolylineMouseOver(route.id);
-            if (popupRef.current) {
-              popupRef.current.setLatLng(e.latlng).openOn(map);
-            }
-          },
-          mouseout: (e) => {
-            closeTimeoutRef.current = setTimeout(() => {
-              if (popupRef.current) {
-                popupRef.current.close();
-              }
-              closeTimeoutRef.current = null;
-            }, 1600); // Utrzymujemy 1600ms z Twojego kodu
-            if (onPolylineMouseOut) onPolylineMouseOut(null);
-          },
-          mousemove: (e) => {
-            if (popupRef.current && popupRef.current.isOpen()) {
-              popupRef.current.setLatLng(e.latlng);
-            }
+    <Polyline
+      positions={coords}
+      pane={isHovered ? 'hovered' : 'routes'}
+      pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
+      eventHandlers={{
+        mouseover: (e) => {
+          if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+            closeTimeoutRef.current = null;
           }
-        }}
-      /> {/* <--- WAŻNE: SAMOZAMYKAJĄCY SIĘ TAG Polyline */}
-
-      {/* 2. Widzialna, CIEŃSZA polilinia (wizualna) */}
-      <Polyline
-        positions={coords}
-        pane={isHovered ? 'hovered' : 'routes'} // Zachowaj ten sam pane
-        pathOptions={{
-          color: isHovered ? 'red' : 'blue', // Kolor zależny od stanu hovera
-          weight: isHovered ? 6 : 5,         // Grubość zależna od stanu hovera
-          interactive: false                 // BARDZO WAŻNE: TA LINIA NIE REAGUJE NA KLIKNIĘCIA
-                                             // Całą interakcję obsługuje niewidzialna linia powyżej.
-        }}
-        // TUTAJ NIE MA eventHandlers - są one obsługiwane przez niewidzialną polilinię
-      /> {/* <--- WAŻNE: SAMOZAMYKAJĄCY SIĘ TAG Polyline */}
-
-      {/* Popup pozostaje tutaj, tak jak był, ale jest teraz rodzeństwem polilinii, a nie dzieckiem */}
+          e.target.setStyle({ color: 'red' });
+          if (popupRef.current) {
+            popupRef.current.setLatLng(e.latlng).openOn(map);
+          }
+          if (onPolylineMouseOver) onPolylineMouseOver(route.id);
+        },
+        mouseout: (e) => {
+          e.target.setStyle({ color: 'blue' });
+          closeTimeoutRef.current = setTimeout(() => {
+            if (popupRef.current) {
+              popupRef.current.close();
+            }
+            closeTimeoutRef.current = null;
+          }, 1600);
+          if (onPolylineMouseOut) onPolylineMouseOut(null);
+        },
+        mousemove: (e) => {
+          if (popupRef.current && popupRef.current.isOpen()) {
+            popupRef.current.setLatLng(e.latlng);
+          }
+        }
+      }}
+    >
       <Popup ref={popupRef} autoClose={false} closeOnMouseOut={false} closeButton={false}>
         <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
           <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
@@ -182,23 +157,22 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
           </div>
           <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
           <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
-          <div style={{ marginBottom: '6px' }}>🧍 {route.passenger_count || '–'}</div>
+          <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
           <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-
-          {route.phone && (
+           {route.phone && (
             <div style={{ marginBottom: '10px' }}>
               📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
-                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
+                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}> {/* Link telefoniczny */}
                   {route.phone}
                 </a>
               </strong>
-              {route.uses_whatsapp && (
+              {route.uses_whatsapp && ( // Sprawdzamy czy uses_whatsapp jest true
                 <div style={{ marginTop: '4px' }}>
                   <a
-                    href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
+                    href={`https://wa.me/${route.phone.replace(/\D/g, '')}`} // Generujemy link WhatsApp
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
+                    style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }} // Stylizacja dla WhatsApp
                   >
                     🟢 WhatsApp
                   </a>
@@ -206,7 +180,6 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
               )}
             </div>
           )}
-
           {route.messenger_link && (
             <div style={{ marginBottom: '10px' }}>
               <strong>Messenger:</strong>{' '}
@@ -215,25 +188,26 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
               </a>
             </div>
           )}
-          {route.user_id && route.users_extended?.nip && (
-            <div>
-              <div style={{ marginBottom: '8px' }}>
-                <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                  🏢 Firma
-                </span>
-              </div>
-              <strong>Profil przewoźnika:</strong>{' '}
-              <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
-                otwórz
-              </a>
-            </div>
-          )}
+         {route.user_id && route.users_extended?.nip && (
+  <div>
+    <div style={{ marginBottom: '8px' }}>
+      <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+        🏢 Firma
+      </span>
+    </div>
+    <strong>Profil przewoźnika:</strong>{' '}
+    <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+      otwórz
+    </a>
+  </div>
+)}
+
         </div>
       </Popup>
-    </> /* <--- ZAMKNIJ TEN FRAGMENT REACT */
-</Polyline> 
- );
+    </Polyline>
+  );
 }
+
 function SearchRoutes() {
     const [center, setCenter] = useState([52.2297, 21.0122]);
     const [allRoutes, setAllRoutes] = useState([]);
