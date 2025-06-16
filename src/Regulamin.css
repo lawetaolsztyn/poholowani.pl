@@ -1,0 +1,78 @@
+/* src/Regulamin.css */
+
+.regulamin-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+  background-color: #ffffff; /* Domyślne jasne tło */
+  color: #333333; /* Domyślny ciemny tekst */
+}
+
+.regulamin-container h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333333; /* Domyślny ciemny kolor nagłówków */
+}
+
+.regulamin-container h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #333333; /* Domyślny ciemny kolor nagłówków */
+}
+
+.regulamin-container p {
+  margin-bottom: 1rem;
+}
+
+.regulamin-container strong {
+    font-weight: bold;
+}
+
+.regulamin-container a {
+  color: #007bff; /* Domyślny kolor linków */
+  text-decoration: none;
+}
+
+.regulamin-container a:hover {
+  text-decoration: underline;
+}
+
+/* Styl dla stopki dokumentu (np. "Ten dokument jest dostępny publicznie...") */
+.regulamin-footer-text {
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: #777777; /* Domyślny ciemniejszy kolor szary */
+  text-align: center; /* Dodajemy dla spójności, jeśli to potrzebne */
+}
+
+
+/* Tryb ciemny */
+@media (prefers-color-scheme: dark) {
+  .regulamin-container {
+    background-color: #2b2b2b; /* Ciemne tło w trybie ciemnym */
+    color: #e0e0e0; /* Jasny tekst w trybie ciemnym */
+  }
+
+  .regulamin-container h1,
+  .regulamin-container h2 {
+    color: #f0f0f0; /* Jasny kolor nagłówków w trybie ciemnym */
+  }
+
+  .regulamin-container p {
+    color: #e0e0e0;
+  }
+
+  .regulamin-container a {
+    color: #8ab4f8; /* Jasnoniebieski kolor linków w trybie ciemnym */
+  }
+
+  .regulamin-container a:hover {
+    color: #a7c7fa;
+  }
+
+  .regulamin-footer-text {
+    color: #cccccc; /* Jaśniejszy szary w trybie ciemnym */
+  }
+}

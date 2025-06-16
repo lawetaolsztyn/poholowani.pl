@@ -1,17 +1,11 @@
 import Navbar from './components/Navbar';
+import './Regulamin.css'; // Dodaj import pliku CSS
 
 export default function Regulamin() {
   return (
     <>
       <Navbar />
-      <div style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        padding: '2rem',
-        fontFamily: 'Poppins, sans-serif',
-        lineHeight: '1.6',
-        color: '#333'
-      }}>
+      <div className="regulamin-container"> {/* Usunięte style inline, dodana klasa */}
         <h1>Regulamin serwisu poholowani.pl</h1>
 
         <h2>1. Postanowienia ogólne</h2>
@@ -61,7 +55,7 @@ export default function Regulamin() {
           6.3. Regulamin wchodzi w życie z dniem publikacji w serwisie.
         </p>
 
-        <p style={{ marginTop: '2rem', fontSize: '0.9rem', color: '#777' }}>
+        <p className="regulamin-footer-text"> {/* Usunięte style inline, dodana klasa */}
           Ten dokument jest dostępny publicznie pod adresem: <strong>http://poholowani.pl/regulamin</strong>
         </p>
       </div>
