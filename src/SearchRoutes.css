@@ -179,12 +179,20 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 
+  /* ZMIANY DLA PÓL INPUT/SELECT */
+  .location-autocomplete-field input, /* Dotyczy pola input w LocationAutocomplete */
   .form-select-field,
   .form-date-field {
-    background-color: white;
-    color: #333;
-    border: 1px solid #555;
+    background-color: #444; /* Ciemne tło dla pól input/select w trybie ciemnym */
+    color: #e0e0e0; /* Jasny tekst dla pól input/select w trybie ciemnym */
+    border: 1px solid #666; /* Ciemniejsza ramka */
   }
+
+  /* Domyślny kolor tekstu w inputach (ważne, żeby nadpisać domyślny biały z poprzedniej reguły) */
+  .location-autocomplete-field {
+      color: #e0e0e0; /* Ustawienie koloru tekstu w polu autocomplete */
+  }
+
 
   .search-button {
     background-color: #0056b3;
