@@ -37,31 +37,33 @@
   color: #ffffff;
 }
 
+/* Plik: Footer.css */
+
 .footer-bottom {
   text-align: center;
   font-size: 0.9rem;
   border-top: 1px solid #444;
   padding-top: 1rem;
-  color: #888;
+  color: #FFFFFF; /* Zmienione z #888 na biały */
 }
+
 .footer-legal {
   text-align: center;
   font-size: 0.75rem;
-  color: #999;
+  color: #FFFFFF; /* Zmienione z #999 na biały */
   margin-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
 
 .footer-legal a {
-  color: #bbb;
+  color: #007bff; /* Zmienione z #bbb na standardowy niebieski dla linków */
   text-decoration: none;
   margin: 0 4px;
 }
 
 .footer-legal a:hover {
-  color: #fff;
+  color: #66b2ff; /* Jasniejszy niebieski dla hover, żeby było widać interakcję */
 }
-
 @media (max-width: 768px) {
   .footer-top {
 padding: 0.5rem 0.5rem 0.5rem;
