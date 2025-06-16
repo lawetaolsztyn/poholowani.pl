@@ -286,17 +286,42 @@ function AddRouteForm({ onRouteCreated }) {
                 className="country-code-select uinput" // Dodajemy obie klasy: nową i .uinput
               >
                 <option value="+48">🇵🇱 +48</option>
-                <option value="+49">🇩🇪 +49</option>
-                <option value="+44">🇬🇧 +44</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+33">🇫🇷 +33</option>
-                <option value="+34">🇪🇸 +34</option>
-                <option value="+39">🇮🇹 +39</option>
-                <option value="+43">🇦🇹 +43</option>
-                <option value="+420">🇨🇿 +420</option>
-                <option value="+421">🇸🇰 +421</option>
-                <option value="+380">🇺🇦 +380</option>
-                {/* Możesz dodać więcej krajów */}
+                <option value="+355">🇦🇱 Albania +355</option>
+<option value="+43">🇦🇹 Austria +43</option>
+<option value="+375">🇧🇾 Białoruś +375</option>
+<option value="+32">🇧🇪 Belgia +32</option>
+<option value="+387">🇧🇦 Bośnia i Hercegowina +387</option>
+<option value="+359">🇧🇬 Bułgaria +359</option>
+<option value="+385">🇭🇷 Chorwacja +385</option>
+<option value="+420">🇨🇿 Czechy +420</option>
+<option value="+45">🇩🇰 Dania +45</option>
+<option value="+372">🇪🇪 Estonia +372</option>
+<option value="+358">🇫🇮 Finlandia +358</option>
+<option value="+33">🇫🇷 Francja +33</option>
+<option value="+49">🇩🇪 Niemcy +49</option>
+<option value="+30">🇬🇷 Grecja +30</option>
+<option value="+36">🇭🇺 Węgry +36</option>
+<option value="+354">🇮🇸 Islandia +354</option>
+<option value="+353">🇮🇪 Irlandia +353</option>
+<option value="+39">🇮🇹 Włochy +39</option>
+<option value="+371">🇱🇻 Łotwa +371</option>
+<option value="+423">🇱🇮 Liechtenstein +423</option>
+<option value="+370">🇱🇹 Litwa +370</option>
+<option value="+352">🇱🇺 Luksemburg +352</option>
+<option value="+373">🇲🇩 Mołdawia +373</option>
+<option value="+31">🇳🇱 Holandia +31</option>
+<option value="+47">🇳🇴 Norwegia +47</option>
+<option value="+351">🇵🇹 Portugalia +351</option>
+<option value="+40">🇷🇴 Rumunia +40</option>
+<option value="+421">🇸🇰 Słowacja +421</option>
+<option value="+386">🇸🇮 Słowenia +386</option>
+<option value="+34">🇪🇸 Hiszpania +34</option>
+<option value="+46">🇸🇪 Szwecja +46</option>
+<option value="+41">🇨🇭 Szwajcaria +41</option>
+<option value="+90">🇹🇷 Turcja +90</option>
+<option value="+380">🇺🇦 Ukraina +380</option>
+<option value="+44">🇬🇧 Wielka Brytania +44</option>
+<option value="+383">🇽🇰 Kosowo +383</option>
               </select>
               <input
                 type="tel"
