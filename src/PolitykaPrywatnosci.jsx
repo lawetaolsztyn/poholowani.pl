@@ -1,9 +1,10 @@
 import React from 'react';
+import './PolitykaPrywatnosci.css'; // Dodaj import pliku CSS
 
 const PolitykaPrywatnosci = () => {
   return (
-    <div className="polityka-container" style={{ padding: '2rem', fontFamily: 'Poppins, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Polityka prywatności</h1>
+    <div className="polityka-container"> {/* Usunięte style inline */}
+      <h1>Polityka prywatności</h1> {/* Usunięte style inline */}
 
       <h2>1. Administrator danych</h2>
       <p>
@@ -50,7 +51,7 @@ const PolitykaPrywatnosci = () => {
 
       <h2>6. Pliki cookies</h2>
       <p>
-        Serwis wykorzystuje pliki cookies w celach statystycznych, funkcjonalnych, bezpieczeństwa oraz integracji z zewnętrznymi usługami (takimi jak Google reCAPTCHA oraz logowanie przez Google i Facebook).<br />
+        Serwis wykorzystuje pliki cookies w celach statystycznych, funkcjonalnych, bezpieczeństwa oraz integracji z zewnętrznymi usługami (takich jak Google reCAPTCHA oraz logowanie przez Google i Facebook).<br />
         Każdy użytkownik może zarządzać ustawieniami cookies w swojej przeglądarce. Korzystanie z serwisu po akceptacji komunikatu oznacza zgodę na ich użycie.
       </p>
 
