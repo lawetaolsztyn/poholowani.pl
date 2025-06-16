@@ -102,6 +102,18 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
                   )}
                 </div>
               )}
+{route.messenger_link && (
+  <div style={{ marginTop: '4px' }}>
+    <a
+      href={route.messenger_link}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+    >
+      🔵 Messenger
+    </a>
+  </div>
+)}
               {route.user_id && route.users_extended?.role === 'firma' && (
                 <div style={{ fontSize: '14px' }}> {/* Usuwamy color: #555 */}
                   {route.users_extended.nip ? (
