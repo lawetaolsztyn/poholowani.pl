@@ -24,9 +24,9 @@ const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
 
 function AddRouteForm({ onRouteCreated }) {
   const [form, setForm] = useState({
-    from: { label: '', coords: null }, 
-  to: { label: '', coords: null }, 
-  via: { label: '', coords: null },
+    from: { label: '', coords: null },
+    to: { label: '', coords: null },
+    via: { label: '', coords: null },
     date: '',
     vehicleType: 'bus',
     loadCapacity: '',
@@ -34,7 +34,7 @@ function AddRouteForm({ onRouteCreated }) {
     passengerCount: '',
     phone: '',
     messenger: '',
- usesWhatsapp: false,
+    usesWhatsapp: false,
   });
 
   const [routeData, setRouteData] = useState(null);
@@ -75,29 +75,30 @@ function AddRouteForm({ onRouteCreated }) {
         ...prevForm,
         [name]: type === 'checkbox' ? checked : value
     }));
-};
-const handleFromSelect = (label, sug) => {
-  setForm(prevForm => ({
-    ...prevForm,
-    from: { label: label, coords: sug.geometry.coordinates }
-  }));
-};
+  };
 
-const handleToSelect = (label, sug) => {
-  setForm(prevForm => ({
-    ...prevForm,
-    to: { label: label, coords: sug.geometry.coordinates }
-  }));
-};
+  const handleFromSelect = (label, sug) => {
+    setForm(prevForm => ({
+      ...prevForm,
+      from: { label: label, coords: sug.geometry.coordinates }
+    }));
+  };
 
-const handleViaSelect = (label, sug) => {
-  setForm(prevForm => ({
-    ...prevForm,
-    via: { label: label, coords: sug.geometry.coordinates }
-  }));
-};
+  const handleToSelect = (label, sug) => {
+    setForm(prevForm => ({
+      ...prevForm,
+      to: { label: label, coords: sug.geometry.coordinates }
+    }));
+  };
 
- const handleSubmit = async (e) => {
+  const handleViaSelect = (label, sug) => {
+    setForm(prevForm => ({
+      ...prevForm,
+      via: { label: label, coords: sug.geometry.coordinates }
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSaving) return;
     setIsSaving(true);
@@ -119,24 +120,20 @@ const handleViaSelect = (label, sug) => {
       const apiKey = import.meta.env.VITE_ORS_API_KEY;
       const browserToken = localStorage.getItem('browser_token');
 
-      const fromCoords = await geocode(form.from);
-      const toCoords = await geocode(form.to);
+      // !!! Usunięta funkcja geocode, która używała ORS Geocoding API,
+      // ponieważ koordynaty są już dostępne z LocationAutocomplete (Mapbox) !!!
+      // const geocode = async (place) => { ... };
 
-      if (!fromCoords || !toCoords) {
-        alert('Nie znaleziono jednego z miast.');
-        setIsSaving(false);
-        return;
-      }
-
+      // Używamy bezpośrednio koordynat z formularza
       let coordinates = [form.from.coords]; // form.from.coords to już [lng, lat]
 
-     if (form.via.coords) { // Sprawdzamy czy punkt pośredni ma koordynaty
+      if (form.via.coords) { // Sprawdzamy czy punkt pośredni ma koordynaty
         coordinates.push(form.via.coords);
       }
 
       coordinates.push(form.to.coords); // form.to.coords to już [lng, lat]
 
-       // Zapytanie do OpenRouteService o trasę - DODAJEMY instructions: false i geometry_simplify: true
+      // Zapytanie do OpenRouteService o trasę - DODAJEMY instructions: false i geometry_simplify: true
       const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
         method: 'POST',
         headers: {
@@ -186,7 +183,8 @@ const handleViaSelect = (label, sug) => {
 
       onRouteCreated(routeData);
 
-setForm(prevForm => ({
+      // Resetowanie formularza po zapisie - czyścimy etykiety i koordynaty
+      setForm(prevForm => ({
         ...prevForm,
         from: { label: '', coords: null },
         to: { label: '', coords: null },
@@ -201,28 +199,36 @@ setForm(prevForm => ({
     }
   };
 
- return (
-    // ...
-    <LocationAutocomplete
-      value={form.from.label} // Nadal przekazujemy etykietę do wyświetlenia
-      onSelectLocation={handleFromSelect} // Zmieniamy na nową funkcję
-      placeholder="np. Warszawa"
-      className="narrow-autocomplete"
-    />
-    // ...
-    <LocationAutocomplete
-      value={form.to.label}
-      onSelectLocation={handleToSelect} // Zmieniamy na nową funkcję
-      placeholder="np. Berlin"
-      className="narrow-autocomplete"
-    />
-    // ...
-    <LocationAutocomplete
-      value={form.via.label}
-      onSelectLocation={handleViaSelect} // Zmieniamy na nową funkcję
-      placeholder="np. Poznań"
-      className="narrow-autocomplete"
-    />
+  return (
+    <>
+      <form className="route-form" onSubmit={handleSubmit}> {/* Dodana klasa .route-form */}
+        <div className="form-row"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+            <label>Skąd:</label>
+            <LocationAutocomplete
+              value={form.from.label} // Nadal przekazujemy etykietę do wyświetlenia
+              onSelectLocation={handleFromSelect} // Zmieniamy na nową funkcję
+              placeholder="np. Warszawa"
+              className="narrow-autocomplete"
+            />
+          </div>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+            <label>Dokąd:</label>
+            <LocationAutocomplete
+              value={form.to.label}
+              onSelectLocation={handleToSelect} // Zmieniamy na nową funkcję
+              placeholder="np. Berlin"
+              className="narrow-autocomplete"
+            />
+          </div>
+          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+            <label>Punkt pośredni:</label>
+            <LocationAutocomplete
+              value={form.via.label}
+              onSelectLocation={handleViaSelect} // Zmieniamy na nową funkcję
+              placeholder="np. Poznań"
+              className="narrow-autocomplete"
+            />
           </div>
           <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Data przejazdu:</label>
@@ -236,7 +242,7 @@ setForm(prevForm => ({
               min={new Date().toISOString().split('T')[0]}
             />
           </div>
-        </div>
+        </div> {/* <-- TUTAJ BYŁ BRAKUJĄCY ZAMYKAJĄCY DIV DLA form-row! */}
 
         <div className="form-row"> {/* Nowa klasa do stylizacji */}
           <div className="form-field"> {/* Nowa klasa do stylizacji */}
@@ -267,17 +273,17 @@ setForm(prevForm => ({
             <label>Numer telefonu:</label>
             <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="uinput" />
           </div>
-<div className="form-field">
-  <label>
-    <input
-      type="checkbox"
-      name="usesWhatsapp"
-      checked={form.usesWhatsapp}
-      onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
-    />
-    Kontakt WhatsApp
-  </label>
-</div>
+          <div className="form-field">
+            <label>
+              <input
+                type="checkbox"
+                name="usesWhatsapp"
+                checked={form.usesWhatsapp}
+                onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
+              />
+              Kontakt WhatsApp
+            </label>
+          </div>
           <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Messenger: (link)</label>
             <input type="url" name="messenger" value={form.messenger} onChange={handleChange} className="uinput" />
