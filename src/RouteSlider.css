@@ -10,14 +10,23 @@
   padding-bottom: 20px;
 }
 
-/* Kontener przycisków i kafelków */
+/* Kontener przycisków i kafelków - ZMIANY TUTAJ */
 .route-slider-content-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap; /* Upewnij się, że kafelki zawijają się na mniejszych ekranach */
-  justify-content: center; /* Wyśrodkowanie kafelków */
+  display: flex; /* Ustawiamy jako flex container */
+  align-items: center; /* Wyśrodkowanie elementów wzdłuż osi poprzecznej */
+  gap: 20px; /* Odstęp między elementami */
+  /* Usunięto flex-wrap i justify-content, aby przyciski pozostały po bokach */
 }
+
+/* Nowy kontener dla samych kafelków, aby były wyśrodkowane i zawijały się */
+.route-cards-display {
+  display: flex;
+  flex-wrap: wrap; /* Pozwala kafelkom zawijać się wewnątrz */
+  gap: 20px;
+  justify-content: center; /* Wyśrodkowanie kafelków wewnątrz tego kontenera */
+  flex-grow: 1; /* Pozwala mu zająć dostępne miejsce */
+}
+
 
 /* Style dla kafelka trasy */
 .route-card-item {
@@ -85,6 +94,7 @@
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
   font-size: 1.5rem; /* Większy rozmiar symboli */
   line-height: 1; /* Poprawia centrowanie symboli */
+  flex-shrink: 0; /* Zapobiega zmniejszaniu się przycisków */
 }
 
 .slider-nav-button:disabled {
@@ -169,4 +179,13 @@
   .no-routes-message {
     color: #bbb; /* Jasny tekst dla braku tras */
   }
+}
+
+/* Media Query dla układu bocznego na większych ekranach */
+@media (min-width: 769px) { /* Stosuje się od tabletów wzwyż */
+    .route-slider-content-wrapper {
+        flex-wrap: nowrap; /* Zapobiega zawijaniu przycisków i kafelków */
+        justify-content: space-between; /* Rozkłada elementy na skrajach kontenera */
+        width: 100%; /* Rozciąga się na całą dostępną szerokość */
+    }
 }
