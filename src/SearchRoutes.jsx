@@ -159,9 +159,25 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
           <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
           <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
           <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-          {route.phone && (
+           {route.phone && (
             <div style={{ marginBottom: '10px' }}>
-              📞 Telefon: <strong style={{ letterSpacing: '1px' }}>{route.phone}</strong>
+              📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
+                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}> {/* Link telefoniczny */}
+                  {route.phone}
+                </a>
+              </strong>
+              {route.uses_whatsapp && ( // Sprawdzamy czy uses_whatsapp jest true
+                <div style={{ marginTop: '4px' }}>
+                  <a
+                    href={`https://wa.me/${route.phone.replace(/\D/g, '')}`} // Generujemy link WhatsApp
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }} // Stylizacja dla WhatsApp
+                  >
+                    🟢 WhatsApp
+                  </a>
+                </div>
+              )}
             </div>
           )}
           {route.messenger_link && (
