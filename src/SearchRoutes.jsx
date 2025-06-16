@@ -180,14 +180,18 @@ function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMou
               )}
             </div>
           )}
-          {route.messenger_link && (
-            <div style={{ marginBottom: '10px' }}>
-              <strong>Messenger:</strong>{' '}
-              <a href={route.messenger_link} target="_blank" rel="noopener noreferrer">
-                otwórz
-              </a>
-            </div>
-          )}
+        {route.messenger_link && (
+  <div style={{ marginTop: '4px' }}>
+    <a
+      href={route.messenger_link}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+    >
+      🔵 Messenger
+    </a>
+  </div>
+)}
          {route.user_id && route.users_extended?.nip && (
   <div>
     <div style={{ marginBottom: '8px' }}>
