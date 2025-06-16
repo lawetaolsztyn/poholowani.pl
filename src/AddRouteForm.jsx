@@ -33,6 +33,7 @@ function AddRouteForm({ onRouteCreated }) {
     maxDetour: '50',
     passengerCount: '',
     phone: '',
+    countryCode: '+48', // Dodajemy domyślny kod kraju
     messenger: '',
     usesWhatsapp: false,
   });
@@ -104,7 +105,7 @@ function AddRouteForm({ onRouteCreated }) {
     setIsSaving(true);
 
     // Walidacja współrzędnych
-    if (!form.from.coords || !form.to.coords) { // Sprawdzamy coords, nie tylko label
+    if (!form.from.coords || !form.to.coords) {
       alert('❗Uzupełnij pola "Skąd" i "Dokąd", wybierając z listy sugestii.');
       setIsSaving(false);
       return;
@@ -116,24 +117,26 @@ function AddRouteForm({ onRouteCreated }) {
       return;
     }
 
+    // Dodatkowa walidacja dla numeru telefonu: sprawdzamy, czy pole nie jest puste, gdy podano kod kraju
+    if (form.countryCode && !form.phone && form.phone !== '') { // Sprawdzamy, czy nie jest pustym stringiem
+        alert('❗Proszę podać numer telefonu po wybraniu kodu kraju.');
+        setIsSaving(false);
+        return;
+    }
+
+
     try {
       const apiKey = import.meta.env.VITE_ORS_API_KEY;
       const browserToken = localStorage.getItem('browser_token');
 
-      // !!! Usunięta funkcja geocode, która używała ORS Geocoding API,
-      // ponieważ koordynaty są już dostępne z LocationAutocomplete (Mapbox) !!!
-      // const geocode = async (place) => { ... };
+      let coordinates = [form.from.coords];
 
-      // Używamy bezpośrednio koordynat z formularza
-      let coordinates = [form.from.coords]; // form.from.coords to już [lng, lat]
-
-      if (form.via.coords) { // Sprawdzamy czy punkt pośredni ma koordynaty
+      if (form.via.coords) {
         coordinates.push(form.via.coords);
       }
 
-      coordinates.push(form.to.coords); // form.to.coords to już [lng, lat]
+      coordinates.push(form.to.coords);
 
-      // Zapytanie do OpenRouteService o trasę - DODAJEMY instructions: false i geometry_simplify: true
       const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
         method: 'POST',
         headers: {
@@ -142,8 +145,8 @@ function AddRouteForm({ onRouteCreated }) {
         },
         body: JSON.stringify({
           coordinates: coordinates,
-          instructions: false, // <-- DODANE
-          geometry_simplify: true // <-- DODANE (opcjonalnie, ale zalecane)
+          instructions: false,
+          geometry_simplify: true
         })
       });
 
@@ -154,10 +157,9 @@ function AddRouteForm({ onRouteCreated }) {
       const userId = user?.id;
 
       const routePayload = {
-        // Zapisujemy etykiety do bazy danych
         from_city: form.from.label,
         to_city: form.to.label,
-        via: form.via.label || null, // Używamy etykiety, jeśli istnieje
+        via: form.via.label || null,
         date: form.date,
         vehicle_type: form.vehicleType,
         load_capacity: form.loadCapacity || null,
@@ -165,7 +167,8 @@ function AddRouteForm({ onRouteCreated }) {
         max_detour_km: parseInt(form.maxDetour),
         geojson: routeData,
         created_at: new Date().toISOString(),
-        phone: form.phone || null,
+        // Łączymy kod kraju z numerem telefonu tutaj
+        phone: form.phone ? `${form.countryCode}${form.phone}` : null, // Łączymy tylko jeśli numer telefonu jest podany
         uses_whatsapp: form.usesWhatsapp,
         messenger_link: form.messenger || null,
         user_id: userId || null,
@@ -183,17 +186,19 @@ function AddRouteForm({ onRouteCreated }) {
 
       onRouteCreated(routeData);
 
-      // Resetowanie formularza po zapisie - czyścimy etykiety i koordynaty
+      // Resetowanie formularza po zapisie - czyścimy etykiety, koordynaty i pola telefonu
       setForm(prevForm => ({
         ...prevForm,
         from: { label: '', coords: null },
         to: { label: '', coords: null },
-        via: { label: '', coords: null }
+        via: { label: '', coords: null },
+        phone: '', // Resetujemy pole telefonu
+        countryCode: '+48' // Resetujemy kod kraju do domyślnego
       }));
       alert('✅ Trasa zapisana do bazy danych!');
     } catch (err) {
       console.error('Błąd wyznaczania lub zapisu trasy:', err);
-      alert('❌ Wystąpił błąd podczas zapisu trasy: ' + err.message); // Wyświetl dokładniejszy błąd
+      alert('❌ Wystąpił błąd podczas zapisu trasy: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -201,36 +206,36 @@ function AddRouteForm({ onRouteCreated }) {
 
   return (
     <>
-      <form className="route-form" onSubmit={handleSubmit}> {/* Dodana klasa .route-form */}
-        <div className="form-row"> {/* Nowa klasa do stylizacji */}
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+      <form className="route-form" onSubmit={handleSubmit}>
+        <div className="form-row">
+          <div className="form-field">
             <label>Skąd:</label>
             <LocationAutocomplete
-              value={form.from.label} // Nadal przekazujemy etykietę do wyświetlenia
-              onSelectLocation={handleFromSelect} // Zmieniamy na nową funkcję
+              value={form.from.label}
+              onSelectLocation={handleFromSelect}
               placeholder="np. Warszawa"
               className="narrow-autocomplete"
             />
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field">
             <label>Dokąd:</label>
             <LocationAutocomplete
               value={form.to.label}
-              onSelectLocation={handleToSelect} // Zmieniamy na nową funkcję
+              onSelectLocation={handleToSelect}
               placeholder="np. Berlin"
               className="narrow-autocomplete"
             />
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field">
             <label>Punkt pośredni:</label>
             <LocationAutocomplete
               value={form.via.label}
-              onSelectLocation={handleViaSelect} // Zmieniamy na nową funkcję
+              onSelectLocation={handleViaSelect}
               placeholder="np. Poznań"
               className="narrow-autocomplete"
             />
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field">
             <label>Data przejazdu:</label>
             <input
               type="date"
@@ -242,25 +247,25 @@ function AddRouteForm({ onRouteCreated }) {
               min={new Date().toISOString().split('T')[0]}
             />
           </div>
-        </div> {/* <-- TUTAJ BYŁ BRAKUJĄCY ZAMYKAJĄCY DIV DLA form-row! */}
+        </div>
 
-        <div className="form-row"> {/* Nowa klasa do stylizacji */}
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+        <div className="form-row">
+          <div className="form-field">
             <label>Typ pojazdu:</label>
             <select name="vehicleType" value={form.vehicleType} onChange={handleChange} className="uinput">
               <option value="bus">🚌 Bus</option>
               <option value="laweta">🚚 Laweta</option>
             </select>
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field">
             <label>Ładowność (kg):</label>
             <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field">
             <label>Ilość osób do zabrania:</label>
             <input type="number" name="passengerCount" value={form.passengerCount} onChange={handleChange} className="uinput" />
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field">
             <label>Ile km możesz zjechać z trasy:</label>
             <select name="maxDetour" value={form.maxDetour} onChange={handleChange} className="uinput">
               <option value="25">25 km</option>
@@ -269,10 +274,41 @@ function AddRouteForm({ onRouteCreated }) {
               <option value="100">100 km</option>
             </select>
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+
+          {/* Zmienione pole Numer telefonu z selektorem kodu kraju */}
+          <div className="form-field">
             <label>Numer telefonu:</label>
-            <input type="tel" name="phone" value={form.phone} onChange={handleChange} className="uinput" />
+            <div className="phone-input-group"> {/* Nowy div dla grupowania selektora i inputu */}
+              <select
+                name="countryCode"
+                value={form.countryCode}
+                onChange={handleChange}
+                className="country-code-select uinput" // Dodajemy obie klasy: nową i .uinput
+              >
+                <option value="+48">🇵🇱 +48</option>
+                <option value="+49">🇩🇪 +49</option>
+                <option value="+44">🇬🇧 +44</option>
+                <option value="+1">🇺🇸 +1</option>
+                <option value="+33">🇫🇷 +33</option>
+                <option value="+34">🇪🇸 +34</option>
+                <option value="+39">🇮🇹 +39</option>
+                <option value="+43">🇦🇹 +43</option>
+                <option value="+420">🇨🇿 +420</option>
+                <option value="+421">🇸🇰 +421</option>
+                <option value="+380">🇺🇦 +380</option>
+                {/* Możesz dodać więcej krajów */}
+              </select>
+              <input
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="uinput"
+                placeholder="np. 123 456 789"
+              />
+            </div>
           </div>
+
           <div className="form-field">
             <label>
               <input
@@ -284,13 +320,13 @@ function AddRouteForm({ onRouteCreated }) {
               Kontakt WhatsApp
             </label>
           </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
+          <div className="form-field">
             <label>Messenger: (link)</label>
             <input type="url" name="messenger" value={form.messenger} onChange={handleChange} className="uinput" />
           </div>
         </div>
 
-        <button type="submit" className="submit-button" disabled={isSaving}> {/* Dodana klasa .submit-button */}
+        <button type="submit" className="submit-button" disabled={isSaving}>
           💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
         </button>
       </form>
