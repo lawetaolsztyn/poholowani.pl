@@ -4,38 +4,65 @@ import './EditRouteModal.css'; // <-- WAŻNE: Dodaj import nowego pliku CSS
 
 export default function EditRouteModal({ route, onClose, onSave }) {
   const [form, setForm] = useState({
-    from_city: '',
-    to_city: '',
-    via: '',
+    from_city_label: '', // Zmienione: etykieta
+    from_city_coords: null, // Nowe: koordynaty
+    to_city_label: '',
+    to_city_coords: null,
+    via_label: '',
+    via_coords: null,
     date: '',
     vehicle_type: '',
     passenger_count: '',
     load_capacity: '',
     phone: '',
-    messenger_link: ''
+    messenger_link: '',
+    id: null, // Dodajemy ID trasy
   });
-
-  const [fromLocationLabel, setFromLocationLabel] = useState(''); // Do wyświetlania nazwy miasta
-  const [toLocationLabel, setToLocationLabel] = useState('');   // Do wyświetlania nazwy miasta
-
 
   useEffect(() => {
     if (route) {
-      setForm({
-        from_city: route.from_city || '',
-        to_city: route.to_city || '',
-        via: route.via || '',
-        date: route.date || '',
-        vehicle_type: route.vehicle_type || '',
-        passenger_count: route.passenger_count?.toString() || '',
-        load_capacity: route.load_capacity || '',
-        phone: route.phone || '',
-        messenger_link: route.messenger_link || '',
-        id: route.id
-      });
-      // Ustaw etykiety dla autocomplete na podstawie danych z trasy
-      setFromLocationLabel(route.from_city || '');
-      setToLocationLabel(route.to_city || '');
+      // Przy otwarciu modalu, musimy spróbować odzyskać koordynaty miast.
+      // Najlepszym rozwiązaniem byłoby zapisywanie koordynat w bazie danych.
+      // Poniżej jest tymczasowe geokodowanie nazw miast za pomocą Mapboxa,
+      // aby uzyskać współrzędne potrzebne do generowania trasy przez ORS.
+      const geocodeInitialCities = async () => {
+        const fetchMapboxCoords = async (text) => {
+          if (!text) return null;
+          try {
+            const res = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=1&language=pl,en`
+            );
+            const data = await res.json();
+            return data.features.length ? data.features[0].geometry.coordinates : null; // [lng, lat]
+          } catch (error) {
+            console.error("Błąd geokodowania początkowego miasta z Mapbox:", text, error);
+            return null;
+          }
+        };
+
+        const initialFromCoords = route.from_city ? await fetchMapboxCoords(route.from_city) : null;
+        const initialToCoords = route.to_city ? await fetchMapboxCoords(route.to_city) : null;
+        const initialViaCoords = route.via ? await fetchMapboxCoords(route.via) : null;
+
+        setForm(prevForm => ({
+          ...prevForm,
+          from_city_label: route.from_city || '',
+          from_city_coords: initialFromCoords,
+          to_city_label: route.to_city || '',
+          to_city_coords: initialToCoords,
+          via_label: route.via || '',
+          via_coords: initialViaCoords,
+          date: route.date || '',
+          vehicle_type: route.vehicle_type || '',
+          passenger_count: route.passenger_count?.toString() || '',
+          load_capacity: route.load_capacity || '',
+          phone: route.phone || '',
+          messenger_link: route.messenger_link || '',
+          id: route.id,
+        }));
+      };
+
+      geocodeInitialCities();
     }
   }, [route]);
 
@@ -46,32 +73,40 @@ export default function EditRouteModal({ route, onClose, onSave }) {
     });
   };
 
+  const handleFromSelect = (label, sug) => {
+    setForm(prevForm => ({
+        ...prevForm,
+        from_city_label: label,
+        from_city_coords: sug.geometry.coordinates // Zapisujemy koordynaty z Mapboxa
+    }));
+  };
+
+  const handleToSelect = (label, sug) => {
+    setForm(prevForm => ({
+        ...prevForm,
+        to_city_label: label,
+        to_city_coords: sug.geometry.coordinates // Zapisujemy koordynaty z Mapboxa
+    }));
+  };
+
+  const handleViaSelect = (label, sug) => {
+    setForm(prevForm => ({
+        ...prevForm,
+        via_label: label,
+        via_coords: sug.geometry.coordinates // Zapisujemy koordynaty z Mapboxa
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Walidacja
-    if (!form.from_city || !form.to_city || !form.date || !form.vehicle_type) {
-      alert('❌ Uzupełnij wszystkie wymagane pola: Skąd, Dokąd, Data, Typ pojazdu.');
+    // Walidacja - teraz sprawdzamy również, czy mamy koordynaty
+    if (!form.from_city_coords || !form.to_city_coords || !form.date || !form.vehicle_type) {
+      alert('❌ Uzupełnij wszystkie wymagane pola (Skąd, Dokąd, Data, Typ pojazdu), wybierając miasta z listy sugestii.');
       return;
     }
 
-    onSave(form);
-  };
-
-  const handleFromSelect = (label, loc) => {
-    setFromLocationLabel(label);
-    setForm(prevForm => ({
-        ...prevForm,
-        from_city: label // Zapisz całą etykietę, nie tylko miasto
-    }));
-  };
-
-  const handleToSelect = (label, loc) => {
-    setToLocationLabel(label);
-    setForm(prevForm => ({
-        ...prevForm,
-        to_city: label // Zapisz całą etykietę
-    }));
+    onSave(form); // Przekazujemy cały obiekt form, który zawiera również koordynaty
   };
 
   if (!route) return null;
@@ -87,20 +122,25 @@ export default function EditRouteModal({ route, onClose, onSave }) {
           {/* Użyj LocationAutocomplete z wartościami i obsługą zmian */}
           <LocationAutocomplete
             placeholder="Skąd"
-            value={fromLocationLabel} // Użyj stanu dla wartości inputa
+            value={form.from_city_label} // Użyj stanu dla wartości inputa
             onSelectLocation={handleFromSelect}
             // Ważne: Przekaż klasę, aby stylizacja działała
             inputClassName="location-autocomplete-input"
           />
           <LocationAutocomplete
             placeholder="Dokąd"
-            value={toLocationLabel} // Użyj stanu dla wartości inputa
+            value={form.to_city_label} // Użyj stanu dla wartości inputa
             onSelectLocation={handleToSelect}
             // Ważne: Przekaż klasę, aby stylizacja działała
             inputClassName="location-autocomplete-input"
           />
+          <LocationAutocomplete
+            placeholder="Przez (opcjonalnie)"
+            value={form.via_label} // Użyj stanu dla wartości inputa
+            onSelectLocation={handleViaSelect}
+            inputClassName="location-autocomplete-input"
+          />
 
-          <input name="via" type="text" value={form.via} onChange={handleChange} placeholder="Przez (opcjonalnie)" />
           <input name="date" type="date" value={form.date} onChange={handleChange} min={new Date().toISOString().split('T')[0]} />
           <select name="vehicle_type" value={form.vehicle_type} onChange={handleChange}>
             <option value="">Typ pojazdu</option>
@@ -122,26 +162,3 @@ export default function EditRouteModal({ route, onClose, onSave }) {
     </div>
   );
 }
-
-// Usuń te inline style, ponieważ teraz zarządzamy nimi w EditRouteModal.css
-// const overlayStyle = {
-//   position: 'fixed',
-//   top: 0, left: 0, right: 0, bottom: 0,
-//   backgroundColor: 'rgba(0,0,0,0.6)',
-//   display: 'flex',
-//   justifyContent: 'center',
-//   alignItems: 'center',
-//   zIndex: 9999
-// };
-
-// const modalStyle = {
-//   backgroundColor: 'white',
-//   padding: '30px',
-//   borderRadius: '10px',
-//   boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
-//   width: '90%',
-//   maxWidth: '500px',
-//   position: 'relative',
-//   maxHeight: '90vh',
-//   overflowY: 'auto'
-// };

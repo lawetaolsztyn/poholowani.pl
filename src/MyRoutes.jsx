@@ -66,87 +66,98 @@ export default function MyRoutes() {
     }
   };
 
-  const handleSave = async (updatedData) => {
+ const handleSave = async (updatedData) => {
     if (!updatedData?.id) {
-      console.error('Brak ID trasy do aktualizacji.');
-      return;
+        console.error('Brak ID trasy do aktualizacji.');
+        return;
     }
 
     const apiKey = import.meta.env.VITE_ORS_API_KEY;
 
-    const geocode = async (place) => {
-      const res = await fetchWithRetry(`https://api.openrouteservice.org/geocode/search?api_key=${apiKey}&text=${encodeURIComponent(place)}&size=1`);
-      const data = await res.json();
-      return data.features[0]?.geometry.coordinates;
-    };
+    // !!! Usuwamy lub NIE wywołujemy już funkcji geocode, która używała ORS !!!
+    // const geocode = async (place) => { ... };
 
-    const getRouteGeoJSON = async (from, to, via) => {
-      const fromCoords = await geocode(from);
-      const toCoords = await geocode(to);
-      const viaCoords = via ? await geocode(via) : null;
+    const getRouteGeoJSON = async (fromLabel, fromCoords, toLabel, toCoords, viaLabel, viaCoords) => {
+        if (!fromCoords || !toCoords) {
+            throw new Error('Nie znaleziono współrzędnych dla podanych miejscowości.');
+        }
 
-      if (!fromCoords || !toCoords) {
-        throw new Error('Nie znaleziono współrzędnych dla podanych miejscowości.');
-      }
+        let coordinates = [fromCoords];
+        if (viaCoords) {
+            coordinates.push(viaCoords);
+        }
+        coordinates.push(toCoords);
 
-      const coordinates = viaCoords ? [fromCoords, viaCoords, toCoords] : [fromCoords, toCoords];
+        // Zapytanie do OpenRouteService o trasę - DODAJEMY instructions: false i geometry_simplify: true
+        const response = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+            method: 'POST',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                coordinates: coordinates,
+                instructions: false, // <-- DODANE
+                geometry_simplify: true // <-- DODANE (opcjonalnie, ale zalecane)
+            })
+        });
 
-      const response = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
-        method: 'POST',
-        headers: {
-          'Authorization': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ coordinates })
-      });
-
-      return await response.json();
+        return await response.json();
     };
 
     try {
-      const geojson = await getRouteGeoJSON(updatedData.from_city, updatedData.to_city, updatedData.via);
+        // Teraz updatedData musi zawierać coords dla from_city, to_city i via (jeśli istnieje)
+        const geojson = await getRouteGeoJSON(
+            updatedData.from_city_label, // Nowa zmienna dla etykiety
+            updatedData.from_city_coords, // Nowa zmienna dla koordynat
+            updatedData.to_city_label,
+            updatedData.to_city_coords,
+            updatedData.via_label,
+            updatedData.via_coords
+        );
 
-      const { error } = await supabase
-        .from('routes')
-        .update({
-          from_city: updatedData.from_city,
-          to_city: updatedData.to_city,
-          via: updatedData.via || null,
-          date: updatedData.date,
-          vehicle_type: updatedData.vehicle_type,
-          passenger_count: updatedData.passenger_count,
-          load_capacity: updatedData.load_capacity,
-          phone: updatedData.phone,
-          messenger_link: updatedData.messenger_link,
-          geojson: geojson
-        })
-        .eq('id', updatedData.id);
-
-      if (error) {
-        console.error('❌ Błąd zapisu zmian:', error.message);
-        alert('❌ Nie udało się zapisać zmian.');
-      } else {
-        alert('✅ Trasa została zaktualizowana.');
-        setEditingRoute(null);
-
-        const { data: user } = await supabase.auth.getUser();
-        if (user?.user?.id) {
-          const { data, error: reloadError } = await supabase
+        const { error } = await supabase
             .from('routes')
-            .select('id, geojson, from_city, to_city, date, vehicle_type, passenger_count, load_capacity, phone, messenger_link')
-            .eq('user_id', user.user.id)
-            .order('created_at', { ascending: false });
+            .update({
+                from_city: updatedData.from_city_label, // Zapisujemy etykietę
+                to_city: updatedData.to_city_label,
+                via: updatedData.via_label || null,
+                date: updatedData.date,
+                vehicle_type: updatedData.vehicle_type,
+                passenger_count: updatedData.passenger_count,
+                load_capacity: updatedData.load_capacity,
+                phone: updatedData.phone,
+                messenger_link: updatedData.messenger_link,
+                geojson: geojson // Nowy geojson
+            })
+            .eq('id', updatedData.id);
 
-          if (!reloadError) {
-            setRoutes(data);
-          }
+        if (error) {
+            console.error('❌ Błąd zapisu zmian:', error.message);
+            alert('❌ Nie udało się zapisać zmian.');
+        } else {
+            alert('✅ Trasa została zaktualizowana.');
+            setEditingRoute(null);
+
+            // Odświeżamy trasy z bazy, aby pobrać nowo wygenerowany geojson
+            const { data: user } = await supabase.auth.getUser();
+            if (user?.user?.id) {
+                const { data, error: reloadError } = await supabase
+                    .from('routes')
+                    .select('id, geojson, from_city, to_city, date, vehicle_type, passenger_count, load_capacity, phone, messenger_link, via') // Dodaj 'via' do selecta
+                    .eq('user_id', user.user.id)
+                    .order('created_at', { ascending: false });
+
+                if (!reloadError) {
+                    setRoutes(data);
+                }
+            }
         }
-      }
     } catch (e) {
-      console.error('❌ Błąd:', e.message);
-      alert('❌ Błąd podczas pobierania trasy: ' + e.message);
+        console.error('❌ Błąd podczas aktualizacji trasy:', e.message);
+        alert('❌ Wystąpił błąd podczas aktualizacji trasy: ' + e.message);
     }
-  };
+};
 
   return (
     <div className="my-routes-container"> {/* Dodana klasa */}
@@ -202,12 +213,12 @@ export default function MyRoutes() {
       </div>
 
       {editingRoute && (
-        <EditRouteModal
-          route={editingRoute}
-          onClose={() => setEditingRoute(null)}
-          onSave={handleSave}
-        />
-      )}
+    <EditRouteModal
+        route={editingRoute}
+        onClose={() => setEditingRoute(null)}
+        onSave={handleSave}
+    />
+)}
     </div>
   );
 }

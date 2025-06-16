@@ -24,9 +24,9 @@ const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
 
 function AddRouteForm({ onRouteCreated }) {
   const [form, setForm] = useState({
-    from: '',
-    to: '',
-    via: '',
+    from: { label: '', coords: null }, 
+  to: { label: '', coords: null }, 
+  via: { label: '', coords: null },
     date: '',
     vehicleType: 'bus',
     loadCapacity: '',
@@ -70,19 +70,41 @@ function AddRouteForm({ onRouteCreated }) {
   }, []);
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
+    const { name, value, type, checked } = e.target;
+    setForm(prevForm => ({
+        ...prevForm,
+        [name]: type === 'checkbox' ? checked : value
+    }));
+};
+const handleFromSelect = (label, sug) => {
+  setForm(prevForm => ({
+    ...prevForm,
+    from: { label: label, coords: sug.geometry.coordinates }
+  }));
+};
 
-  const handleSubmit = async (e) => {
+const handleToSelect = (label, sug) => {
+  setForm(prevForm => ({
+    ...prevForm,
+    to: { label: label, coords: sug.geometry.coordinates }
+  }));
+};
+
+const handleViaSelect = (label, sug) => {
+  setForm(prevForm => ({
+    ...prevForm,
+    via: { label: label, coords: sug.geometry.coordinates }
+  }));
+};
+
+ const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSaving) return;
     setIsSaving(true);
 
-    if (!form.from || !form.to) {
-      alert('❗Uzupełnij pola "Skąd" i "Dokąd".');
+    // Walidacja współrzędnych
+    if (!form.from.coords || !form.to.coords) { // Sprawdzamy coords, nie tylko label
+      alert('❗Uzupełnij pola "Skąd" i "Dokąd", wybierając z listy sugestii.');
       setIsSaving(false);
       return;
     }
@@ -97,13 +119,6 @@ function AddRouteForm({ onRouteCreated }) {
       const apiKey = import.meta.env.VITE_ORS_API_KEY;
       const browserToken = localStorage.getItem('browser_token');
 
-      const geocode = async (place) => {
-        const res = await fetchWithRetry(`https://api.openrouteservice.org/geocode/search?api_key=${apiKey}&text=${encodeURIComponent(place)}&size=1`);
-        const data = await res.json();
-        if (!data.features.length) return null;
-        return data.features[0].geometry.coordinates;
-      };
-
       const fromCoords = await geocode(form.from);
       const toCoords = await geocode(form.to);
 
@@ -113,24 +128,26 @@ function AddRouteForm({ onRouteCreated }) {
         return;
       }
 
-      let coordinates = [fromCoords];
+      let coordinates = [form.from.coords]; // form.from.coords to już [lng, lat]
 
-      if (form.via && form.via.trim() !== '') {
-        const viaCoords = await geocode(form.via);
-        if (viaCoords) {
-          coordinates.push(viaCoords);
-        }
+     if (form.via.coords) { // Sprawdzamy czy punkt pośredni ma koordynaty
+        coordinates.push(form.via.coords);
       }
 
-      coordinates.push(toCoords);
+      coordinates.push(form.to.coords); // form.to.coords to już [lng, lat]
 
+       // Zapytanie do OpenRouteService o trasę - DODAJEMY instructions: false i geometry_simplify: true
       const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: apiKey
         },
-        body: JSON.stringify({ coordinates })
+        body: JSON.stringify({
+          coordinates: coordinates,
+          instructions: false, // <-- DODANE
+          geometry_simplify: true // <-- DODANE (opcjonalnie, ale zalecane)
+        })
       });
 
       const routeData = await routeRes.json();
@@ -140,9 +157,10 @@ function AddRouteForm({ onRouteCreated }) {
       const userId = user?.id;
 
       const routePayload = {
-        from_city: form.from,
-        to_city: form.to,
-        via: form.via || null,
+        // Zapisujemy etykiety do bazy danych
+        from_city: form.from.label,
+        to_city: form.to.label,
+        via: form.via.label || null, // Używamy etykiety, jeśli istnieje
         date: form.date,
         vehicle_type: form.vehicleType,
         load_capacity: form.loadCapacity || null,
@@ -151,7 +169,7 @@ function AddRouteForm({ onRouteCreated }) {
         geojson: routeData,
         created_at: new Date().toISOString(),
         phone: form.phone || null,
-	uses_whatsapp: form.usesWhatsapp,
+        uses_whatsapp: form.usesWhatsapp,
         messenger_link: form.messenger || null,
         user_id: userId || null,
         browser_token: browserToken || null
@@ -169,50 +187,42 @@ function AddRouteForm({ onRouteCreated }) {
       onRouteCreated(routeData);
 
 setForm(prevForm => ({
-  ...prevForm,
-  from: '',
-  to: '',
-  via: ''
-}));
+        ...prevForm,
+        from: { label: '', coords: null },
+        to: { label: '', coords: null },
+        via: { label: '', coords: null }
+      }));
       alert('✅ Trasa zapisana do bazy danych!');
     } catch (err) {
       console.error('Błąd wyznaczania lub zapisu trasy:', err);
-      alert('❌ Wystąpił błąd podczas zapisu trasy.');
+      alert('❌ Wystąpił błąd podczas zapisu trasy: ' + err.message); // Wyświetl dokładniejszy błąd
     } finally {
       setIsSaving(false);
     }
   };
 
-  return (
-    <>
-      <form className="route-form" onSubmit={handleSubmit}> {/* Dodana klasa .route-form */}
-        <div className="form-row"> {/* Nowa klasa do stylizacji */}
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
-            <label>Skąd:</label>
-            <LocationAutocomplete
-              value={form.from}
-              onSelectLocation={(label) => setForm({ ...form, from: label })}
-              placeholder="np. Warszawa"
-              className="narrow-autocomplete"
-            />
-          </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
-            <label>Dokąd:</label>
-            <LocationAutocomplete
-              value={form.to}
-              onSelectLocation={(label) => setForm({ ...form, to: label })}
-              placeholder="np. Berlin"
-              className="narrow-autocomplete"
-            />
-          </div>
-          <div className="form-field"> {/* Nowa klasa do stylizacji */}
-            <label>Punkt pośredni:</label>
-            <LocationAutocomplete
-              value={form.via}
-              onSelectLocation={(label) => setForm({ ...form, via: label })}
-              placeholder="np. Poznań"
-              className="narrow-autocomplete"
-            />
+ return (
+    // ...
+    <LocationAutocomplete
+      value={form.from.label} // Nadal przekazujemy etykietę do wyświetlenia
+      onSelectLocation={handleFromSelect} // Zmieniamy na nową funkcję
+      placeholder="np. Warszawa"
+      className="narrow-autocomplete"
+    />
+    // ...
+    <LocationAutocomplete
+      value={form.to.label}
+      onSelectLocation={handleToSelect} // Zmieniamy na nową funkcję
+      placeholder="np. Berlin"
+      className="narrow-autocomplete"
+    />
+    // ...
+    <LocationAutocomplete
+      value={form.via.label}
+      onSelectLocation={handleViaSelect} // Zmieniamy na nową funkcję
+      placeholder="np. Poznań"
+      className="narrow-autocomplete"
+    />
           </div>
           <div className="form-field"> {/* Nowa klasa do stylizacji */}
             <label>Data przejazdu:</label>
