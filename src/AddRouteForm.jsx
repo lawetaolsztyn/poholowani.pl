@@ -137,18 +137,19 @@ function AddRouteForm({ onRouteCreated }) {
 
       coordinates.push(form.to.coords);
 
-      const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: apiKey
-        },
-        body: JSON.stringify({
-          coordinates: coordinates,
-          instructions: false,
-          geometry_simplify: true
-        })
-      });
+      const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/geo+json', // <- dodany nagłówek
+    Authorization: apiKey
+  },
+  body: JSON.stringify({
+    coordinates: coordinates,
+    instructions: false,
+    geometry_simplify: true
+  })
+});
 
       const routeData = await routeRes.json();
       setRouteData(routeData);
