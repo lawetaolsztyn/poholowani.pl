@@ -146,7 +146,7 @@ function AddRouteForm({ onRouteCreated }) {
         body: JSON.stringify({
           coordinates: coordinates,
           instructions: false,
-          geometry_simplify: true
+          geometry_simplify: true,
 radiuses: [1000, 1000]
         })
       });
