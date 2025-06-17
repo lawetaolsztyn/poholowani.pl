@@ -20,7 +20,9 @@ function MessengerHelp() {
           <strong>https://m.me/twojanazwa</strong> lub <strong>https://facebook.com/twojanazwa</strong>
         </pre>
 
-        <section className="mb-10">
+        {/* Sekcja dla DESKTOPÓW (komputery) */}
+        {/* Domyślnie ukryta na małych ekranach (poniżej 'sm'), widoczna od 'sm' wzwyż */}
+        <section className="hidden sm:block mb-10">
           <h2 className="text-lg font-semibold mb-3">🖥️ Facebook w przeglądarce (komputer)</h2>
           <ol className="list-decimal pl-5 mb-4 text-sm sm:text-base space-y-1">
             <li>Przejdź na swój profil na Facebooku.</li>
@@ -32,15 +34,14 @@ function MessengerHelp() {
             <img
               src={fbGuide}
               alt="Instrukcja: Facebook w przeglądarce"
-              // Zmienione klasy tutaj: dodano max-w-sm (lub max-w-xs) domyślnie
               className="w-full h-auto max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl rounded shadow border mx-auto"
             />
           </div>
         </section>
 
-        <div className="my-10"></div> 
-
-        <section>
+        {/* Sekcja dla TELEFONÓW (aplikacja Messenger) */}
+        {/* Domyślnie widoczna na małych ekranach (poniżej 'sm'), ukryta od 'sm' wzwyż */}
+        <section className="block sm:hidden">
           <h2 className="text-lg font-semibold mb-3">📱 Aplikacja Messenger (telefon)</h2>
           <ol className="list-decimal pl-5 mb-4 text-sm sm:text-base space-y-1">
             <li>Kliknij na dole MENU</li>
