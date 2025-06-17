@@ -260,7 +260,7 @@ radiuses: [1000, 1000]
           </div>
           <div className="form-field">
             <label>Ładowność (kg):</label>
-            <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
+            <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" placeholder="np.1500 lub 2x1300" />
           
 </div>
           <div className="form-field">
