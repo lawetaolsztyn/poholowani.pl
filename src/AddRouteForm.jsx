@@ -126,33 +126,35 @@ function AddRouteForm({ onRouteCreated }) {
 
 
     try {
-      const apiKey = import.meta.env.VITE_ORS_API_KEY;
-      const browserToken = localStorage.getItem('browser_token');
+  const apiKey = import.meta.env.VITE_ORS_API_KEY; // Upewnij się, że ten klucz jest prawidłowo skonfigurowany w zmiennych środowiskowych
+  const browserToken = localStorage.getItem('browser_token');
 
-      let coordinates = [form.from.coords];
+  let coordinates = [form.from.coords];
 
-      if (form.via.coords) {
-        coordinates.push(form.via.coords);
-      }
+  if (form.via.coords) {
+    coordinates.push(form.via.coords);
+  }
 
-      coordinates.push(form.to.coords);
+  coordinates.push(form.to.coords);
 
-      const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/geo+json', // <- dodany nagłówek
-    Authorization: apiKey
-  },
-  body: JSON.stringify({
-    coordinates: coordinates,
-    instructions: false,
-    geometry_simplify: true
-  })
-});
+  const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Prawidłowy sposób przekazania klucza API dla OpenRouteService
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      coordinates: coordinates,
+      instructions: false,
+      geometry_simplify: true
+    })
+  });
 
-      const routeData = await routeRes.json();
-      setRouteData(routeData);
+  const routeData = await routeRes.json();
+  setRouteData(routeData);
+
+  // ... reszta kodu do zapisu do Supabase
 
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id;
