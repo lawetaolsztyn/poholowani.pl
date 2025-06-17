@@ -27,6 +27,7 @@ import ChooseRoleAfterOAuth from './components/ChooseRoleAfterOAuth';
 import Footer from './components/Footer';
 import { Routes, Route } from 'react-router-dom';
 import CookieWall from './components/CookieWall';
+import MessengerHelp from './MessengerHelp';
 
 console.log("✅ MAIN.JSX ŁADUJE SIĘ")
 
@@ -54,6 +55,8 @@ function App() {
           <Route path="/profil/:id" element={<PublicProfile />} />
           <Route path="/panel/profil" element={<EdycjaProfilu />} />
           <Route path="/choose-role" element={<ChooseRoleAfterOAuth />} />
+	<Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
+
         </Routes>
         <Footer />
       </div>

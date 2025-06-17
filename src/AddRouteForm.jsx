@@ -260,7 +260,8 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Ładowność (kg):</label>
             <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
-          </div>
+          
+</div>
           <div className="form-field">
             <label>Ilość osób do zabrania:</label>
             <input type="number" name="passengerCount" value={form.passengerCount} onChange={handleChange} className="uinput" />
@@ -343,10 +344,24 @@ function AddRouteForm({ onRouteCreated }) {
               Kontakt WhatsApp
             </label>
           </div>
-          <div className="form-field">
-            <label>Messenger: (link)</label>
-            <input type="url" name="messenger" value={form.messenger} onChange={handleChange} className="uinput" />
-          </div>
+          
+
+<div className="form-field">
+  <label>Messenger: (link)</label>
+  <input
+    type="url"
+    name="messenger"
+    value={form.messenger}
+    onChange={handleChange}
+    className="uinput"
+    placeholder="https://facebook.com/user"
+  />
+  <small style={{ marginTop: '5px' }}>
+   <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer">
+  ❓ Skąd wziąć link do Messengera?
+</a>
+  </small>
+</div>
         </div>
 
         <button type="submit" className="submit-button" disabled={isSaving}>
