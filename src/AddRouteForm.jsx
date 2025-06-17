@@ -260,8 +260,7 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Ładowność (kg):</label>
             <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
-          
-</div>
+          </div> {/* Dodano brakujący tag zamykający </div> */}
           <div className="form-field">
             <label>Ilość osób do zabrania:</label>
             <input type="number" name="passengerCount" value={form.passengerCount} onChange={handleChange} className="uinput" />
@@ -288,39 +287,39 @@ function AddRouteForm({ onRouteCreated }) {
               >
                 <option value="+48">🇵🇱 +48</option>
                 <option value="+355">🇦🇱 Albania +355</option>
-<option value="+43">🇦🇹 Austria +43</option>
-<option value="+375">🇧🇾 Białoruś +375</option>
-<option value="+32">🇧🇪 Belgia +32</option>
-<option value="+387">🇧🇦 Bośnia i Hercegowina +387</option>
-<option value="+359">🇧🇬 Bułgaria +359</option>
-<option value="+385">🇭🇷 Chorwacja +385</option>
-<option value="+420">🇨🇿 Czechy +420</option>
-<option value="+45">🇩🇰 Dania +45</option>
-<option value="+372">🇪🇪 Estonia +372</option>
-<option value="+358">🇫🇮 Finlandia +358</option>
-<option value="+33">🇫🇷 Francja +33</option>
-<option value="+30">🇬🇷 Grecja +30</option>
-<option value="+34">🇪🇸 Hiszpania +34</option>
-<option value="+31">🇳🇱 Holandia +31</option>
-<option value="+354">🇮🇸 Islandia +354</option>
-<option value="+353">🇮🇪 Irlandia +353</option>
-<option value="+423">🇱🇮 Liechtenstein +423</option>
-<option value="+370">🇱🇹 Litwa +370</option>
-<option value="+352">🇱🇺 Luksemburg +352</option>
-<option value="+371">🇱🇻 Łotwa +371</option>
-<option value="+49">🇩🇪 Niemcy +49</option>
-<option value="+47">🇳🇴 Norwegia +47</option>
-<option value="+351">🇵🇹 Portugalia +351</option>
-<option value="+40">🇷🇴 Rumunia +40</option>
-<option value="+421">🇸🇰 Słowacja +421</option>
-<option value="+386">🇸🇮 Słowenia +386</option>
-<option value="+46">🇸🇪 Szwecja +46</option>
-<option value="+41">🇨🇭 Szwajcaria +41</option>
-<option value="+90">🇹🇷 Turcja +90</option>
-<option value="+380">🇺🇦 Ukraina +380</option>
-<option value="+36">🇭🇺 Węgry +36</option>
-<option value="+44">🇬🇧 Wielka Brytania +44</option>
-<option value="+39">🇮🇹 Włochy +39</option>
+                <option value="+43">🇦🇹 Austria +43</option>
+                <option value="+375">🇧🇾 Białoruś +375</option>
+                <option value="+32">🇧🇪 Belgia +32</option>
+                <option value="+387">🇧🇦 Bośnia i Hercegowina +387</option>
+                <option value="+359">🇧🇬 Bułgaria +359</option>
+                <option value="+385">🇭🇷 Chorwacja +385</option>
+                <option value="+420">🇨🇿 Czechy +420</option>
+                <option value="+45">🇩🇰 Dania +45</option>
+                <option value="+372">🇪🇪 Estonia +372</option>
+                <option value="+358">🇫🇮 Finlandia +358</option>
+                <option value="+33">🇫🇷 Francja +33</option>
+                <option value="+30">🇬🇷 Grecja +30</option>
+                <option value="+34">🇪🇸 Hiszpania +34</option>
+                <option value="+31">🇳🇱 Holandia +31</option>
+                <option value="+354">🇮🇸 Islandia +354</option>
+                <option value="+353">🇮🇪 Irlandia +353</option>
+                <option value="+423">🇱🇮 Liechtenstein +423</option>
+                <option value="+370">🇱🇹 Litwa +370</option>
+                <option value="+352">🇱🇺 Luksemburg +352</option>
+                <option value="+371">🇱🇻 Łotwa +371</option>
+                <option value="+49">🇩🇪 Niemcy +49</option>
+                <option value="+47">🇳🇴 Norwegia +47</option>
+                <option value="+351">🇵🇹 Portugalia +351</option>
+                <option value="+40">🇷🇴 Rumunia +40</option>
+                <option value="+421">🇸🇰 Słowacja +421</option>
+                <option value="+386">🇸🇮 Słowenia +386</option>
+                <option value="+46">🇸🇪 Szwecja +46</option>
+                <option value="+41">🇨🇭 Szwajcaria +41</option>
+                <option value="+90">🇹🇷 Turcja +90</option>
+                <option value="+380">🇺🇦 Ukraina +380</option>
+                <option value="+36">🇭🇺 Węgry +36</option>
+                <option value="+44">🇬🇧 Wielka Brytania +44</option>
+                <option value="+39">🇮🇹 Włochy +39</option>
               </select>
               <input
                 type="tel"
@@ -334,39 +333,48 @@ function AddRouteForm({ onRouteCreated }) {
           </div>
 
           <div className="form-field">
-            <label>
+            {/* Zmiana tutaj: Etykieta jest teraz oddzielnym elementem label, a input ma własną klasę */}
+            <label htmlFor="usesWhatsappCheckbox" className="checkbox-label">
               <input
                 type="checkbox"
+                id="usesWhatsappCheckbox" // Ważne, aby ID odpowiadało htmlFor w labelu
                 name="usesWhatsapp"
                 checked={form.usesWhatsapp}
                 onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
+                className="uinput-checkbox" // Nowa klasa do stylizacji
               />
               Kontakt WhatsApp
             </label>
           </div>
           
 
-<div className="form-field">
-  <label>Messenger: (link)</label>
-  <input
-    type="url"
-    name="messenger"
-    value={form.messenger}
-    onChange={handleChange}
-    className="uinput"
-    placeholder="https://facebook.com/user"
-  />
-  <small style={{ marginTop: '5px' }}>
-   <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer">
-  ❓ Skąd wziąć link do Messengera?
-</a>
-  </small>
-</div>
-        </div>
+          <div className="form-field">
+            <label>Messenger: (link)</label>
+            <input
+              type="url"
+              name="messenger"
+              value={form.messenger}
+              onChange={handleChange}
+              className="uinput"
+              placeholder="https://facebook.com/user"
+            />
+            <small style={{ marginTop: '5px' }}>
+            <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer">
+              ❓ Skąd wziąć link do Messengera?
+            </a>
+            </small>
+          </div>
 
-        <button type="submit" className="submit-button" disabled={isSaving}>
-          💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
-        </button>
+          {/* NOWE: Przycisk Submit w osobnym form-field, aby był w tej samej linii */}
+          <div className="form-field submit-button-field">
+            <button type="submit" className="submit-button" disabled={isSaving}>
+              💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
+            </button>
+          </div>
+
+        </div> {/* <-- To jest koniec ostatniego form-row */}
+
+
       </form>
 
       <RouteMap routeData={routeData} />
