@@ -1,7 +1,7 @@
 import React from 'react';
 import fbGuide from './assets/messenger-fb-guide.png';
 import messengerGuide from './assets/messenger-app-guide.png';
-import Navbar from './Components/Navbar';
+import Navbar from './components/Navbar';
 
 function MessengerHelp() {
   return (
