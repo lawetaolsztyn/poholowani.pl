@@ -17,7 +17,7 @@ function MessengerHelp() {
         </p>
 
         <pre className="bg-gray-100 p-3 rounded mb-6 text-sm overflow-x-auto">
-          <strong>https://m.me/twojanazwa</strong>  lub  <strong>https://facebook.com/twojanazwa</strong>
+          <strong>https://m.me/twojanazwa</strong> lub <strong>https://facebook.com/twojanazwa</strong>
         </pre>
 
         <section className="mb-10">
@@ -32,15 +32,13 @@ function MessengerHelp() {
             <img
               src={fbGuide}
               alt="Instrukcja: Facebook w przeglądarce"
-              className="w-full sm:w-[600px] md:w-[750px] lg:w-[900px] xl:w-[1000px] rounded shadow border mx-auto"
+              className="w-full max-w-full h-auto sm:max-w-xl md:max-w-2xl lg:max-w-3xl rounded shadow border mx-auto"
             />
           </div>
         </section>
 
-        {/* trzy puste linie */}
-        <br />
-        <br />
-        <br />
+        {/* Używamy klas spacingowych zamiast <br /> */}
+        <div className="my-10"></div> 
 
         <section>
           <h2 className="text-lg font-semibold mb-3">📱 Aplikacja Messenger (telefon)</h2>
@@ -54,7 +52,7 @@ function MessengerHelp() {
             <img
               src={messengerGuide}
               alt="Instrukcja: Messenger w aplikacji mobilnej"
-              className="w-full max-w-md mx-auto rounded shadow border"
+              className="w-full max-w-full h-auto sm:max-w-xs md:max-w-sm rounded shadow border mx-auto"
             />
           </div>
         </section>
