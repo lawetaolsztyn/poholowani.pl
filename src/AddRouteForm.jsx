@@ -260,7 +260,7 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Ładowność (kg):</label>
             <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
-          </div> {/* Dodano brakujący tag zamykający </div> */}
+          </div> {/* Dodano brakujący tag zamykający całkiem </div> */}
           <div className="form-field">
             <label>Ilość osób do zabrania:</label>
             <input type="number" name="passengerCount" value={form.passengerCount} onChange={handleChange} className="uinput" />

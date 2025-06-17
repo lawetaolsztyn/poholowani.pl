@@ -146,7 +146,7 @@
     width: 100%; /* Przycisk zajmuje całą szerokość */
     padding: 15px; /* Większy padding dla łatwiejszego klikania */
     font-size: 1rem;
-    margin-top: 0; /* Resetuj margines, jeśli wcześniej był ustawiony */
+    margin-top: 0; /* Resetuj marginess, jeśli wcześniej był ustawiony */
   }
 
   .phone-input-group {
