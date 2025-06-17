@@ -243,7 +243,7 @@ radiuses: [1000, 1000]
               name="date"
               value={form.date}
               onChange={handleChange}
-              required
+              
               className="uinput"
               min={new Date().toISOString().split('T')[0]}
             />
