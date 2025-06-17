@@ -126,33 +126,38 @@ function AddRouteForm({ onRouteCreated }) {
 
 
     try {
-  const apiKey = import.meta.env.VITE_ORS_API_KEY; // Upewnij się, że ten klucz jest prawidłowo skonfigurowany w zmiennych środowiskowych
-  const browserToken = localStorage.getItem('browser_token');
+      const apiKey = import.meta.env.VITE_ORS_API_KEY;
+      const browserToken = localStorage.getItem('browser_token');
 
-  let coordinates = [form.from.coords];
+      // !!! Usunięta funkcja geocode, która używała ORS Geocoding API,
+      // ponieważ koordynaty są już dostępne z LocationAutocomplete (Mapbox) !!!
+      // const geocode = async (place) => { ... };
 
-  if (form.via.coords) {
-    coordinates.push(form.via.coords);
-  }
+      // Używamy bezpośrednio koordynat z formularza
+      let coordinates = [form.from.coords]; // form.from.coords to już [lng, lat]
 
-  coordinates.push(form.to.coords);
+      if (form.via.coords) { // Sprawdzamy czy punkt pośredni ma koordynaty
+        coordinates.push(form.via.coords);
+      }
 
-  const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // Prawidłowy sposób przekazania klucza API dla OpenRouteService
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      coordinates: coordinates,
-      instructions: false,
-      geometry_simplify: true
-    })
-  });
+      coordinates.push(form.to.coords); // form.to.coords to już [lng, lat]
 
-  const routeData = await routeRes.json();
-  setRouteData(routeData);
+      // Zapytanie do OpenRouteService o trasę - DODAJEMY instructions: false i geometry_simplify: true
+      const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: apiKey
+        },
+        body: JSON.stringify({
+          coordinates: coordinates,
+          instructions: false, // <-- DODANE
+          geometry_simplify: true // <-- DODANE (opcjonalnie, ale zalecane)
+        })
+      });
+
+      const routeData = await routeRes.json();
+      setRouteData(routeData);
 
   // ... reszta kodu do zapisu do Supabase
 
