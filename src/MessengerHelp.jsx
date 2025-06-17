@@ -32,12 +32,12 @@ function MessengerHelp() {
             <img
               src={fbGuide}
               alt="Instrukcja: Facebook w przeglądarce"
-              className="w-full max-w-full h-auto sm:max-w-xl md:max-w-2xl lg:max-w-3xl rounded shadow border mx-auto"
+              // Zmienione klasy tutaj: dodano max-w-sm (lub max-w-xs) domyślnie
+              className="w-full h-auto max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl rounded shadow border mx-auto"
             />
           </div>
         </section>
 
-        {/* Używamy klas spacingowych zamiast <br /> */}
         <div className="my-10"></div> 
 
         <section>
@@ -52,7 +52,7 @@ function MessengerHelp() {
             <img
               src={messengerGuide}
               alt="Instrukcja: Messenger w aplikacji mobilnej"
-              className="w-full max-w-full h-auto sm:max-w-xs md:max-w-sm rounded shadow border mx-auto"
+              className="w-full h-auto max-w-xs sm:max-w-sm md:max-w-md rounded shadow border mx-auto"
             />
           </div>
         </section>
