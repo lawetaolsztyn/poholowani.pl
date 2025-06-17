@@ -5,6 +5,9 @@
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  display: flex; /* Zmieniamy form na flex container */
+  flex-direction: column; /* Ustawiamy kierunek na kolumnowy */
+  align-items: center; /* Wyśrodkowujemy całą zawartość formularza (w tym przycisk) */
 }
 
 .form-row {
@@ -13,7 +16,8 @@
   gap: 30px; /* Odstęp między polami */
   margin-bottom: 20px;
   justify-content: flex-start; /* Pola zaczynają się od lewej */
-  align-items: stretch; /* Sprawia, że form-fieldy mają tę samą wysokość (z wyjątkiem submit-button-field) */
+  align-items: stretch; /* Sprawia, że form-fieldy mają tę samą wysokość */
+  width: 100%; /* Upewnij się, że form-row zajmuje całą szerokość formularza */
 }
 
 .form-field {
@@ -57,7 +61,6 @@
   width: auto; /* Checkbox nie zajmuje 100% szerokości */
   height: 20px; /* Stała wysokość dla lepszego wyrównania */
   margin-bottom: 0; /* Usuń domyślny margines */
-  /* align-self: flex-end; -- usunięte, bo teraz label jest flex-container */
 }
 
 .checkbox-label {
@@ -86,11 +89,10 @@
   cursor: pointer;
   font-size: 1.1rem;
   transition: background-color 0.3s ease;
-  width: 80%; /* Przycisk zajmie 80% szerokości swojego kontenera (submit-button-field) */
-  max-width: 300px; /* Ogranicz maksymalną szerokość przycisku, żeby nie był za duży */
-  /* margin: auto; - usunięte - teraz wyśrodkuje go align-items w rodzicu */
-  /* display: block; - usunięte, bo rodzic jest flex */
-  /* margin-top: auto; - usunięte, bo rozciągało wysokość */
+  width: 300px; /* Zmieniono: stała szerokość przycisku (dostosuj) */
+  max-width: 90%; /* Zmieniono: Upewnij się, że nie wyjdzie poza ekran na mniejszych szerokościach */
+  margin: 20px auto 0 auto; /* Ustawienie marginesów, aby wyśrodkować i dodać odstęp od góry */
+  display: block; /* Ważne, aby margin: auto działał */
 }
 
 .submit-button:hover {
@@ -114,21 +116,8 @@
 }
 /* --- KONIEC NOWYCH STYLI --- */
 
-/* --- NOWY WRAPPER DLA PRZYCISKU SUBMIT --- */
-.submit-button-field {
-  display: flex; /* Potrzebne do wyrównania przycisku w pionie i poziomie */
-  /* flex-direction: column; - usunięte, bo nie jest potrzebne i może powodować problemy */
-  justify-content: center; /* Wyśrodkowuje przycisk w poziomie wewnątrz tego kontenera */
-  align-items: flex-end; /* KLUCZOWE: Wyrównuje przycisk na dole kontenera, dopasowując do pól input */
-
-  /* Zachowuje szerokość i zachowanie flexboxowe jak inne form-field */
-  width: 280px; /* Domyślna szerokość pola, tak jak inne */
-  flex-grow: 0;
-  flex-shrink: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-/* --- KONIEC NOWEGO WRAPPERA --- */
+/* --- USUNIĘTO: NOWY WRAPPER DLA PRZYCISKU SUBMIT --- */
+/* .submit-button-field nie jest już potrzebne, bo przycisk jest poza form-row */
 
 
 /* Media Queries dla mniejszych ekranów (np. telefony) */
@@ -138,13 +127,14 @@
     gap: 15px; /* Mniejszy odstęp między polami */
   }
 
-  .form-field, .submit-button-field { /* Dotyczy obu typów pól */
+  .form-field { /* Dotyczy tylko form-field, bo przycisk jest osobno */
     width: 100%; /* Każde pole zajmuje całą dostępną szerokość */
     flex-shrink: 1; /* Pozwól na kurczenie się */
   }
 
   .route-form {
     padding: 15px; /* Mniejszy padding dla formularza */
+    align-items: stretch; /* Na telefonie route-form powinien rozciągać się */
   }
 
   .submit-button {
@@ -152,16 +142,12 @@
     max-width: none; /* Usuń ograniczenie szerokości na telefonach */
     padding: 15px; /* Większy padding dla łatwiejszego klikania */
     font-size: 1rem;
-    margin: 0 auto; /* Wyśrodkuj na telefonie, jeśli nie zajmuje 100% */
+    margin: 15px auto 0 auto; /* Odstęp od góry i wyśrodkowanie */
   }
 
   .phone-input-group {
     flex-wrap: nowrap; /* Zapobiega zawijaniu się na telefonach */
   }
-
-  /* .checkbox-input-wrapper {
-      padding-bottom: 0; // Resetuj padding dla mobilnych
-  } */ /* To już niepotrzebne, bo usunięte z JSX */
 }
 
 /* Dark mode styles for AddRouteForm */
