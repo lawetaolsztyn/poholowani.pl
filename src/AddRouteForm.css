@@ -62,7 +62,7 @@
   font-size: 1.1rem;
   transition: background-color 0.3s ease;
   width: auto;
-  margin: 0px auto 0 auto; /* Zmieniono: wyśrodkowanie przycisku poziomo */
+  margin: -30px auto 0 auto; /* Zmieniono: wyśrodkowanie przycisku poziomo */
   display: block; /* Upewnij się, że jest elementem blokowym, aby margines auto działał */
 }
 
