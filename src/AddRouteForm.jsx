@@ -129,20 +129,14 @@ function AddRouteForm({ onRouteCreated }) {
       const apiKey = import.meta.env.VITE_ORS_API_KEY;
       const browserToken = localStorage.getItem('browser_token');
 
-      // !!! Usunięta funkcja geocode, która używała ORS Geocoding API,
-      // ponieważ koordynaty są już dostępne z LocationAutocomplete (Mapbox) !!!
-      // const geocode = async (place) => { ... };
+      let coordinates = [form.from.coords];
 
-      // Używamy bezpośrednio koordynat z formularza
-      let coordinates = [form.from.coords]; // form.from.coords to już [lng, lat]
-
-      if (form.via.coords) { // Sprawdzamy czy punkt pośredni ma koordynaty
+      if (form.via.coords) {
         coordinates.push(form.via.coords);
       }
 
-      coordinates.push(form.to.coords); // form.to.coords to już [lng, lat]
+      coordinates.push(form.to.coords);
 
-      // Zapytanie do OpenRouteService o trasę - DODAJEMY instructions: false i geometry_simplify: true
       const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
         method: 'POST',
         headers: {
@@ -151,15 +145,14 @@ function AddRouteForm({ onRouteCreated }) {
         },
         body: JSON.stringify({
           coordinates: coordinates,
-          instructions: false, // <-- DODANE
-          geometry_simplify: true // <-- DODANE (opcjonalnie, ale zalecane)
+          instructions: false,
+          geometry_simplify: true
+radiuses: [1000, 1000]
         })
       });
 
       const routeData = await routeRes.json();
       setRouteData(routeData);
-
-  // ... reszta kodu do zapisu do Supabase
 
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id;
