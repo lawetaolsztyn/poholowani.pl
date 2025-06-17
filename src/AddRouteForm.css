@@ -70,24 +70,6 @@
   background-color: #218838; /* Ciemniejszy zielony na hover */
 }
 
-/* --- NOWE STYLE DLA POLA TELEFONU Z KODEM KRAJU --- */
-.phone-input-group {
-  display: flex;
-  gap: 5px; /* Mały odstęp między selektorem a inputem */
-  width: 100%; /* Zajmuje całą szerokość .form-field */
-}
-
-.country-code-select {
-  flex: 0 0 100px; /* Stała szerokość dla selektora kodu kraju */
-  min-width: 80px; /* Minimalna szerokość, żeby się nie zwęził za bardzo */
-}
-
-.phone-input-group .uinput {
-  flex-grow: 1; /* Input zajmuje całe pozostałe miejsce */
-}
-/* --- KONIEC NOWYCH STYLI --- */
-
-
 /* Media Queries dla mniejszych ekranów (np. telefony) */
 @media (max-width: 768px) {
   .form-row {
@@ -109,11 +91,6 @@
     padding: 15px; /* Większy padding dla łatwiejszego klikania */
     font-size: 1rem;
   }
-
-  /* Dostosowanie dla telefonów: selektor i input są wciąż obok siebie, ale zajmują 100% szerokości rodzica */
-  .phone-input-group {
-    flex-wrap: nowrap; /* Zapobiega zawijaniu się na telefonach */
-  }
 }
 
 /* Dark mode styles for AddRouteForm */
@@ -127,13 +104,13 @@
     color: #e0e0e0; /* Jasny kolor etykiet w ciemnym trybie */
   }
 
-  .uinput, .narrow-autocomplete input, .country-code-select { /* Dodano .country-code-select */
-    background-color: #3b3b3b; /* Ciemniejsze tło dla inputów i selektorów */
+  .uinput, .narrow-autocomplete input {
+    background-color: #3b3b3b; /* Ciemniejsze tło dla inputów */
     color: #e0e0e0; /* Jasny tekst w inputach */
     border-color: #555; /* Ciemniejsza ramka */
   }
 
-  .uinput:focus, .narrow-autocomplete input:focus, .country-code-select:focus { /* Dodano .country-code-select */
+  .uinput:focus, .narrow-autocomplete input:focus {
     border-color: #0099ff; /* Jaśniejsze podświetlenie ramki */
     box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.3);
   }
