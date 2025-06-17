@@ -16,9 +16,9 @@ function MessengerHelp() {
           Jeśli chcesz, żeby klienci mogli się z Tobą skontaktować przez Messenger, wklej swój link w formacie:
         </p>
 
-        <pre className="bg-gray-100 p-3 rounded mb-6 text-sm overflow-x-auto">
-          <strong>https://m.me/twojanazwa</strong> lub <strong>https://facebook.com/twojanazwa</strong>
-        </pre>
+        <pre className="bg-gray-100 p-3 rounded mb-6 text-sm overflow-x-auto whitespace-normal break-words">
+  <strong>https://m.me/twojanazwa</strong> lub <strong>https://facebook.com/twojanazwa</strong>
+</pre>
 
         {/* Sekcja dla DESKTOPÓW (komputery) */}
         {/* Domyślnie ukryta na małych ekranach (poniżej 'sm'), widoczna od 'sm' wzwyż */}
