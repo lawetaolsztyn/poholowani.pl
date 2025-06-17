@@ -259,7 +259,7 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Ładowność (kg):</label>
             <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
-          </div>
+          </div> {/* Poprawiony tag zamykający </div> - WAŻNE! */}
           <div className="form-field">
             <label>Ilość osób do zabrania:</label>
             <input type="number" name="passengerCount" value={form.passengerCount} onChange={handleChange} className="uinput" />
@@ -274,15 +274,15 @@ function AddRouteForm({ onRouteCreated }) {
             </select>
           </div>
 
-          {/* Pole Numer telefonu z selektorem kodu kraju */}
+          {/* Zmienione pole Numer telefonu z selektorem kodu kraju */}
           <div className="form-field">
             <label>Numer telefonu:</label>
-            <div className="phone-input-group">
+            <div className="phone-input-group"> {/* Nowy div dla grupowania selektora i inputu */}
               <select
                 name="countryCode"
                 value={form.countryCode}
                 onChange={handleChange}
-                className="country-code-select uinput"
+                className="country-code-select uinput" // Dodajemy obie klasy: nową i .uinput
               >
                 <option value="+48">🇵🇱 +48</option>
                 <option value="+355">🇦🇱 Albania +355</option>
@@ -336,11 +336,11 @@ function AddRouteForm({ onRouteCreated }) {
             <label htmlFor="usesWhatsappCheckbox" className="checkbox-label">
               <input
                 type="checkbox"
-                id="usesWhatsappCheckbox"
+                id="usesWhatsappCheckbox" // Ważne, aby ID odpowiadało htmlFor w labelu
                 name="usesWhatsapp"
                 checked={form.usesWhatsapp}
                 onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
-                className="uinput-checkbox"
+                className="uinput-checkbox" // Nowa klasa do stylizacji
               />
               Kontakt WhatsApp
             </label>
@@ -363,16 +363,14 @@ function AddRouteForm({ onRouteCreated }) {
             </small>
           </div>
 
-          {/* Przycisk Submit w osobnym form-field, aby był w tej samej linii */}
-          <div className="form-field submit-button-field">
-            <button type="submit" className="submit-button" disabled={isSaving}>
-              💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
-            </button>
-          </div>
+        </div> {/* <-- To jest koniec ostatniego form-row */}
 
-        </div> {/* KONIEC OSTATNIEGO form-row */}
+        {/* PRZYCISK TERAZ JEST TUTAJ, POZA OSTATNIM form-row, ale nadal wewnątrz <form> */}
+        <button type="submit" className="submit-button" disabled={isSaving}>
+          💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
+        </button>
 
-      </form> {/* KONIEC CAŁEGO FORMULARZA */}
+      </form>
 
       <RouteMap routeData={routeData} />
     </>
