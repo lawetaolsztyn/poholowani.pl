@@ -124,7 +124,6 @@ function AddRouteForm({ onRouteCreated }) {
         return;
     }
 
-
     try {
       const apiKey = import.meta.env.VITE_ORS_API_KEY;
       const browserToken = localStorage.getItem('browser_token');
@@ -260,7 +259,7 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Ładowność (kg):</label>
             <input type="text" name="loadCapacity" value={form.loadCapacity} onChange={handleChange} className="uinput" />
-          </div> {/* Dodano brakujący tag zamykający całkiem </div> */}
+          </div> {/* Poprawiony tag zamykający </div> - WAŻNE! */}
           <div className="form-field">
             <label>Ilość osób do zabrania:</label>
             <input type="number" name="passengerCount" value={form.passengerCount} onChange={handleChange} className="uinput" />
@@ -347,7 +346,6 @@ function AddRouteForm({ onRouteCreated }) {
             </label>
           </div>
           
-
           <div className="form-field">
             <label>Messenger: (link)</label>
             <input
@@ -359,21 +357,18 @@ function AddRouteForm({ onRouteCreated }) {
               placeholder="https://facebook.com/user"
             />
             <small style={{ marginTop: '5px' }}>
-            <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer">
-              ❓ Skąd wziąć link do Messengera?
-            </a>
+              <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer">
+                ❓ Skąd wziąć link do Messengera?
+              </a>
             </small>
-          </div>
-
-          {/* NOWE: Przycisk Submit w osobnym form-field, aby był w tej samej linii */}
-          <div className="form-field submit-button-field">
-            <button type="submit" className="submit-button" disabled={isSaving}>
-              💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
-            </button>
           </div>
 
         </div> {/* <-- To jest koniec ostatniego form-row */}
 
+        {/* PRZYCISK TERAZ JEST TUTAJ, POZA OSTATNIM form-row, ale nadal wewnątrz <form> */}
+        <button type="submit" className="submit-button" disabled={isSaving}>
+          💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
+        </button>
 
       </form>
 
