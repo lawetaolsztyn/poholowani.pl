@@ -131,15 +131,15 @@ function AddRouteForm({ onRouteCreated }) {
 
     let coordinates = [form.from.coords];
     // Utwórz tablicę radiuses dynamicznie
-    let radiuses = [1000]; // Domyślny promień dla pierwszego punktu (from)
+    let radiuses = [1500]; // Domyślny promień dla pierwszego punktu (from)
 
     if (form.via.coords) {
       coordinates.push(form.via.coords);
-      radiuses.push(1000); // Dodaj promień dla punktu via
+      radiuses.push(1500); // Dodaj promień dla punktu via
     }
 
     coordinates.push(form.to.coords);
-    radiuses.push(1000); // Dodaj promień dla punktu to
+    radiuses.push(1500); // Dodaj promień dla punktu to
 
     // Logowanie dla celów debugowania - zobacz, jak wyglądają tablice
     console.log('Coordinates sent to ORS:', coordinates);
