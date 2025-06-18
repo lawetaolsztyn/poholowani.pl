@@ -1,5 +1,9 @@
 /* src/AddRouteForm.css */
 
+.whatsapp-checkbox {
+  margin-right: 8px; /* Dostosuj wartość, np. 5px, 10px, 15px */
+}
+
 .route-form {
   padding: 20px;
   background-color: #f9f9f9;
@@ -10,40 +14,50 @@
 .form-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 30px; /* Zwiększ odstęp między polami */
-  margin-bottom: 20px;
+  gap: 30px;
+  margin-bottom: 10px; /* ZMNIEJSZONO: Ogólny odstęp między rzędami formularza */
   justify-content: flex-start;
-  align-items: flex-start; /* Ważne dla wyrównania etykiet */
+  /* ZMIENIONO: Wyrównanie zawartości pól do dołu rzędu, aby inputy były na tej samej linii */
+  align-items: flex-end;
 }
+
+/* NOWA REGULA: Precyzyjne zmniejszenie marginesu pod OSTATNIM rzędem pól formularza */
+/* Ta reguła ma zastosowanie tylko wtedy, gdy NIE przeniesiesz przycisku do tego form-row.
+   Jeśli przeniesiesz przycisk do form-row (zalecane), ta reguła może być mniej potrzebna,
+   lub będziesz musiał dostosować ją, jeśli chcesz kontrolować odstęp po CAŁYM tym ostatnim rzędzie.
+   Na początek, spróbuj z nią.
+*/
+.route-form .form-row:last-of-type {
+  margin-bottom: 0px; /* Ustawiono na 0px */
+}
+
 
 .form-field {
   display: flex;
   flex-direction: column;
-  /* Elastyczna szerokość dla desktopa, aby pasowały 2-3 pola, max-width ograniczy szerokość */
-  flex: 0 0 auto; /* Nie rozciągaj automatycznie */
-  width: 280px; /* Stała, węższa szerokość dla pola na desktopie */
-  max-width: 100%; /* Upewnij się, że nie wyjdzie poza kontener na małych ekranach */
-  box-sizing: border-box; /* Ważne, aby padding i border nie zwiększały szerokości */
+  flex: 0 0 auto;
+  width: 280px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .form-field label {
-  margin-bottom: 5px; /* Odstęp między etykietą a polem */
+  margin-bottom: 5px;
   font-weight: bold;
-  color: #333; /* Domyślny kolor etykiet (jasny tryb) */
-  text-align: left; /* Etykiety wyrównane do lewej */
-  white-space: nowrap; /* Zapobiega zawijaniu się etykiet, jeśli są krótkie */
+  color: #333;
+  text-align: left;
+  white-space: nowrap;
 }
-
 
 /* Dostosowanie szerokości inputów i selectów wewnątrz form-field */
 .uinput, .narrow-autocomplete input {
-  width: 100%; /* Wewnątrz form-field zawsze zajmuje 100% dostępnej szerokości */
+  width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
-  background-color: #ffffff; /* Jasne tło dla inputów w jasnym trybie */
-  color: #333; /* Ciemny tekst w inputach */
+  background-color: #ffffff;
+  color: #333;
 }
 
 .uinput:focus, .narrow-autocomplete input:focus {
@@ -54,7 +68,7 @@
 
 .submit-button {
   padding: 12px 25px;
-  background-color: #28a745; /* Zielony kolor dla przycisku zapisu */
+  background-color: #28a745;
   color: white;
   border: none;
   border-radius: 5px;
@@ -62,28 +76,49 @@
   font-size: 1.1rem;
   transition: background-color 0.3s ease;
   width: auto;
-  margin: 20px auto 0 auto; /* Zmieniono: wyśrodkowanie przycisku poziomo */
-  display: block; /* Upewnij się, że jest elementem blokowym, aby margines auto działał */
+  
+  /* ZMIENIONO MARGINES PRZYCISKU:
+     Teraz, gdy jest wewnątrz form-row, jego centrowanie będzie kontrolowane przez form-field-button.
+     Ustawiamy marginesy na 0, a paddingi będą kontrolować przestrzeń wewnątrz.
+     Możesz dodać mały margin-top, jeśli chcesz, aby przycisk był trochę niżej w swoim polu.
+  */
+  margin: 0; /* Zresetuj wszystkie marginesy, aby uniknąć konfliktów z Flexbox */
+  display: block; /* Nadal element blokowy */
 }
 
 .submit-button:hover {
-  background-color: #218838; /* Ciemniejszy zielony na hover */
+  background-color: #218838;
+}
+
+/* NOWA KLASA DLA KONTENERA PRZYCISKU, GDY JEST W TYM SAMYM FORM-ROW CO INNE POLA */
+.form-field-button {
+    display: flex; /* Użyj flexbox do wyrównania przycisku w pionie */
+    flex-direction: column; /* Utrzymaj układ kolumnowy dla zawartości pola */
+    justify-content: flex-end; /* WYROWNAJ PRZYCISK DO DOLU JEGO POLA */
+    align-items: center; /* WYŚRODKUJ PRZYCISK POZIOMO W JEGO WŁASNYM POLU */
+    width: 280px; /* Przykład: taka sama szerokość jak inne form-field */
+    max-width: 100%;
+    box-sizing: border-box;
+    /* Domyślny gap 30px z .form-row i tak działa.
+       Jeśli potrzebujesz dodatkowego marginesu nad przyciskiem w tym polu,
+       możesz dodać margin-top do .submit-button, np. margin-top: 20px;
+       aby przycisk był na wysokości inputów nad nim, pomimo dodatkowego tekstu pod Messengerem. */
 }
 
 /* --- NOWE STYLE DLA POLA TELEFONU Z KODEM KRAJU --- */
 .phone-input-group {
   display: flex;
-  gap: 5px; /* Mały odstęp między selektorem a inputem */
-  width: 100%; /* Zajmuje całą szerokość .form-field */
+  gap: 5px;
+  width: 100%;
 }
 
 .country-code-select {
-  flex: 0 0 100px; /* Stała szerokość dla selektora kodu kraju */
-  min-width: 80px; /* Minimalna szerokość, żeby się nie zwęził za bardzo */
+  flex: 0 0 100px;
+  min-width: 80px;
 }
 
 .phone-input-group .uinput {
-  flex-grow: 1; /* Input zajmuje całe pozostałe miejsce */
+  flex-grow: 1;
 }
 /* --- KONIEC NOWYCH STYLI --- */
 
@@ -92,54 +127,70 @@
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column; /* Wszystkie pola w jednej kolumnie */
-    gap: 15px; /* Mniejszy odstęp między polami */
+    gap: 15px;
+    margin-bottom: 10px; /* ZMNIEJSZONO odstęp na mobilnych */
+    align-items: flex-start; /* Na mobilnych często lepiej, żeby pola były wyrównane do góry */
+  }
+
+  /* Specyficzna reguła dla ostatniego rzędu na mobilnych */
+  .route-form .form-row:last-of-type {
+    margin-bottom: 5px;
   }
 
   .form-field {
-    width: 100%; /* Każde pole zajmuje całą dostępną szerokość */
-    min-width: unset; /* Usuń minimalną szerokość, jeśli jest */
+    width: 100%;
+    min-width: unset;
+  }
+
+  /* NOWA REGULA DLA PRZYCISKU NA MOBILNYCH, GDY JEST W FORM-ROW */
+  .form-field-button {
+      width: 100%; /* Na mobilnych niech przycisk zajmuje całą szerokość */
+      align-items: stretch; /* Rozciągnij przycisk, aby wypełnił pole */
+      justify-content: flex-start; /* Na mobilnych, przycisk może być wyrównany do góry lub flex-start */
+      margin-top: 0; /* Resetuj ewentualny margin-top dla mobilnych */
   }
 
   .route-form {
-    padding: 15px; /* Mniejszy padding dla formularza */
+    padding: 15px;
   }
 
   .submit-button {
     width: 100%; /* Przycisk zajmuje całą szerokość */
-    padding: 15px; /* Większy padding dla łatwiejszego klikania */
+    padding: 15px;
     font-size: 1rem;
+    margin: 0; /* Resetuj marginesy na mobilnych, aby nie tworzyć niepotrzebnych odstępów */
   }
 
   /* Dostosowanie dla telefonów: selektor i input są wciąż obok siebie, ale zajmują 100% szerokości rodzica */
   .phone-input-group {
-    flex-wrap: nowrap; /* Zapobiega zawijaniu się na telefonach */
+    flex-wrap: nowrap;
   }
 }
 
 /* Dark mode styles for AddRouteForm */
 @media (prefers-color-scheme: dark) {
   .route-form {
-    background-color: #2a2a2a; /* Ciemne tło formularza */
+    background-color: #2a2a2a;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
 
   .form-field label {
-    color: #e0e0e0; /* Jasny kolor etykiet w ciemnym trybie */
+    color: #e0e0e0;
   }
 
-  .uinput, .narrow-autocomplete input, .country-code-select { /* Dodano .country-code-select */
-    background-color: #3b3b3b; /* Ciemniejsze tło dla inputów i selektorów */
-    color: #e0e0e0; /* Jasny tekst w inputach */
-    border-color: #555; /* Ciemniejsza ramka */
+  .uinput, .narrow-autocomplete input, .country-code-select {
+    background-color: #3b3b3b;
+    color: #e0e0e0;
+    border-color: #555;
   }
 
-  .uinput:focus, .narrow-autocomplete input:focus, .country-code-select:focus { /* Dodano .country-code-select */
-    border-color: #0099ff; /* Jaśniejsze podświetlenie ramki */
+  .uinput:focus, .narrow-autocomplete input:focus, .country-code-select:focus {
+    border-color: #0099ff;
     box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.3);
   }
 
   .submit-button {
-    background-color: #0056b3; /* Odpowiedni kolor przycisku dla ciemnego trybu */
+    background-color: #0056b3;
   }
 
   .submit-button:hover {

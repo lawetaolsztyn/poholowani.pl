@@ -350,6 +350,7 @@ function AddRouteForm({ onRouteCreated }) {
                 name="usesWhatsapp"
                 checked={form.usesWhatsapp}
                 onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
+		className="whatsapp-checkbox"
               />
               Kontakt WhatsApp
             </label>
@@ -372,13 +373,14 @@ function AddRouteForm({ onRouteCreated }) {
 </a>
   </small>
 </div>
-        </div>
-
-        <button type="submit" className="submit-button" disabled={isSaving}>
-          💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
-        </button>
-      </form>
-
+{/* TUTAJ DODAJE NOWY FORM-FIELD DLA PRZYCISKU W TYM SAMYM FORM-ROW */}
+<div className="form-field form-field-button"> {/* Możesz dodać nową klasę dla stylizacji */}
+  <button type="submit" className="submit-button" disabled={isSaving}>
+    💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
+  </button>
+</div>
+</div>
+</form>
       <RouteMap routeData={routeData} />
     </>
   );
