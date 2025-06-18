@@ -126,30 +126,39 @@ function AddRouteForm({ onRouteCreated }) {
 
 
     try {
-      const apiKey = import.meta.env.VITE_ORS_API_KEY;
-      const browserToken = localStorage.getItem('browser_token');
+    const apiKey = import.meta.env.VITE_ORS_API_KEY;
+    const browserToken = localStorage.getItem('browser_token');
 
-      let coordinates = [form.from.coords];
+    let coordinates = [form.from.coords];
+    // Utwórz tablicę radiuses dynamicznie
+    let radiuses = [1000]; // Domyślny promień dla pierwszego punktu (from)
 
-      if (form.via.coords) {
-        coordinates.push(form.via.coords);
-      }
+    if (form.via.coords) {
+      coordinates.push(form.via.coords);
+      radiuses.push(1000); // Dodaj promień dla punktu via
+    }
 
-      coordinates.push(form.to.coords);
+    coordinates.push(form.to.coords);
+    radiuses.push(1000); // Dodaj promień dla punktu to
 
-      const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: apiKey
-        },
-        body: JSON.stringify({
-          coordinates: coordinates,
-          instructions: false,
-          geometry_simplify: true,
-radiuses: [1000, 1000]
-        })
-      });
+    // Logowanie dla celów debugowania - zobacz, jak wyglądają tablice
+    console.log('Coordinates sent to ORS:', coordinates);
+    console.log('Radiuses sent to ORS:', radiuses);
+
+    const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: apiKey
+      },
+      body: JSON.stringify({
+        coordinates: coordinates,
+        instructions: false,
+        geometry_simplify: true,
+        radiuses: radiuses // <--- Używamy dynamicznie stworzonej tablicy radiuses
+      })
+    });
+
 
       const routeData = await routeRes.json();
       setRouteData(routeData);
