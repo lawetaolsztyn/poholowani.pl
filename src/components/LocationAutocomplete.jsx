@@ -168,7 +168,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
         type="text"
         value={internalInput}
         onChange={handleInputChange}
-        onBlur={handleBlurLogic} {/* <-- DODANO OBSŁUGĘ ZDARZENIA ONBLUR */}
+        onBlur={handleBlurLogic}
         placeholder={placeholder || 'Wpisz miasto lub kod pocztowy'}
         className="autocomplete-input"
       />
