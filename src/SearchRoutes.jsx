@@ -8,7 +8,7 @@ import Navbar from './components/Navbar';
 import Header from './components/Header';
 import LocationAutocomplete from './components/LocationAutocomplete';
 import RouteSlider from './RouteSlider';
-import L from 'leaflet'; // Upewnij się, że L jest zaimportowane
+import L from 'leaflet'; 
 import RoadsideMarkers from './components/RoadsideMarkers';
 import './SearchRoutes.css';
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
@@ -37,7 +37,7 @@ function MapEvents() {
         } else {
             setCenter([52.2297, 21.0122]); // Warszawa
         }
-    }, [resetTrigger, setCenter]); // resetTrigger i setCenter jako zależności
+    }, [resetTrigger, setCenter]); 
 
     useMapEvents({
         moveend: (event) => {
@@ -65,7 +65,7 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
         } else if (mapMode === 'search' && toLocation) {
             map.setView([toLocation.lat, toLocation.lng], 7);
         }
-    }, [trigger, mapMode, fromLocation, toLocation, map]); // Dodano 'map' do zależności
+    }, [trigger, mapMode, fromLocation, toLocation, map]); 
 
     useEffect(() => {
         if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) { // Aktywne tylko w trybie 'search'
@@ -80,12 +80,11 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
                 map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
             }
         }
-    }, [selectedRouteTrigger, mapMode, selectedRoute, map]); // Dodano mapMode, selectedRoute i map do zależności
+    }, [selectedRouteTrigger, mapMode, selectedRoute, map]); 
 
     return null;
 }
 
-// Ten komponent pozostaje taki sam, ale będzie renderowany warunkowo
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
@@ -207,8 +206,6 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
     );
 });
 
-// Nowy komponent do wyświetlania statycznej siatki tras
-// Będzie bardzo uproszczony, bez eventHandlers i Popup
 const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
@@ -229,11 +226,11 @@ const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
     return (
         <Polyline
             positions={coords}
-            pane="routes" // Nadal używamy tego samego pane'a
+            pane="routes" 
             pathOptions={{
-                color: 'grey', // Szary kolor dla siatki
-                weight: 1.5,    // Cienka linia
-                opacity: 0.3    // Przezroczysta, aby nie dominować
+                color: 'grey', 
+                weight: 1.5,    
+                opacity: 0.3    
             }}
         />
     );
@@ -259,7 +256,7 @@ function SearchRoutes() {
     const mapRef = useRef(null);
     const today = new Date().toISOString().split('T')[0];
 
-    const [mapMode, setMapMode] = useState('grid'); // Domyślnie tryb siatki
+    const [mapMode, setMapMode] = useState('grid'); 
 
     useEffect(() => {
         // Ten useEffect jest teraz używany do inicjalizacji widoku mapy przy starcie,
@@ -270,7 +267,7 @@ function SearchRoutes() {
             mapRef.current.setMinZoom(5); // Minimalny zoom dla trybu grid
         }
         setResetTrigger(prev => prev + 1);
-    }, []);
+    }, []); 
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route);
@@ -441,7 +438,12 @@ function SearchRoutes() {
         setSearchTrigger(0); // Resetujemy searchTrigger
 
         setMapMode('grid'); // Przełącz na tryb siatki
-        // Pozwól useEffect reagującemu na mapMode ustawić widok mapy.
+        // Upewnij się, że mapa wraca do domyślnego widoku Europy natychmiast po resecie
+        if (mapRef.current) {
+            mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
+            mapRef.current.setMaxZoom(9);
+            mapRef.current.setMinZoom(5);
+        }
         setResetTrigger(prev => prev + 1); // Wyzwolenie MapEvents i ogólnego resetu
     };
 
@@ -525,6 +527,7 @@ function SearchRoutes() {
                             gestureHandling={mapMode === 'search'}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
+                                // Initial view setting for grid mode when component mounts
                                 if (mapMode === 'grid') {
                                     mapInstance.setView([52.0, 19.0], 5); // Ustawienie widoku dla trybu grid przy inicjalizacji
                                 }
