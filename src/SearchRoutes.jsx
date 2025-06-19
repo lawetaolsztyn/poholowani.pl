@@ -321,16 +321,16 @@ function SearchRoutes() {
 
             if (error) {
                 console.error('Błąd podczas pobierania tras:', error);
-            } else {
-                console.log('Supabase fetched data. Count:', data.length, 'Data:', data);
-                setAllRoutes(
-console.log('PRZED PARSOWANIEM GEOJSON:', data);
+           } else {
+    console.log('Supabase fetched data. Count:', data.length, 'Data:', data);
 
-  data.map(route => ({
-    ...route,
-    geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson
-  }))
-console.log('PO PARSOWANIU GEOJSON:', parsed);
+    const parsed = data.map(route => ({
+        ...route,
+        geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson
+    }));
+
+    console.log('PO PARSOWANIU GEOJSON:', parsed);
+    setAllRoutes(parsed);
 
 );
 
