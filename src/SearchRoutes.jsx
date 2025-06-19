@@ -462,7 +462,7 @@ min={today}
   }}
 >
 <TileLayer
-  url="https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=VITE_MAPBOX_TOKEN"
+  url={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`}
   id="mapbox/streets-v11"
   tileSize={512}
   zoomOffset={-1}
