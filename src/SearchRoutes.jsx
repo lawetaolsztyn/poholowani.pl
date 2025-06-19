@@ -464,7 +464,7 @@ function SearchRoutes() {
     }, [routesToDisplayOnMap, mapMode]);
 
     useEffect(() => {
-        if (mapMode === 'search' && filteredRoutes.length > 1 && mapRef.current) {
+        if (mapMode === 'search' && filteredRoutes.length >= 1 && mapRef.current) {
             const allCoords = [];
 
             filteredRoutes.forEach(route => {
