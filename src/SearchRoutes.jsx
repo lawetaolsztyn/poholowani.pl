@@ -52,27 +52,37 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
   const map = useMap();
 
   // Zoom do from/to albo selectedRoute — jak wcześniej
-useEffect(() => {
-    if (mapMode === 'search' && filteredRoutes.length > 0 && mapRef.current) {
-        const allCoords = [];
-
-        filteredRoutes.forEach(route => {
-            const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
-            if (coords && Array.isArray(coords)) {
-                coords.forEach(([lng, lat]) => {
-                    if (typeof lat === 'number' && typeof lng === 'number') {
-                        allCoords.push([lat, lng]);
-                    }
-                });
-            }
-        });
-
-        if (allCoords.length > 0) {
-            const bounds = L.latLngBounds(allCoords).pad(0.1);
-            mapRef.current.fitBounds(bounds, { padding: [80, 80], maxZoom: 12 });
-        }
+  useEffect(() => {
+    if (mapMode === 'search') {
+      if (fromLocation && toLocation) {
+        const bounds = L.latLngBounds(
+          [fromLocation.lat, fromLocation.lng],
+          [toLocation.lat, toLocation.lng]
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
+      } else if (fromLocation) {
+        map.setView([fromLocation.lat, fromLocation.lng], 7);
+      } else if (toLocation) {
+        map.setView([toLocation.lat, toLocation.lng], 7);
+      }
     }
-}, [filteredRoutes, mapMode]);
+  }, [trigger, mapMode, fromLocation, toLocation, map]);
+
+  // Zoom do wybranej trasy (selectedRoute) — jak wcześniej
+ useEffect(() => {
+  if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+    const coords = selectedRoute.geojson.features[0].geometry.coordinates
+      .filter(pair => Array.isArray(pair) && pair.length === 2)
+      .map(([lng, lat]) => [lat, lng]);
+
+    if (coords.length > 1) {
+      const bounds = L.latLngBounds(coords);
+      const paddedBounds = bounds.pad(0.1);
+      map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
+    }
+  }
+}, [selectedRoute, mapMode, map]);
+
 
   // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
   useEffect(() => {
@@ -452,6 +462,29 @@ function SearchRoutes() {
         console.log('Filtered Routes (after update):', routesToDisplayOnMap.length);
         console.log('Current Map Mode:', mapMode);
     }, [routesToDisplayOnMap, mapMode]);
+
+    useEffect(() => {
+        if (mapMode === 'search' && filteredRoutes.length > 1 && mapRef.current) {
+            const allCoords = [];
+
+            filteredRoutes.forEach(route => {
+                const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+                if (coords && Array.isArray(coords)) {
+                    coords.forEach(([lng, lat]) => {
+                        if (typeof lat === 'number' && typeof lng === 'number') {
+                            allCoords.push([lat, lng]);
+                        }
+                    });
+                }
+            });
+
+            if (allCoords.length > 0) {
+                const bounds = L.latLngBounds(allCoords);
+                mapRef.current.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+            }
+        }
+    }, [filteredRoutes, mapMode]);
+
 
     const handleSearchClick = () => {
   setSearchTrigger(prev => prev + 1);
