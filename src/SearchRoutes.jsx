@@ -378,7 +378,7 @@ function SearchRoutes() {
     }, []);
 
     const handleRouteClick = (route) => {
-        // setSelectedRoute(route); //
+        setSelectedRoute(route); 
         setSelectedRouteTrigger(prev => prev + 1);
     };
 
