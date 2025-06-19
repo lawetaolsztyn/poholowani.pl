@@ -231,9 +231,9 @@ const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
             positions={coords}
             pane="routes"
             pathOptions={{
-                color: 'grey',
-                weight: 1.5,
-                opacity: 0.3
+                color: 'blue',
+                weight: 5,
+                opacity: 1
             }}
         />
     );
