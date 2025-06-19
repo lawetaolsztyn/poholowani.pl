@@ -292,7 +292,7 @@ useEffect(() => {
                 const routeLine = turf.lineString(geo);
                 const nearest = turf.nearestPointOnLine(routeLine, centerPoint);
                 const dist = turf.distance(centerPoint, nearest, { units: 'kilometers' });
-                return dist <= 75;
+                return dist <= 25;
             });
             setFilteredRoutes(filtered);
             return;
