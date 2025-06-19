@@ -246,9 +246,9 @@ function MapViewAndInteractionSetter({ mapMode }) {
     useEffect(() => {
         console.log(`MapViewAndInteractionSetter: mapMode changed to ${mapMode}`);
         if (mapMode === 'grid') {
-            map.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
-            map.setMaxZoom(9);
-            map.setMinZoom(5);
+            map.setView([51.05, 13.73], 5); // Centrum Europy (Polska), zoom 5
+            map.setMaxZoom(6);
+            map.setMinZoom(6);
 
             // Wyłącz interakcje
             map.dragging.disable();
