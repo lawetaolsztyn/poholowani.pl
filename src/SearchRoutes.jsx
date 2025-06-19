@@ -283,7 +283,7 @@ function MapViewAndInteractionSetter({ mapMode }) {
 
 
 function SearchRoutes() {
-    const [center, setCenter] = useState([52.2297, 21.0122]);
+    const [center, setCenter] = useState([49.45, 11.07]);
     const [allRoutes, setAllRoutes] = useState([]);
     const [filteredRoutes, setFilteredRoutes] = useState([]);
     const [hoveredRouteId, setHoveredRouteId] = useState(null);
