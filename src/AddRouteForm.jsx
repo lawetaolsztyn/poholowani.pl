@@ -145,19 +145,19 @@ function AddRouteForm({ onRouteCreated }) {
     console.log('Coordinates sent to ORS:', coordinates);
     console.log('Radiuses sent to ORS:', radiuses);
 
-    const routeRes = await fetchWithRetry('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: apiKey
-      },
-      body: JSON.stringify({
-        coordinates: coordinates,
-        instructions: false,
-        geometry_simplify: true,
-        radiuses: radiuses // <--- Używamy dynamicznie stworzonej tablicy radiuses
-      })
-    });
+    const routeRes = await fetchWithRetry('/api/ors-route', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    coordinates,
+    instructions: false,
+    geometry_simplify: true,
+    radiuses,
+  }),
+});
+
 
 
       const routeData = await routeRes.json();
