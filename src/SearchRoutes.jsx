@@ -94,7 +94,8 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
-        const rawCoords = route.geojson.features[0].geometry.coordinates;
+  console.warn('Trasa bez danych geojson:', route.id, route);       
+ const rawCoords = route.geojson.features[0].geometry.coordinates;
         if (Array.isArray(rawCoords)) {
             coords = rawCoords
                 .filter(coordPair =>
@@ -519,13 +520,12 @@ function SearchRoutes() {
                             maxZoom={19} // Pełny zakres
                             minZoom={0} // Pełny zakres
                             // Interakcje są teraz kontrolowane przez MapViewAndInteractionSetter
-                            dragging={true}
-                            zoomControl={true}
-                            scrollWheelZoom={true}
-                            doubleClickZoom={true}
-                            boxZoom={true}
-                            keyboard={true}
-                            tap={true}
+                           dragging={false}
+  scrollWheelZoom={false}
+  doubleClickZoom={false}
+  boxZoom={false}
+  keyboard={false}
+  tap={false}
                             gestureHandling={true}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
