@@ -467,8 +467,8 @@ min={today}
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
 <MapContainer
   center={center}
-  zoom={10}
-maxZoom={16}
+  zoom={8}
+maxZoom={14}
   whenCreated={mapInstance => mapRef.current = mapInstance}
   style={{ height: '80vh', width: '100%' }}
   gestureHandling={true} // włączamy obsługę gestów
