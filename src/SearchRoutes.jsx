@@ -115,13 +115,13 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     return (
         <Polyline
-            positions={coords}
-            pane={isHovered ? 'hovered' : 'routes'}
-            pathOptions={{
-                color: isHovered ? 'red' : 'blue',
-                weight: isHovered ? 6 : 5,
-                opacity: isHovered ? 1 : 0.7
-            }}
+            positions={coords}
+            pane="routes"
+            pathOptions={{
+                color: 'red',   // Zmień na mocny kolor dla testu, np. 'red' lub 'purple'
+                weight: 5,      // Zwiększ grubość, żeby było widać
+                opacity: 1      // Usuń przezroczystość
+            }}
             eventHandlers={{
                 mouseover: (e) => {
                     if (closeTimeoutRef.current) {
@@ -321,6 +321,8 @@ function SearchRoutes() {
     useEffect(() => {
         if (mapRef.current) {
             if (mapMode === 'grid') {
+            console.log('Setting map view to Europe for GRID mode'); // <-- Czy ten log się pojawia?
+
                 // Ustaw widok na Europę tylko wtedy, gdy przechodzimy do trybu siatki
                 mapRef.current.setView([50.0, 15.0], 4);
             } else {
