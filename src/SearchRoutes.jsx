@@ -332,7 +332,7 @@ function SearchRoutes() {
     console.log('PO PARSOWANIU GEOJSON:', parsed);
     setAllRoutes(parsed);
 
-)
+
 
             }
             setIsLoading(false);
