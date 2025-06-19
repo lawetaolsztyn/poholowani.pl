@@ -554,8 +554,8 @@ function SearchRoutes() {
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
     center={mapMode === 'grid' ? [50.0, 15.0] : center} // W trybie grid ustaw stałe centrum na Europę
-    zoom={mapMode === 'grid' ? 4 : 10}
-    maxZoom={mapMode === 'grid' ? 6 : 19}
+    zoom={mapMode === 'grid' ? 5 : 10}
+    maxZoom={mapMode === 'grid' ? 9 : 19}
     minZoom={mapMode === 'grid' ? 4 : 0}
     // Kontrola interakcji za pomocą propsów React Leaflet
     dragging={mapMode === 'search'}
