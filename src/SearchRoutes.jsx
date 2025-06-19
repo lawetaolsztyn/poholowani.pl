@@ -400,32 +400,51 @@ useEffect(() => {
 
                 <div className="search-form-container">
                     <LocationAutocomplete
-                        placeholder="Skąd"
-                        value={fromValue}
-                        onSelectLocation={(label, loc) => {
-                            const name = loc.properties.locality || loc.properties.name || '';
-                            const lat = loc.geometry.coordinates[1];
-                            const lng = loc.geometry.coordinates[0];
-                            setFromValue(label);
-                            setFromLocation({ name, lat, lng });
-                            setFromCoords([lat, lng]);
-                        }}
-                        className="location-autocomplete-field"
-                    />
-                    <LocationAutocomplete
-                        placeholder="Dokąd"
-                        value={toValue}
-                        onSelectLocation={(label, loc) => {
-                            const name = loc.properties.locality || loc.properties.name || '';
-                            const lat = loc.geometry.coordinates[1];
-                            const lng = loc.geometry.coordinates[0];
+    placeholder="Skąd"
+    value={fromValue}
+    onSelectLocation={(label, loc) => {
+        // Bezpieczne sprawdzenia!
+        const name = loc?.properties?.locality || loc?.properties?.name || '';
+        const lat = loc?.geometry?.coordinates?.[1];
+        const lng = loc?.geometry?.coordinates?.[0];
 
-                            setToValue(label);
-                            setToLocation({ name, lat, lng });
-                            setToCoords([lat, lng]);
-                        }}
-                       className="location-autocomplete-field"
-                    />
+        if (typeof lat === 'number' && typeof lng === 'number') {
+            setFromValue(label);
+            setFromLocation({ name, lat, lng });
+            // setFromCoords([lat, lng]); // Można usunąć jeśli nieużywane
+        } else {
+            // Obsługa przypadku, gdy współrzędne są niepoprawne
+            console.warn("Nieprawidłowe współrzędne dla wybranej lokalizacji Skąd:", loc);
+            setFromValue('');
+            setFromLocation(null);
+            // setFromCoords(null);
+        }
+    }}
+    className="location-autocomplete-field"
+/>
+                    <LocationAutocomplete
+    placeholder="Dokąd"
+    value={toValue}
+    onSelectLocation={(label, loc) => {
+        // Bezpieczne sprawdzenia!
+        const name = loc?.properties?.locality || loc?.properties?.name || '';
+        const lat = loc?.geometry?.coordinates?.[1];
+        const lng = loc?.geometry?.coordinates?.[0];
+
+        if (typeof lat === 'number' && typeof lng === 'number') {
+            setToValue(label);
+            setToLocation({ name, lat, lng });
+            // setToCoords([lat, lng]); // Można usunąć jeśli nieużywane
+        } else {
+            // Obsługa przypadku, gdy współrzędne są niepoprawne
+            console.warn("Nieprawidłowe współrzędne dla wybranej lokalizacji Dokąd:", loc);
+            setToValue('');
+            setToLocation(null);
+            // setToCoords(null);
+        }
+    }}
+    className="location-autocomplete-field"
+/>
                     <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="form-select-field">
                         <option value="">Typ pojazdu</option>
                         <option value="bus">🚌 Bus</option>
