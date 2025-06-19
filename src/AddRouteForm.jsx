@@ -159,7 +159,6 @@ function AddRouteForm({ onRouteCreated }) {
       })
     });
 console.log("STATUS", routeRes.status);  // 👈 zobaczysz np. 200, 503, 429
-const responseText = await routeRes.text();
 console.log("ORS response:", responseText);
 
       const routeData = await routeRes.json();
