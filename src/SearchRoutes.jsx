@@ -86,26 +86,28 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 
   // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
   useEffect(() => {
-    if (mapMode === 'search' && filteredRoutes && filteredRoutes.length > 1) {
-      const allCoords = [];
-
-      filteredRoutes.forEach(route => {
-        const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
-        if (coords && Array.isArray(coords)) {
-          coords.forEach(([lng, lat]) => {
-            if (typeof lat === 'number' && typeof lng === 'number') {
-              allCoords.push([lat, lng]);
-            }
-          });
-        }
-      });
-
-      if (allCoords.length > 0) {
-        const bounds = L.latLngBounds(allCoords);
-        map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+  console.log('MapAutoZoom: Zoom do wszystkich tras', filteredRoutes.length);
+  if (mapMode === 'search' && filteredRoutes && filteredRoutes.length > 1) {
+    const allCoords = [];
+    filteredRoutes.forEach(route => {
+      const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+      if (coords && Array.isArray(coords)) {
+        coords.forEach(([lng, lat]) => {
+          if (typeof lat === 'number' && typeof lng === 'number') {
+            allCoords.push([lat, lng]);
+          }
+        });
       }
+    });
+
+    if (allCoords.length > 0) {
+      const bounds = L.latLngBounds(allCoords);
+      console.log('Bounds:', bounds.toBBoxString());
+      map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
     }
-  }, [filteredRoutes, mapMode, map]);
+  }
+}, [filteredRoutes, mapMode, map]);
+
 
   return null;
 }
