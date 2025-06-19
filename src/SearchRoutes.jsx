@@ -8,7 +8,7 @@ import Navbar from './components/Navbar';
 import Header from './components/Header';
 import LocationAutocomplete from './components/LocationAutocomplete';
 import RouteSlider from './RouteSlider';
-import L from 'leaflet'; 
+import L from 'leaflet';
 import RoadsideMarkers from './components/RoadsideMarkers';
 import './SearchRoutes.css';
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
@@ -37,7 +37,7 @@ function MapEvents() {
         } else {
             setCenter([52.2297, 21.0122]); // Warszawa
         }
-    }, [resetTrigger, setCenter]); 
+    }, [resetTrigger, setCenter]);
 
     useMapEvents({
         moveend: (event) => {
@@ -52,7 +52,6 @@ function MapEvents() {
 function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode }) {
     const map = useMap();
 
-    // Logika zoomowania dla trybu 'search' na podstawie from/toLocation
     useEffect(() => {
         if (mapMode === 'search' && fromLocation && toLocation) {
             const bounds = L.latLngBounds(
@@ -65,22 +64,22 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
         } else if (mapMode === 'search' && toLocation) {
             map.setView([toLocation.lat, toLocation.lng], 7);
         }
-    }, [trigger, mapMode, fromLocation, toLocation, map]); 
+    }, [trigger, mapMode, fromLocation, toLocation, map]);
 
     useEffect(() => {
-        if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) { // Aktywne tylko w trybie 'search'
+        if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
             const coords = selectedRoute.geojson.features[0].geometry.coordinates
                 .filter(pair => Array.isArray(pair) && pair.length === 2)
                 .map(([lng, lat]) => [lat, lng]);
 
             if (coords.length > 1) {
                 const bounds = L.latLngBounds(coords);
-                const paddedBounds = bounds.pad(0.1); // 10% margines
+                const paddedBounds = bounds.pad(0.1);
 
                 map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
             }
         }
-    }, [selectedRouteTrigger, mapMode, selectedRoute, map]); 
+    }, [selectedRouteTrigger, mapMode, selectedRoute, map]);
 
     return null;
 }
@@ -226,11 +225,11 @@ const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
     return (
         <Polyline
             positions={coords}
-            pane="routes" 
+            pane="routes"
             pathOptions={{
-                color: 'grey', 
-                weight: 1.5,    
-                opacity: 0.3    
+                color: 'grey',
+                weight: 1.5,
+                opacity: 0.3
             }}
         />
     );
@@ -256,18 +255,18 @@ function SearchRoutes() {
     const mapRef = useRef(null);
     const today = new Date().toISOString().split('T')[0];
 
-    const [mapMode, setMapMode] = useState('grid'); 
+    const [mapMode, setMapMode] = useState('grid');
 
     useEffect(() => {
-        // Ten useEffect jest teraz używany do inicjalizacji widoku mapy przy starcie,
-        // ustawiając go na tryb "grid" z widokiem na Europę.
+        // Ten useEffect jest używany do inicjalizacji widoku mapy przy starcie komponentu.
+        // Ustawia początkowy widok na Europę dla trybu "grid".
         if (mapRef.current) {
             mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
             mapRef.current.setMaxZoom(9);
             mapRef.current.setMinZoom(5); // Minimalny zoom dla trybu grid
         }
         setResetTrigger(prev => prev + 1);
-    }, []); 
+    }, []); // Pusta tablica zależności, efekt uruchamia się raz po zamontowaniu
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route);
@@ -316,12 +315,12 @@ function SearchRoutes() {
     useEffect(() => {
         if (mapRef.current) {
             if (mapMode === 'grid') {
-                console.log('Setting map view to Europe for GRID mode');
+                console.log('Setting map view to Europe for GRID mode from useEffect');
                 mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
                 mapRef.current.setMaxZoom(9);
                 mapRef.current.setMinZoom(5);
             } else { // mapMode === 'search'
-                console.log('Switching to SEARCH mode. Releasing map view constraints.');
+                console.log('Switching to SEARCH mode from useEffect. Releasing map view constraints.');
                 mapRef.current.setMaxZoom(19); // Pełny zakres zoomu
                 mapRef.current.setMinZoom(0); // Pełny zakres zoomu
                 // Nie ustawiamy map.setView tutaj, pozwalamy MapAutoZoom to zrobić po wyszukaniu
@@ -412,9 +411,8 @@ function SearchRoutes() {
 
     const handleSearchClick = () => {
         setSearchTrigger(prev => prev + 1);
-        setMapMode('search'); // Przełącz na tryb wyszukiwania
+        setMapMode('search');
 
-        // Logika zoomowania mapy pozostaje taka sama
         if (fromLocation && toLocation && mapRef.current) {
             const bounds = L.latLngBounds(
                 [fromLocation.lat, fromLocation.lng],
@@ -435,16 +433,11 @@ function SearchRoutes() {
         setToValue('');
         setVehicleType('');
         setSelectedDate('');
-        setSearchTrigger(0); // Resetujemy searchTrigger
+        setSearchTrigger(0);
 
-        setMapMode('grid'); // Przełącz na tryb siatki
-        // Upewnij się, że mapa wraca do domyślnego widoku Europy natychmiast po resecie
-        if (mapRef.current) {
-            mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
-            mapRef.current.setMaxZoom(9);
-            mapRef.current.setMinZoom(5);
-        }
-        setResetTrigger(prev => prev + 1); // Wyzwolenie MapEvents i ogólnego resetu
+        // Zmieniamy tylko mapMode, a useEffect poniżej zajmie się ustawieniem widoku mapy
+        setMapMode('grid');
+        setResetTrigger(prev => prev + 1);
     };
 
     return (
@@ -513,10 +506,10 @@ function SearchRoutes() {
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
-                            center={mapMode === 'grid' ? [52.0, 19.0] : center} // Ustawiono na Polskę/Centralną Europę
-                            zoom={mapMode === 'grid' ? 5 : 10} // Zwiększono domyślny zoom dla trybu grid
+                            center={mapMode === 'grid' ? [52.0, 19.0] : center} // Centrum Europy (Polska)
+                            zoom={mapMode === 'grid' ? 5 : 10} // Zoom dla trybu grid
                             maxZoom={mapMode === 'grid' ? 9 : 19}
-                            minZoom={mapMode === 'grid' ? 5 : 0} // Zwiększono minimalny zoom dla trybu grid
+                            minZoom={mapMode === 'grid' ? 5 : 0}
                             dragging={mapMode === 'search'}
                             zoomControl={mapMode === 'search'}
                             scrollWheelZoom={mapMode === 'search'}
@@ -527,9 +520,9 @@ function SearchRoutes() {
                             gestureHandling={mapMode === 'search'}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
-                                // Initial view setting for grid mode when component mounts
+                                // Ustawienie początkowego widoku dla trybu grid, gdy komponent jest tworzony
                                 if (mapMode === 'grid') {
-                                    mapInstance.setView([52.0, 19.0], 5); // Ustawienie widoku dla trybu grid przy inicjalizacji
+                                    mapInstance.setView([52.0, 19.0], 5);
                                 }
                             }}
                             gestureHandlingOptions={{
