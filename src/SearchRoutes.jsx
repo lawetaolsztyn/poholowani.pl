@@ -232,7 +232,7 @@ const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
             pane="routes"
             pathOptions={{
                 color: 'blue',
-                weight: 5,
+                weight: 4,
                 opacity: 1
             }}
         />
@@ -525,7 +525,7 @@ function SearchRoutes() {
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
                             // Ustawienia początkowe, które zostaną nadpisane przez MapViewAndInteractionSetter
-                            center={[52.0, 19.0]} // Początkowe centrum
+                            center={[51.0504, 13.7373]} // Początkowe centrum
                             zoom={5} // Początkowy zoom
                             maxZoom={19} // Pełny zakres
                             minZoom={0} // Pełny zakres
