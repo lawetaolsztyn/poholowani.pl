@@ -377,7 +377,10 @@ function SearchRoutes() {
         };
     }, []);
 
-  
+    const handleRouteClick = (route) => {
+        // setSelectedRoute(route); //
+        setSelectedRouteTrigger(prev => prev + 1);
+    };
 
     const routesToDisplayOnMap = useMemo(() => {
         console.log('--- Recalculating routesToDisplayOnMap ---');
