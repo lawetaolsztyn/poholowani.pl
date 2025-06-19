@@ -159,10 +159,10 @@ function AddRouteForm({ onRouteCreated }) {
       })
     });
 console.log("STATUS", routeRes.status);  // 👈 zobaczysz np. 200, 503, 429
-const responseText = await routeRes.text();
+// const responseText = await routeRes.text(); //
 console.log("ORS response:", responseText);
 
-     // const routeData = await routeRes.json(); //
+      const routeData = await routeRes.json();
       setRouteData(routeData);
 
       const { data: { user } } = await supabase.auth.getUser();
