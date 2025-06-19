@@ -33,7 +33,7 @@ function AddRouteForm({ onRouteCreated }) {
     maxDetour: '50',
     passengerCount: '',
     phone: '',
-    countryCode: '+48', // Dodajemy domyślny kod kraju
+    countryCode: '+48', // Dodajemy domyślny kod kraju PL
     messenger: '',
     usesWhatsapp: false,
   });
