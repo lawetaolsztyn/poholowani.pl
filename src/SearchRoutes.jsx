@@ -466,20 +466,30 @@ min={today}
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
 <MapContainer
-  center={center}
-  zoom={8}
-maxZoom={14}
-  whenCreated={mapInstance => mapRef.current = mapInstance}
-  style={{ height: '80vh', width: '100%' }}
-  gestureHandling={true} // włączamy obsługę gestów
-  gestureHandlingOptions={{
-    // pozwalamy przesuwać mapę tylko dwoma palcami
-    touch: true,
-    text: 'Użyj dwóch palców, aby przesunąć mapę',
-    duration: 1000,
-    tap: false, // tap pojedynczy nie przesuwa mapy
-    twoFingerPan: true // przesuwanie dwoma palcami aktywne
-  }}
+    center={center}
+    zoom={8} // Początkowy zoom
+    maxZoom={14} // Maksymalny poziom przybliżenia
+    whenCreated={mapInstance => {
+        mapRef.current = mapInstance;
+        // Ważne: Po utworzeniu instancji mapy, upewnij się, że opcje maxZoom są zastosowane.
+        // Czasami gestureHandling może być inicjowane później lub w sposób, który ignoruje domyślne.
+        // Ten krok powinien to wymusić.
+        mapInstance.setMaxZoom(14); // Ustaw maxZoom bezpośrednio na instancji mapy
+    }}
+    style={{ height: '80vh', width: '100%' }}
+    gestureHandling={true}
+    gestureHandlingOptions={{
+        touch: true,
+        text: 'Użyj dwóch palców, aby przesunąć mapę',
+        duration: 1000,
+        tap: false,
+        twoFingerPan: true,
+        // Opcjonalnie: Jeśli problem nadal występuje, możesz spróbować dodać te linie,
+        // chociaż zazwyczaj nie są one bezpośrednio częścią gestureHandlingOptions,
+        // to niektóre implementacje wtyczek mogą je honorować.
+        // maxZoom: 14,
+        // minZoom: 8
+    }}
 >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                             <Pane name="routes" style={{ zIndex: 400 }} />
