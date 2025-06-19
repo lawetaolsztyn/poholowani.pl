@@ -323,7 +323,17 @@ function SearchRoutes() {
                 console.error('Błąd podczas pobierania tras:', error);
             } else {
                 console.log('Supabase fetched data. Count:', data.length, 'Data:', data);
-                setAllRoutes(data);
+                setAllRoutes(
+console.log('PRZED PARSOWANIEM GEOJSON:', data);
+
+  data.map(route => ({
+    ...route,
+    geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson
+  }))
+console.log('PO PARSOWANIU GEOJSON:', parsed);
+
+);
+
             }
             setIsLoading(false);
         };
