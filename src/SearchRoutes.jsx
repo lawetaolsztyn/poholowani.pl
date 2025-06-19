@@ -461,12 +461,8 @@ min={today}
     twoFingerPan: true // przesuwanie dwoma palcami aktywne
   }}
 >
-<TileLayer
-  url={`https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`}
-  id="mapbox/streets-v11"
-  tileSize={256}
-  zoomOffset={-1}
-/>                            <Pane name="routes" style={{ zIndex: 400 }} />
+                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                            <Pane name="routes" style={{ zIndex: 400 }} />
                             <Pane name="hovered" style={{ zIndex: 500 }} />
 
                             <MapEvents />
