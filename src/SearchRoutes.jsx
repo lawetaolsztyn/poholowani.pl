@@ -85,29 +85,73 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 
 
   // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
+// src/SearchRoutes.jsx - w komponencie MapAutoZoom
+function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode, filteredRoutes }) {
+  const map = useMap();
+
   useEffect(() => {
-  console.log('MapAutoZoom: Zoom do wszystkich tras', filteredRoutes.length);
-  if (mapMode === 'search' && filteredRoutes && filteredRoutes.length > 1) {
-    const allCoords = [];
-    filteredRoutes.forEach(route => {
-      const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
-      if (coords && Array.isArray(coords)) {
-        coords.forEach(([lng, lat]) => {
-          if (typeof lat === 'number' && typeof lng === 'number') {
-            allCoords.push([lat, lng]);
+    console.log('MapAutoZoom: Effect triggered for zoom logic.');
+    console.log('mapMode:', mapMode);
+    console.log('filteredRoutes.length:', filteredRoutes.length);
+    console.log('fromLocation:', fromLocation);
+    console.log('toLocation:', toLocation);
+
+    if (mapMode === 'grid') {
+      // W trybie siatki nic nie robimy z zoomem na trasy/punkty wyszukiwania
+      // Globalne ustawienia widoku siatki są obsługiwane przez MapViewAndInteractionSetter
+      return;
+    }
+
+    // Tryb 'search'
+    if (mapMode === 'search') {
+      let targetCoords = [];
+
+      if (selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+        // PRIORYTET 1: Jeśli wybrano konkretną trasę (np. z slidera)
+        console.log('MapAutoZoom: Zooming to selectedRoute.');
+        targetCoords = selectedRoute.geojson.features[0].geometry.coordinates
+          .filter(pair => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === 'number' && typeof pair[1] === 'number')
+          .map(([lng, lat]) => [lat, lng]);
+      } else if (filteredRoutes && filteredRoutes.length > 0) {
+        // PRIORYTET 2: Jeśli są znalezione trasy po wyszukaniu
+        console.log('MapAutoZoom: Zooming to all filtered routes.');
+        filteredRoutes.forEach(route => {
+          const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+          if (coords && Array.isArray(coords)) {
+            coords.forEach(([lng, lat]) => {
+              if (typeof lat === 'number' && typeof lng === 'number') {
+                targetCoords.push([lat, lng]);
+              }
+            });
           }
         });
+      } else if (fromLocation && toLocation) {
+        // PRIORYTET 3: Jeśli podano lokalizacje "Skąd" i "Dokąd", ale nie znaleziono tras
+        console.log('MapAutoZoom: Zooming to From/To locations.');
+        targetCoords.push([fromLocation.lat, fromLocation.lng]);
+        targetCoords.push([toLocation.lat, toLocation.lng]);
+      } else if (fromLocation) {
+        // PRIORYTET 4: Jeśli podano tylko lokalizację "Skąd"
+        console.log('MapAutoZoom: Zooming to From location.');
+        map.setView([fromLocation.lat, fromLocation.lng], 7);
+        return; // Zakończ, bo setView już ustawia widok
+      } else if (toLocation) {
+        // PRIORYTET 5: Jeśli podano tylko lokalizację "Dokąd"
+        console.log('MapAutoZoom: Zooming to To location.');
+        map.setView([toLocation.lat, toLocation.lng], 7);
+        return; // Zakończ, bo setView już ustawia widok
       }
-    });
 
-    if (allCoords.length > 0) {
-      const bounds = L.latLngBounds(allCoords);
-      console.log('Bounds:', bounds.toBBoxString());
-      map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+      if (targetCoords.length > 0) {
+        const bounds = L.latLngBounds(targetCoords);
+        console.log('MapAutoZoom: Final calculated bounds:', bounds.toBBoxString());
+        // Zwiększ padding i ewentualnie zmniejsz maxZoom dla lepszego widoku wielu tras
+        map.fitBounds(bounds.pad(0.15), { padding: [100, 100], maxZoom: 10 }); // Zwiększ padding
+      } else {
+        console.log('MapAutoZoom: No valid target coordinates to zoom to.');
+      }
     }
-  }
-}, [filteredRoutes, mapMode, map]);
-
+  }, [selectedRoute, filteredRoutes, fromLocation, toLocation, mapMode, map, trigger, selectedRouteTrigger]); // Dodaj wszystkie zależności
 
   return null;
 }
