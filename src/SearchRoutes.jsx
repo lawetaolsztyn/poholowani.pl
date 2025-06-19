@@ -69,20 +69,20 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
   }, [trigger, mapMode, fromLocation, toLocation, map]);
 
   // Zoom do wybranej trasy (selectedRoute) — jak wcześniej
-  useEffect(() => {
-    if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
-      const coords = selectedRoute.geojson.features[0].geometry.coordinates
-        .filter(pair => Array.isArray(pair) && pair.length === 2)
-        .map(([lng, lat]) => [lat, lng]);
+ useEffect(() => {
+  if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+    const coords = selectedRoute.geojson.features[0].geometry.coordinates
+      .filter(pair => Array.isArray(pair) && pair.length === 2)
+      .map(([lng, lat]) => [lat, lng]);
 
-      if (coords.length > 1) {
-        const bounds = L.latLngBounds(coords);
-        const paddedBounds = bounds.pad(0.1);
-
-        map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
-      }
+    if (coords.length > 1) {
+      const bounds = L.latLngBounds(coords);
+      const paddedBounds = bounds.pad(0.1);
+      map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
     }
-  }, [selectedRouteTrigger, mapMode, selectedRoute, map]);
+  }
+}, [selectedRoute, mapMode, map]);
+
 
   // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
   useEffect(() => {
@@ -377,10 +377,7 @@ function SearchRoutes() {
         };
     }, []);
 
-    const handleRouteClick = (route) => {
-        setSelectedRoute(route);
-        setSelectedRouteTrigger(prev => prev + 1);
-    };
+  
 
     const routesToDisplayOnMap = useMemo(() => {
         console.log('--- Recalculating routesToDisplayOnMap ---');
