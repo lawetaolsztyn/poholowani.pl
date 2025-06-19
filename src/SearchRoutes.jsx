@@ -468,6 +468,7 @@ min={today}
 <MapContainer
   center={center}
   zoom={10}
+maxZoom={16}
   whenCreated={mapInstance => mapRef.current = mapInstance}
   style={{ height: '80vh', width: '100%' }}
   gestureHandling={true} // włączamy obsługę gestów
