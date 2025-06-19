@@ -22,8 +22,8 @@ function MapEvents() {
     const { setCenter, resetTrigger } = useContext(MapContext);
 
     useEffect(() => {
-        // Ten useEffect jest głównie do aktualizacji stanu 'center' na podstawie geolokalizacji.
-        // Nie powinien zmieniać widoku mapy, który jest kontrolowany przez SearchRoutes na podstawie mapMode.
+        // Ta funkcja jest głównie do aktualizacji stanu 'center' na podstawie geolokalizacji.
+        // Nie powinna zmieniać widoku mapy.
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -238,6 +238,48 @@ const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
     );
 });
 
+// Nowy komponent do zarządzania widokiem i interakcjami mapy
+function MapViewAndInteractionSetter({ mapMode }) {
+    const map = useMap();
+
+    useEffect(() => {
+        console.log(`MapViewAndInteractionSetter: mapMode changed to ${mapMode}`);
+        if (mapMode === 'grid') {
+            map.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
+            map.setMaxZoom(9);
+            map.setMinZoom(5);
+
+            // Wyłącz interakcje
+            map.dragging.disable();
+            map.touchZoom.disable();
+            map.scrollWheelZoom.disable();
+            map.doubleClickZoom.disable();
+            map.boxZoom.disable();
+            map.keyboard.disable();
+            if (map.tap) map.tap.disable(); // `tap` może nie istnieć na wszystkich mapach
+            if (map.gestureHandling) map.gestureHandling.disable();
+            console.log("MapViewAndInteractionSetter: Interakcje mapy WYŁĄCZONE.");
+
+        } else { // mapMode === 'search'
+            map.setMaxZoom(19); // Pełny zakres zoomu
+            map.setMinZoom(0); // Pełny zakres zoomu
+
+            // Włącz interakcje
+            map.dragging.enable();
+            map.touchZoom.enable();
+            map.scrollWheelZoom.enable();
+            map.doubleClickZoom.enable();
+            map.boxZoom.enable();
+            map.keyboard.enable();
+            if (map.tap) map.tap.enable();
+            if (map.gestureHandling) map.gestureHandling.enable();
+            console.log("MapViewAndInteractionSetter: Interakcje mapy WŁĄCZONE.");
+        }
+    }, [mapMode, map]); // Zależność od 'map' jest kluczowa
+
+    return null;
+}
+
 
 function SearchRoutes() {
     const [center, setCenter] = useState([52.2297, 21.0122]);
@@ -255,38 +297,12 @@ function SearchRoutes() {
     const [searchTrigger, setSearchTrigger] = useState(0);
     const [resetTrigger, setResetTrigger] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
-    const mapRef = useRef(null);
+    const mapRef = useRef(null); // Używany do przechwycenia instancji mapy
     const today = new Date().toISOString().split('T')[0];
 
-    const [mapMode, setMapMode] = useState('grid');
+    const [mapMode, setMapMode] = useState('grid'); // Domyślnie tryb siatki
 
-    // === KLUCZOWE ZMIANY TUTAJ ===
-    useEffect(() => {
-        // Ten useEffect jest używany do inicjalizacji widoku mapy przy starcie komponentu.
-        // Ustawia początkowy widok na Europę dla trybu "grid".
-        if (mapRef.current) {
-            console.log("Initial map setup for GRID mode.");
-            mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
-            mapRef.current.setMaxZoom(9);
-            mapRef.current.setMinZoom(5); // Minimalny zoom dla trybu grid
-            // Jawne wyłączenie interakcji przy starcie
-            mapRef.current.dragging.disable();
-            mapRef.current.touchZoom.disable();
-            mapRef.current.scrollWheelZoom.disable();
-            mapRef.current.doubleClickZoom.disable();
-            mapRef.current.boxZoom.disable();
-            mapRef.current.keyboard.disable();
-            if (mapRef.current.tap) mapRef.current.tap.disable();
-            if (mapRef.current.gestureHandling) mapRef.current.gestureHandling.disable();
-        }
-        setResetTrigger(prev => prev + 1); // Trigger for MapEvents context
-    }, []); // Pusta tablica zależności, efekt uruchamia się raz po zamontowaniu
-
-    const handleRouteClick = (route) => {
-        setSelectedRoute(route);
-        setSelectedRouteTrigger(prev => prev + 1);
-    };
-
+    // Efekt do pobierania tras z Supabase
     useEffect(() => {
         const fetchRoutes = async () => {
             setIsLoading(true);
@@ -325,38 +341,10 @@ function SearchRoutes() {
         };
     }, []);
 
-    // === KLUCZOWE ZMIANY TUTAJ: Jeden efekt do zarządzania widokiem i interakcjami mapy ===
-    useEffect(() => {
-        if (mapRef.current) {
-            console.log(`mapMode changed to: ${mapMode}. Updating map properties.`);
-            if (mapMode === 'grid') {
-                mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
-                mapRef.current.setMaxZoom(9);
-                mapRef.current.setMinZoom(5);
-                // Jawne wyłączenie interakcji
-                mapRef.current.dragging.disable();
-                mapRef.current.touchZoom.disable();
-                mapRef.current.scrollWheelZoom.disable();
-                mapRef.current.doubleClickZoom.disable();
-                mapRef.current.boxZoom.disable();
-                mapRef.current.keyboard.disable();
-                if (mapRef.current.tap) mapRef.current.tap.disable(); // Sprawdź istnienie tap przed wyłączeniem
-                if (mapRef.current.gestureHandling) mapRef.current.gestureHandling.disable(); // Sprawdź istnienie gestureHandling
-            } else { // mapMode === 'search'
-                mapRef.current.setMaxZoom(19); // Pełny zakres zoomu
-                mapRef.current.setMinZoom(0); // Pełny zakres zoomu
-                // Jawne włączenie interakcji
-                mapRef.current.dragging.enable();
-                mapRef.current.touchZoom.enable();
-                mapRef.current.scrollWheelZoom.enable();
-                mapRef.current.doubleClickZoom.enable();
-                mapRef.current.boxZoom.enable();
-                mapRef.current.keyboard.enable();
-                if (mapRef.current.tap) mapRef.current.tap.enable(); // Sprawdź istnienie tap przed włączeniem
-                if (mapRef.current.gestureHandling) mapRef.current.gestureHandling.enable(); // Sprawdź istnienie gestureHandling
-            }
-        }
-    }, [mapMode]); // Ten efekt uruchamia się tylko, gdy mapMode się zmienia
+    const handleRouteClick = (route) => {
+        setSelectedRoute(route);
+        setSelectedRouteTrigger(prev => prev + 1);
+    };
 
     const routesToDisplayOnMap = useMemo(() => {
         console.log('--- Recalculating routesToDisplayOnMap ---');
@@ -442,10 +430,7 @@ function SearchRoutes() {
     const handleSearchClick = () => {
         console.log("Search button clicked. Setting mapMode to 'search'.");
         setSearchTrigger(prev => prev + 1);
-        setMapMode('search'); // To wyzwoli useEffect, który włączy interakcje
-
-        // Logika dopasowania widoku do trasy jest w MapAutoZoom i zostanie wywołana,
-        // gdy mapMode będzie 'search' i trigger się zmieni.
+        setMapMode('search');
     };
 
     const handleResetClick = () => {
@@ -458,8 +443,8 @@ function SearchRoutes() {
         setSelectedDate('');
         setSearchTrigger(0);
 
-        setMapMode('grid'); // To wyzwoli useEffect, który ustawi widok mapy i wyłączy interakcje
-        setResetTrigger(prev => prev + 1); // Trigger for MapEvents context
+        setMapMode('grid'); // Ta zmiana mapMode wywoła MapViewAndInteractionSetter
+        setResetTrigger(prev => prev + 1);
     };
 
     return (
@@ -528,26 +513,23 @@ function SearchRoutes() {
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
-                            center={mapMode === 'grid' ? [52.0, 19.0] : center} // Centrum Europy (Polska)
-                            zoom={mapMode === 'grid' ? 5 : 10} // Zoom dla trybu grid
-                            maxZoom={mapMode === 'grid' ? 9 : 19}
-                            minZoom={mapMode === 'grid' ? 5 : 0}
-                            // Propsy interakcji są teraz zarządzane jawnie w useEffect
-                            dragging={mapMode === 'search'}
-                            zoomControl={mapMode === 'search'}
-                            scrollWheelZoom={mapMode === 'search'}
-                            doubleClickZoom={mapMode === 'search'}
-                            boxZoom={mapMode === 'search'}
-                            keyboard={mapMode === 'search'}
-                            tap={mapMode === 'search'}
-                            gestureHandling={mapMode === 'search'}
+                            // Ustawienia początkowe, które zostaną nadpisane przez MapViewAndInteractionSetter
+                            center={[52.0, 19.0]} // Początkowe centrum
+                            zoom={5} // Początkowy zoom
+                            maxZoom={19} // Pełny zakres
+                            minZoom={0} // Pełny zakres
+                            // Interakcje są teraz kontrolowane przez MapViewAndInteractionSetter
+                            dragging={true}
+                            zoomControl={true}
+                            scrollWheelZoom={true}
+                            doubleClickZoom={true}
+                            boxZoom={true}
+                            keyboard={true}
+                            tap={true}
+                            gestureHandling={true}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
-                                // Initial view setting for grid mode when component mounts
-                                // Interakcje są wyłączane w głównym useEffect
-                                if (mapMode === 'grid') {
-                                    mapInstance.setView([52.0, 19.0], 5);
-                                }
+                                // Initial setup is now in MapViewAndInteractionSetter's first render logic
                             }}
                             gestureHandlingOptions={{
                                 touch: true,
@@ -571,6 +553,8 @@ function SearchRoutes() {
                                 selectedRouteTrigger={selectedRouteTrigger}
                                 mapMode={mapMode}
                             />
+                            {/* === Nowy komponent, który zarządza widokiem i interakcjami === */}
+                            <MapViewAndInteractionSetter mapMode={mapMode} />
 
                             {center && mapMode === 'search' && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
 
