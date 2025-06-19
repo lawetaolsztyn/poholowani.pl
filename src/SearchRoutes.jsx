@@ -18,59 +18,59 @@ import 'leaflet-gesture-handling';
 const MapContext = createContext(null);
 
 function MapEvents() {
-    const map = useMap();
-    const { setCenter, resetTrigger } = useContext(MapContext);
+    const map = useMap();
+    const { setCenter, resetTrigger } = useContext(MapContext);
 
-    useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setCenter([position.coords.latitude, position.coords.longitude]);
-                    map.setView([position.coords.latitude, position.coords.longitude], 10);
-                },
-                () => {
-                    setCenter([52.2297, 21.0122]); // Warszawa
-                    map.setView([52.2297, 21.0122], 6);
-                }
-            );
-        } else {
-            setCenter([52.2297, 21.0122]); // Warszawa
-            map.setView([52.2297, 21.0122], 6);
-        }
-    }, [resetTrigger]);
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setCenter([position.coords.latitude, position.coords.longitude]);
+                    // USUŃ PONIŻSZĄ LINIĘ map.setView:
+                    // map.setView([position.coords.latitude, position.coords.longitude], 10);
+                },
+                () => {
+                    setCenter([52.2297, 21.0122]); // Warszawa
+                    // USUŃ PONIŻSZĄ LINIĘ map.setView:
+                    // map.setView([52.2297, 21.0122], 6);
+                }
+            );
+        } else {
+            setCenter([52.2297, 21.0122]); // Warszawa
+            // USUŃ PONIŻSZĄ LINIĘ map.setView:
+            // map.setView([52.2297, 21.0122], 6);
+        }
+    }, [resetTrigger]); // resetTrigger jest zależnością
 
-    useMapEvents({
-        moveend: (event) => {
-            const newCenter = event.target.getCenter();
-            setCenter([newCenter.lat, newCenter.lng]);
-        },
-    });
+    useMapEvents({
+        moveend: (event) => {
+            const newCenter = event.target.getCenter();
+            setCenter([newCenter.lat, newCenter.lng]);
+        },
+    });
 
-    return null;
+    return null;
 }
 
-function MapAutoZoom({ fromLocation, toLocation, trigger, center, resetTrigger, selectedRoute, selectedRouteTrigger, mapMode }) { // Dodano mapMode
-    const map = useMap();
+function MapAutoZoom({ fromLocation, toLocation, trigger, center, resetTrigger, selectedRoute, selectedRouteTrigger, mapMode }) {
+    const map = useMap();
 
-    useEffect(() => {
-        if (mapMode === 'search' && fromLocation && toLocation) { // Aktywne tylko w trybie 'search'
-            const bounds = L.latLngBounds(
-                [fromLocation.lat, fromLocation.lng],
-                [toLocation.lat, toLocation.lng]
-            );
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (mapMode === 'search' && fromLocation) { // Aktywne tylko w trybie 'search'
-            map.setView([fromLocation.lat, fromLocation.lng], 7);
-        } else if (mapMode === 'search' && toLocation) { // Aktywne tylko w trybie 'search'
-            map.setView([toLocation.lat, toLocation.lng], 7);
-        }
-    }, [trigger, mapMode]); // Dodano mapMode do zależności
+    // Logika zoomowania dla trybu 'search' na podstawie from/toLocation
+    useEffect(() => {
+        if (mapMode === 'search' && fromLocation && toLocation) {
+            const bounds = L.latLngBounds(
+                [fromLocation.lat, fromLocation.lng],
+                [toLocation.lat, toLocation.lng]
+            );
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (mapMode === 'search' && fromLocation) {
+            map.setView([fromLocation.lat, fromLocation.lng], 7);
+        } else if (mapMode === 'search' && toLocation) {
+            map.setView([toLocation.lat, toLocation.lng], 7);
+        }
+    }, [trigger, mapMode, fromLocation, toLocation]);
 
-    useEffect(() => {
-        if (center) {
-            map.setView(center, 10, { animate: true });
-        }
-    }, [resetTrigger]);
+  
 
     useEffect(() => {
     if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) { // Aktywne tylko w trybie 'search'
