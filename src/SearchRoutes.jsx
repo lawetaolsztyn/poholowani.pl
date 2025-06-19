@@ -255,26 +255,22 @@ function SearchRoutes() {
     const [selectedDate, setSelectedDate] = useState('');
     const [searchTrigger, setSearchTrigger] = useState(0);
     const [resetTrigger, setResetTrigger] = useState(0);
-    // const [fromCoords, setFromCoords] = useState(null); // Niewykorzystane, można usunąć
-    // const [toCoords, setToCoords] = useState(null); // Niewykorzystane, można usunąć
     const [isLoading, setIsLoading] = useState(true);
     const mapRef = useRef(null);
     const today = new Date().toISOString().split('T')[0];
 
-    // NOWY STAN: mapMode
     const [mapMode, setMapMode] = useState('grid'); // Domyślnie tryb siatki
 
     useEffect(() => {
-        // Ten useEffect jest teraz używany do inicjalizacji widoku mapy przy starcie lub resecie,
+        // Ten useEffect jest teraz używany do inicjalizacji widoku mapy przy starcie,
         // ustawiając go na tryb "grid" z widokiem na Europę.
         if (mapRef.current) {
-            mapRef.current.setView([50.0, 15.0], 4); // Centrum Europy, odpowiedni zoom dla trybu siatki
-            mapRef.current.setMaxZoom(9); // Ograniczenie zoomu w trybie siatki
-            mapRef.current.setMinZoom(4); // Ograniczenie zoomu w trybie siatki
+            mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
+            mapRef.current.setMaxZoom(9);
+            mapRef.current.setMinZoom(5); // Minimalny zoom dla trybu grid
         }
-        // Uruchamia funkcję MapEvents w celu uzyskania geolokalizacji, ale bez ustawiania widoku mapy przez nią
         setResetTrigger(prev => prev + 1);
-    }, []); // Pusta tablica zależności, uruchamia się raz po zamontowaniu
+    }, []);
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route);
@@ -319,26 +315,23 @@ function SearchRoutes() {
         };
     }, []);
 
-    // Nowy useEffect, który reaguje na zmianę mapMode i ustawia widok mapy
+    // Kluczowy useEffect, który reaguje na zmianę mapMode i ustawia widok mapy
     useEffect(() => {
         if (mapRef.current) {
             if (mapMode === 'grid') {
                 console.log('Setting map view to Europe for GRID mode');
-                mapRef.current.setView([50.0, 15.0], 4); // Centrum Europy, odpowiedni zoom dla trybu siatki
+                mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
                 mapRef.current.setMaxZoom(9);
-                mapRef.current.setMinZoom(4);
-            } else {
-                // Po przejściu na tryb search, zresetuj widok do domyślnego
-                // lub pozwól MapAutoZoom go dostosować
-                // Ustawiamy szersze zakresy zoomu dla trybu search
-                mapRef.current.setMaxZoom(19);
-                mapRef.current.setMinZoom(0);
+                mapRef.current.setMinZoom(5);
+            } else { // mapMode === 'search'
+                console.log('Switching to SEARCH mode. Releasing map view constraints.');
+                mapRef.current.setMaxZoom(19); // Pełny zakres zoomu
+                mapRef.current.setMinZoom(0); // Pełny zakres zoomu
                 // Nie ustawiamy map.setView tutaj, pozwalamy MapAutoZoom to zrobić po wyszukaniu
             }
         }
-    }, [mapMode]); // mapMode jako zależność
+    }, [mapMode]);
 
-    // Zmieniona logika filtrowania:
     const routesToDisplayOnMap = useMemo(() => {
         console.log('--- Recalculating routesToDisplayOnMap ---');
         console.log('Current allRoutes.length:', allRoutes.length);
@@ -348,7 +341,6 @@ function SearchRoutes() {
             return allRoutes;
         }
 
-        // --- Logika dla mapMode === 'search' ---
         console.log('mapMode: search');
 
         if (allRoutes.length === 0) {
@@ -358,12 +350,10 @@ function SearchRoutes() {
 
         let routesAfterLocationFilter = [];
 
-        // Jeśli ŻADNE pole lokalizacji nie jest wypełnione
         if (!fromLocation && !toLocation) {
             console.log("Tryb SEARCH: LOKALIZACJE PUSTE. Filtruj po typie pojazdu/dacie dla WSZYSTKICH tras.");
-            routesAfterLocationFilter = allRoutes; // Bierzemy wszystkie trasy do dalszego filtrowania
+            routesAfterLocationFilter = allRoutes;
         } else {
-            // Jeśli COKOLWIEK z lokalizacji jest wypełnione, filtruj po lokalizacjach
             routesAfterLocationFilter = allRoutes.filter((route) => {
                 const geo = route.geojson?.features?.[0]?.geometry?.coordinates;
                 const detourKm = parseInt(route.max_detour_km || 0);
@@ -406,7 +396,6 @@ function SearchRoutes() {
             });
         }
 
-        // Zastosuj filtry vehicleType i selectedDate do wyników filtrowania lokalizacji
         const finalFilteredRoutes = routesAfterLocationFilter.filter(route => {
             if (vehicleType && route.vehicle_type !== vehicleType) return false;
             if (selectedDate && route.date !== selectedDate) return false;
@@ -418,14 +407,11 @@ function SearchRoutes() {
 
     }, [allRoutes, fromLocation, toLocation, vehicleType, selectedDate, mapMode]);
 
-    // === WAŻNE: PRZYWRÓCONY useEffect do ustawiania filteredRoutes ===
     useEffect(() => {
         setFilteredRoutes(routesToDisplayOnMap);
         console.log('Filtered Routes (after update):', routesToDisplayOnMap.length);
         console.log('Current Map Mode:', mapMode);
     }, [routesToDisplayOnMap, mapMode]);
-    // =============================================================
-
 
     const handleSearchClick = () => {
         setSearchTrigger(prev => prev + 1);
@@ -454,16 +440,9 @@ function SearchRoutes() {
         setSelectedDate('');
         setSearchTrigger(0); // Resetujemy searchTrigger
 
-        // Wracamy do trybu siatki i ustawiamy centrum mapy
         setMapMode('grid'); // Przełącz na tryb siatki
-
-        // Ustawienie widoku mapy na Europę po resecie, bez względu na geolokalizację
-        if (mapRef.current) {
-            mapRef.current.setView([50.0, 15.0], 4);
-            mapRef.current.setMaxZoom(9);
-            mapRef.current.setMinZoom(4);
-        }
-        setResetTrigger(prev => prev + 1); // Wyzwolenie efektu w MapEvents i ogólnego resetu
+        // Pozwól useEffect reagującemu na mapMode ustawić widok mapy.
+        setResetTrigger(prev => prev + 1); // Wyzwolenie MapEvents i ogólnego resetu
     };
 
     return (
@@ -484,12 +463,10 @@ function SearchRoutes() {
                             if (typeof lat === 'number' && typeof lng === 'number') {
                                 setFromValue(label);
                                 setFromLocation({ name, lat, lng });
-                                // setFromCoords([lat, lng]); // Można usunąć jeśli nieużywane
                             } else {
                                 console.warn("Nieprawidłowe współrzędne dla wybranej lokalizacji Skąd:", loc);
                                 setFromValue('');
                                 setFromLocation(null);
-                                // setFromCoords(null);
                             }
                         }}
                         className="location-autocomplete-field"
@@ -505,12 +482,10 @@ function SearchRoutes() {
                             if (typeof lat === 'number' && typeof lng === 'number') {
                                 setToValue(label);
                                 setToLocation({ name, lat, lng });
-                                // setToCoords([lat, lng]); // Można usunąć jeśli nieużywane
                             } else {
                                 console.warn("Nieprawidłowe współrzędne dla wybranej lokalizacji Dokąd:", loc);
                                 setToValue('');
                                 setToLocation(null);
-                                // setToCoords(null);
                             }
                         }}
                        className="location-autocomplete-field"
@@ -536,27 +511,24 @@ function SearchRoutes() {
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
-                            center={mapMode === 'grid' ? [50.0, 15.0] : center} // W trybie grid ustaw stałe centrum na Europę
-                            zoom={mapMode === 'grid' ? 4 : 10} // Początkowy zoom dla 'grid' jest szerszy
-                            maxZoom={mapMode === 'grid' ? 9 : 19} // Ograniczenie zoomu w trybie 'grid'
-                            minZoom={mapMode === 'grid' ? 4 : 0} // Ograniczenie zoomu w trybie 'grid'
-                            // Kontrola interakcji za pomocą propsów React Leaflet
+                            center={mapMode === 'grid' ? [52.0, 19.0] : center} // Ustawiono na Polskę/Centralną Europę
+                            zoom={mapMode === 'grid' ? 5 : 10} // Zwiększono domyślny zoom dla trybu grid
+                            maxZoom={mapMode === 'grid' ? 9 : 19}
+                            minZoom={mapMode === 'grid' ? 5 : 0} // Zwiększono minimalny zoom dla trybu grid
                             dragging={mapMode === 'search'}
-                            zoomControl={mapMode === 'search'} // Pokaż kontrolki zoomu tylko w trybie search
+                            zoomControl={mapMode === 'search'}
                             scrollWheelZoom={mapMode === 'search'}
                             doubleClickZoom={mapMode === 'search'}
                             boxZoom={mapMode === 'search'}
                             keyboard={mapMode === 'search'}
                             tap={mapMode === 'search'}
-                            gestureHandling={mapMode === 'search'} // Ważne: to kontroluje całą wtyczkę
+                            gestureHandling={mapMode === 'search'}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
                                 if (mapMode === 'grid') {
-                                    mapInstance.setView([50.0, 15.0], 4);
+                                    mapInstance.setView([52.0, 19.0], 5); // Ustawienie widoku dla trybu grid przy inicjalizacji
                                 }
                             }}
-                            // Jeśli gestureHandling={false} (w trybie grid), to gestureHandlingOptions nie mają zastosowania.
-                            // Ale możesz je zostawić, jeśli chcesz, żeby były aktywne w trybie search.
                             gestureHandlingOptions={{
                                 touch: true,
                                 text: 'Użyj dwóch palców, aby przesunąć mapę',
@@ -575,10 +547,9 @@ function SearchRoutes() {
                                 fromLocation={fromLocation}
                                 toLocation={toLocation}
                                 trigger={searchTrigger}
-                                // resetTrigger={resetTrigger} // resetTrigger nie jest już potrzebny bezpośrednio w MapAutoZoom, bo MapAutoZoom reaguje na mapMode
                                 selectedRoute={selectedRoute}
                                 selectedRouteTrigger={selectedRouteTrigger}
-                                mapMode={mapMode} // Przekazujemy mapMode do MapAutoZoom
+                                mapMode={mapMode}
                             />
 
                             {center && mapMode === 'search' && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
@@ -589,12 +560,10 @@ function SearchRoutes() {
                                 </div>
                             ) : (
                                 mapMode === 'grid' ? (
-                                    // W trybie siatki wyświetlamy wszystkie trasy jako statyczne linie
                                     allRoutes.map((route) => (
                                         <StaticRoutePolyline key={route.id} route={route} />
                                     ))
                                 ) : (
-                                    // W trybie wyszukiwania wyświetlamy przefiltrowane trasy z pełną interakcją
                                     filteredRoutes.map((route) => (
                                         <HighlightedRoute
                                             key={route.id}
@@ -607,17 +576,15 @@ function SearchRoutes() {
                                 )
                             )}
 
-                            {/* RoadsideMarkers - zdecyduj, czy chcesz je w obu trybach, czy tylko w trybie search */}
                             {mapMode === 'search' && <RoadsideMarkers />}
 
                         </MapContainer>
                     </MapContext.Provider>
                 </div>
-                {/* RouteSlider jest widoczny tylko w trybie wyszukiwania */}
                 {mapMode === 'search' && (
                     <div style={{ width: '98%', margin: '0 auto 20px auto', padding: '0px 10px 10px 10px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                         <RouteSlider
-                            routes={filteredRoutes} // Pamiętaj, aby przekazać filteredRoutes
+                            routes={filteredRoutes}
                             onHover={(id) => setHoveredRouteId(id)}
                             onClickRoute={handleRouteClick}
                         />
