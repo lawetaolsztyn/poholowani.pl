@@ -155,7 +155,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                         <strong>Do:</strong> {route.to_city?.split(',')[0]}
                     </div>
                     <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
-                    <div style={{ marginBottom: '6px' }> {route.load_capacity || '–'}</div>
+                    <div style={{ marginBottom: '6px' }}>Pojemność: {route.load_capacity || '–'}</div>
                     <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
                     <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
                        {route.phone && (
