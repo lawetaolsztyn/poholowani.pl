@@ -22,20 +22,19 @@ function MapEvents() {
     const { setCenter, resetTrigger } = useContext(MapContext);
 
     useEffect(() => {
-        // Ta funkcja jest od teraz głównie do aktualizacji stanu 'center',
-        // a nie do bezpośredniego ustawiania widoku mapy,
-        // ponieważ widok mapy jest kontrolowany przez SearchRoutes na podstawie mapMode.
+        // Ten useEffect jest głównie do aktualizacji stanu 'center' na podstawie geolokalizacji.
+        // Nie powinien zmieniać widoku mapy, który jest kontrolowany przez SearchRoutes na podstawie mapMode.
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     setCenter([position.coords.latitude, position.coords.longitude]);
                 },
                 () => {
-                    setCenter([52.2297, 21.0122]); // Warszawa
+                    setCenter([52.2297, 21.0122]); // Warszawa jako fallback
                 }
             );
         } else {
-            setCenter([52.2297, 21.0122]); // Warszawa
+            setCenter([52.2297, 21.0122]); // Warszawa jako fallback
         }
     }, [resetTrigger, setCenter]);
 
@@ -52,20 +51,24 @@ function MapEvents() {
 function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode }) {
     const map = useMap();
 
+    // Ten efekt powinien działać TYLKO w trybie 'search'
     useEffect(() => {
-        if (mapMode === 'search' && fromLocation && toLocation) {
-            const bounds = L.latLngBounds(
-                [fromLocation.lat, fromLocation.lng],
-                [toLocation.lat, toLocation.lng]
-            );
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (mapMode === 'search' && fromLocation) {
-            map.setView([fromLocation.lat, fromLocation.lng], 7);
-        } else if (mapMode === 'search' && toLocation) {
-            map.setView([toLocation.lat, toLocation.lng], 7);
+        if (mapMode === 'search') {
+            if (fromLocation && toLocation) {
+                const bounds = L.latLngBounds(
+                    [fromLocation.lat, fromLocation.lng],
+                    [toLocation.lat, toLocation.lng]
+                );
+                map.fitBounds(bounds, { padding: [50, 50] });
+            } else if (fromLocation) {
+                map.setView([fromLocation.lat, fromLocation.lng], 7);
+            } else if (toLocation) {
+                map.setView([toLocation.lat, toLocation.lng], 7);
+            }
         }
     }, [trigger, mapMode, fromLocation, toLocation, map]);
 
+    // Ten efekt powinien działać TYLKO w trybie 'search'
     useEffect(() => {
         if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
             const coords = selectedRoute.geojson.features[0].geometry.coordinates
@@ -257,15 +260,26 @@ function SearchRoutes() {
 
     const [mapMode, setMapMode] = useState('grid');
 
+    // === KLUCZOWE ZMIANY TUTAJ ===
     useEffect(() => {
         // Ten useEffect jest używany do inicjalizacji widoku mapy przy starcie komponentu.
         // Ustawia początkowy widok na Europę dla trybu "grid".
         if (mapRef.current) {
+            console.log("Initial map setup for GRID mode.");
             mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
             mapRef.current.setMaxZoom(9);
             mapRef.current.setMinZoom(5); // Minimalny zoom dla trybu grid
+            // Jawne wyłączenie interakcji przy starcie
+            mapRef.current.dragging.disable();
+            mapRef.current.touchZoom.disable();
+            mapRef.current.scrollWheelZoom.disable();
+            mapRef.current.doubleClickZoom.disable();
+            mapRef.current.boxZoom.disable();
+            mapRef.current.keyboard.disable();
+            if (mapRef.current.tap) mapRef.current.tap.disable();
+            if (mapRef.current.gestureHandling) mapRef.current.gestureHandling.disable();
         }
-        setResetTrigger(prev => prev + 1);
+        setResetTrigger(prev => prev + 1); // Trigger for MapEvents context
     }, []); // Pusta tablica zależności, efekt uruchamia się raz po zamontowaniu
 
     const handleRouteClick = (route) => {
@@ -311,22 +325,38 @@ function SearchRoutes() {
         };
     }, []);
 
-    // Kluczowy useEffect, który reaguje na zmianę mapMode i ustawia widok mapy
+    // === KLUCZOWE ZMIANY TUTAJ: Jeden efekt do zarządzania widokiem i interakcjami mapy ===
     useEffect(() => {
         if (mapRef.current) {
+            console.log(`mapMode changed to: ${mapMode}. Updating map properties.`);
             if (mapMode === 'grid') {
-                console.log('Setting map view to Europe for GRID mode from useEffect');
                 mapRef.current.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
                 mapRef.current.setMaxZoom(9);
                 mapRef.current.setMinZoom(5);
+                // Jawne wyłączenie interakcji
+                mapRef.current.dragging.disable();
+                mapRef.current.touchZoom.disable();
+                mapRef.current.scrollWheelZoom.disable();
+                mapRef.current.doubleClickZoom.disable();
+                mapRef.current.boxZoom.disable();
+                mapRef.current.keyboard.disable();
+                if (mapRef.current.tap) mapRef.current.tap.disable(); // Sprawdź istnienie tap przed wyłączeniem
+                if (mapRef.current.gestureHandling) mapRef.current.gestureHandling.disable(); // Sprawdź istnienie gestureHandling
             } else { // mapMode === 'search'
-                console.log('Switching to SEARCH mode from useEffect. Releasing map view constraints.');
                 mapRef.current.setMaxZoom(19); // Pełny zakres zoomu
                 mapRef.current.setMinZoom(0); // Pełny zakres zoomu
-                // Nie ustawiamy map.setView tutaj, pozwalamy MapAutoZoom to zrobić po wyszukaniu
+                // Jawne włączenie interakcji
+                mapRef.current.dragging.enable();
+                mapRef.current.touchZoom.enable();
+                mapRef.current.scrollWheelZoom.enable();
+                mapRef.current.doubleClickZoom.enable();
+                mapRef.current.boxZoom.enable();
+                mapRef.current.keyboard.enable();
+                if (mapRef.current.tap) mapRef.current.tap.enable(); // Sprawdź istnienie tap przed włączeniem
+                if (mapRef.current.gestureHandling) mapRef.current.gestureHandling.enable(); // Sprawdź istnienie gestureHandling
             }
         }
-    }, [mapMode]);
+    }, [mapMode]); // Ten efekt uruchamia się tylko, gdy mapMode się zmienia
 
     const routesToDisplayOnMap = useMemo(() => {
         console.log('--- Recalculating routesToDisplayOnMap ---');
@@ -410,23 +440,16 @@ function SearchRoutes() {
     }, [routesToDisplayOnMap, mapMode]);
 
     const handleSearchClick = () => {
+        console.log("Search button clicked. Setting mapMode to 'search'.");
         setSearchTrigger(prev => prev + 1);
-        setMapMode('search');
+        setMapMode('search'); // To wyzwoli useEffect, który włączy interakcje
 
-        if (fromLocation && toLocation && mapRef.current) {
-            const bounds = L.latLngBounds(
-                [fromLocation.lat, fromLocation.lng],
-                [toLocation.lat, toLocation.lng]
-            );
-            mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-        } else if (fromLocation && mapRef.current) {
-            mapRef.current.setView([fromLocation.lat, fromLocation.lng], 7);
-        } else if (toLocation && mapRef.current) {
-            mapRef.current.setView([toLocation.lat, toLocation.lng], 7);
-        }
+        // Logika dopasowania widoku do trasy jest w MapAutoZoom i zostanie wywołana,
+        // gdy mapMode będzie 'search' i trigger się zmieni.
     };
 
     const handleResetClick = () => {
+        console.log("Reset button clicked. Setting mapMode to 'grid'.");
         setFromLocation(null);
         setToLocation(null);
         setFromValue('');
@@ -435,9 +458,8 @@ function SearchRoutes() {
         setSelectedDate('');
         setSearchTrigger(0);
 
-        // Zmieniamy tylko mapMode, a useEffect poniżej zajmie się ustawieniem widoku mapy
-        setMapMode('grid');
-        setResetTrigger(prev => prev + 1);
+        setMapMode('grid'); // To wyzwoli useEffect, który ustawi widok mapy i wyłączy interakcje
+        setResetTrigger(prev => prev + 1); // Trigger for MapEvents context
     };
 
     return (
@@ -510,6 +532,7 @@ function SearchRoutes() {
                             zoom={mapMode === 'grid' ? 5 : 10} // Zoom dla trybu grid
                             maxZoom={mapMode === 'grid' ? 9 : 19}
                             minZoom={mapMode === 'grid' ? 5 : 0}
+                            // Propsy interakcji są teraz zarządzane jawnie w useEffect
                             dragging={mapMode === 'search'}
                             zoomControl={mapMode === 'search'}
                             scrollWheelZoom={mapMode === 'search'}
@@ -520,7 +543,8 @@ function SearchRoutes() {
                             gestureHandling={mapMode === 'search'}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
-                                // Ustawienie początkowego widoku dla trybu grid, gdy komponent jest tworzony
+                                // Initial view setting for grid mode when component mounts
+                                // Interakcje są wyłączane w głównym useEffect
                                 if (mapMode === 'grid') {
                                     mapInstance.setView([52.0, 19.0], 5);
                                 }
