@@ -48,43 +48,66 @@ function MapEvents() {
     return null;
 }
 
-function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode }) {
-    const map = useMap();
+function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode, filteredRoutes }) {
+  const map = useMap();
 
-    // Ten efekt powinien działać TYLKO w trybie 'search'
-    useEffect(() => {
-        if (mapMode === 'search') {
-            if (fromLocation && toLocation) {
-                const bounds = L.latLngBounds(
-                    [fromLocation.lat, fromLocation.lng],
-                    [toLocation.lat, toLocation.lng]
-                );
-                map.fitBounds(bounds, { padding: [50, 50] });
-            } else if (fromLocation) {
-                map.setView([fromLocation.lat, fromLocation.lng], 7);
-            } else if (toLocation) {
-                map.setView([toLocation.lat, toLocation.lng], 7);
+  // Zoom do from/to albo selectedRoute — jak wcześniej
+  useEffect(() => {
+    if (mapMode === 'search') {
+      if (fromLocation && toLocation) {
+        const bounds = L.latLngBounds(
+          [fromLocation.lat, fromLocation.lng],
+          [toLocation.lat, toLocation.lng]
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
+      } else if (fromLocation) {
+        map.setView([fromLocation.lat, fromLocation.lng], 7);
+      } else if (toLocation) {
+        map.setView([toLocation.lat, toLocation.lng], 7);
+      }
+    }
+  }, [trigger, mapMode, fromLocation, toLocation, map]);
+
+  // Zoom do wybranej trasy (selectedRoute) — jak wcześniej
+  useEffect(() => {
+    if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+      const coords = selectedRoute.geojson.features[0].geometry.coordinates
+        .filter(pair => Array.isArray(pair) && pair.length === 2)
+        .map(([lng, lat]) => [lat, lng]);
+
+      if (coords.length > 1) {
+        const bounds = L.latLngBounds(coords);
+        const paddedBounds = bounds.pad(0.1);
+
+        map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
+      }
+    }
+  }, [selectedRouteTrigger, mapMode, selectedRoute, map]);
+
+  // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
+  useEffect(() => {
+    if (mapMode === 'search' && filteredRoutes && filteredRoutes.length > 1) {
+      const allCoords = [];
+
+      filteredRoutes.forEach(route => {
+        const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+        if (coords && Array.isArray(coords)) {
+          coords.forEach(([lng, lat]) => {
+            if (typeof lat === 'number' && typeof lng === 'number') {
+              allCoords.push([lat, lng]);
             }
+          });
         }
-    }, [trigger, mapMode, fromLocation, toLocation, map]);
+      });
 
-    // Ten efekt powinien działać TYLKO w trybie 'search'
-    useEffect(() => {
-        if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
-            const coords = selectedRoute.geojson.features[0].geometry.coordinates
-                .filter(pair => Array.isArray(pair) && pair.length === 2)
-                .map(([lng, lat]) => [lat, lng]);
+      if (allCoords.length > 0) {
+        const bounds = L.latLngBounds(allCoords);
+        map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+      }
+    }
+  }, [filteredRoutes, mapMode, map]);
 
-            if (coords.length > 1) {
-                const bounds = L.latLngBounds(coords);
-                const paddedBounds = bounds.pad(0.1);
-
-                map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
-            }
-        }
-    }, [selectedRouteTrigger, mapMode, selectedRoute, map]);
-
-    return null;
+  return null;
 }
 
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
@@ -439,10 +462,13 @@ function SearchRoutes() {
     }, [routesToDisplayOnMap, mapMode]);
 
     const handleSearchClick = () => {
-        console.log("Search button clicked. Setting mapMode to 'search'.");
-        setSearchTrigger(prev => prev + 1);
-        setMapMode('search');
-    };
+  setSearchTrigger(prev => prev + 1);
+  setMapMode('search');
+  if (filteredRoutes.length > 0) {
+    setSelectedRoute(filteredRoutes[0]);
+    setSelectedRouteTrigger(prev => prev + 1);
+  }
+};
 
     const handleResetClick = () => {
         console.log("Reset button clicked. Setting mapMode to 'grid'.");
@@ -562,6 +588,7 @@ function SearchRoutes() {
                                 selectedRoute={selectedRoute}
                                 selectedRouteTrigger={selectedRouteTrigger}
                                 mapMode={mapMode}
+				filteredRoutes={filteredRoutes}
                             />
                             {/* === Nowy komponent, który zarządza widokiem i interakcjami === */}
                             <MapViewAndInteractionSetter mapMode={mapMode} />
