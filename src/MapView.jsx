@@ -16,9 +16,14 @@ function MapView({ routeData }) {
     mapInstance = map;
     mapRef.current = map;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+  attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 18,
+  id: 'mapbox/streets-v11', // możesz wybrać inny styl, np. 'mapbox/satellite-v9'
+  tileSize: 512,
+  zoomOffset: -1,
+  accessToken: 'VITE_MAPBOX_TOKEN'
+}).addTo(map);
 
     // Dodaj logowanie
     console.log('DANE TRASY:', routeData);
