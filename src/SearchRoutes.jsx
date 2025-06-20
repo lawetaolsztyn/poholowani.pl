@@ -70,40 +70,61 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 
   // Zoom do wybranej trasy (selectedRoute) — jak wcześniej
  useEffect(() => {
-  if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
-    const coords = selectedRoute.geojson.features[0].geometry.coordinates
-      .filter(pair => Array.isArray(pair) && pair.length === 2)
-      .map(([lng, lat]) => [lat, lng]);
+  // src/SearchRoutes.jsx - w komponencie MapAutoZoom
+useEffect(() => {
+ if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+   const coords = selectedRoute.geojson.features[0].geometry.coordinates
+     .filter(pair => // <--- DODANO PEŁNĄ WALIDACJĘ
+         Array.isArray(pair) &&
+         pair.length === 2 &&
+         typeof pair[0] === 'number' && !isNaN(pair[0]) &&
+         typeof pair[1] === 'number' && !isNaN(pair[1])
+     )
+     .map(([lng, lat]) => [lat, lng]);
 
-    if (coords.length > 1) {
-      const bounds = L.latLngBounds(coords);
-      const paddedBounds = bounds.pad(0.1);
-      map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
-    }
-  }
+   if (coords.length > 1) { // Sprawdzenie, czy po filtracji pozostało wystarczająco dużo punktów
+     const bounds = L.latLngBounds(coords);
+     const paddedBounds = bounds.pad(0.1);
+     map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
+   } else {
+       console.warn('MapAutoZoom selectedRoute: Brak wystarczającej liczby prawidłowych współrzędnych dla trasy ID:', selectedRoute.id);
+   }
+ }
 }, [selectedRoute, mapMode, map]);
 
 
   // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
-  useEffect(() => {
+// src/SearchRoutes.jsx - w komponencie MapAutoZoom
+useEffect(() => {
   console.log('MapAutoZoom: Zoom do wszystkich tras', filteredRoutes.length);
   if (mapMode === 'search' && filteredRoutes && filteredRoutes.length > 1) {
     const allCoords = [];
     filteredRoutes.forEach(route => {
       const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
       if (coords && Array.isArray(coords)) {
-        coords.forEach(([lng, lat]) => {
-          if (typeof lat === 'number' && typeof lng === 'number') {
-            allCoords.push([lat, lng]);
+        coords.forEach(coordPair => { // <--- Zmieniono na iterację po parze
+          if (Array.isArray(coordPair) && coordPair.length === 2) { // Dodatkowe sprawdzenie
+              const [lng, lat] = coordPair; // Destrukturyzacja dla czytelności
+              if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) { // <--- DODANO !isNaN
+                allCoords.push([lat, lng]);
+              } else {
+                console.warn('MapAutoZoom filteredRoutes: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
+              }
+          } else {
+              console.warn('MapAutoZoom filteredRoutes: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
           }
         });
+      } else {
+          console.warn('MapAutoZoom filteredRoutes: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
       }
     });
 
     if (allCoords.length > 0) {
       const bounds = L.latLngBounds(allCoords);
-      console.log('Bounds:', bounds.toBBoxString());
+      console.log('MapAutoZoom Bounds:', bounds.toBBoxString());
       map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+    } else {
+        console.warn('MapAutoZoom filteredRoutes: allCoords jest puste po filtracji, nie ustawiam bounds.');
     }
   }
 }, [filteredRoutes, mapMode, map]);
@@ -464,27 +485,39 @@ function SearchRoutes() {
         console.log('Current Map Mode:', mapMode);
     }, [routesToDisplayOnMap, mapMode]);
 
-    useEffect(() => {
-        if (mapMode === 'search' && filteredRoutes.length >= 1 && mapRef.current) {
-            const allCoords = [];
+   // src/SearchRoutes.jsx - w komponencie SearchRoutes
+useEffect(() => {
+    if (mapMode === 'search' && filteredRoutes.length >= 1 && mapRef.current) {
+        const allCoords = [];
 
-            filteredRoutes.forEach(route => {
-                const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
-                if (coords && Array.isArray(coords)) {
-                    coords.forEach(([lng, lat]) => {
-                        if (typeof lat === 'number' && typeof lng === 'number') {
-                            allCoords.push([lat, lng]);
+        filteredRoutes.forEach(route => {
+            const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+            if (coords && Array.isArray(coords)) {
+                coords.forEach(coordPair => { // <--- Zmieniono na iterację po parze
+                    if (Array.isArray(coordPair) && coordPair.length === 2) { // Dodatkowe sprawdzenie
+                        const [lng, lat] = coordPair; // Destrukturyzacja dla czytelności
+                        if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) { // <--- DODANO !isNaN
+                            allCoords.push([lat, lng]); // <--- POPRAWIONO NA [lat, lng]
+                        } else {
+                            console.warn('SearchRoutes useEffect main: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
                         }
-                    });
-                }
-            });
-
-            if (allCoords.length > 0) {
-                const bounds = L.latLngBounds(allCoords);
-                mapRef.current.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+                    } else {
+                        console.warn('SearchRoutes useEffect main: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
+                    }
+                });
+            } else {
+                console.warn('SearchRoutes useEffect main: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
             }
+        });
+
+        if (allCoords.length > 0) {
+            const bounds = L.latLngBounds(allCoords);
+            mapRef.current.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        } else {
+            console.warn('SearchRoutes useEffect main: allCoords jest puste po filtracji, nie ustawiam bounds.');
         }
-    }, [filteredRoutes, mapMode]);
+    }
+}, [filteredRoutes, mapMode]);
 
 
     const handleSearchClick = () => {
