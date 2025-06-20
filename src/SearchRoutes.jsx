@@ -428,18 +428,23 @@ function SearchRoutes() {
                 const rawGeo = route.geojson?.features?.[0]?.geometry?.coordinates;
                 const detourKm = parseInt(route.max_detour_km || 0);
 
-                // Nowa walidacja i filtrowanie koordynatów dla Turf
                 if (!rawGeo || !Array.isArray(rawGeo)) {
                     console.warn(`Skipping route ${route.id} due to missing or invalid rawGeo.`);
                     return false;
                 }
 
-                const geo = rawGeo.filter(pair =>
-                    Array.isArray(pair) &&
-                    pair.length === 2 &&
-                    typeof pair[0] === 'number' && !isNaN(pair[0]) && // lng
-                    typeof pair[1] === 'number' && !isNaN(pair[1])    // lat
-                );
+                // ZMODYFIKOWANY BLOK FILTROWANIA
+                const geo = rawGeo.filter(pair => {
+                    if (!Array.isArray(pair) || pair.length !== 2) {
+                        return false;
+                    }
+                    const lng = parseFloat(pair[0]); // Jawne parsowanie na liczbę
+                    const lat = parseFloat(pair[1]); // Jawne parsowanie na liczbę
+
+                    // Sprawdzenie, czy po parsowaniu są to poprawne liczby
+                    return typeof lng === 'number' && !isNaN(lng) &&
+                           typeof lat === 'number' && !isNaN(lat);
+                }).map(pair => [parseFloat(pair[0]), parseFloat(pair[1])]); // Upewnienie się, że wszystkie elementy w końcowej tablicy są floatami
 
                 // DEBUG LOG: Dodano logi dla problematycznej trasy
                 if (route.id === 'd23b63bf-0a81-4922-91f5-d6cf285c6bd1') {
@@ -460,7 +465,7 @@ function SearchRoutes() {
                 }
 
                 try {
-                    const routeLine = turf.lineString(geo);
+                    const routeLine = turf.lineString(geo); // <--- Tutaj wcześniej był błąd
 
                     const checkPointInRange = (pointObj) => {
                         if (!pointObj || !pointObj.lat || !pointObj.lng) return false;
@@ -509,7 +514,7 @@ function SearchRoutes() {
         });
 
         console.log('Final Filtered Routes count:', finalFilteredRoutes.length);
-    console.log('Final Filtered Routes data:', finalFilteredRoutes); // <= DODAĆ TEN LOG
+        console.log('Final Filtered Routes data:', finalFilteredRoutes);
         return finalFilteredRoutes;
 
     }, [allRoutes, fromLocation, toLocation, vehicleType, selectedDate, mapMode]);
