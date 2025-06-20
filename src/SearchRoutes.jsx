@@ -86,8 +86,10 @@ async function geocodeAddress(address) {
     if (!address || address.length < 3) return null;
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=geojson&limit=1`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        console.log('Nominatim response status:', response.status);
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
+        console.log('Nominatim data:', data);
         if (data.features && data.features.length > 0) {
             const feature = data.features[0];
             return {
@@ -98,6 +100,7 @@ async function geocodeAddress(address) {
                 }
             };
         }
+            console.log('Geocoding successful:', result);
         return null;
     } catch (error) {
         console.error("Błąd podczas geokodowania adresu:", error);
@@ -197,6 +200,9 @@ function SearchRoutes() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+console.log('handleSearchClick invoked.');
+    console.log('Initial fromInputText:', fromInputText);
+    console.log('Initial toInputText:', toInputText);
 
         let finalFrom = { ...searchFrom };
         let finalTo = { ...searchTo };
@@ -204,6 +210,7 @@ function SearchRoutes() {
 
         // Jeśli searchFrom.coords jest null, ale fromInputText ma wartość, spróbuj geokodować
         if (!finalFrom.coords && fromInputText) {
+        console.log('Attempting to geocode fromInputText:', fromInputText);
             const geoFrom = await geocodeAddress(fromInputText);
             if (geoFrom) {
                 finalFrom = geoFrom;
@@ -217,13 +224,19 @@ function SearchRoutes() {
 
         // Jeśli searchTo.coords jest null, ale toInputText ma wartość, spróbuj geokodować
         if (!finalTo.coords && toInputText) {
+        console.log('Attempting to geocode toInputText:', toInputText);
+
             const geoTo = await geocodeAddress(toInputText);
             if (geoTo) {
                 finalTo = geoTo;
                 setSearchTo(geoTo); // Aktualizuj stan
+            console.log('Updated finalTo after geocoding:', finalTo);
+
             } else {
                 setError('Nie znaleziono lokalizacji dla "Do": ' + toInputText);
                 setLoading(false);
+            console.log('Geocoding failed for toInputText.');
+
                 return;
             }
         }
@@ -240,6 +253,11 @@ function SearchRoutes() {
                 return;
             }
         }
+    console.log('Final coords before calling fetchRoutes:');
+    console.log('From Coords:', finalFrom.coords);
+    console.log('To Coords:', finalTo.coords);
+    console.log('Via Coords:', finalVia.coords);
+    console.log('Search Date:', searchDate);
 
         // Teraz wywołaj fetchRoutes z upewnionymi koordynatami
         fetchRoutes(finalFrom.coords, finalTo.coords, finalVia.coords);
