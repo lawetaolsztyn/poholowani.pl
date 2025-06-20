@@ -15,7 +15,6 @@ import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 import { GestureHandling } from 'leaflet-gesture-handling';
 import 'leaflet-gesture-handling';
 
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 const MapContext = createContext(null);
 
@@ -350,6 +349,7 @@ function SearchRoutes() {
     const today = new Date().toISOString().split('T')[0];
 
     const [mapMode, setMapMode] = useState('grid'); // Domyślnie tryb siatki
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // Efekt do pobierania tras z Supabase
     useEffect(() => {
