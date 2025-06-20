@@ -134,26 +134,6 @@ useEffect(() => {
   return null;
 }
 
-const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
-    const popupRef = useRef(null);
-    const map = useMap();
-    const closeTimeoutRef = useRef(null);
-
-    let coords = [];
-    if (route.geojson?.features?.[0]?.geometry?.coordinates) {
-  // console.warn('Trasa bez danych geojson:', route.id, route);       //
- const rawCoords = route.geojson.features[0].geometry.coordinates;
-        if (Array.isArray(rawCoords)) {
-            coords = rawCoords
-                .filter(coordPair =>
-                    Array.isArray(coordPair) &&
-                    coordPair.length === 2 &&
-                    typeof coordPair[0] === 'number' && !isNaN(coordPair[0]) &&
-                    typeof coordPair[1] === 'number' && !isNaN(coordPair[1])
-                )
-                .map(([lng, lat]) => [lat, lng]);
-        }
-    }
 
     if (coords.length === 0) return null;
 
