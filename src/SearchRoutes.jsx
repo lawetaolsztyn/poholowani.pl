@@ -310,8 +310,13 @@ function MapViewAndInteractionSetter({ mapMode }) {
             map.touchZoom._zoom = false; // WYŁĄCZA zoom gestami
         }
 
-        if (map.gestureHandling) map.gestureHandling.enable();
-
+if (map.gestureHandling) {
+  if (window.innerWidth < 768) {
+    map.gestureHandling.enable();   // Na telefonie: aktywuj (dla przesuwania 2 palcami)
+  } else {
+    map.gestureHandling.disable();  // Na komputerze: wyłącz (brak info o Ctrl)
+  }
+}
     } else {
         map.setMinZoom(0);
         map.setMaxZoom(19);
