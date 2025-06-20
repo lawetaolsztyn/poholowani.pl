@@ -68,12 +68,12 @@ const HighlightedRoute = React.memo(({ route, isHovered, onPolylineMouseOver, on
                     <h3>{route.from_city} do {route.to_city}</h3>
                     {route.via && <p>Przez: {route.via}</p>}
                     <p>Data: {new Date(route.date).toLocaleDateString()}</p>
-                    {/* ZMIANA: USUNIĘTO linijkę z Godzina: {route.time} */}
-                    <p>Miejsca: {route.seats}</p>
-                    <p>Cena: {route.price} PLN</p>
-                    {route.description && <p>{route.description}</p>}
+                    {/* USUNIĘTO: <p>Godzina: {route.time}</p> */}
+                    <p>Miejsca: {route.passenger_count}</p> {/* ZMIANA: seats na passenger_count */}
+                    {/* USUNIĘTO: <p>Cena: {route.price} PLN</p> */}
+                    {/* USUNIĘTO: {route.description && <p>{route.description}</p>} */}
                     <p>Telefon: {route.phone} {route.uses_whatsapp && '(WhatsApp)'}</p>
-                    {route.messenger && <p><a href={route.messenger} target="_blank" rel="noopener noreferrer">Messenger</a></p>}
+                    {route.messenger_link && <p><a href={route.messenger_link} target="_blank" rel="noopener noreferrer">Messenger</a></p>} {/* ZMIANA: messenger na messenger_link */}
                     {route.vehicle_type && <p>Typ pojazdu: {route.vehicle_type}</p>}
                 </div>
             </Popup>
