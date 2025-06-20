@@ -297,7 +297,7 @@ function MapViewAndInteractionSetter({ mapMode }) {
             map.setMinZoom(5);
 
             // Wyłącz interakcje
-            map.dragging.disable();
+            map.dragging.enable();
             map.touchZoom.disable();
             map.scrollWheelZoom.disable();
             map.doubleClickZoom.disable();
