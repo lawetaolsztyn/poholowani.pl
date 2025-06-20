@@ -65,8 +65,8 @@ const HighlightedRoute = React.memo(({ route, isHovered, onPolylineMouseOver, on
         >
             <Popup>
                 <div>
-                    <h3>{route.from_label} do {route.to_label}</h3>
-                    {route.via_label && <p>Przez: {route.via_label}</p>}
+                    <h3>{route.from_city} do {route.to_city}</h3> {/* ZMIANA: from_label na from_city, to_label na to_city */}
+                    {route.via && <p>Przez: {route.via}</p>} {/* ZMIANA: via_label na via */}
                     <p>Data: {new Date(route.date).toLocaleDateString()}</p>
                     <p>Godzina: {route.time}</p>
                     <p>Miejsca: {route.seats}</p>
