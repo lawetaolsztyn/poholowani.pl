@@ -154,7 +154,7 @@ function SearchRoutes() {
                     p_via_lat: viaLocation?.coords?.lat || null,
                     p_via_lng: viaLocation?.coords?.lng || null,
                     p_radius_meters: 2000,
-                    vehicle_type: searchVehicleType || null
+                    p_vehicle_type: searchVehicleType || null
                 });
 
             if (error) throw error;
