@@ -248,3 +248,9 @@
   touch-action: pan-y;
 }
 }
+
+@media (min-width: 768px) {
+  .leaflet-gesture-handling-text {
+    display: none !important;
+  }
+}
