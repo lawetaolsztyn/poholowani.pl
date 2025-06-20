@@ -453,6 +453,7 @@ function SearchRoutes() {
         });
 
         console.log('Final Filtered Routes count:', finalFilteredRoutes.length);
+    console.log('Final Filtered Routes data:', finalFilteredRoutes); // <= DODAĆ TEN LOG
         return finalFilteredRoutes;
 
     }, [allRoutes, fromLocation, toLocation, vehicleType, selectedDate, mapMode]);
