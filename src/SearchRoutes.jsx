@@ -290,41 +290,42 @@ function MapViewAndInteractionSetter({ mapMode }) {
     const map = useMap();
 
     useEffect(() => {
-        console.log(`MapViewAndInteractionSetter: mapMode changed to ${mapMode}`);
-        if (mapMode === 'grid') {
-            map.setView([49.45, 11.07], 5); // Centrum Europy (Polska), zoom 5
-            map.setMaxZoom(5);
-            map.setMinZoom(5);
+    if (!map) return;
 
-            // Wyłącz interakcje
-            map.dragging.enable();
-            map.touchZoom.disable();
-            map.scrollWheelZoom.disable();
-            map.doubleClickZoom.disable();
-            map.boxZoom.disable();
-            map.keyboard.disable();
-            if (map.tap) map.tap.disable(); // `tap` może nie istnieć na wszystkich mapach
-            if (map.gestureHandling) map.gestureHandling.enable();
-            console.log("MapViewAndInteractionSetter: Interakcje mapy WYŁĄCZONE.");
+    if (mapMode === 'grid') {
+        map.setView([49.45, 11.07], 5);
+        map.setMinZoom(5);
+        map.setMaxZoom(5);
 
-        } else { // mapMode === 'search'
-            map.setMaxZoom(19); // Pełny zakres zoomu
-            map.setMinZoom(0); // Pełny zakres zoomu
+        // WŁĄCZ tylko przesuwanie dwoma palcami
+        map.dragging.enable();
+        map.scrollWheelZoom.disable();
+        map.doubleClickZoom.disable();
+        map.boxZoom.disable();
+        map.keyboard.disable();
 
-            // Włącz interakcje
-            map.dragging.enable();
-            map.touchZoom.enable();
-            map.scrollWheelZoom.enable();
-            map.doubleClickZoom.enable();
-            map.boxZoom.enable();
-            map.keyboard.enable();
-            if (map.tap) map.tap.enable();
-            if (map.gestureHandling) map.gestureHandling.enable();
-            console.log("MapViewAndInteractionSetter: Interakcje mapy WŁĄCZONE.");
+        if (map.tap) map.tap.disable();
+        if (map.touchZoom) {
+            map.touchZoom.enable(); // WYMAGANE
+            map.touchZoom._zoom = false; // WYŁĄCZA zoom gestami
         }
-    }, [mapMode, map]); // Zależność od 'map' jest kluczowa
 
-    return null;
+        if (map.gestureHandling) map.gestureHandling.enable();
+
+    } else {
+        map.setMinZoom(0);
+        map.setMaxZoom(19);
+
+        map.dragging.enable();
+        map.touchZoom.enable();
+        map.scrollWheelZoom.enable();
+        map.doubleClickZoom.enable();
+        map.boxZoom.enable();
+        map.keyboard.enable();
+        if (map.tap) map.tap.enable();
+        if (map.gestureHandling) map.gestureHandling.enable();
+    }
+}, [mapMode, map]);
 }
 
 
