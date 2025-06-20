@@ -140,8 +140,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
-  // console.warn('Trasa bez danych geojson:', route.id, route);       //
- const rawCoords = route.geojson.features[0].geometry.coordinates;
+        const rawCoords = route.geojson.features[0].geometry.coordinates;
         if (Array.isArray(rawCoords)) {
             coords = rawCoords
                 .filter(coordPair =>
@@ -156,105 +155,113 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     if (coords.length === 0) return null;
 
+    // Używamy pathOptions dynamicznie, aby kolor zawsze odpowiadał stanowi isHovered
+    const pathOptions = {
+        color: isHovered ? 'red' : 'blue',
+        weight: isHovered ? 6 : 5
+    };
+
     return (
         <Polyline
-      positions={coords}
-      pane={isHovered ? 'hovered' : 'routes'}
-      pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
-      eventHandlers={{
-        mouseover: (e) => {
-          if (closeTimeoutRef.current) {
-            clearTimeout(closeTimeoutRef.current);
-            closeTimeoutRef.current = null;
-          }
-          e.target.setStyle({ color: 'red' });
-          if (popupRef.current) {
-            popupRef.current.setLatLng(e.latlng).openOn(map);
-          }
-          if (onPolylineMouseOver) onPolylineMouseOver(route.id);
-        },
-        mouseout: (e) => {
-          e.target.setStyle({ color: 'blue' });
-          closeTimeoutRef.current = setTimeout(() => {
-            if (popupRef.current) {
-              popupRef.current.close();
-            }
-            closeTimeoutRef.current = null;
-          }, 1600);
-          if (onPolylineMouseOut) onPolylineMouseOut(null);
-        },
-        mousemove: (e) => {
-          if (popupRef.current && popupRef.current.isOpen()) {
-            popupRef.current.setLatLng(e.latlng);
-          }
-        }
-      }}
-    >
-
+            positions={coords}
+            // Zawsze używaj pane 'hovered' dla HighlightedRoute.
+            // Będziemy kontrolować, która trasa jest w tym panelu.
+            pane="hovered"
+            pathOptions={pathOptions}
+            eventHandlers={{
+                mouseover: (e) => {
+                    // Wyczyść timeout, jeśli istniał z poprzedniego najazdu
+                    if (closeTimeoutRef.current) {
+                        clearTimeout(closeTimeoutRef.current);
+                        closeTimeoutRef.current = null;
+                    }
+                    // Nie zmieniamy już stylu tutaj, bo pathOptions to obsłużą
+                    if (popupRef.current) {
+                        popupRef.current.setLatLng(e.latlng).openOn(map);
+                    }
+                    if (onPolylineMouseOver) onPolylineMouseOver(route.id);
+                },
+                mouseout: (e) => {
+                    // Nie zmieniamy już stylu tutaj
+                    // Ustawiamy timeout tylko dla zamknięcia popupa
+                    closeTimeoutRef.current = setTimeout(() => {
+                        if (popupRef.current) {
+                            popupRef.current.close();
+                        }
+                        closeTimeoutRef.current = null;
+                    }, 100); // Skrócono czas opóźnienia
+                    if (onPolylineMouseOut) onPolylineMouseOut(null); // Natychmiast zresetuj stan hoveredRouteId
+                },
+                mousemove: (e) => {
+                    if (popupRef.current && popupRef.current.isOpen()) {
+                        popupRef.current.setLatLng(e.latlng);
+                    }
+                }
+            }}
+        >
             <Popup ref={popupRef} autoClose={false} closeOnMouseOut={false} closeButton={false}>
-        <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-            <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
-            <strong>Do:</strong> {route.to_city?.split(',')[0]}
-          </div>
-          <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
-          <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
-          <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
-          <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-           {route.phone && (
-            <div style={{ marginBottom: '10px' }}>
-              📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
-                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}> {/* Link telefoniczny */}
-                  {route.phone}
-                </a>
-              </strong>
-              {route.uses_whatsapp && ( // Sprawdzamy czy uses_whatsapp jest true
-                <div style={{ marginTop: '4px' }}>
-                  <a
-                    href={`https://wa.me/${route.phone.replace(/\D/g, '')}`} // Generujemy link WhatsApp
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }} // Stylizacja dla WhatsApp
-                  >
-                    🟢 WhatsApp
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-        {route.messenger_link && (
-  <div style={{ marginTop: '4px' }}>
-    <a
-      href={route.messenger_link}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
-    >
-      🔵 Messenger
-    </a>
-  </div>
-)}
+                {/* ... Twój kod popupu ... */}
+                <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                        <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
+                        <strong>Do:</strong> {route.to_city?.split(',')[0]}
+                    </div>
+                    <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
+                    <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
+                    <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
+                    <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
+                    {route.phone && (
+                        <div style={{ marginBottom: '10px' }}>
+                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
+                                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
+                                    {route.phone}
+                                </a>
+                            </strong>
+                            {route.uses_whatsapp && (
+                                <div style={{ marginTop: '4px' }}>
+                                    <a
+                                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
+                                    >
+                                        🟢 WhatsApp
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {route.messenger_link && (
+                        <div style={{ marginTop: '4px' }}>
+                            <a
+                                href={route.messenger_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+                            >
+                                🔵 Messenger
+                            </a>
+                        </div>
+                    )}
 
                     {route.user_id && route.users_extended?.nip && (
-  <div>
-    <div style={{ marginBottom: '8px' }}>
-      <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-        🏢 Firma
-      </span>
-    </div>
-    <strong>Profil przewoźnika:</strong>{' '}
-    <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
-      otwórz
-    </a>
-                    </div>
-                )}
-
+                        <div>
+                            <div style={{ marginBottom: '8px' }}>
+                                <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+                                    🏢 Firma
+                                </span>
+                            </div>
+                            <strong>Profil przewoźnika:</strong>{' '}
+                            <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+                                otwórz
+                            </a>
+                        </div>
+                    )}
                 </div>
             </Popup>
         </Polyline>
     );
 });
-
 const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
@@ -587,9 +594,8 @@ useEffect(() => {
     return (
         <>
             <Navbar />
-
             <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 80px)', width: '100%', boxSizing: 'border-box', overflowY: 'auto', paddingBottom: '0px' }}>
-
+                {/* ... Twój formularz wyszukiwania ... */}
                 <div className="search-form-container">
                     <LocationAutocomplete
                         placeholder="Skąd"
@@ -650,17 +656,13 @@ useEffect(() => {
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
-                            // Ustawienia początkowe, które zostaną nadpisane przez MapViewAndInteractionSetter
-                            center={[51.0504, 13.7373]} // Początkowe centrum
-                            zoom={5} // Początkowy zoom
-                            maxZoom={19} // Pełny zakres
-                            minZoom={0} // Pełny zakres
-                            // Interakcje są teraz kontrolowane przez MapViewAndInteractionSetter
-                           
+                            center={[51.0504, 13.7373]}
+                            zoom={5}
+                            maxZoom={19}
+                            minZoom={0}
                             gestureHandling={true}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
-                                // Initial setup is now in MapViewAndInteractionSetter's first render logic
                             }}
                             gestureHandlingOptions={{
                                 touch: true,
@@ -672,7 +674,9 @@ useEffect(() => {
                             className="main-map-container"
                         >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                            {/* Pane dla normalnych tras, niższy zIndex */}
                             <Pane name="routes" style={{ zIndex: 400 }} />
+                            {/* Pane dla najechanej trasy, wyższy zIndex */}
                             <Pane name="hovered" style={{ zIndex: 500 }} />
 
                             <MapEvents />
@@ -683,9 +687,8 @@ useEffect(() => {
                                 selectedRoute={selectedRoute}
                                 selectedRouteTrigger={selectedRouteTrigger}
                                 mapMode={mapMode}
-				filteredRoutes={filteredRoutes}
+                                filteredRoutes={filteredRoutes}
                             />
-                            {/* === Nowy komponent, który zarządza widokiem i interakcjami === */}
                             <MapViewAndInteractionSetter mapMode={mapMode} />
 
                             {center && mapMode === 'search' && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
@@ -700,31 +703,29 @@ useEffect(() => {
                                         <StaticRoutePolyline key={route.id} route={route} />
                                     ))
                                 ) : (
-                                  {filteredRoutes.map((route) => {
-  if (route.id === hoveredRouteId) return null;
-  return (
-    <HighlightedRoute
-      key={route.id}
-      route={route}
-      isHovered={false}
-      onPolylineMouseOver={setHoveredRouteId}
-      onPolylineMouseOut={setHoveredRouteId}
-       />
-      );
-    })}
-  </>
-)
-
-{/* Na końcu renderuj hoverowaną trasę, żeby była na wierzchu */}
-{hoveredRouteId && (
-  <HighlightedRoute
-    key={`hover-${hoveredRouteId}`}
-    route={filteredRoutes.find(r => r.id === hoveredRouteId)}
-    isHovered={true}
-    onPolylineMouseOver={setHoveredRouteId}
-    onPolylineMouseOut={setHoveredRouteId}
-  />
-)}
+                                    <>
+                                        {/* Renderuj wszystkie nie-najechane trasy na niższym pane'u */}
+                                        {filteredRoutes
+                                            .filter(route => route.id !== hoveredRouteId)
+                                            .map((route) => (
+                                                <StaticRoutePolyline key={route.id} route={route} />
+                                            ))}
+                                        {/* Renderuj najechana trase na wyższym pane'u */}
+                                        {hoveredRouteId &&
+                                            filteredRoutes
+                                                .filter(route => route.id === hoveredRouteId)
+                                                .map((route) => (
+                                                    <HighlightedRoute
+                                                        key={route.id}
+                                                        route={route}
+                                                        isHovered={true} // Zawsze jest hovered, bo ją tu filtrujemy
+                                                        onPolylineMouseOver={setHoveredRouteId}
+                                                        onPolylineMouseOut={setHoveredRouteId}
+                                                    />
+                                                ))}
+                                    </>
+                                )
+                            )}
 
                             {mapMode === 'search' && <RoadsideMarkers />}
 
@@ -732,12 +733,8 @@ useEffect(() => {
                     </MapContext.Provider>
                 </div>
                 {mapMode === 'search' && (
-                    <div style={{ width: '98%', margin: '0 auto 20px auto', padding: '0px 10px 10px 10px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
-                        <RouteSlider
-                            routes={filteredRoutes}
-                            onHover={(id) => setHoveredRouteId(id)}
-                            onClickRoute={handleRouteClick}
-                        />
+                    <div style={{ width: '100%', padding: '0 10px', boxSizing: 'border-box' }}>
+                        <RouteSlider routes={filteredRoutes} onRouteClick={handleRouteClick} selectedRoute={selectedRoute} />
                     </div>
                 )}
             </div>
