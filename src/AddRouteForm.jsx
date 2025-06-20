@@ -10,7 +10,8 @@ import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 import 'leaflet-gesture-handling';
 import RouteMap from './RouteMap';
 
-// NOWA FUNKCJA POMOCNICZA: Konwersja GeoJSON LineString na WKT
+// NOWA FUNKCJA POMOCNICZA: Konwersja GeoJSON LineString na WKT - NIE BĘDZIE JUŻ UŻYWANA, ALE MOŻESZ ZOSTAWIC
+// (tylko do celów demonstracyjnych, ale w tym rozwiązaniu nie jest potrzebna)
 const geojsonToWktLineString = (geojson) => {
   if (!geojson || geojson.type !== 'LineString' || !geojson.coordinates || geojson.coordinates.length === 0) {
     console.error("Invalid GeoJSON LineString for WKT conversion:", geojson);
@@ -88,7 +89,7 @@ function AddRouteForm({ onRouteCreated }) {
         const lastRoute = data[0];
         let geojsonForMap = null;
         
-        // Preferujemy nową kolumnę route_geom (typ geography)
+        // ZMIANA: Lepsze ładowanie geometrii dla RouteMap z route_geom lub geojson
         if (lastRoute.route_geom) { 
             try {
                 // route_geom jest zwracany z DB jako tekst GeoJSON
@@ -98,10 +99,8 @@ function AddRouteForm({ onRouteCreated }) {
                 geojsonForMap = null;
             }
         } 
-        // Jeśli route_geom jest puste lub niepoprawne, a mamy stare geojson (typ JSONB)
-        // Zakładamy, że stare geojson (JSONB) to FeatureCollection
-        else if (lastRoute.geojson) { // Usunąłem features?.[0]?.geometry?.coordinates bo geojson to cały obiekt
-            geojsonForMap = lastRoute.geojson; 
+        else if (lastRoute.geojson) { 
+            geojsonForMap = lastRoute.geojson; // Stare dane JSONB
         }
         
         // setRouteData będzie używane przez RouteMap
@@ -129,21 +128,21 @@ function AddRouteForm({ onRouteCreated }) {
   };
 
   // Handlery dla LocationAutocomplete - format wejściowy z LocationAutocomplete to { label, coords: [lng,lat] }
-  const handleFromSelect = (label, sug) => { // ZMIANA NAZWY ARGUMENTU
+  const handleFromSelect = (label, sug) => { 
     setForm(prevForm => ({
       ...prevForm,
       from: { label: label, coords: sug.geometry.coordinates } // coords już są [lng, lat]
     }));
   };
 
-  const handleToSelect = (label, sug) => { // ZMIANA NAZWY ARGUMENTU
+  const handleToSelect = (label, sug) => { 
     setForm(prevForm => ({
       ...prevForm,
       to: { label: label, coords: sug.geometry.coordinates }
     }));
   };
 
-  const handleViaSelect = (label, sug) => { // ZMIANA NAZWY ARGUMENTU
+  const handleViaSelect = (label, sug) => { 
     setForm(prevForm => ({
       ...prevForm,
       via: { label: label, coords: sug.geometry.coordinates }
@@ -196,7 +195,7 @@ function AddRouteForm({ onRouteCreated }) {
                     polyline: routeGeometry.coordinates.map(coord => [coord[1], coord[0]]), // Ustaw polyline dla mapy
                     orsGeometry: routeGeometry, // Przechowujemy GeoJSON LineString
                     orsDistance: routeSummary.distance,
-                    orsDuration: routeSummary.duration,
+                    orsDuration: routeSummary.length, // ZMIANA: Używamy ORS summary.duration
                 }));
             } else {
                 throw new Error(orsData.error?.message || 'Brak danych trasy z ORS.');
@@ -260,7 +259,7 @@ function AddRouteForm({ onRouteCreated }) {
 
     // Dodatkowa walidacja dla numeru telefonu:
     if (form.countryCode && !form.phone && form.phone !== '') {
-        alert('❗Proszę podać numer telefonu po wybraniu kodu kraju.');
+        alert('❗Proszę podać numer numer telefonu po wybraniu kodu kraju.');
         setIsSaving(false);
         return;
     }
@@ -271,8 +270,7 @@ function AddRouteForm({ onRouteCreated }) {
       const userId = user?.id;
 
       // NOWE: Rozszerzone logowanie diagnostyczne
-      console.log('Dane ORS Geometry przed konwersją na WKT:', form.orsGeometry); 
-      console.log('Dane ORS Geometry po konwersji na WKT:', geojsonToWktLineString(form.orsGeometry));
+      console.log('Dane ORS Geometry przed stringify (dla insertu JSONB):', form.orsGeometry); 
 
       const routePayload = {
         // MAPOWANIE PÓL FORMULARZA NA NAZWY KOLUMN W BAZIE DANYCH (Z TWOJEGO SCHEMATU)
@@ -291,12 +289,22 @@ function AddRouteForm({ onRouteCreated }) {
         browser_token: browserToken || null,
         created_at: new Date().toISOString(), 
         
-        // KLUCZOWA ZMIANA: Zapis geometrii trasy używając ST_GeomFromText z WKT
-        // Wysyłamy string WKT, który baza danych przekonwertuje na typ geography
-        route_geom: supabase.raw(`ST_GeomFromText('${geojsonToWktLineString(form.orsGeometry)}', 4326)`), 
+        // ZMIANA KLUCZOWA: Zapis GeoJSON jako JSONB do kolumny 'geojson'
+        // Skoro supabase.raw nie działa, a 'route_geom' nie chce przyjmować GeoJSON obiektu,
+        // wracamy do zapisywania surowego GeoJSONa do kolumny JSONB 'geojson'.
+        // To oznacza, że funkcja SQL 'search_routes' będzie odpowiedzialna za konwersję JSONB -> GEOGRAPHY.
+        geojson: form.orsGeometry, // Zapisujemy obiekt JS do kolumny JSONB 'geojson'
         
+        // NOWE: Zapis dystansu i czasu trwania
+        // Zakładam, że kolumny 'distance' i 'duration' istnieją w Twojej bazie danych
         distance: form.orsDistance, 
         duration: form.orsDuration,
+
+        // Poniższe kolumny z Twojego oryginalnego schematu form
+        // NIE SĄ ZAPISYWANE, bo nie istnieją w Twojej tabeli 'routes' w DB:
+        // route_geom (nie zapisujemy bezpośrednio tutaj, bo wracamy do geojson)
+        // time, price, description (brak w Twoim schemacie DB)
+        // from_lat, from_lng, to_lat, to_lng, via_lat, via_lng (koordynaty są w route_geom)
       };
 
       const { error } = await supabase.from('routes').insert([routePayload]);
