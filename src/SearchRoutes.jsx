@@ -310,13 +310,8 @@ function MapViewAndInteractionSetter({ mapMode }) {
             map.touchZoom._zoom = false; // WYŁĄCZA zoom gestami
         }
 
-if (map.gestureHandling) {
-  if (window.innerWidth < 768) {
-    map.gestureHandling.enable();   // Na telefonie: aktywuj (dla przesuwania 2 palcami)
-  } else {
-    map.gestureHandling.disable();  // Na komputerze: wyłącz (brak info o Ctrl)
-  }
-}
+        if (map.gestureHandling) map.gestureHandling.enable();
+
     } else {
         map.setMinZoom(0);
         map.setMaxZoom(19);
@@ -656,27 +651,26 @@ useEffect(() => {
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
-                            // Ustawienia początkowe, które zostaną nadpisane przez MapViewAndInteractionSetter
-                            center={[51.0504, 13.7373]} // Początkowe centrum
-                            zoom={5} // Początkowy zoom
-                            maxZoom={19} // Pełny zakres
-                            minZoom={0} // Pełny zakres
-                            // Interakcje są teraz kontrolowane przez MapViewAndInteractionSetter
-                           
-                            gestureHandling={true}
-                            whenCreated={mapInstance => {
-                                mapRef.current = mapInstance;
-                                // Initial setup is now in MapViewAndInteractionSetter's first render logic
-                            }}
-                            gestureHandlingOptions={{
-                                touch: true,
-                                text: 'Użyj dwóch palców, aby przesunąć mapę',
-                                duration: 1000,
-                                tap: false,
-                                twoFingerPan: true,
-                            }}
-                            className="main-map-container"
-                        >
+  center={[51.0504, 13.7373]}
+  zoom={5}
+  maxZoom={19}
+  minZoom={0}
+  gestureHandling={true}
+  whenCreated={mapInstance => {
+    mapRef.current = mapInstance;
+  }}
+  gestureHandlingOptions={{
+    touch: true,
+    tap: false,
+    twoFingerPan: true,
+    duration: 1000,
+    text: window.innerWidth < 768
+      ? 'Użyj dwóch palców, aby przesunąć mapę' // tylko na telefonie
+      : '', // brak napisu na desktopie
+    cooperative: window.innerWidth >= 768 // na desktopie tryb cooperative - pozwala scrollować stronę
+  }}
+  className="main-map-container"
+>
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                             <Pane name="routes" style={{ zIndex: 400 }} />
                             <Pane name="hovered" style={{ zIndex: 500 }} />
