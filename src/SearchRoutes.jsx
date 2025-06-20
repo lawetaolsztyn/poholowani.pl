@@ -422,16 +422,68 @@ function SearchRoutes() {
 
         if (!fromLocation && !toLocation) {
             console.log("Tryb SEARCH: LOKALIZACJE PUSTE. Filtruj po typie pojazdu/dacie dla WSZYSTKICH tras.");
-            routesAfterLocationFilter = allRoutes;
+            // Zastosuj parsowanie i filtrowanie współrzędnych, nawet gdy filtry lokalizacji nie są aktywne
+            routesAfterLocationFilter = allRoutes.map(route => {
+                let coords = [];
+                if (route.geojson?.features?.[0]?.geometry?.coordinates) {
+                    const rawCoords = route.geojson.features[0].geometry.coordinates;
+                    if (Array.isArray(rawCoords)) {
+                        coords = rawCoords
+                            .filter(coordPair =>
+                                Array.isArray(coordPair) &&
+                                coordPair.length === 2 &&
+                                typeof coordPair[0] === 'number' && !isNaN(coordPair[0]) &&
+                                typeof coordPair[1] === 'number' && !isNaN(coordPair[1])
+                            )
+                            // turf oczekuje [długość_geograficzna, szerokość_geograficzna], ale komponenty Polyline mapują na [szerokość_geograficzna, długość_geograficzna].
+                            // Dla turf.lineString, musisz je zachować jako [długość_geograficzna, szerokość_geograficzna].
+                            // Upewnij się, że początkowe dane pobrane mają [długość_geograficzna, szerokość_geograficzna] dla geometry.coordinates.
+                            // Jeśli twój GeoJSON jest przechowywany jako [długość_geograficzna, szerokość_geograficzna], nie ma potrzeby ponownego mapowania tutaj.
+                            // Zakładając, że surowy GeoJSON jest [długość_geograficzna, szerokość_geograficzna] zgodnie ze standardem.
+                            // Jeśli w twojej bazie danych jest [szerokość_geograficzna, długość_geograficzna], musisz zamienić je tutaj przed przekazaniem do turf.
+                            // Jednak błąd sugeruje wartości nienumeryczne, a nie problem z kolejnością.
+                            // Upewnijmy się, że są to liczby.
+                            .map(([lng, lat]) => [lng, lat]); // Zachowaj [długość_geograficzna, szerokość_geograficzna] dla turf.lineString
+                    }
+                }
+                return { ...route, parsedCoordsForTurf: coords }; // Przechowuj przetworzone współrzędne
+            }).filter(route => route.parsedCoordsForTurf.length > 1); // Zachowaj tylko trasy z prawidłowymi liniami
         } else {
             routesAfterLocationFilter = allRoutes.filter((route) => {
-                const geo = route.geojson?.features?.[0]?.geometry?.coordinates;
+                const rawGeoCoords = route.geojson?.features?.[0]?.geometry?.coordinates;
+                if (!rawGeoCoords || !Array.isArray(rawGeoCoords) || rawGeoCoords.length === 0) {
+                    console.warn('Skipping route due to missing or invalid geojson coordinates:', route.id);
+                    return false;
+                }
+
+                // Parsuj i filtruj współrzędne dla turf.lineString
+                const geo = rawGeoCoords
+                    .filter(coordPair =>
+                        Array.isArray(coordPair) &&
+                        coordPair.length === 2 &&
+                        typeof coordPair[0] === 'number' && !isNaN(coordPair[0]) &&
+                        typeof coordPair[1] === 'number' && !isNaN(coordPair[1])
+                    )
+                    .map(([lng, lat]) => [lng, lat]); // Zachowaj [długość_geograficzna, szerokość_geograficzna] dla turf.lineString
+
+                if (geo.length < 2) { // Linia potrzebuje co najmniej dwóch punktów
+                    console.warn('Skipping route due to insufficient valid coordinates after filtration:', route.id);
+                    return false;
+                }
+
                 const detourKm = parseInt(route.max_detour_km || 0);
-                if (!geo || !Array.isArray(geo) || geo.length === 0 || detourKm === 0) return false;
+                if (detourKm === 0) { // Jeśli objazd wynosi 0, żaden punkt nie może być w zasięgu (chyba że bezpośrednio na trasie)
+                    console.warn('Skipping route due to max_detour_km being 0:', route.id);
+                    return false;
+                }
+
                 const routeLine = turf.lineString(geo);
 
                 const checkPointInRange = (pointObj) => {
-                    if (!pointObj || !pointObj.lat || !pointObj.lng) return false;
+                    if (!pointObj || typeof pointObj.lat !== 'number' || typeof pointObj.lng !== 'number' || isNaN(pointObj.lat) || isNaN(pointObj.lng)) {
+                        console.warn('Invalid point object for checkPointInRange:', pointObj);
+                        return false;
+                    }
                     const userPoint = turf.point([pointObj.lng, pointObj.lat]);
                     const snapped = turf.nearestPointOnLine(routeLine, userPoint);
                     const dist = turf.distance(userPoint, snapped, { units: 'kilometers' });
@@ -439,6 +491,13 @@ function SearchRoutes() {
                 };
 
                 if (fromLocation && toLocation) {
+                    // Waliduj fromLocation i toLocation przed użyciem
+                    if (typeof fromLocation.lat !== 'number' || typeof fromLocation.lng !== 'number' || isNaN(fromLocation.lat) || isNaN(fromLocation.lng) ||
+                        typeof toLocation.lat !== 'number' || typeof toLocation.lng !== 'number' || isNaN(toLocation.lat) || isNaN(toLocation.lng)) {
+                        console.warn("Invalid from/to location coordinates provided.");
+                        return false;
+                    }
+
                     const fromPoint = turf.point([fromLocation.lng, fromLocation.lat]);
                     const toPoint = turf.point([toLocation.lng, toLocation.lat]);
                     const fromSnap = turf.nearestPointOnLine(routeLine, fromPoint, { units: 'kilometers' });
@@ -473,7 +532,7 @@ function SearchRoutes() {
         });
 
         console.log('Final Filtered Routes count:', finalFilteredRoutes.length);
-    console.log('Final Filtered Routes data:', finalFilteredRoutes); // <= DODAĆ TEN LOG
+        console.log('Final Filtered Routes data:', finalFilteredRoutes);
         return finalFilteredRoutes;
 
     }, [allRoutes, fromLocation, toLocation, vehicleType, selectedDate, mapMode]);
