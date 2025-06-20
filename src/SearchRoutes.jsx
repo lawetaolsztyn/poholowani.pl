@@ -134,9 +134,6 @@ useEffect(() => {
   return null;
 }
 
-
-
-    return (
         <Polyline
             positions={coords}
             pane="routes"
