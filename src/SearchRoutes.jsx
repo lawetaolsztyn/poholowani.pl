@@ -140,7 +140,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
-  console.warn('Trasa bez danych geojson:', route.id, route);       
+  // console.warn('Trasa bez danych geojson:', route.id, route);       //
  const rawCoords = route.geojson.features[0].geometry.coordinates;
         if (Array.isArray(rawCoords)) {
             coords = rawCoords
