@@ -27,7 +27,7 @@ function MapEvents() {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     setCenter([position.coords.latitude, position.coords.longitude]);
-                },
+                },\
                 () => {
                     setCenter([52.2297, 21.0122]); // Domyślna lokalizacja, jeśli geolokalizacja nie jest dostępna
                 }
@@ -137,7 +137,7 @@ function SearchRoutes() {
         if (!fromLocation.coords || !toLocation.coords || !searchDate) {
             setRoutes([]);
             setFilteredRoutes([]);
-            // Możesz tutaj wyświetlić komunikat dla użytkownika, np. "Proszę wybrać początek i koniec trasy z listy sugestii."
+            console.log('FetchRoutes: Missing coords or date. Not fetching.');
             return;
         }
 
@@ -146,9 +146,9 @@ function SearchRoutes() {
         try {
             const { data, error } = await supabase
                 .rpc('search_routes', {
-                    p_from_lat: fromLocation.coords.lat,
+                    p_from_lat: fromLocation.coords.lat, // Używa fromLocation.coords
                     p_from_lng: fromLocation.coords.lng,
-                    p_to_lat: toLocation.coords.lat,
+                    p_to_lat: toLocation.coords.lat,    // Używa toLocation.coords
                     p_to_lng: toLocation.coords.lng,
                     p_date: searchDate,
                     p_via_lat: viaLocation?.coords?.lat || null,
@@ -184,9 +184,10 @@ function SearchRoutes() {
             fetchRoutes(searchFrom, searchTo, searchVia);
         } else {
             // Jeśli koordynaty nie są ustawione, ale użytkownik już coś wpisał, wyczyść wyniki
-            if (searchFrom.label || searchTo.label || searchVia.label || searchDate || searchVehicleType) {
-                setRoutes([]);
-                setFilteredRoutes([]);
+            // Zapobiegaj czyszczeniu na początku, gdy searchFrom.label jest puste.
+            if (searchFrom.label.length > 0 || searchTo.label.length > 0 || searchVia.label.length > 0 || searchDate.length > 0 || searchVehicleType.length > 0) {
+                 setRoutes([]);
+                 setFilteredRoutes([]);
             }
         }
     }, [searchFrom, searchTo, searchVia, searchDate, searchVehicleType, fetchRoutes]);
@@ -207,8 +208,9 @@ function SearchRoutes() {
         console.log('Initial searchFrom:', searchFrom); // Log przed geokodowaniem
         console.log('Initial searchTo:', searchTo);
 
-        // Jeśli brakuje koordynatów, spróbuj geokodować label
+        // Jeśli finalFrom.coords jest null, ale finalFrom.label ma wartość, spróbuj geokodować
         if (!finalFrom.coords && finalFrom.label) {
+            console.log('Attempting to geocode FROM label:', finalFrom.label);
             const geoFrom = await geocodeAddress(finalFrom.label);
             if (geoFrom) {
                 finalFrom = geoFrom;
@@ -222,6 +224,7 @@ function SearchRoutes() {
         }
 
         if (!finalTo.coords && finalTo.label) {
+            console.log('Attempting to geocode TO label:', finalTo.label);
             const geoTo = await geocodeAddress(finalTo.label);
             if (geoTo) {
                 finalTo = geoTo;
@@ -235,10 +238,11 @@ function SearchRoutes() {
         }
 
         if (!finalVia.coords && finalVia.label) {
+            console.log('Attempting to geocode VIA label:', finalVia.label);
             const geoVia = await geocodeAddress(finalVia.label);
             if (geoVia) {
                 finalVia = geoVia;
-                setSearchVia(geoVia); // Aktualizuj stan searchVia
+                setSearchVia(geoVia);
                 console.log('Geocoded VIA:', geoVia);
             } else {
                 setError('Nie znaleziono lokalizacji dla "Przez": ' + finalVia.label);
@@ -268,6 +272,36 @@ function SearchRoutes() {
         }
     }, []);
 
+    // Funkcje do obsługi onSelectLocation z LocationAutocomplete, które zawsze ustawiają obiekt {label, coords}
+    const handleLocationSelect = useCallback((setLocationState) => (selectedFromAutocomplete) => {
+        // LocationAutocomplete może zwracać:
+        // 1. { label: 'pełna nazwa', coords: {lat, lng} } - po kliknięciu sugestii
+        // 2. { label: 'wpisany_tekst', coords: null } - z handleBlurLogic w LocationAutocomplete (jeśli nie wybrano sugestii, ale jest tekst)
+        // 3. { label: '', coords: null } - z handleBlurLogic (jeśli pole jest puste)
+
+        // Normalizujemy wejście, aby zawsze był to obiekt { label, coords }
+        let normalizedSelected;
+        if (typeof selectedFromAutocomplete === 'string') {
+            // Jeśli LocationAutocomplete zwracał sam string (stara, nieprawidłowa forma, ale mogła się zdarzyć)
+            normalizedSelected = { label: selectedFromAutocomplete, coords: null };
+        } else if (selectedFromAutocomplete && typeof selectedFromAutocomplete.geometry !== 'undefined') {
+            // Jeśli LocationAutocomplete zwracał obiekt z 'geometry' (np. z pustymi coordinates dla zerowania)
+            normalizedSelected = {
+                label: selectedFromAutocomplete.label || '',
+                coords: selectedFromAutocomplete.geometry?.coordinates ? { lat: selectedFromAutocomplete.geometry.coordinates[1], lng: selectedFromAutocomplete.geometry.coordinates[0] } : null
+            };
+        } else if (selectedFromAutocomplete && typeof selectedFromAutocomplete.label === 'string') {
+            // Jeśli LocationAutocomplete zwracał już poprawny obiekt {label, coords} (po kliknięciu sugestii)
+            normalizedSelected = selectedFromAutocomplete;
+        } else {
+            // Wszelkie inne przypadki, traktujemy jako puste
+            normalizedSelected = { label: '', coords: null };
+        }
+        console.log('Normalizing LocationAutocomplete output:', selectedFromAutocomplete, '->', normalizedSelected);
+        setLocationState(normalizedSelected);
+    }, []);
+
+
     return (
         <div className="search-routes-container">
             <Navbar onSetMapMode={setMapMode} onResetMap={handleResetMap} />
@@ -277,20 +311,20 @@ function SearchRoutes() {
                 <form onSubmit={handleSearchClick} className="search-form">
                     <LocationAutocomplete
                         label="Z:"
-                        value={searchFrom.label} // LocationAutocomplete będzie kontrolowany przez searchFrom.label
-                        onSelectLocation={(selected) => setSearchFrom(selected)} // Aktualizuje {label, coords}
+                        value={searchFrom.label} // Używamy searchFrom.label do kontrolowania wartości inputa
+                        onSelectLocation={handleLocationSelect(setSearchFrom)} // Użyj ogólnego handlera
                         placeholder="Miejscowość początkowa"
                     />
                     <LocationAutocomplete
                         label="Do:"
                         value={searchTo.label}
-                        onSelectLocation={(selected) => setSearchTo(selected)}
+                        onSelectLocation={handleLocationSelect(setSearchTo)}
                         placeholder="Miejscowość docelowa"
                     />
                     <LocationAutocomplete
                         label="Przez (opcjonalnie):"
                         value={searchVia.label}
-                        onSelectLocation={(selected) => setSearchVia(selected)}
+                        onSelectLocation={handleLocationSelect(setSearchVia)}
                         placeholder="Punkt pośredni"
                     />
                     <div className="form-field">
