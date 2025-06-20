@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents } from 'react-leaflet';
-// import * as turf from '@turf/turf'; // << Nadal możesz usunąć ten import
+// import * as turf from '@turf/turf'; // << USUŃ TEN IMPORT
 import 'leaflet/dist/leaflet.css';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
@@ -42,6 +42,8 @@ const HighlightedRoute = React.memo(({ route, isHovered, onPolylineMouseOver, on
     const polylineWeight = isHovered ? 6 : 4;
     const polylineOpacity = isHovered ? 0.9 : 0.7;
 
+    // Sprawdź, czy route.polyline_geometry jest prawidłowym obiektem GeoJSON (po sparsowaniu)
+    // i przekonwertuj go na format Leaflet [lat, lng]
     const leafletCoords = useMemo(() => {
         if (route.polyline_geometry && route.polyline_geometry.coordinates) {
             return route.polyline_geometry.coordinates.map(coord => [coord[1], coord[0]]); // Konwersja [lng, lat] na [lat, lng]
@@ -51,7 +53,7 @@ const HighlightedRoute = React.memo(({ route, isHovered, onPolylineMouseOver, on
 
 
     if (!leafletCoords || leafletCoords.length === 0) {
-        return null;
+        return null; // Nie renderuj, jeśli brak danych polilinii
     }
 
     return (
@@ -85,23 +87,24 @@ function SearchRoutes() {
     const [filteredRoutes, setFilteredRoutes] = useState([]);
     const [searchFrom, setSearchFrom] = useState({ label: '', coords: null });
     const [searchTo, setSearchTo] = useState({ label: '', coords: null });
-    const [searchVia, setSearchVia] = useState({ label: '', coords: null });
+    const [searchVia, setSearchVia] = useState({ label: '', coords: null }); // Nowe pole "przez"
     const [searchDate, setSearchDate] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [hoveredRouteId, setHoveredRouteId] = useState(null);
-    const [mapCenter, setMapCenter] = useState([52.2297, 21.0122]);
-    const [mapMode, setMapMode] = useState('search');
-    const [resetTrigger, setResetTrigger] = useState(0);
+    const [mapCenter, setMapCenter] = useState([52.2297, 21.0122]); // Domyślny środek mapy
+    const [mapMode, setMapMode] = useState('search'); // 'search' or 'add'
+    const [resetTrigger, setResetTrigger] = useState(0); // Trigger to re-center map
 
-    const mapRef = useRef(null);
+    const mapRef = useRef(null); // Ref do instancji mapy Leaflet
 
     const handleResetMap = useCallback(() => {
-        setMapCenter([52.2297, 21.0122]);
-        setResetTrigger(prev => prev + 1);
+        setMapCenter([52.2297, 21.0122]); // Resetuj na domyślny środek Polski
+        setResetTrigger(prev => prev + 1); // Zwiększ trigger, aby ponownie wywołać efekty mapy
     }, []);
 
     const fetchRoutes = useCallback(async () => {
+        // Sprawdź, czy wszystkie wymagane pola do wyszukiwania są wypełnione
         if (!searchFrom.coords || !searchTo.coords || !searchDate) {
             setRoutes([]);
             setFilteredRoutes([]);
@@ -111,6 +114,7 @@ function SearchRoutes() {
         setLoading(true);
         setError(null);
         try {
+            // Wywołanie funkcji PostgreSQL `search_routes`
             const { data, error } = await supabase
                 .rpc('search_routes', {
                     p_from_lat: searchFrom.coords.lat,
@@ -118,20 +122,22 @@ function SearchRoutes() {
                     p_to_lat: searchTo.coords.lat,
                     p_to_lng: searchTo.coords.lng,
                     p_date: searchDate,
-                    p_via_lat: searchVia.coords?.lat || null,
+                    p_via_lat: searchVia.coords?.lat || null, // Dodaj punkt 'via'
                     p_via_lng: searchVia.coords?.lng || null,
-                    p_radius_meters: 2000
+                    p_radius_meters: 2000 // Możesz dostosować promień bliskości
                 });
 
             if (error) throw error;
 
+            // Przetwórz otrzymane dane: sparsuj polyline_geometry z stringa JSON na obiekt
             const processedRoutes = data.map(route => ({
                 ...route,
+                // Sprawdź, czy polyline_geometry istnieje i jest stringiem, zanim spróbujesz parsować
                 polyline_geometry: route.polyline_geometry ? JSON.parse(route.polyline_geometry) : null
             }));
 
             setRoutes(processedRoutes);
-            setFilteredRoutes(processedRoutes);
+            setFilteredRoutes(processedRoutes); // Wszystkie otrzymane trasy są już przefiltrowane przez bazę
             console.log('Fetched filtered routes from Supabase Function:', processedRoutes);
         } catch (err) {
             console.error('Błąd podczas pobierania tras:', err.message);
@@ -141,20 +147,23 @@ function SearchRoutes() {
         } finally {
             setLoading(false);
         }
-    }, [searchFrom.coords, searchTo.coords, searchVia.coords, searchDate]);
+    }, [searchFrom.coords, searchTo.coords, searchVia.coords, searchDate]); // Zależności dla funkcji fetchRoutes
 
 
     useEffect(() => {
+        // Wywołuj fetchRoutes, gdy zmienią się parametry wyszukiwania
         fetchRoutes();
-    }, [fetchRoutes]);
+    }, [fetchRoutes]); // Zależności dla useEffect
 
     const handleSearch = (e) => {
         e.preventDefault();
+        // Po kliknięciu Szukaj, po prostu wymuś odświeżenie danych poprzez wywołanie fetchRoutes
         fetchRoutes();
     };
 
     const handleRouteClick = useCallback((route) => {
         if (mapRef.current && route.polyline_geometry && route.polyline_geometry.coordinates) {
+            // Konwertuj GeoJSON [lng, lat] na Leaflet [lat, lng]
             const leafletCoords = route.polyline_geometry.coordinates.map(coord => [coord[1], coord[0]]);
             if (leafletCoords.length > 0) {
                 const bounds = L.latLngBounds(leafletCoords);
@@ -174,19 +183,19 @@ function SearchRoutes() {
                     <LocationAutocomplete
                         label="Z:"
                         value={searchFrom.label}
-                        onSelectLocation={setSearchFrom} {/* <-- ZMIENIONE TUTAJ */}
+                        onSelectLocation={setSearchFrom}
                         placeholder="Miejscowość początkowa"
                     />
                     <LocationAutocomplete
                         label="Do:"
                         value={searchTo.label}
-                        onSelectLocation={setSearchTo} {/* <-- ZMIENIONE TUTAJ */}
+                        onSelectLocation={setSearchTo}
                         placeholder="Miejscowość docelowa"
                     />
                     <LocationAutocomplete
                         label="Przez (opcjonalnie):"
                         value={searchVia.label}
-                        onSelectLocation={setSearchVia} {/* <-- ZMIENIONE TUTAJ */}
+                        onSelectLocation={setSearchVia}
                         placeholder="Punkt pośredni"
                     />
                     <div className="form-field">
@@ -220,7 +229,9 @@ function SearchRoutes() {
                         />
                         <MapEvents />
 
+                        {/* Renderujemy trasy z filteredRoutes */}
                         {filteredRoutes.map((route) => {
+                            // Jeśli trasa jest hoverowana, nie renderujemy jej tutaj, aby uniknąć duplikatów
                             if (hoveredRouteId === route.id) return null;
                             return (
                                 <HighlightedRoute
@@ -233,6 +244,7 @@ function SearchRoutes() {
                             );
                         })}
 
+                        {/* Renderujemy osobno hoverowaną trasę NA WIERZCHU */}
                         {hoveredRouteId && (
                             <HighlightedRoute
                                 key={'hovered-' + hoveredRouteId}
