@@ -192,48 +192,49 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
     >
 
             <Popup ref={popupRef} autoClose={false} closeOnMouseOut={false} closeButton={false}>
-                <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                        <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
-                        <strong>Do:</strong> {route.to_city?.split(',')[0]}
-                    </div>
-                    <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
-                    <div style={{ marginBottom: '6px' }}>Pojemność: {route.load_capacity || '–'}</div>
-                    <div style={{ marginBottom: '6px' }}>Pasażerowie: {route.passenger_count || '–'}</div>
-                    <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-                        {route.phone && (
-                        <div style={{ marginBottom: '10px' }}>
-                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
-                                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
-                                    {route.phone}
-                                </a>
-                            </strong>
-                            {route.uses_whatsapp && (
-                                <div style={{ marginTop: '4px' }}>
-                                    <a
-                                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
-                                    >
-                                        🟢 WhatsApp
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                        {route.messenger_link && (
-                    <div style={{ marginTop: '4px' }}>
-                        <a
-                            href={route.messenger_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
-                        >
-                            🔵 Messenger
-                        </a>
-                    </div>
-                )}
+        <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+            <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
+            <strong>Do:</strong> {route.to_city?.split(',')[0]}
+          </div>
+          <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
+          <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
+          <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
+          <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
+           {route.phone && (
+            <div style={{ marginBottom: '10px' }}>
+              📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
+                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}> {/* Link telefoniczny */}
+                  {route.phone}
+                </a>
+              </strong>
+              {route.uses_whatsapp && ( // Sprawdzamy czy uses_whatsapp jest true
+                <div style={{ marginTop: '4px' }}>
+                  <a
+                    href={`https://wa.me/${route.phone.replace(/\D/g, '')}`} // Generujemy link WhatsApp
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }} // Stylizacja dla WhatsApp
+                  >
+                    🟢 WhatsApp
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        {route.messenger_link && (
+  <div style={{ marginTop: '4px' }}>
+    <a
+      href={route.messenger_link}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+    >
+      🔵 Messenger
+    </a>
+  </div>
+)}
+
                     {route.user_id && route.users_extended?.nip && (
                     <div>
                         <div style={{ marginBottom: '8px' }}>
