@@ -135,7 +135,6 @@ useEffect(() => {
 }
 
 
-    if (coords.length === 0) return null;
 
     return (
         <Polyline
