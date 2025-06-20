@@ -349,7 +349,6 @@ function SearchRoutes() {
     const today = new Date().toISOString().split('T')[0];
 
     const [mapMode, setMapMode] = useState('grid'); // Domyślnie tryb siatki
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // Efekt do pobierania tras z Supabase
     useEffect(() => {
@@ -659,7 +658,7 @@ useEffect(() => {
   zoom={5}
   maxZoom={19}
   minZoom={0}
-  gestureHandling={ismobile}
+  gestureHandling={true}
   whenCreated={mapInstance => {
     mapRef.current = mapInstance;
   }}
