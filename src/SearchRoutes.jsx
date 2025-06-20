@@ -6,7 +6,7 @@ import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents } 
 import 'leaflet/dist/leaflet.css';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
-import LocationAutocomplete from './components/LocationAutocomplete'; // NIE MODYFIKOWANY
+import LocationAutocomplete from './components/LocationAutocomplete'; // TEN PLIK NIE ZMIENIONY
 import RouteSlider from './RouteSlider';
 import L from 'leaflet';
 import RoadsideMarkers from './components/RoadsideMarkers';
@@ -86,10 +86,8 @@ async function geocodeAddress(address) {
     if (!address || address.length < 3) return null;
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=geojson&limit=1`);
-        console.log('Nominatim response status:', response.status);
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        console.log('Nominatim data:', data);
         if (data.features && data.features.length > 0) {
             const feature = data.features[0];
             return {
@@ -100,7 +98,6 @@ async function geocodeAddress(address) {
                 }
             };
         }
-            console.log('Geocoding successful:', result);
         return null;
     } catch (error) {
         console.error("Błąd podczas geokodowania adresu:", error);
@@ -112,12 +109,8 @@ async function geocodeAddress(address) {
 function SearchRoutes() {
     const [routes, setRoutes] = useState([]);
     const [filteredRoutes, setFilteredRoutes] = useState([]);
-    // Stan dla tekstu wpisanego w input, niezależny od LocationAutocomplete
-    const [fromInputText, setFromInputText] = useState('');
-    const [toInputText, setToInputText] = useState('');
-    const [viaInputText, setViaInputText] = useState('');
-
-    // Stan dla wybranych lokalizacji (z coords), aktualizowany przez onSelectLocation
+    
+    // Utrzymujemy JEDEN stan dla każdej lokalizacji
     const [searchFrom, setSearchFrom] = useState({ label: '', coords: null });
     const [searchTo, setSearchTo] = useState({ label: '', coords: null });
     const [searchVia, setSearchVia] = useState({ label: '', coords: null });
@@ -139,9 +132,9 @@ function SearchRoutes() {
     }, []);
 
     // Główna funkcja pobierania tras
-    const fetchRoutes = useCallback(async (fromCoords, toCoords, viaCoords) => {
-        // Warunek jest kluczowy: nadal wymagamy koordynatów do zapytania do PostGIS
-        if (!fromCoords || !toCoords || !searchDate) {
+    const fetchRoutes = useCallback(async (fromLocation, toLocation, viaLocation) => { // Przyjmuje obiekty {label, coords}
+        // Nadal wymagamy koordynatów do zapytania do PostGIS
+        if (!fromLocation.coords || !toLocation.coords || !searchDate) {
             setRoutes([]);
             setFilteredRoutes([]);
             // Możesz tutaj wyświetlić komunikat dla użytkownika, np. "Proszę wybrać początek i koniec trasy z listy sugestii."
@@ -153,13 +146,13 @@ function SearchRoutes() {
         try {
             const { data, error } = await supabase
                 .rpc('search_routes', {
-                    p_from_lat: fromCoords.lat,
-                    p_from_lng: fromCoords.lng,
-                    p_to_lat: toCoords.lat,
-                    p_to_lng: toCoords.lng,
+                    p_from_lat: fromLocation.coords.lat,
+                    p_from_lng: fromLocation.coords.lng,
+                    p_to_lat: toLocation.coords.lat,
+                    p_to_lng: toLocation.coords.lng,
                     p_date: searchDate,
-                    p_via_lat: viaCoords?.lat || null,
-                    p_via_lng: viaCoords?.lng || null,
+                    p_via_lat: viaLocation?.coords?.lat || null,
+                    p_via_lng: viaLocation?.coords?.lng || null,
                     p_radius_meters: 2000,
                     p_vehicle_type: searchVehicleType || null
                 });
@@ -182,85 +175,87 @@ function SearchRoutes() {
         } finally {
             setLoading(false);
         }
-    }, [searchDate, searchVehicleType]); // Zależności dla fetchRoutes - tylko te, które nie są przekazywane jako argumenty
+    }, [searchDate, searchVehicleType]); // Zależności: tylko te, które nie są argumentami
 
     // useEffect do automatycznego wyszukiwania po zmianie koordynatów (po wyborze sugestii)
     useEffect(() => {
+        // Jeśli koordynaty i data są obecne, wywołaj fetchRoutes automatycznie
         if (searchFrom.coords && searchTo.coords && searchDate) {
-            fetchRoutes(searchFrom.coords, searchTo.coords, searchVia.coords);
-        } else if (searchFrom.label || searchTo.label || searchVia.label || searchDate || searchVehicleType) {
-            // Jeśli użytkownik wpisał tekst, ale nie wybrał sugestii, wyczyść wyniki
-            setRoutes([]);
-            setFilteredRoutes([]);
+            fetchRoutes(searchFrom, searchTo, searchVia);
+        } else {
+            // Jeśli koordynaty nie są ustawione, ale użytkownik już coś wpisał, wyczyść wyniki
+            if (searchFrom.label || searchTo.label || searchVia.label || searchDate || searchVehicleType) {
+                setRoutes([]);
+                setFilteredRoutes([]);
+            }
         }
-    }, [searchFrom, searchTo, searchVia, searchDate, searchVehicleType]); // searchFrom/To/Via są obiektami, więc React je poprawnie monitoruje.
+    }, [searchFrom, searchTo, searchVia, searchDate, searchVehicleType, fetchRoutes]);
+
 
     // Ta funkcja będzie wywoływana po kliknięciu "Szukaj"
     const handleSearchClick = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-console.log('handleSearchClick invoked.');
-    console.log('Initial fromInputText:', fromInputText);
-    console.log('Initial toInputText:', toInputText);
 
+        // Tworzymy kopię, którą będziemy modyfikować
         let finalFrom = { ...searchFrom };
         let finalTo = { ...searchTo };
         let finalVia = { ...searchVia };
 
-        // Jeśli searchFrom.coords jest null, ale fromInputText ma wartość, spróbuj geokodować
-        if (!finalFrom.coords && fromInputText) {
-        console.log('Attempting to geocode fromInputText:', fromInputText);
-            const geoFrom = await geocodeAddress(fromInputText);
+        console.log('handleSearchClick invoked.');
+        console.log('Initial searchFrom:', searchFrom); // Log przed geokodowaniem
+        console.log('Initial searchTo:', searchTo);
+
+        // Jeśli brakuje koordynatów, spróbuj geokodować label
+        if (!finalFrom.coords && finalFrom.label) {
+            const geoFrom = await geocodeAddress(finalFrom.label);
             if (geoFrom) {
                 finalFrom = geoFrom;
-                setSearchFrom(geoFrom); // Aktualizuj stan, aby UI to odzwierciedlało
+                setSearchFrom(geoFrom); // Aktualizuj stan searchFrom
+                console.log('Geocoded FROM:', geoFrom);
             } else {
-                setError('Nie znaleziono lokalizacji dla "Z": ' + fromInputText);
+                setError('Nie znaleziono lokalizacji dla "Z": ' + finalFrom.label);
                 setLoading(false);
                 return;
             }
         }
 
-        // Jeśli searchTo.coords jest null, ale toInputText ma wartość, spróbuj geokodować
-        if (!finalTo.coords && toInputText) {
-        console.log('Attempting to geocode toInputText:', toInputText);
-
-            const geoTo = await geocodeAddress(toInputText);
+        if (!finalTo.coords && finalTo.label) {
+            const geoTo = await geocodeAddress(finalTo.label);
             if (geoTo) {
                 finalTo = geoTo;
-                setSearchTo(geoTo); // Aktualizuj stan
-            console.log('Updated finalTo after geocoding:', finalTo);
-
+                setSearchTo(geoTo); // Aktualizuj stan searchTo
+                console.log('Geocoded TO:', geoTo);
             } else {
-                setError('Nie znaleziono lokalizacji dla "Do": ' + toInputText);
+                setError('Nie znaleziono lokalizacji dla "Do": ' + finalTo.label);
                 setLoading(false);
-            console.log('Geocoding failed for toInputText.');
-
                 return;
             }
         }
 
-        // Jeśli searchVia.coords jest null, ale viaInputText ma wartość, spróbuj geokodować
-        if (!finalVia.coords && viaInputText) {
-            const geoVia = await geocodeAddress(viaInputText);
+        if (!finalVia.coords && finalVia.label) {
+            const geoVia = await geocodeAddress(finalVia.label);
             if (geoVia) {
                 finalVia = geoVia;
-                setSearchVia(geoVia); // Aktualizuj stan
+                setSearchVia(geoVia); // Aktualizuj stan searchVia
+                console.log('Geocoded VIA:', geoVia);
             } else {
-                setError('Nie znaleziono lokalizacji dla "Przez": ' + viaInputText);
+                setError('Nie znaleziono lokalizacji dla "Przez": ' + finalVia.label);
                 setLoading(false);
                 return;
             }
         }
-    console.log('Final coords before calling fetchRoutes:');
-    console.log('From Coords:', finalFrom.coords);
-    console.log('To Coords:', finalTo.coords);
-    console.log('Via Coords:', finalVia.coords);
-    console.log('Search Date:', searchDate);
+        
+        console.log('Final locations before fetching routes:');
+        console.log('From:', finalFrom);
+        console.log('To:', finalTo);
+        console.log('Via:', finalVia);
+        console.log('Date:', searchDate);
 
-        // Teraz wywołaj fetchRoutes z upewnionymi koordynatami
-        fetchRoutes(finalFrom.coords, finalTo.coords, finalVia.coords);
+
+        // Teraz wywołaj fetchRoutes z upewnionymi koordynatami (mogą być z geokodowania)
+        fetchRoutes(finalFrom, finalTo, finalVia);
     };
 
     const handleRouteClick = useCallback((route) => {
@@ -279,32 +274,23 @@ console.log('handleSearchClick invoked.');
             <Header title="Wyszukiwanie Tras" />
 
             <div className="search-form-container">
-                <form onSubmit={handleSearchClick} className="search-form"> {/* Zmieniono onSubmit na handleSearchClick */}
+                <form onSubmit={handleSearchClick} className="search-form">
                     <LocationAutocomplete
                         label="Z:"
-                        value={fromInputText} // Teraz LocationAutocomplete kontroluje tekst bezpośrednio
-                        onSelectLocation={(selected) => {
-                            setSearchFrom(selected);
-                            setFromInputText(selected.label); // Upewnij się, że tekst inputu jest zaktualizowany
-                        }}
+                        value={searchFrom.label} // LocationAutocomplete będzie kontrolowany przez searchFrom.label
+                        onSelectLocation={(selected) => setSearchFrom(selected)} // Aktualizuje {label, coords}
                         placeholder="Miejscowość początkowa"
                     />
                     <LocationAutocomplete
                         label="Do:"
-                        value={toInputText}
-                        onSelectLocation={(selected) => {
-                            setSearchTo(selected);
-                            setToInputText(selected.label);
-                        }}
+                        value={searchTo.label}
+                        onSelectLocation={(selected) => setSearchTo(selected)}
                         placeholder="Miejscowość docelowa"
                     />
                     <LocationAutocomplete
                         label="Przez (opcjonalnie):"
-                        value={viaInputText}
-                        onSelectLocation={(selected) => {
-                            setSearchVia(selected);
-                            setViaInputText(selected.label);
-                        }}
+                        value={searchVia.label}
+                        onSelectLocation={(selected) => setSearchVia(selected)}
                         placeholder="Punkt pośredni"
                     />
                     <div className="form-field">
@@ -333,7 +319,7 @@ console.log('handleSearchClick invoked.');
                     <button type="submit" className="search-button" disabled={loading}>
                         {loading ? 'Szukam...' : 'Szukaj Tras'}
                     </button>
-                    {error && <p className="error-message">{error}</p>} {/* Wyświetlanie błędów geokodowania */}
+                    {error && <p className="error-message">{error}</p>}
                 </form>
             </div>
 
