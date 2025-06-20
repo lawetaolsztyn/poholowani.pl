@@ -246,7 +246,11 @@ function AddRouteForm({ onRouteCreated }) {
       const userId = user?.id;
 console.log('Dane ORS Geometry przed stringify:', form.orsGeometry); 
       console.log('Dane ORS Geometry po stringify:', JSON.stringify(form.orsGeometry));
+ console.log('Sprawdzam obiekt supabase:', supabase); // Wyświetli cały obiekt supabase
+      console.log('Typ supabase.raw:', typeof supabase.raw); // Wyświetli, czy to "function" czy "undefined"
+      console.log('Zawartość supabase.raw:', supabase.raw); // Wyświetli samą funkcję (lub undefined)
 
+   
       const routePayload = {
         // MAPOWANIE PÓL FORMULARZA NA NAZWY KOLUMN W BAZIE DANYCH (Z TWOJEGO SCHEMATU)
         from_city: form.from.label,
