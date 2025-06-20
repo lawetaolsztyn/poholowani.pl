@@ -14,6 +14,8 @@ import './SearchRoutes.css';
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 import { GestureHandling } from 'leaflet-gesture-handling';
 import 'leaflet-gesture-handling';
+import HighlightedRoute from './components/HighlightedRoute'; // Upewnij się, że ścieżka jest poprawna
+
 
 const MapContext = createContext(null);
 

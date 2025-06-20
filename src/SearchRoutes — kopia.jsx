@@ -48,43 +48,88 @@ function MapEvents() {
     return null;
 }
 
-function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode }) {
-    const map = useMap();
+function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode, filteredRoutes }) {
+  const map = useMap();
 
-    // Ten efekt powinien działać TYLKO w trybie 'search'
-    useEffect(() => {
-        if (mapMode === 'search') {
-            if (fromLocation && toLocation) {
-                const bounds = L.latLngBounds(
-                    [fromLocation.lat, fromLocation.lng],
-                    [toLocation.lat, toLocation.lng]
-                );
-                map.fitBounds(bounds, { padding: [50, 50] });
-            } else if (fromLocation) {
-                map.setView([fromLocation.lat, fromLocation.lng], 7);
-            } else if (toLocation) {
-                map.setView([toLocation.lat, toLocation.lng], 7);
-            }
-        }
-    }, [trigger, mapMode, fromLocation, toLocation, map]);
+  // Zoom do from/to albo selectedRoute — jak wcześniej
+  useEffect(() => {
+    if (mapMode === 'search') {
+      if (fromLocation && toLocation) {
+        const bounds = L.latLngBounds(
+          [fromLocation.lat, fromLocation.lng],
+          [toLocation.lat, toLocation.lng]
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
+      } else if (fromLocation) {
+        map.setView([fromLocation.lat, fromLocation.lng], 7);
+      } else if (toLocation) {
+        map.setView([toLocation.lat, toLocation.lng], 7);
+      }
+    }
+  }, [trigger, mapMode, fromLocation, toLocation, map]);
 
-    // Ten efekt powinien działać TYLKO w trybie 'search'
-    useEffect(() => {
-        if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
-            const coords = selectedRoute.geojson.features[0].geometry.coordinates
-                .filter(pair => Array.isArray(pair) && pair.length === 2)
-                .map(([lng, lat]) => [lat, lng]);
+  // Zoom do wybranej trasy (selectedRoute) — jak wcześniej
+ 
+useEffect(() => {
+ if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+   const coords = selectedRoute.geojson.features[0].geometry.coordinates
+     .filter(pair => // <--- DODANO PEŁNĄ WALIDACJĘ
+         Array.isArray(pair) &&
+         pair.length === 2 &&
+         typeof pair[0] === 'number' && !isNaN(pair[0]) &&
+         typeof pair[1] === 'number' && !isNaN(pair[1])
+     )
+     .map(([lng, lat]) => [lat, lng]);
 
-            if (coords.length > 1) {
-                const bounds = L.latLngBounds(coords);
-                const paddedBounds = bounds.pad(0.1);
+   if (coords.length > 1) { // Sprawdzenie, czy po filtracji pozostało wystarczająco dużo punktów
+     const bounds = L.latLngBounds(coords);
+     const paddedBounds = bounds.pad(0.1);
+     map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
+   } else {
+       console.warn('MapAutoZoom selectedRoute: Brak wystarczającej liczby prawidłowych współrzędnych dla trasy ID:', selectedRoute.id);
+   }
+ }
+}, [selectedRoute, mapMode, map]);
 
-                map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
-            }
-        }
-    }, [selectedRouteTrigger, mapMode, selectedRoute, map]);
 
-    return null;
+  // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
+// src/SearchRoutes.jsx - w komponencie MapAutoZoom
+useEffect(() => {
+  console.log('MapAutoZoom: Zoom do wszystkich tras', filteredRoutes.length);
+  if (mapMode === 'search' && filteredRoutes && filteredRoutes.length > 1) {
+    const allCoords = [];
+    filteredRoutes.forEach(route => {
+      const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+      if (coords && Array.isArray(coords)) {
+        coords.forEach(coordPair => { // <--- Zmieniono na iterację po parze
+          if (Array.isArray(coordPair) && coordPair.length === 2) { // Dodatkowe sprawdzenie
+              const [lng, lat] = coordPair; // Destrukturyzacja dla czytelności
+              if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) { // <--- DODANO !isNaN
+                allCoords.push([lat, lng]);
+              } else {
+                console.warn('MapAutoZoom filteredRoutes: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
+              }
+          } else {
+              console.warn('MapAutoZoom filteredRoutes: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
+          }
+        });
+      } else {
+          console.warn('MapAutoZoom filteredRoutes: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
+      }
+    });
+
+    if (allCoords.length > 0) {
+      const bounds = L.latLngBounds(allCoords);
+      console.log('MapAutoZoom Bounds:', bounds.toBBoxString());
+      map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+    } else {
+        console.warn('MapAutoZoom filteredRoutes: allCoords jest puste po filtracji, nie ustawiam bounds.');
+    }
+  }
+}, [filteredRoutes, mapMode, map]);
+
+
+  return null;
 }
 
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
@@ -94,7 +139,8 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
-        const rawCoords = route.geojson.features[0].geometry.coordinates;
+  // console.warn('Trasa bez danych geojson:', route.id, route);       //
+ const rawCoords = route.geojson.features[0].geometry.coordinates;
         if (Array.isArray(rawCoords)) {
             coords = rawCoords
                 .filter(coordPair =>
@@ -230,9 +276,9 @@ const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
             positions={coords}
             pane="routes"
             pathOptions={{
-                color: 'grey',
-                weight: 1.5,
-                opacity: 0.3
+                color: 'blue',
+                weight: 4,
+                opacity: 1
             }}
         />
     );
@@ -245,8 +291,8 @@ function MapViewAndInteractionSetter({ mapMode }) {
     useEffect(() => {
         console.log(`MapViewAndInteractionSetter: mapMode changed to ${mapMode}`);
         if (mapMode === 'grid') {
-            map.setView([52.0, 19.0], 5); // Centrum Europy (Polska), zoom 5
-            map.setMaxZoom(9);
+            map.setView([49.45, 11.07], 5); // Centrum Europy (Polska), zoom 5
+            map.setMaxZoom(5);
             map.setMinZoom(5);
 
             // Wyłącz interakcje
@@ -282,7 +328,7 @@ function MapViewAndInteractionSetter({ mapMode }) {
 
 
 function SearchRoutes() {
-    const [center, setCenter] = useState([52.2297, 21.0122]);
+    const [center, setCenter] = useState([49.45, 11.07]);
     const [allRoutes, setAllRoutes] = useState([]);
     const [filteredRoutes, setFilteredRoutes] = useState([]);
     const [hoveredRouteId, setHoveredRouteId] = useState(null);
@@ -320,9 +366,19 @@ function SearchRoutes() {
 
             if (error) {
                 console.error('Błąd podczas pobierania tras:', error);
-            } else {
-                console.log('Supabase fetched data. Count:', data.length, 'Data:', data);
-                setAllRoutes(data);
+           } else {
+    console.log('Supabase fetched data. Count:', data.length, 'Data:', data);
+
+    const parsed = data.map(route => ({
+        ...route,
+        geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson
+    }));
+
+    console.log('PO PARSOWANIU GEOJSON:', parsed);
+    setAllRoutes(parsed);
+
+
+
             }
             setIsLoading(false);
         };
@@ -342,7 +398,7 @@ function SearchRoutes() {
     }, []);
 
     const handleRouteClick = (route) => {
-        setSelectedRoute(route);
+        setSelectedRoute(route); 
         setSelectedRouteTrigger(prev => prev + 1);
     };
 
@@ -369,44 +425,85 @@ function SearchRoutes() {
             routesAfterLocationFilter = allRoutes;
         } else {
             routesAfterLocationFilter = allRoutes.filter((route) => {
-                const geo = route.geojson?.features?.[0]?.geometry?.coordinates;
+                const rawGeo = route.geojson?.features?.[0]?.geometry?.coordinates;
                 const detourKm = parseInt(route.max_detour_km || 0);
-                if (!geo || !Array.isArray(geo) || geo.length === 0 || detourKm === 0) return false;
-                const routeLine = turf.lineString(geo);
 
-                const checkPointInRange = (pointObj) => {
-                    if (!pointObj || !pointObj.lat || !pointObj.lng) return false;
-                    const userPoint = turf.point([pointObj.lng, pointObj.lat]);
-                    const snapped = turf.nearestPointOnLine(routeLine, userPoint);
-                    const dist = turf.distance(userPoint, snapped, { units: 'kilometers' });
-                    return dist <= detourKm;
-                };
-
-                if (fromLocation && toLocation) {
-                    const fromPoint = turf.point([fromLocation.lng, fromLocation.lat]);
-                    const toPoint = turf.point([toLocation.lng, toLocation.lat]);
-                    const fromSnap = turf.nearestPointOnLine(routeLine, fromPoint, { units: 'kilometers' });
-                    const toSnap = turf.nearestPointOnLine(routeLine, toPoint, { units: 'kilometers' });
-
-                    const fromDist = turf.distance(fromPoint, fromSnap, { units: 'kilometers' });
-                    const toDist = turf.distance(toPoint, toSnap, { units: 'kilometers' });
-
-                    const fromPos = fromSnap.properties.location;
-                    const toPos = toSnap.properties.location;
-
-                    const isInRange = fromDist <= detourKm && toDist <= detourKm;
-                    const isCorrectOrder = fromPos < toPos;
-
-                    console.log(`Route ID: ${route.id}, FromDist: ${fromDist.toFixed(2)}, ToDist: ${toDist.toFixed(2)}, isInRange: ${isInRange}, isCorrectOrder: ${isCorrectOrder}`);
-                    return isInRange && isCorrectOrder;
-                } else if (fromLocation) {
-                    console.log(`Route ID: ${route.id}, Checking From: ${fromLocation.name}`);
-                    return checkPointInRange(fromLocation);
-                } else if (toLocation) {
-                    console.log(`Route ID: ${route.id}, Checking To: ${toLocation.name}`);
-                    return checkPointInRange(toLocation);
+                if (!rawGeo || !Array.isArray(rawGeo)) {
+                    console.warn(`Skipping route ${route.id} due to missing or invalid rawGeo.`);
+                    return false;
                 }
-                return false;
+
+                // ZMODYFIKOWANY BLOK FILTROWANIA
+                const geo = rawGeo.filter(pair => {
+                    if (!Array.isArray(pair) || pair.length !== 2) {
+                        return false;
+                    }
+                    const lng = parseFloat(pair[0]); // Jawne parsowanie na liczbę
+                    const lat = parseFloat(pair[1]); // Jawne parsowanie na liczbę
+
+                    // Sprawdzenie, czy po parsowaniu są to poprawne liczby
+                    return typeof lng === 'number' && !isNaN(lng) &&
+                           typeof lat === 'number' && !isNaN(lat);
+                }).map(pair => [parseFloat(pair[0]), parseFloat(pair[1])]); // Upewnienie się, że wszystkie elementy w końcowej tablicy są floatami
+
+                // DEBUG LOG: Dodano logi dla problematycznej trasy
+                if (route.id === 'd23b63bf-0a81-4922-91f5-d6cf285c6bd1') {
+                    console.log(`DEBUG: Route ${route.id} - rawGeo:`, rawGeo);
+                    console.log(`DEBUG: Route ${route.id} - filtered geo:`, geo);
+                    console.log(`DEBUG: Route ${route.id} - geo.length:`, geo.length);
+                }
+                // KONIEC DEBUG LOGÓW
+
+                if (geo.length < 2) { // turf.lineString potrzebuje co najmniej 2 punktów
+                    console.warn(`Skipping route ${route.id} due to insufficient valid coordinates after filtering. Filtered length: ${geo.length}`);
+                    return false;
+                }
+
+                if (detourKm === 0) { // Jeśli detourKm jest 0, żaden punkt nie może być w zasięgu.
+                    console.warn(`Skipping route ${route.id} because max_detour_km is 0.`);
+                    return false;
+                }
+
+                try {
+                    const routeLine = turf.lineString(geo); // <--- Tutaj wcześniej był błąd
+
+                    const checkPointInRange = (pointObj) => {
+                        if (!pointObj || !pointObj.lat || !pointObj.lng) return false;
+                        const userPoint = turf.point([pointObj.lng, pointObj.lat]);
+                        const snapped = turf.nearestPointOnLine(routeLine, userPoint);
+                        const dist = turf.distance(userPoint, snapped, { units: 'kilometers' });
+                        return dist <= detourKm;
+                    };
+
+                    if (fromLocation && toLocation) {
+                        const fromPoint = turf.point([fromLocation.lng, fromLocation.lat]);
+                        const toPoint = turf.point([toLocation.lng, toLocation.lat]);
+                        const fromSnap = turf.nearestPointOnLine(routeLine, fromPoint, { units: 'kilometers' });
+                        const toSnap = turf.nearestPointOnLine(routeLine, toPoint, { units: 'kilometers' });
+
+                        const fromDist = turf.distance(fromPoint, fromSnap, { units: 'kilometers' });
+                        const toDist = turf.distance(toPoint, toSnap, { units: 'kilometers' });
+
+                        const fromPos = fromSnap.properties.location;
+                        const toPos = toSnap.properties.location;
+
+                        const isInRange = fromDist <= detourKm && toDist <= detourKm;
+                        const isCorrectOrder = fromPos < toPos;
+
+                        console.log(`Route ID: ${route.id}, FromDist: ${fromDist.toFixed(2)}, ToDist: ${toDist.toFixed(2)}, isInRange: ${isInRange}, isCorrectOrder: ${isCorrectOrder}`);
+                        return isInRange && isCorrectOrder;
+                    } else if (fromLocation) {
+                        console.log(`Route ID: ${route.id}, Checking From: ${fromLocation.name}`);
+                        return checkPointInRange(fromLocation);
+                    } else if (toLocation) {
+                        console.log(`Route ID: ${route.id}, Checking To: ${toLocation.name}`);
+                        return checkPointInRange(toLocation);
+                    }
+                    return false;
+                } catch (e) {
+                    console.error(`Error with turf operation for route: ${route.id} Error: ${e.message}`);
+                    return false;
+                }
             });
         }
 
@@ -417,6 +514,7 @@ function SearchRoutes() {
         });
 
         console.log('Final Filtered Routes count:', finalFilteredRoutes.length);
+        console.log('Final Filtered Routes data:', finalFilteredRoutes);
         return finalFilteredRoutes;
 
     }, [allRoutes, fromLocation, toLocation, vehicleType, selectedDate, mapMode]);
@@ -427,11 +525,49 @@ function SearchRoutes() {
         console.log('Current Map Mode:', mapMode);
     }, [routesToDisplayOnMap, mapMode]);
 
+   // src/SearchRoutes.jsx - w komponencie SearchRoutes
+useEffect(() => {
+    if (mapMode === 'search' && filteredRoutes.length >= 1 && mapRef.current) {
+        const allCoords = [];
+
+        filteredRoutes.forEach(route => {
+            const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+            if (coords && Array.isArray(coords)) {
+                coords.forEach(coordPair => { // <--- Zmieniono na iterację po parze
+                    if (Array.isArray(coordPair) && coordPair.length === 2) { // Dodatkowe sprawdzenie
+                        const [lng, lat] = coordPair; // Destrukturyzacja dla czytelności
+                        if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) { // <--- DODANO !isNaN
+                            allCoords.push([lat, lng]); // <--- POPRAWIONO NA [lat, lng]
+                        } else {
+                            console.warn('SearchRoutes useEffect main: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
+                        }
+                    } else {
+                        console.warn('SearchRoutes useEffect main: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
+                    }
+                });
+            } else {
+                console.warn('SearchRoutes useEffect main: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
+            }
+        });
+
+        if (allCoords.length > 0) {
+            const bounds = L.latLngBounds(allCoords);
+            mapRef.current.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        } else {
+            console.warn('SearchRoutes useEffect main: allCoords jest puste po filtracji, nie ustawiam bounds.');
+        }
+    }
+}, [filteredRoutes, mapMode]);
+
+
     const handleSearchClick = () => {
-        console.log("Search button clicked. Setting mapMode to 'search'.");
-        setSearchTrigger(prev => prev + 1);
-        setMapMode('search');
-    };
+  setSearchTrigger(prev => prev + 1);
+  setMapMode('search');
+  if (filteredRoutes.length > 0) {
+    setSelectedRoute(filteredRoutes[0]);
+    setSelectedRouteTrigger(prev => prev + 1);
+  }
+};
 
     const handleResetClick = () => {
         console.log("Reset button clicked. Setting mapMode to 'grid'.");
@@ -514,18 +650,12 @@ function SearchRoutes() {
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
                             // Ustawienia początkowe, które zostaną nadpisane przez MapViewAndInteractionSetter
-                            center={[52.0, 19.0]} // Początkowe centrum
+                            center={[51.0504, 13.7373]} // Początkowe centrum
                             zoom={5} // Początkowy zoom
                             maxZoom={19} // Pełny zakres
                             minZoom={0} // Pełny zakres
                             // Interakcje są teraz kontrolowane przez MapViewAndInteractionSetter
-                            dragging={true}
-                            zoomControl={true}
-                            scrollWheelZoom={true}
-                            doubleClickZoom={true}
-                            boxZoom={true}
-                            keyboard={true}
-                            tap={true}
+                           
                             gestureHandling={true}
                             whenCreated={mapInstance => {
                                 mapRef.current = mapInstance;
@@ -552,6 +682,7 @@ function SearchRoutes() {
                                 selectedRoute={selectedRoute}
                                 selectedRouteTrigger={selectedRouteTrigger}
                                 mapMode={mapMode}
+				filteredRoutes={filteredRoutes}
                             />
                             {/* === Nowy komponent, który zarządza widokiem i interakcjami === */}
                             <MapViewAndInteractionSetter mapMode={mapMode} />
