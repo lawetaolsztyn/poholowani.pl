@@ -691,26 +691,49 @@ useEffect(() => {
                             {center && mapMode === 'search' && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
 
                             {isLoading ? (
-                                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 600, backgroundColor: 'rgba(255,255,255,0.8)', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
-                                    Ładowanie tras...
-                                </div>
-                            ) : (
-                                mapMode === 'grid' ? (
-                                    allRoutes.map((route) => (
-                                        <StaticRoutePolyline key={route.id} route={route} />
-                                    ))
-                                ) : (
-                                    filteredRoutes.map((route) => (
-                                        <HighlightedRoute
-                                            key={route.id}
-                                            route={route}
-                                            isHovered={route.id === hoveredRouteId}
-                                            onPolylineMouseOver={setHoveredRouteId}
-                                            onPolylineMouseOut={setHoveredRouteId}
-                                        />
-                                    ))
-                                )
-                            )}
+  <div style={{
+    position: 'absolute', top: '50%', left: '50%',
+    transform: 'translate(-50%, -50%)', zIndex: 600,
+    backgroundColor: 'rgba(255,255,255,0.8)', padding: '20px',
+    borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+  }}>
+    Ładowanie tras...
+  </div>
+) : (
+  mapMode === 'grid' ? (
+    allRoutes.map((route) => (
+      <StaticRoutePolyline key={route.id} route={route} />
+    ))
+  ) : (
+    <>
+      {/* Renderujemy WSZYSTKIE trasy oprócz tej hoverowanej */}
+      {filteredRoutes.map((route) => {
+        if (route.id === hoveredRouteId) return null;
+        return (
+          <HighlightedRoute
+            key={route.id}
+            route={route}
+            isHovered={false}
+            onPolylineMouseOver={setHoveredRouteId}
+            onPolylineMouseOut={setHoveredRouteId}
+          />
+        );
+      })}
+
+      {/* Renderujemy osobno hoverowaną trasę NA WIERZCHU */}
+      {hoveredRouteId && (
+        <HighlightedRoute
+          key={'hovered-' + hoveredRouteId}
+          route={filteredRoutes.find(r => r.id === hoveredRouteId)}
+          isHovered={true}
+          onPolylineMouseOver={setHoveredRouteId}
+          onPolylineMouseOut={setHoveredRouteId}
+        />
+      )}
+    </>
+  )
+)}
+
 
                             {mapMode === 'search' && <RoadsideMarkers />}
 

@@ -304,7 +304,7 @@ function MapViewAndInteractionSetter({ mapMode }) {
             map.boxZoom.disable();
             map.keyboard.disable();
             if (map.tap) map.tap.disable(); // `tap` może nie istnieć na wszystkich mapach
-            if (map.gestureHandling) map.gestureHandling.disable();
+            if (map.gestureHandling) map.gestureHandling.enable();
             console.log("MapViewAndInteractionSetter: Interakcje mapy WYŁĄCZONE.");
 
         } else { // mapMode === 'search'
