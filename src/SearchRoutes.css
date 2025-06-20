@@ -249,13 +249,8 @@
 }
 }
 
-@media (min-width: 768px) {
-  .leaflet-gesture-handling-text,
-  .leaflet-gesture-handling-container {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
-    user-select: none !important;
-  }
+.leaflet-gesture-handling-text {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  user-select: none !important;
 }
