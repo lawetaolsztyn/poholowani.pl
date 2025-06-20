@@ -649,8 +649,10 @@ useEffect(() => {
                     </button>
                 </div>
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
-                    <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
+                   
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+ <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         
 <MapContainer
   center={[51.0504, 13.7373]}
