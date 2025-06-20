@@ -709,9 +709,11 @@ useEffect(() => {
       isHovered={false}
       onPolylineMouseOver={setHoveredRouteId}
       onPolylineMouseOut={setHoveredRouteId}
-     />
-  )
-))}
+       />
+      );
+    })}
+  </>
+)
 
 {/* Na końcu renderuj hoverowaną trasę, żeby była na wierzchu */}
 {hoveredRouteId && (
