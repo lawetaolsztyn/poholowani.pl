@@ -659,7 +659,7 @@ useEffect(() => {
   zoom={5}
   maxZoom={19}
   minZoom={0}
-  gestureHandling={true}
+  gestureHandling={ismobile}
   whenCreated={mapInstance => {
     mapRef.current = mapInstance;
   }}
