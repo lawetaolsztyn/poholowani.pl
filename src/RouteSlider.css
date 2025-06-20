@@ -200,6 +200,16 @@
     color: #bbb; /* Jasny tekst dla braku tras */
   }
 }
+.route-card.hovered {
+  border-color: #ff0000; /* Czerwona ramka po najechaniu */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Większy cień */
+}
+
+.route-card.clicked {
+  border-color: #ff0000; /* Czerwona ramka po kliknięciu */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Większy cień */
+  background-color: #fff0f0; /* Lekko zaczerwienione tło po kliknięciu */
+}
 
 /* Media Query dla układu bocznego na większych ekranach */
 @media (min-width: 769px) { /* Stosuje się od tabletów wzwyż */

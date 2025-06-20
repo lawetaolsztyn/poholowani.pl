@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import './RouteSlider.css'; // Dodaj import pliku CSS
+import './RouteSlider.css';
 
-export default function RouteSlider({ routes, onHover, onClickRoute }) {
+export default function RouteSlider({ routes, onHover, onClickRoute, hoveredRouteId, clickedRouteId }) {
   const [startIndex, setStartIndex] = useState(0);
-  const [hoveredId, setHoveredId] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
 
   useEffect(() => {
@@ -39,115 +38,95 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
   const visibleRoutes = routes.slice(startIndex, startIndex + visibleCount);
 
   return (
-    <div className="route-slider-main-container"> {/* Dodana klasa */}
-      <div className="route-slider-content-wrapper"> {/* Dodana klasa */}
+    <div className="route-slider-main-container">
+      <div className="route-slider-controls">
         <button
           onClick={handlePrev}
           disabled={startIndex === 0}
-          className="slider-nav-button" /* Dodana klasa */
+          className="slider-nav-button"
         >
           ◀
         </button>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
-          {visibleRoutes.map((route) => (
-            <div
-              key={route.id}
-              onClick={() => onClickRoute && onClickRoute(route)}
-              onMouseEnter={() => {
-                onHover(route.id);
-                setHoveredId(route.id);
-              }}
-              onMouseLeave={() => {
-                onHover(null);
-                setHoveredId(null);
-              }}
-              className="route-card-item" /* Dodana klasa */
-              style={{
-                // Styl hover przeniesiony do CSS za pomocą :hover
-                // Jednak, jeśli chcesz utrzymać dynamiczne podkreślenie hoverem z RouteMap,
-                // nadal potrzebujesz tej dynamicznej zmiany border, ale tylko dla samej ramki.
-                // Na razie zostawiam tylko warunkowy border, reszta w CSS.
-                border: route.id === hoveredId ? '2px solid red' : '', // Ten styl zostanie, aby pokazać hover z mapy
-              }}
-            >
-              <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }}>
-                {route.from_city?.split(',')[0]} → {route.to_city?.split(',')[0]}
-              </div>
-              <div>📅 {route.date}</div>
-              <div>📦 {route.load_capacity || '-'}</div>
-              <div>🧍 {route.passenger_count || '-'}</div>
-              <div>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-              {route.phone && (
-                <div style={{ fontSize: '16px', marginBottom: '10px' }}> {/* Usuwamy color: #555 */}
-                  📞 <a
-                       href={`tel:${route.phone}`}
-                       onClick={(e) => e.stopPropagation()}
-                     >
-                    {route.phone}
-                  </a>
-                  {route.uses_whatsapp && (
-                    <div style={{ marginTop: '4px' }}>
-                      <a
-                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Napisz na WhatsApp"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ fontSize: '18px', display: 'inline-block', marginTop: '4px' }} /* Usuwamy color: #25D366 */
-                      >
-                        🟢 WhatsApp
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
-{route.messenger_link && (
-  <div style={{ marginTop: '4px' }}>
-    <a
-      href={route.messenger_link}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ color: '#0084FF', fontSize: '18px', fontWeight: 'bold' }}
-    >
-      🔵 Messenger
-    </a>
-  </div>
-)}
-              {route.user_id && route.users_extended?.role === 'firma' && (
-                <div style={{ fontSize: '14px' }}> {/* Usuwamy color: #555 */}
-                  {route.users_extended.nip ? (
-                    <div style={{ marginBottom: '8px' }}>
-                      <span className="company-badge"> {/* Dodana klasa */}
-                        🏢 firma
-                      </span>
-                    </div>
-                  ) : null}
-                  <strong>profil przewoźnika:</strong>{' '}
-                  <a
-                    href={`https://poholowani.pl/profil/${route.user_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontWeight: 'bold' }} /* Usuwamy color: #007bff */
-                  >
-                    otwórz
-                  </a>
-                </div>
-              )}
-            </div>
-          ))}
-
+        <div className="route-cards-container">
           {routes.length === 0 && (
-            <div className="no-routes-message"> {/* Dodana klasa */}
+            <div className="no-routes-message">
               Brak pasujących tras do wyświetlenia.
             </div>
           )}
+
+          {visibleRoutes.map((route) => {
+            const isCurrentHovered = route.id === hoveredRouteId;
+            const isCurrentClicked = route.id === clickedRouteId;
+            const cardClassName = `route-card ${isCurrentHovered ? 'hovered' : ''} ${isCurrentClicked ? 'clicked' : ''}`;
+
+            return (
+              <div
+                key={route.id}
+                className={cardClassName}
+                onMouseEnter={() => onHover(route.id)}
+                onMouseLeave={() => onHover(null)} // Resetuj hoveredId po opuszczeniu kafelka
+                onClick={() => onClickRoute(route.id)} // Dodajemy obsługę kliknięcia
+              >
+                <div className="route-info">
+                  <h4 style={{ marginBottom: '8px', color: '#333' }}>Trasa {route.id}</h4>
+                  <p><strong>Początek:</strong> {route.start_location_name}</p>
+                  <p><strong>Koniec:</strong> {route.end_location_name}</p>
+                  <p><strong>Dystans:</strong> {route.distance ? `${(route.distance / 1000).toFixed(2)} km` : 'N/A'}</p>
+                  <p><strong>Czas:</strong> {route.duration ? `${(route.duration / 60).toFixed(0)} min` : 'N/A'}</p>
+                  {route.is_request && <p><strong>Typ:</strong> Zapytanie o trasę</p>}
+                  {route.offer_price && <p><strong>Oferta cenowa:</strong> {route.offer_price} PLN</p>}
+                  {route.notes && <p><strong>Notatki:</strong> {route.notes}</p>}
+                </div>
+                {route.contact_phone && (
+                  <div style={{ fontSize: '14px', marginTop: '10px' }}>
+                    <strong>Kontakt:</strong>{' '}
+                    <a href={`tel:${route.contact_phone}`} style={{ fontWeight: 'bold', color: '#007bff', textDecoration: 'none' }}>
+                      {route.contact_phone}
+                    </a>
+                  </div>
+                )}
+                {route.users_extended?.facebook && (
+                  <div style={{ marginTop: '5px' }}>
+                    <a
+                      href={route.users_extended.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#084FF', fontSize: '18px', fontWeight: 'bold', textDecoration: 'none' }}
+                    >
+                      🔵 Messenger
+                    </a>
+                  </div>
+                )}
+                {route.user_id && route.users_extended?.role === 'firma' && (
+                  <div style={{ fontSize: '14px' }}>
+                    {route.users_extended.nip ? (
+                      <div style={{ marginBottom: '8px' }}>
+                        <span className="company-badge">
+                          🏢 firma
+                        </span>
+                      </div>
+                    ) : null}
+                    <strong>profil przewoźnika:</strong>{' '}
+                    <a
+                      href={`https://poholowani.pl/profil/${route.user_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontWeight: 'bold' }}
+                    >
+                      otwórz
+                    </a>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <button
           onClick={handleNext}
           disabled={startIndex + visibleCount >= routes.length}
-          className="slider-nav-button" /* Dodana klasa */
+          className="slider-nav-button"
         >
           ▶
         </button>
