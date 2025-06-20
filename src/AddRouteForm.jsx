@@ -12,7 +12,6 @@ const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url, options);
-      // Zmieniono: sprawdzanie res.ok i rzucenie błędu z treścią odpowiedzi
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Status ${res.status}: ${errorText || res.statusText}`);
@@ -48,12 +47,9 @@ function AddRouteForm({ onRouteCreated }) {
 
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
   const [routeError, setRouteError] = useState(null);
-  const [isSaving, setIsSaving] = useState(false); // Juz bylo, ale dla pewnosci
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Używamy tego useState tylko do przekazania danych do RouteMap
-  // Wcześniej było setRouteData, teraz upraszczamy, bo RouteMap i tak używa form.polyline
-  // const [routeData, setRouteData] = useState(null); // USUNIĘTO - nie potrzebujemy osobnego stanu
-
+  // Zaktualizowany useEffect do ładowania ostatniej trasy
   useEffect(() => {
     let token = localStorage.getItem('browser_token');
     if (!token) {
@@ -76,19 +72,29 @@ function AddRouteForm({ onRouteCreated }) {
         return;
       }
       if (data && data.length > 0) {
-        // Zaktualizowano: sprawdzamy, czy route_geom istnieje, jeśli nie, używamy geojson
-        // Ale najlepiej, jeśli AddRouteForm zawsze pracuje z route_geom
         const lastRoute = data[0];
-        if (lastRoute.route_geom) { // Jeśli mamy route_geom (typ geography)
-            // Konwertujemy route_geom (GeoJSON z DB) na format Leaflet
-            const leafletCoords = lastRoute.route_geom.coordinates.map(coord => [coord[1], coord[0]]);
-            setForm(prevForm => ({ ...prevForm, polyline: leafletCoords }));
-        } else if (lastRoute.geojson) { // Jeśli mamy stare geojson (typ JSONB)
-            // Konwertujemy geojson (JSONB) na format Leaflet
-            const leafletCoords = lastRoute.geojson.features?.[0]?.geometry?.coordinates?.map(coord => [coord[1], coord[0]]);
-            if (leafletCoords) {
-                setForm(prevForm => ({ ...prevForm, polyline: leafletCoords }));
+        let leafletCoords = null;
+        
+        // Preferujemy nową kolumnę route_geom, jeśli jest.
+        // Pamiętaj, route_geom jest typu geography w DB, ale SQL funkcja zwraca ją jako TEXT (GeoJSON string)
+        if (lastRoute.route_geom) { 
+            try {
+                const geomObj = JSON.parse(lastRoute.route_geom); // Parsujemy GeoJSON string z DB
+                if (geomObj.coordinates) {
+                    leafletCoords = geomObj.coordinates.map(coord => [coord[1], coord[0]]);
+                }
+            } catch (e) {
+                console.error("Błąd parsowania route_geom z DB:", e);
             }
+        } 
+        // Jeśli route_geom jest puste lub niepoprawne, a mamy stare geojson (JSONB)
+        else if (lastRoute.geojson && lastRoute.geojson.features?.[0]?.geometry?.coordinates) { 
+            // Zakładamy, że stare geojson (JSONB) to FeatureCollection
+            leafletCoords = lastRoute.geojson.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        }
+
+        if (leafletCoords) {
+            setForm(prevForm => ({ ...prevForm, polyline: leafletCoords }));
         }
       }
     };
@@ -104,28 +110,20 @@ function AddRouteForm({ onRouteCreated }) {
     }));
   };
 
-  const handleFromSelect = (selected) => { // Zmieniono: teraz przyjmuje jeden argument 'selected'
-    setForm(prevForm => ({
-      ...prevForm,
-      from: selected // selected to już obiekt { label, coords }
-    }));
+  // Uproszczone handlery dla LocationAutocomplete - przyjmują gotowy obiekt { label, coords }
+  const handleFromSelect = (selected) => {
+    setForm(prevForm => ({ ...prevForm, from: selected }));
   };
 
-  const handleToSelect = (selected) => { // Zmieniono
-    setForm(prevForm => ({
-      ...prevForm,
-      to: selected
-    }));
+  const handleToSelect = (selected) => {
+    setForm(prevForm => ({ ...prevForm, to: selected }));
   };
 
-  const handleViaSelect = (selected) => { // Zmieniono
-    setForm(prevForm => ({
-      ...prevForm,
-      via: selected
-    }));
+  const handleViaSelect = (selected) => {
+    setForm(prevForm => ({ ...prevForm, via: selected }));
   };
 
-  // FUNKCJA getRoute - UŻYWA LOKALNEGO API, WIĘC WPROWADZAMY TU LOGIKĘ ORS
+  // FUNKCJA getRoute - Pobiera trasę z ORS
   const getRoute = async () => {
     const { from, to, via } = form;
     if (!from.coords || !to.coords) {
@@ -137,15 +135,16 @@ function AddRouteForm({ onRouteCreated }) {
     setRouteError(null);
 
     try {
-      const coordinates = [
-        [from.coords[0], from.coords[1]], // Upewnij się, że form.from.coords to [lng, lat]
-        [to.coords[0], to.coords[1]],     // Upewnij się, że form.to.coords to [lng, lat]
+      // ORS API oczekuje [lng, lat] dla coordinates
+      const coordinatesForOrs = [
+        [from.coords.lng, from.coords.lat],
+        [to.coords.lng, to.coords.lat],
       ];
       if (via && via.coords) {
-        coordinates.splice(1, 0, [via.coords[0], via.coords[1]]);
+        coordinatesForOrs.splice(1, 0, [via.coords.lng, via.coords.lat]);
       }
 
-      // ORS API oczekuje POST z body JSON, endpoint lokalny "/api/ors-route"
+      // Endpoint lokalny "/api/ors-route"
       const routeRes = await fetchWithRetry('/api/ors-route', {
         method: 'POST',
         headers: {
@@ -153,10 +152,10 @@ function AddRouteForm({ onRouteCreated }) {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          coordinates,
+          coordinates: coordinatesForOrs,
           instructions: false,
           geometry_simplify: true,
-          radiuses: [1500, ...Array(coordinates.length - 1).fill(1500)], // Domyślne radiuses
+          radiuses: [1500, ...Array(coordinatesForOrs.length - 1).fill(1500)],
         }),
       });
 
@@ -167,12 +166,12 @@ function AddRouteForm({ onRouteCreated }) {
         const routeSummary = orsData.features?.[0]?.properties?.summary;
 
         if (routeGeometry && routeSummary) {
-          // Geometry from ORS is GeoJSON LineString ([lng, lat])
+          // ORS geometry is GeoJSON LineString ([lng, lat])
           const leafletCoords = routeGeometry.coordinates.map(coord => [coord[1], coord[0]]); // Konwersja na [lat, lng] dla Leaflet
           setForm(prevForm => ({
             ...prevForm,
             polyline: leafletCoords, // Dla wyświetlania na mapie
-            rawGeojsonForDb: routeGeometry, // NOWE: Przechowujemy GeoJSON LineString bezpośrednio dla DB
+            rawGeojsonForDb: routeGeometry, // KLUCZOWE: Cały GeoJSON LineString object do zapisu
             distanceFromOrs: routeSummary.distance,
             durationFromOrs: routeSummary.duration,
           }));
@@ -249,32 +248,40 @@ function AddRouteForm({ onRouteCreated }) {
 
     try {
       const browserToken = localStorage.getItem('browser_token');
-      const { data: { user } } = await supabase.auth.getUser(); // Poprawiono: supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser();
       const userId = user?.id;
 
       const routePayload = {
+        // MAPOWANIE PÓL FORMULARZA NA NAZWY KOLUMN W BAZIE DANYCH (Z TWOJEGO SCHEMATU)
         from_city: form.from.label,
         to_city: form.to.label,
-        via: form.via.label || null,
+        via: form.via.label || null, // `via` jest kolumną tekstową w DB
         date: form.date,
         vehicle_type: form.vehicleType,
-        load_capacity: form.loadCapacity || null,
-        passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
-        max_detour_km: parseInt(form.maxDetour),
+        load_capacity: form.loadCapacity || null, // LoadCapacity jest stringiem, ale DB oczekuje tekstu lub numeru
+        passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null, // passenger_count jest int
+        max_detour_km: parseInt(form.maxDetour), // max_detour_km jest int
         phone: form.phone ? `${form.countryCode}${form.phone}` : null,
         uses_whatsapp: form.usesWhatsapp,
-        messenger_link: form.messenger || null, // ZMIANA: messenger na messenger_link
+        messenger_link: form.messenger || null, // messenger_link jest text
         user_id: userId || null,
         browser_token: browserToken || null,
         
-        // NOWE: Zapis do route_geom, distance, duration
-        route_geom: form.rawGeojsonForDb, // KLUCZOWE: Cały GeoJSON LineString object
-        distance: form.distanceFromOrs, // Dystans z ORS
-        duration: form.durationFromOrs, // Czas trwania z ORS
+        // KLUCZOWE: Zapis geometrii trasy
+        // route_geom to kolumna typu geography(LineString, 4326)
+        // form.rawGeojsonForDb to już obiekt GeoJSON LineString z ORS
+        route_geom: form.rawGeojsonForDb, 
+        
+        distance: form.distanceFromOrs, // Wartość numeric z ORS
+        duration: form.durationFromOrs, // Wartość numeric z ORS
 
-        // USUNIĘTO stare, nieistniejące lub zduplikowane pola:
-        // geojson: routeData, // Nie zapisujemy już całego ORS response do geojson (zmieniono na route_geom)
-        // time, price, description (nie ma ich w Twoim schemacie DB)
+        // Poniższe kolumny z Twojego oryginalnego schematu form
+        // NIE SĄ ZAPISYWANE, bo nie istnieją w Twojej tabeli 'routes' w DB:
+        // time (brak w DB)
+        // price (brak w DB)
+        // description (brak w DB)
+        // geojson (nie zapisujemy już do tej JSONB, bo mamy route_geom)
+        // from_lat, from_lng, to_lat, to_lng, via_lat, via_lng (koordynaty są w route_geom, a miasto w _city)
       };
 
       const { error } = await supabase.from('routes').insert([routePayload]);
@@ -294,7 +301,7 @@ function AddRouteForm({ onRouteCreated }) {
         ...prevForm,
         from: { label: '', coords: null },
         to: { label: '', coords: null },
-        gform: { label: '', coords: null }, // Upewnij się, że to jest 'via' jeśli używasz 'gform'
+        via: { label: '', coords: null }, // Poprawiono: było gform
         date: '',
         vehicleType: 'bus',
         loadCapacity: '',
@@ -491,7 +498,7 @@ function AddRouteForm({ onRouteCreated }) {
           </button>
         </div>
       </form>
-      <RouteMap routeData={routeData} /> {/* RouteMap teraz używa routeData, które było w pierwszym stanie */}
+      <RouteMap polyline={form.polyline} /> {/* Przekazujemy form.polyline, które jest już poprawnie ustawiane */}
     </>
   );
 }
