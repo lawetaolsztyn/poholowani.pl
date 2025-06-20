@@ -27,7 +27,7 @@ function MapEvents() {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     setCenter([position.coords.latitude, position.coords.longitude]);
-                },\
+                },
                 () => {
                     setCenter([52.2297, 21.0122]); // Domyślna lokalizacja, jeśli geolokalizacja nie jest dostępna
                 }
