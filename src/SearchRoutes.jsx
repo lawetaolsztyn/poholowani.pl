@@ -251,6 +251,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
       </Popup>
     </Polyline>
   );
+}}
 
 const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
     let coords = [];
