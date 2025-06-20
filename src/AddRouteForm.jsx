@@ -268,7 +268,7 @@ function AddRouteForm({ onRouteCreated }) {
         
         // ZMIANA KLUCZOWA: Zapis geometrii trasy do route_geom (typ geography)
         // routeGeometry to już obiekt GeoJSON LineString z ORS
-        route_geom: routeGeometry, 
+        route_geom: JSON.stringify(form.rawGeojsonForDb), 
         
         // ZMIANA: Zapis dystansu i czasu trwania
         distance: routeSummary.distance, 
