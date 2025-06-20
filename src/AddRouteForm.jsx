@@ -12,7 +12,6 @@ const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url, options);
-      // Zmieniono: sprawdzanie res.ok i rzucenie błędu z treścią odpowiedzi
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Status ${res.status}: ${errorText || res.statusText}`);
@@ -40,13 +39,16 @@ function AddRouteForm({ onRouteCreated }) {
     countryCode: '+48', // Dodajemy domyślny kod kraju PL
     messenger: '',
     usesWhatsapp: false,
+    // NOWE POLA W STANIE DLA PRZECHOWYWANIA DANYCH Z ORS PRZED ZAPISEM DO DB
+    orsGeometry: null, // Będzie przechowywać GeoJSON LineString object z ORS
+    orsDistance: null, // Będzie przechowywać dystans z ORS
+    orsDuration: null, // Będzie przechowywać czas trwania z ORS
   });
 
-  const [routeData, setRouteData] = useState(null); // Zachowujemy Twój stan routeData
+  const [routeData, setRouteData] = useState(null); // Zachowujemy Twój stan routeData dla RouteMap
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoadingRoute, setIsLoadingRoute] = useState(false); // NOWA: Wskaźnik ładowania trasy ORS
-  const [routeError, setRouteError] = useState(null); // NOWA: Błąd trasy ORS
-
+  const [isLoadingRoute, setIsLoadingRoute] = useState(false); // Dla ORS
+  const [routeError, setRouteError] = useState(null); // Dla błędów ORS
 
   useEffect(() => {
     let token = localStorage.getItem('browser_token');
@@ -70,22 +72,24 @@ function AddRouteForm({ onRouteCreated }) {
         return;
       }
       if (data && data.length > 0) {
-        // ZMIANA: Lepsze ładowanie geometrii dla RouteMap
         const lastRoute = data[0];
         let geojsonForMap = null;
-        if (lastRoute.route_geom) {
+        
+        // ZMIANA: Lepsze ładowanie geometrii dla RouteMap z route_geom lub geojson
+        if (lastRoute.route_geom) { 
             try {
-                geojsonForMap = JSON.parse(lastRoute.route_geom);
+                // route_geom jest zwracany z DB jako tekst GeoJSON
+                geojsonForMap = JSON.parse(lastRoute.route_geom); 
             } catch (e) {
                 console.error("Błąd parsowania route_geom z DB:", e);
+                geojsonForMap = null;
             }
-        } else if (lastRoute.geojson) {
+        } else if (lastRoute.geojson) { 
             geojsonForMap = lastRoute.geojson; // Stare dane JSONB
         }
         
+        // setRouteData będzie używane przez RouteMap
         if (geojsonForMap) {
-            // RouteMap prawdopodobnie oczekuje obiektu FeatureCollection lub Geometry
-            // setRouteData w Twoim kodzie przyjmuje całe routeData
             setRouteData(geojsonForMap);
         }
       }
@@ -102,16 +106,11 @@ function AddRouteForm({ onRouteCreated }) {
     }));
   };
 
+  // Handlery dla LocationAutocomplete - format wejściowy z LocationAutocomplete to { label, coords: [lng,lat] }
   const handleFromSelect = (label, sug) => {
     setForm(prevForm => ({
       ...prevForm,
-      // ZMIANA: Format coords z {lat, lng} na [lng, lat]
-      // LocationAutocomplete zwraca {label, coords: [lng,lat]} LUB {label, coords: {lat,lng}} ?
-      // Zakładam, że LocationAutocomplete zwraca coords w formacie [lng, lat]
-      // Jeśli LocationAutocomplete zwraca {lat, lng}, to musiałbyś zmienić handleFromSelect na:
-      // from: { label: label, coords: [sug.geometry.coordinates[0], sug.geometry.coordinates[1]] }
-      // Sprawdź w konsoli, jaki format mają coords po wyborze
-      from: { label: label, coords: sug.geometry.coordinates } 
+      from: { label: label, coords: sug.geometry.coordinates } // coords już są [lng, lat]
     }));
   };
 
@@ -134,6 +133,7 @@ function AddRouteForm({ onRouteCreated }) {
     const fetchOrsRoute = async () => {
         if (!form.from.coords || !form.to.coords) {
             setRouteError(null);
+            setRouteData(null); // Wyczyść mapę
             return;
         }
 
@@ -141,7 +141,7 @@ function AddRouteForm({ onRouteCreated }) {
         setRouteError(null);
 
         try {
-            // Koordynaty dla ORS API - muszą być w formacie [lng, lat]
+            // Koordynaty dla ORS API - z form.coords (które są [lng, lat])
             const orsCoordinates = [form.from.coords];
             if (form.via.coords) {
                 orsCoordinates.push(form.via.coords);
@@ -167,14 +167,13 @@ function AddRouteForm({ onRouteCreated }) {
                 const routeGeometry = orsData.features[0].geometry;
                 const routeSummary = orsData.features[0].properties.summary;
                 
-                // ZMIANA: Aktualizujemy routeData, aby RouteMap działało jak wcześniej
-                setRouteData(orsData); // Przekazujemy całą odpowiedź ORS do RouteMap
+                setRouteData(orsData); // ZMIANA: Przekazujemy całą odpowiedź ORS do RouteMap
 
                 setForm(prevForm => ({
                     ...prevForm,
-                    // rawGeojsonForDb: routeGeometry, // Niepotrzebne w stanie form, wystarczy w routePayload
-                    distanceFromOrs: routeSummary.distance,
-                    durationFromOrs: routeSummary.duration,
+                    orsGeometry: routeGeometry, // Przechowujemy GeoJSON LineString
+                    orsDistance: routeSummary.distance,
+                    orsDuration: routeSummary.duration,
                 }));
             } else {
                 throw new Error(orsData.error?.message || 'Brak danych trasy z ORS.');
@@ -185,8 +184,9 @@ function AddRouteForm({ onRouteCreated }) {
             setRouteData(null); // Resetuj dane mapy
             setForm(prevForm => ({
                 ...prevForm,
-                distanceFromOrs: null,
-                durationFromOrs: null
+                orsGeometry: null,
+                orsDistance: null,
+                orsDuration: null,
             }));
         } finally {
             setIsLoadingRoute(false);
@@ -200,8 +200,9 @@ function AddRouteForm({ onRouteCreated }) {
         setRouteError(null);
         setForm(prevForm => ({
             ...prevForm,
-            distanceFromOrs: null,
-            durationFromOrs: null
+            orsGeometry: null,
+            orsDistance: null,
+            orsDuration: null,
         }));
     }
   }, [form.from.coords, form.to.coords, form.via.coords]);
@@ -224,10 +225,10 @@ function AddRouteForm({ onRouteCreated }) {
       setIsSaving(false);
       return;
     }
-
-    // ZMIANA: Walidacja, czy trasa z ORS została pobrana
-    if (!routeData || !routeData.features || routeData.features.length === 0) {
-        alert('❗Trasa nie została jeszcze obliczona lub wystąpił błąd. Proszę poczekać lub spróbować ponownie.');
+    
+    // Walidacja: Sprawdzamy, czy trasa z ORS została pobrana
+    if (!form.orsGeometry) { // ZMIANA: Walidacja używa nowej nazwy pola
+        alert('❗Trasa nie została jeszcze obliczona. Proszę poczekać lub spróbować ponownie.');
         setIsSaving(false);
         return;
     }
@@ -241,42 +242,39 @@ function AddRouteForm({ onRouteCreated }) {
 
     try {
       const browserToken = localStorage.getItem('browser_token');
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser(); // Poprawiono: supabase.auth.getUser()
       const userId = user?.id;
-      
-      // ZMIANA: Pobranie geometrii i podsumowania z routeData (pełna odpowiedź ORS)
-      const routeGeometry = routeData.features[0].geometry;
-      const routeSummary = routeData.features[0].properties.summary;
-
 
       const routePayload = {
-        // MAPOWANIE NAZWA_KOLUMNY_DB: wartość_z_formularza
+        // MAPOWANIE PÓL FORMULARZA NA NAZWY KOLUMN W BAZIE DANYCH (Z TWOJEGO SCHEMATU)
         from_city: form.from.label,
         to_city: form.to.label,
-        via: form.via.label || null, // `via` jest kolumną tekstową w DB
+        via: form.via.label || null, 
         date: form.date,
         vehicle_type: form.vehicleType,
-        load_capacity: form.loadCapacity || null, // load_capacity to tekst w DB, może być null
-        passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null, // passenger_count to int w DB
-        max_detour_km: parseInt(form.maxDetour), // max_detour_km to int
+        load_capacity: form.loadCapacity || null, 
+        passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
+        max_detour_km: parseInt(form.maxDetour), 
         phone: form.phone ? `${form.countryCode}${form.phone}` : null,
         uses_whatsapp: form.usesWhatsapp,
-        messenger_link: form.messenger || null, // messenger_link to tekst w DB
+        messenger_link: form.messenger || null, // ZMIANA: używamy messenger_link
         user_id: userId || null,
         browser_token: browserToken || null,
-        created_at: new Date().toISOString(), // DB może też ustawiać automatycznie
+        created_at: new Date().toISOString(), // Standardowe pole created_at
         
-        // ZMIANA KLUCZOWA: Zapis geometrii trasy do route_geom (typ geography)
-        // routeGeometry to już obiekt GeoJSON LineString z ORS
-        route_geom: JSON.stringify(form.rawGeojsonForDb), 
+        // KLUCZOWE ZMIANY: Zapis geometrii trasy, dystansu i czasu trwania
+        // route_geom to kolumna typu geography(LineString, 4326)
+        // form.orsGeometry to już obiekt GeoJSON LineString z ORS, więc stringify
+        route_geom: JSON.stringify(form.orsGeometry), 
         
-        // ZMIANA: Zapis dystansu i czasu trwania
-        distance: routeSummary.distance, 
-        duration: routeSummary.duration,
-        
-        // USUNIĘTO: geojson: routeData - nie zapisujemy już całego ORS response do geojson (zmieniono na route_geom)
-        // USUNIĘTO: from_lat, from_lng, to_lat, to_lng, via_lat, via_lng - nie ma ich w DB
-        // USUNIĘTO: time, price, description - nie ma ich w Twoim schemacie DB
+        distance: form.orsDistance, // Dystans z ORS
+        duration: form.orsDuration, // Czas trwania z ORS
+
+        // Poniższe kolumny z Twojego oryginalnego schematu form lub z ORS
+        // NIE SĄ ZAPISYWANE, bo nie istnieją w Twojej tabeli 'routes' w DB:
+        // geojson (nie zapisujemy już do tej JSONB, bo mamy route_geom)
+        // time, price, description (brak w Twoim schemacie DB)
+        // from_lat, from_lng, to_lat, to_lng, via_lat, via_lng (koordynaty są w route_geom)
       };
 
       const { error } = await supabase.from('routes').insert([routePayload]);
@@ -296,7 +294,7 @@ function AddRouteForm({ onRouteCreated }) {
         ...prevForm,
         from: { label: '', coords: null },
         to: { label: '', coords: null },
-        via: { label: '', coords: null }, // Poprawiono: upewniamy się, że to via
+        via: { label: '', coords: null }, 
         date: '',
         vehicleType: 'bus',
         loadCapacity: '',
@@ -306,14 +304,14 @@ function AddRouteForm({ onRouteCreated }) {
         countryCode: '+48',
         messenger: '',
         usesWhatsapp: false,
-        polyline: null, // Resetuj również polilinię mapy
-        rawGeojsonForDb: null, // Resetuj również rawGeojsonForDb
-        distanceFromOrs: null, // Resetuj również dystans
-        durationFromOrs: null, // Resetuj również czas trwania
+        polyline: null, // Resetuj polilinię mapy
+        orsGeometry: null, // Resetuj również dane ORS
+        orsDistance: null, 
+        orsDuration: null,
       }));
-      setRouteData(null); // Zresetuj routeData, aby mapa się wyczyściła
-      setRouteError(null); // Wyczyść błędy trasy
-      setIsLoadingRoute(false); // Upewnij się, że ładowanie jest wyłączone
+      setRouteData(null); // Resetuj routeData dla mapy
+      setRouteError(null); // Wyczyść błędy
+      setIsLoadingRoute(false); // Resetuj stan ładowania
 
     } catch (err) {
       console.error('Błąd wyznaczania lub zapisu trasy:', err);
@@ -429,7 +427,7 @@ function AddRouteForm({ onRouteCreated }) {
                 <option value="+351">🇵🇹 Portugalia +351</option>
                 <option value="+40">🇷🇴 Rumunia +40</option>
                 <option value="+421">🇸🇰 Słowacja +421</option>
-                <option value="+386">🇸🇮 Słowenia +421</option>
+                <option value="+386">🇸🇮 Słowenia +386</option>
                 <option value="+46">🇸🇪 Szwecja +46</option>
                 <option value="+41">🇨🇭 Szwajcaria +41</option>
                 <option value="+90">🇹🇷 Turcja +90</option>
@@ -485,9 +483,10 @@ function AddRouteForm({ onRouteCreated }) {
         <div className="form-field">
           {isLoadingRoute && <p>Obliczam trasę...</p>}
           {routeError && <p className="error-message">{routeError}</p>}
-          {/* ZMIANA: Wyświetlanie dystansu i czasu trwania */}
-          {form.polyline && !isLoadingRoute && (
-            <p>Trasa obliczona: Dystans: {(form.distanceFromOrs / 1000).toFixed(2)} km, Czas: {(form.durationFromOrs / 60).toFixed(0)} min.</p>
+          {/* ZMIANA: Wyświetlanie dystansu i czasu trwania - TYLKO JEŚLI JEST WIDOCZNE W FORMULARZU */}
+          {/* Jeśli chcesz usunąć to całkowicie, usuń również ten div.form-field */}
+          {form.orsDistance && form.orsDuration && !isLoadingRoute && (
+            <p>Trasa obliczona: Dystans: {(form.orsDistance / 1000).toFixed(2)} km, Czas: {(form.orsDuration / 60).toFixed(0)} min.</p>
           )}
         </div>
 
@@ -497,8 +496,8 @@ function AddRouteForm({ onRouteCreated }) {
           </button>
         </div>
       </form>
-      {/* ZMIANA: Przekazujemy form.polyline zamiast routeData */}
-      <RouteMap polyline={form.polyline} />
+      {/* ZMIANA: Przekazujemy routeData do RouteMap, tak jak to było w Twoim oryginalnym kodzie */}
+      <RouteMap routeData={routeData} />
     </>
   );
 }
