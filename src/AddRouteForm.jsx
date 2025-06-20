@@ -267,7 +267,7 @@ console.log('Dane ORS Geometry przed stringify:', form.orsGeometry);
         // KLUCZOWE ZMIANY: Zapis geometrii trasy, dystansu i czasu trwania
         // route_geom to kolumna typu geography(LineString, 4326)
         // form.orsGeometry to już obiekt GeoJSON LineString z ORS, więc stringify
-        route_geom: JSON.stringify(form.orsGeometry), 
+        route_geom: supabase.raw(`ST_GeomFromGeoJSON('${JSON.stringify(form.orsGeometry)}')`), 
 
         
         distance: form.orsDistance, // Dystans z ORS
