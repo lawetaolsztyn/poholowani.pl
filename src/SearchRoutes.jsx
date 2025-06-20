@@ -2,11 +2,11 @@
 import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents } from 'react-leaflet';
-// import * as turf from '@turf/turf'; // << USUŃ TEN IMPORT
+// Usunięto import * as turf from '@turf/turf'; - jeśli nadal jest, usuń
 import 'leaflet/dist/leaflet.css';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
-import LocationAutocomplete from './components/LocationAutocomplete';
+import LocationAutocomplete from './components/LocationAutocomplete'; // Ten plik nie zmieniany
 import RouteSlider from './RouteSlider';
 import L from 'leaflet';
 import RoadsideMarkers from './components/RoadsideMarkers';
@@ -38,22 +38,20 @@ function MapEvents() {
 }
 
 const HighlightedRoute = React.memo(({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) => {
-    const polylineColor = isHovered ? '#0000FF' : '#FF0000'; // Niebieski dla hover, czerwony dla normalnego
+    const polylineColor = isHovered ? '#0000FF' : '#FF0000';
     const polylineWeight = isHovered ? 6 : 4;
     const polylineOpacity = isHovered ? 0.9 : 0.7;
 
-    // Sprawdź, czy route.polyline_geometry jest prawidłowym obiektem GeoJSON (po sparsowaniu)
-    // i przekonwertuj go na format Leaflet [lat, lng]
     const leafletCoords = useMemo(() => {
         if (route.polyline_geometry && route.polyline_geometry.coordinates) {
-            return route.polyline_geometry.coordinates.map(coord => [coord[1], coord[0]]); // Konwersja [lng, lat] na [lat, lng]
+            return route.polyline_geometry.coordinates.map(coord => [coord[1], coord[0]]);
         }
         return [];
     }, [route.polyline_geometry]);
 
 
     if (!leafletCoords || leafletCoords.length === 0) {
-        return null; // Nie renderuj, jeśli brak danych polilinii
+        return null;
     }
 
     return (
@@ -76,6 +74,7 @@ const HighlightedRoute = React.memo(({ route, isHovered, onPolylineMouseOver, on
                     {route.description && <p>{route.description}</p>}
                     <p>Telefon: {route.phone} {route.uses_whatsapp && '(WhatsApp)'}</p>
                     {route.messenger && <p><a href={route.messenger} target="_blank" rel="noopener noreferrer">Messenger</a></p>}
+                    {route.vehicle_type && <p>Typ pojazdu: {route.vehicle_type}</p>} {/* Pokaż typ pojazdu */}
                 </div>
             </Popup>
         </Polyline>
@@ -89,6 +88,7 @@ function SearchRoutes() {
     const [searchTo, setSearchTo] = useState({ label: '', coords: null });
     const [searchVia, setSearchVia] = useState({ label: '', coords: null });
     const [searchDate, setSearchDate] = useState('');
+    const [searchVehicleType, setSearchVehicleType] = useState(''); // NOWY STAN DLA TYPU POJAZDU
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [hoveredRouteId, setHoveredRouteId] = useState(null);
@@ -104,8 +104,10 @@ function SearchRoutes() {
     }, []);
 
     const fetchRoutes = useCallback(async () => {
-        // WARUNEK ZAPEWNIAJĄCY, ŻE ZAPYTANIE JEST WYSŁANE TYLKO, GDY MAMY PODSTAWOWE DANE
+        // Ten warunek jest kluczowy! Jeśli brak koordynatów, nie wysyłaj zapytania do PostGIS.
+        // Użytkownik MUSI wybrać sugestię z autouzupełniania, aby koordynaty zostały ustawione.
         if (!searchFrom.coords || !searchTo.coords || !searchDate) {
+            // Jeśli brakuje danych, nie wysyłaj zapytania, ale wyczyść wyniki
             setRoutes([]);
             setFilteredRoutes([]);
             return;
@@ -123,13 +125,15 @@ function SearchRoutes() {
                     p_date: searchDate,
                     p_via_lat: searchVia.coords?.lat || null,
                     p_via_lng: searchVia.coords?.lng || null,
-                    p_radius_meters: 2000
+                    p_radius_meters: 2000,
+                    p_vehicle_type: searchVehicleType || null // PRZEKAZANIE TYPU POJAZDU
                 });
 
             if (error) throw error;
 
             const processedRoutes = data.map(route => ({
                 ...route,
+                // Upewnij się, że polyline_geometry jest parsowane, jeśli to string
                 polyline_geometry: route.polyline_geometry ? JSON.parse(route.polyline_geometry) : null
             }));
 
@@ -144,16 +148,19 @@ function SearchRoutes() {
         } finally {
             setLoading(false);
         }
-    }, [searchFrom.coords, searchTo.coords, searchVia.coords, searchDate]);
-
+    }, [searchFrom.coords, searchTo.coords, searchVia.coords, searchDate, searchVehicleType]); // Dodaj searchVehicleType do zależności
 
     useEffect(() => {
+        // Ten useEffect wywoła fetchRoutes, gdy zmienią się zależności.
+        // Oznacza to, że po wybraniu miejscowości (co ustawi searchFrom.coords/searchTo.coords)
+        // lub po zmianie daty/typu pojazdu, wyszukiwanie zostanie automatycznie wywołane.
         fetchRoutes();
-    }, [fetchRoutes]);
+    }, [fetchRoutes]); // fetchRoutes jest callbackiem, który ma swoje zależności, więc to jest OK.
 
     const handleSearch = (e) => {
         e.preventDefault();
-        // Po prostu wywołaj fetchRoutes. Warunek wewnątrz fetchRoutes zdecyduje, czy zapytanie zostanie wysłane.
+        // Kliknięcie "Szukaj" WYMUSI wywołanie fetchRoutes.
+        // Jeśli brakuje koordynatów, fetchRoutes i tak nie wyśle zapytania (zgodnie z warunkiem).
         fetchRoutes();
     };
 
@@ -177,23 +184,20 @@ function SearchRoutes() {
                 <form onSubmit={handleSearch} className="search-form">
                     <LocationAutocomplete
                         label="Z:"
-                        value={searchFrom.label}
-                        onSelectLocation={setSearchFrom}
-                        onChange={(newValue) => setSearchFrom(prev => ({ ...prev, label: newValue, coords: null }))} // Ustawiamy coords na null przy każdej zmianie tekstu
+                        value={searchFrom.label} // Utrzymujemy synchronizację z searchFrom.label
+                        onSelectLocation={setSearchFrom} // To aktualizuje {label, coords}
                         placeholder="Miejscowość początkowa"
                     />
                     <LocationAutocomplete
                         label="Do:"
-                        value={searchTo.label}
-                        onSelectLocation={setSearchTo}
-                        onChange={(newValue) => setSearchTo(prev => ({ ...prev, label: newValue, coords: null }))} // Ustawiamy coords na null
+                        value={searchTo.label} // Utrzymujemy synchronizację z searchTo.label
+                        onSelectLocation={setSearchTo} // To aktualizuje {label, coords}
                         placeholder="Miejscowość docelowa"
                     />
                     <LocationAutocomplete
                         label="Przez (opcjonalnie):"
-                        value={searchVia.label}
-                        onSelectLocation={setSearchVia}
-                        onChange={(newValue) => setSearchVia(prev => ({ ...prev, label: newValue, coords: null }))} // Ustawiamy coords na null
+                        value={searchVia.label} // Utrzymujemy synchronizację z searchVia.label
+                        onSelectLocation={setSearchVia} // To aktualizuje {label, coords}
                         placeholder="Punkt pośredni"
                     />
                     <div className="form-field">
@@ -205,6 +209,22 @@ function SearchRoutes() {
                             className="uinput"
                         />
                     </div>
+
+                    {/* NOWE POLE WYBORU TYPU POJAZDU */}
+                    <div className="form-field">
+                        <label>Typ pojazdu:</label>
+                        <select
+                            value={searchVehicleType}
+                            onChange={(e) => setSearchVehicleType(e.target.value)}
+                            className="uinput"
+                        >
+                            <option value="">Wszystkie</option>
+                            <option value="bus">Bus</option>
+                            <option value="laweta">Laweta</option>
+                            {/* Dodaj inne opcje, jeśli potrzebujesz */}
+                        </select>
+                    </div>
+
                     <button type="submit" className="search-button" disabled={loading}>
                         {loading ? 'Szukam...' : 'Szukaj Tras'}
                     </button>
