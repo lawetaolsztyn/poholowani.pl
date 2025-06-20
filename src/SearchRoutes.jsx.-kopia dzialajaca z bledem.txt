@@ -441,16 +441,8 @@ function SearchRoutes() {
                     typeof pair[1] === 'number' && !isNaN(pair[1])    // lat
                 );
 
-                // DEBUG LOG: Dodano logi dla problematycznej trasy
-                if (route.id === 'd23b63bf-0a81-4922-91f5-d6cf285c6bd1') {
-                    console.log(`DEBUG: Route ${route.id} - rawGeo:`, rawGeo);
-                    console.log(`DEBUG: Route ${route.id} - filtered geo:`, geo);
-                    console.log(`DEBUG: Route ${route.id} - geo.length:`, geo.length);
-                }
-                // KONIEC DEBUG LOGÓW
-
                 if (geo.length < 2) { // turf.lineString potrzebuje co najmniej 2 punktów
-                    console.warn(`Skipping route ${route.id} due to insufficient valid coordinates after filtering. Filtered length: ${geo.length}`);
+                    console.warn(`Skipping route ${route.id} due to insufficient valid coordinates after filtering.`);
                     return false;
                 }
 
