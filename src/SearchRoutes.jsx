@@ -69,8 +69,7 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
   }, [trigger, mapMode, fromLocation, toLocation, map]);
 
   // Zoom do wybranej trasy (selectedRoute) — jak wcześniej
- useEffect(() => {
-  // src/SearchRoutes.jsx - w komponencie MapAutoZoom
+ 
 useEffect(() => {
  if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
    const coords = selectedRoute.geojson.features[0].geometry.coordinates
