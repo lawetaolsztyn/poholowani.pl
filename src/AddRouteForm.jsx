@@ -261,6 +261,9 @@ function AddRouteForm({ onRouteCreated }) {
         user_id: userId || null,
         browser_token: browserToken || null,
         created_at: new Date().toISOString(), // Standardowe pole created_at
+console.log('Dane ORS Geometry przed stringify:', form.orsGeometry); 
+        console.log('Dane ORS Geometry po stringify:', JSON.stringify(form.orsGeometry));
+
         
         // KLUCZOWE ZMIANY: Zapis geometrii trasy, dystansu i czasu trwania
         // route_geom to kolumna typu geography(LineString, 4326)
