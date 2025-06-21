@@ -17,7 +17,7 @@ const LandingPage = () => {
       <div className="landing-container">
         {/* Kontener dla całego banera, który ma tło i pełną szerokość */}
         <div className="overlay-header">
-          {/* Komponent Header renderuje logo i tekst wewnątrz overlay-header */}
+          {/* Komponent Header renderuje logo logo i tekst wewnątrz overlay-header */}
           <Header
             title="Wykorzystaj puste przebiegi!"
             subtitle="Znajdź lub zaoferuj transport powrotny lawet i busów w całej Europie."
