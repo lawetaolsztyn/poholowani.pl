@@ -349,70 +349,182 @@ function SearchRoutes() {
 
     const [mapMode, setMapMode] = useState('grid'); // Domyślnie tryb siatki
 
-    // Efekt do początkowego pobierania tras dla trybu "grid" i obsługi zmian w czasie rzeczywistym
-useEffect(() => {
-    const fetchAllRoutesForGrid = async () => {
-        setIsLoading(true); // Włącz stan ładowania
-        const { data, error } = await supabase
-            .from('routes')
-            .select(`
-                *,
-                users_extended (
-                    id,
-                    nip,
-                    role,
-                    is_premium
-                )
-            `); // Pobieramy wszystkie trasy z informacjami o użytkownikach
+    // Efekt do pobierania tras z Supabase
+    useEffect(() => {
+        const fetchRoutes = async () => {
+            setIsLoading(true);
+            const { data, error } = await supabase
+                .from('routes')
+                .select(`
+                    *,
+                    users_extended (
+                        id,
+                        nip,
+                        role,
+                        is_premium
+                    )
+                `);
 
-        if (error) {
-            console.error('Błąd podczas pobierania wszystkich tras dla trybu siatki:', error);
-        } else {
-            console.log('Supabase fetched all data for grid. Count:', data.length);
-            const parsed = data.map(route => ({
-                ...route,
-                // GeoJSON może być już obiektem, ale dodaj zabezpieczenie na wypadek stringa
-                geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson,
-                // Rekonstrukcja obiektu users_extended.
-                // Funkcja .select() zwraca users_extended jako zagnieżdżony obiekt, ale z własnymi ID itp.
-                // Upewniamy się, że users_extended istnieje, zanim spróbujemy dostać się do jego właściwości.
-                users_extended: route.users_extended ? {
-                    id: route.users_extended.id,
-                    nip: route.users_extended.nip,
-                    role: route.users_extended.role,
-                    is_premium: route.users_extended.is_premium
-                } : null
-            }));
-            setAllRoutes(parsed);
-            // Bardzo ważne: ustawiamy filteredRoutes na allRoutes na starcie,
-            // aby mapa i slider pokazywały wszystkie trasy w trybie grid
-            setFilteredRoutes(parsed);
-        }
-        setIsLoading(false); // Wyłącz stan ładowania
-    };
+            if (error) {
+                console.error('Błąd podczas pobierania tras:', error);
+           } else {
+    console.log('Supabase fetched data. Count:', data.length, 'Data:', data);
 
-    fetchAllRoutesForGrid(); // Wywołaj funkcję przy pierwszym renderowaniu
+    const parsed = data.map(route => ({
+        ...route,
+        geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson
+    }));
 
-    // Subskrypcja kanału dla aktualizacji w czasie rzeczywistym,
-    // aby tryb "grid" również był dynamiczny
-    const channel = supabase
-        .channel('public:routes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
-            fetchAllRoutesForGrid(); // Ponownie pobierz wszystkie trasy po zmianie w bazie
-        })
-        .subscribe();
+    console.log('PO PARSOWANIU GEOJSON:', parsed);
+    setAllRoutes(parsed);
 
-    // Funkcja czyszcząca przy odmontowaniu komponentu
-    return () => {
-        supabase.removeChannel(channel);
-    };
-}, []); // Pusta tablica zależności, uruchamia się tylko raz przy montowaniu komponentu
+
+
+            }
+            setIsLoading(false);
+        };
+
+        fetchRoutes();
+
+        const channel = supabase
+            .channel('public:routes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
+                fetchRoutes();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route); 
         setSelectedRouteTrigger(prev => prev + 1);
     };
-   
+
+    const routesToDisplayOnMap = useMemo(() => {
+        console.log('--- Recalculating routesToDisplayOnMap ---');
+        console.log('Current allRoutes.length:', allRoutes.length);
+        console.log('Current mapMode:', mapMode);
+        if (mapMode === 'grid') {
+            console.log('mapMode: grid - displaying all routes');
+            return allRoutes;
+        }
+
+        console.log('mapMode: search');
+
+        if (allRoutes.length === 0) {
+            console.log('No allRoutes data');
+            return [];
+        }
+
+        let routesAfterLocationFilter = [];
+
+        if (!fromLocation && !toLocation) {
+            console.log("Tryb SEARCH: LOKALIZACJE PUSTE. Filtruj po typie pojazdu/dacie dla WSZYSTKICH tras.");
+            routesAfterLocationFilter = allRoutes;
+        } else {
+            routesAfterLocationFilter = allRoutes.filter((route) => {
+                const rawGeo = route.geojson?.features?.[0]?.geometry?.coordinates;
+                const detourKm = parseInt(route.max_detour_km || 0);
+
+                if (!rawGeo || !Array.isArray(rawGeo)) {
+                    console.warn(`Skipping route ${route.id} due to missing or invalid rawGeo.`);
+                    return false;
+                }
+
+                // ZMODYFIKOWANY BLOK FILTROWANIA
+                const geo = rawGeo.filter(pair => {
+                    if (!Array.isArray(pair) || pair.length !== 2) {
+                        return false;
+                    }
+                    const lng = parseFloat(pair[0]); // Jawne parsowanie na liczbę
+                    const lat = parseFloat(pair[1]); // Jawne parsowanie na liczbę
+
+                    // Sprawdzenie, czy po parsowaniu są to poprawne liczby
+                    return typeof lng === 'number' && !isNaN(lng) &&
+                           typeof lat === 'number' && !isNaN(lat);
+                }).map(pair => [parseFloat(pair[0]), parseFloat(pair[1])]); // Upewnienie się, że wszystkie elementy w końcowej tablicy są floatami
+
+                // DEBUG LOG: Dodano logi dla problematycznej trasy
+                if (route.id === 'd23b63bf-0a81-4922-91f5-d6cf285c6bd1') {
+                    console.log(`DEBUG: Route ${route.id} - rawGeo:`, rawGeo);
+                    console.log(`DEBUG: Route ${route.id} - filtered geo:`, geo);
+                    console.log(`DEBUG: Route ${route.id} - geo.length:`, geo.length);
+                }
+                // KONIEC DEBUG LOGÓW
+
+                if (geo.length < 2) { // turf.lineString potrzebuje co najmniej 2 punktów
+                    console.warn(`Skipping route ${route.id} due to insufficient valid coordinates after filtering. Filtered length: ${geo.length}`);
+                    return false;
+                }
+
+                if (detourKm === 0) { // Jeśli detourKm jest 0, żaden punkt nie może być w zasięgu.
+                    console.warn(`Skipping route ${route.id} because max_detour_km is 0.`);
+                    return false;
+                }
+
+                try {
+                    const routeLine = turf.lineString(geo); // <--- Tutaj wcześniej był błąd
+
+                    const checkPointInRange = (pointObj) => {
+                        if (!pointObj || !pointObj.lat || !pointObj.lng) return false;
+                        const userPoint = turf.point([pointObj.lng, pointObj.lat]);
+                        const snapped = turf.nearestPointOnLine(routeLine, userPoint);
+                        const dist = turf.distance(userPoint, snapped, { units: 'kilometers' });
+                        return dist <= detourKm;
+                    };
+
+                    if (fromLocation && toLocation) {
+                        const fromPoint = turf.point([fromLocation.lng, fromLocation.lat]);
+                        const toPoint = turf.point([toLocation.lng, toLocation.lat]);
+                        const fromSnap = turf.nearestPointOnLine(routeLine, fromPoint, { units: 'kilometers' });
+                        const toSnap = turf.nearestPointOnLine(routeLine, toPoint, { units: 'kilometers' });
+
+                        const fromDist = turf.distance(fromPoint, fromSnap, { units: 'kilometers' });
+                        const toDist = turf.distance(toPoint, toSnap, { units: 'kilometers' });
+
+                        const fromPos = fromSnap.properties.location;
+                        const toPos = toSnap.properties.location;
+
+                        const isInRange = fromDist <= detourKm && toDist <= detourKm;
+                        const isCorrectOrder = fromPos < toPos;
+
+                        console.log(`Route ID: ${route.id}, FromDist: ${fromDist.toFixed(2)}, ToDist: ${toDist.toFixed(2)}, isInRange: ${isInRange}, isCorrectOrder: ${isCorrectOrder}`);
+                        return isInRange && isCorrectOrder;
+                    } else if (fromLocation) {
+                        console.log(`Route ID: ${route.id}, Checking From: ${fromLocation.name}`);
+                        return checkPointInRange(fromLocation);
+                    } else if (toLocation) {
+                        console.log(`Route ID: ${route.id}, Checking To: ${toLocation.name}`);
+                        return checkPointInRange(toLocation);
+                    }
+                    return false;
+                } catch (e) {
+                    console.error(`Error with turf operation for route: ${route.id} Error: ${e.message}`);
+                    return false;
+                }
+            });
+        }
+
+        const finalFilteredRoutes = routesAfterLocationFilter.filter(route => {
+            if (vehicleType && route.vehicle_type !== vehicleType) return false;
+            if (selectedDate && route.date !== selectedDate) return false;
+            return true;
+        });
+
+        console.log('Final Filtered Routes count:', finalFilteredRoutes.length);
+        console.log('Final Filtered Routes data:', finalFilteredRoutes);
+        return finalFilteredRoutes;
+
+    }, [allRoutes, fromLocation, toLocation, vehicleType, selectedDate, mapMode]);
+
+    useEffect(() => {
+        setFilteredRoutes(routesToDisplayOnMap);
+        console.log('Filtered Routes (after update):', routesToDisplayOnMap.length);
+        console.log('Current Map Mode:', mapMode);
+    }, [routesToDisplayOnMap, mapMode]);
 
    // src/SearchRoutes.jsx - w komponencie SearchRoutes
 useEffect(() => {
@@ -449,91 +561,28 @@ useEffect(() => {
 }, [filteredRoutes, mapMode]);
 
 
- const handleSearchClick = useCallback(async () => {
-    setIsLoading(true); // Włącz stan ładowania
-    setSelectedRoute(null); // Wyczyść wybraną trasę przy nowym wyszukiwaniu
-
-    // Upewnij się, że data jest w poprawnym formacie 'YYYY-MM-DD'.
-    // Input type="date" zazwyczaj już to zapewnia.
-    const formattedDate = selectedDate || null;
-
-    // Określamy domyślny promień dla punktu pośredniego (via_point),
-    // jeśli nie masz pola w formularzu wyszukiwania do jego ustawiania.
-    // 5000 metrów = 5 km.
-    const defaultRadiusForVia = 5000;
-
-console.log("Parametry wysyłane do search_routes:");
-    console.log("p_from_lat:", fromLocation?.lat);
-    console.log("p_from_lng:", fromLocation?.lng);
-    console.log("p_to_lat:", toLocation?.lat);
-    console.log("p_to_lng:", toLocation?.lng);
-    console.log("p_date:", formattedDate);
-    console.log("p_vehicle_type:", vehicleType);
-    console.log("p_radius_meters:", defaultRadiusForVia);
-
-    // Wywołujemy funkcję bazodanową Supabase 'search_routes'
-    const { data, error } = await supabase.rpc('search_routes', {
-        p_from_lat: fromLocation?.lat || null, // latitude punktu początkowego
-        p_from_lng: fromLocation?.lng || null, // longitude punktu początkowego
-        p_to_lat: toLocation?.lat || null,     // latitude punktu końcowego
-        p_to_lng: toLocation?.lng || null,     // longitude punktu końcowego
-        p_via_lat: null, // Na razie brak pola "Via" w wyszukiwarce, więc null
-        p_via_lng: null, // Na razie brak pola "Via" w wyszukiwarce, więc null
-        p_date: formattedDate,          // Data z formularza
-        p_vehicle_type: vehicleType || null, // Typ pojazdu z formularza
-        p_radius_meters: defaultRadiusForVia // Promień dla via_point
-    });
-
-    if (error) {
-        console.error('Błąd podczas wyszukiwania tras w Supabase:', error);
-        setFilteredRoutes([]); // W przypadku błędu, wyczyść trasy
-    } else {
-        console.log('Supabase search_routes zwróciło dane. Ilość:', data.length, 'Dane:', data);
-
-        // Przetwarzamy dane zwrócone przez funkcję Supabase
-        // Musimy zrekonstruować obiekt `users_extended`, bo Supabase RPC zwraca płaskie kolumny
-        const parsedRoutes = data.map(route => ({
-            ...route,
-            // Sprawdzenie, czy geojson jest stringiem i parsowanie, jeśli tak
-            geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson,
-            // Tworzymy zagnieżdżony obiekt users_extended z płaskich kolumn
-            users_extended: {
-                id: route.users_extended_id,
-                nip: route.users_extended_nip,
-                role: route.users_extended_role,
-                is_premium: route.users_extended_is_premium
-            }
-        }));
-        setFilteredRoutes(parsedRoutes); // Ustawiamy przefiltrowane trasy
-        setMapMode('search'); // Przełączamy mapę w tryb wyszukiwania
-        setSearchTrigger(prev => prev + 1); // Wyzwalamy zoom mapy
-        if (parsedRoutes.length > 0) {
-            setSelectedRoute(parsedRoutes[0]); // Wybieramy pierwszą trasę, jeśli są wyniki
-            setSelectedRouteTrigger(prev => prev + 1);
-        }
-    }
-    setIsLoading(false); // Wyłącz stan ładowania
-}, [fromLocation, toLocation, selectedDate, vehicleType]); // Te stany są zależnościami dla useCallback
+    const handleSearchClick = () => {
+  setSearchTrigger(prev => prev + 1);
+  setMapMode('search');
+  if (filteredRoutes.length > 0) {
+    setSelectedRoute(filteredRoutes[0]);
+    setSelectedRouteTrigger(prev => prev + 1);
+  }
+};
 
     const handleResetClick = () => {
-    console.log("Przycisk Reset kliknięty. Ustawiam mapMode na 'grid'.");
-    // Czyścimy wszystkie stany formularza wyszukiwania
-    setFromLocation(null);
-    setToLocation(null);
-    setFromValue('');
-    setToValue('');
-    setVehicleType('');
-    setSelectedDate('');
-    setSearchTrigger(0); // Zresetuj trigger wyszukiwania
+        console.log("Reset button clicked. Setting mapMode to 'grid'.");
+        setFromLocation(null);
+        setToLocation(null);
+        setFromValue('');
+        setToValue('');
+        setVehicleType('');
+        setSelectedDate('');
+        setSearchTrigger(0);
 
-    setMapMode('grid'); // Przełącz mapę w tryb siatki
-    // Bardzo ważne: po resecie chcemy, aby filteredRoutes ponownie pokazywało WSZYSTKIE trasy,
-    // które są już w stanie allRoutes (pobierane na starcie aplikacji)
-    setFilteredRoutes(allRoutes);
-    setSelectedRoute(null); // Wyczyść wybraną trasę na mapie
-    setSelectedRouteTrigger(prev => prev + 1); // Zresetuj trigger, aby mapa mogła się wycentrować na widoku grid
-    setResetTrigger(prev => prev + 1); // Wyzwalamy reset w MapEvents i MapViewAndInteractionSetter
-};
+        setMapMode('grid'); // Ta zmiana mapMode wywoła MapViewAndInteractionSetter
+        setResetTrigger(prev => prev + 1);
+    };
 
     return (
         <>

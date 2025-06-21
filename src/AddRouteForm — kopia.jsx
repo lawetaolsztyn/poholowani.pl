@@ -125,91 +125,93 @@ function AddRouteForm({ onRouteCreated }) {
     }
 
 
-    // ... wewnątrz funkcji handleSubmit ...
-try {
+    try {
     const apiKey = import.meta.env.VITE_ORS_API_KEY;
     const browserToken = localStorage.getItem('browser_token');
 
     let coordinates = [form.from.coords];
-    let radiuses = [1500];
+    // Utwórz tablicę radiuses dynamicznie
+    let radiuses = [1500]; // Domyślny promień dla pierwszego punktu (from)
 
     if (form.via.coords) {
       coordinates.push(form.via.coords);
-      radiuses.push(1500);
+      radiuses.push(1500); // Dodaj promień dla punktu via
     }
 
     coordinates.push(form.to.coords);
-    radiuses.push(1500);
+    radiuses.push(1500); // Dodaj promień dla punktu to
 
+    // Logowanie dla celów debugowania - zobacz, jak wyglądają tablice
     console.log('Coordinates sent to ORS:', coordinates);
     console.log('Radiuses sent to ORS:', radiuses);
 
     const routeRes = await fetchWithRetry('/api/ors-route', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
     coordinates,
     instructions: false,
     geometry_simplify: true,
     radiuses,
-    geometry_format: "geojson" // <<--- DODANA LINIA
-}),
-    });
+  }),
+});
 
-    const routeData = await routeRes.json();
-    setRouteData(routeData);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id;
 
-    // Tutaj zmieniamy sposób zapisywania do bazy danych
-    // Zamiast insert, wywołujemy funkcję RPC
-    const { error } = await supabase.rpc('create_route_with_geometry', {
-        p_user_id: userId || null,
-        p_from_city: form.from.label,
-        p_via: form.via.label || null,
-        p_to_city: form.to.label,
-        p_date: form.date, // Pamiętaj, że w funkcji SQL p_date jest DATE, a form.date jest stringiem YYYY-MM-DD
-        p_vehicle_type: form.vehicleType,
-        p_load_capacity: form.loadCapacity || null,
-        p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
-        p_max_detour_km: parseInt(form.maxDetour),
-        p_phone: form.phone ? `<span class="math-inline">\{form\.countryCode\}</span>{form.phone}` : null,
-        p_messenger_link: form.messenger || null,
-        p_geojson: routeData, // Przekazujemy CAŁY obiekt GeoJSON
-        p_browser_token: browserToken || null,
-        p_uses_whatsapp: form.usesWhatsapp
-    });
+      const routeData = await routeRes.json();
+      setRouteData(routeData);
 
-    if (error) {
-        console.error('Błąd zapisu trasy przez funkcję RPC:', error);
-        alert('❌ Wystąpił błąd zapisu do bazy: ' + error.message);
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+
+      const routePayload = {
+        from_city: form.from.label,
+        to_city: form.to.label,
+        via: form.via.label || null,
+        date: form.date,
+        vehicle_type: form.vehicleType,
+        load_capacity: form.loadCapacity || null,
+        passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
+        max_detour_km: parseInt(form.maxDetour),
+        geojson: routeData,
+        created_at: new Date().toISOString(),
+        // Łączymy kod kraju z numerem telefonu tutaj
+        phone: form.phone ? `${form.countryCode}${form.phone}` : null, // Łączymy tylko jeśli numer telefonu jest podany
+        uses_whatsapp: form.usesWhatsapp,
+        messenger_link: form.messenger || null,
+        user_id: userId || null,
+        browser_token: browserToken || null
+      };
+
+      const { error } = await supabase.from('routes').insert([routePayload]);
+
+      if (error) {
+        console.error('Błąd zapisu:', error);
+        alert('❌ Wystąpił błąd zapisu do bazy.');
         setIsSaving(false);
         return;
-    }
+      }
 
-    onRouteCreated(routeData); // Nadal możesz przekazać routeData do rodzica, jeśli potrzebne
+      onRouteCreated(routeData);
 
-    // Resetowanie formularza po zapisie
-    setForm(prevForm => ({
+      // Resetowanie formularza po zapisie - czyścimy etykiety, koordynaty i pola telefonu
+      setForm(prevForm => ({
         ...prevForm,
         from: { label: '', coords: null },
         to: { label: '', coords: null },
         via: { label: '', coords: null },
-        phone: '',
-        countryCode: '+48'
-    }));
-    alert('✅ Trasa zapisana do bazy danych!');
-
-} catch (err) {
-    console.error('Błąd wyznaczania trasy lub zapisu:', err);
-    alert('❌ Wystąpił błąd podczas zapisu trasy: ' + err.message);
-} finally {
-    setIsSaving(false);
-}
-// ...
+        phone: '', // Resetujemy pole telefonu
+        countryCode: '+48' // Resetujemy kod kraju do domyślnego
+      }));
+      alert('✅ Trasa zapisana do bazy danych!');
+    } catch (err) {
+      console.error('Błąd wyznaczania lub zapisu trasy:', err);
+      alert('❌ Wystąpił błąd podczas zapisu trasy: ' + err.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (

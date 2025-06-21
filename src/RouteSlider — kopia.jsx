@@ -114,11 +114,11 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
     </a>
   </div>
 )}
-              {route.user_id && route.users_extended?.role === 'firma' && ( // Poprawne
-                <div style={{ fontSize: '14px' }}>
-                  {route.users_extended.nip ? ( // Poprawne
+              {route.user_id && route.users_extended?.role === 'firma' && (
+                <div style={{ fontSize: '14px' }}> {/* Usuwamy color: #555 */}
+                  {route.users_extended.nip ? (
                     <div style={{ marginBottom: '8px' }}>
-                      <span className="company-badge">
+                      <span className="company-badge"> {/* Dodana klasa */}
                         🏢 firma
                       </span>
                     </div>
@@ -128,7 +128,7 @@ export default function RouteSlider({ routes, onHover, onClickRoute }) {
                     href={`https://poholowani.pl/profil/${route.user_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ fontWeight: 'bold' }}
+                    style={{ fontWeight: 'bold' }} /* Usuwamy color: #007bff */
                   >
                     otwórz
                   </a>
