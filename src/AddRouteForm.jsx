@@ -154,7 +154,6 @@ try {
     instructions: false,
     geometry_simplify: true,
     radiuses,
-    geometry_format: "geojson" // <<--- DODANA LINIA
 }),
     });
 

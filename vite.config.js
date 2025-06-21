@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => {
     // Zwróć uwagę na znak zapytania '?' - to początek parametrów URL
     // Dodajemy parametr geometry_format=geojson
-  return path.replace('/api/ors-route', '/v2/directions/driving-car');
+  return path.replace('/api/ors-route', '/v2/directions/driving-car?geometry_format=geojson');
 },
           configure: (proxy, options) => {
     proxy.on('proxyReq', (proxyReq, req, res) => {
