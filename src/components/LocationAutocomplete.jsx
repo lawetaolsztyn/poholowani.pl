@@ -60,7 +60,6 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
         const data = await res.json();
         setSuggestions(data.features || []);
       } catch (error) {
-        console.error("Error fetching location suggestions from Mapbox:", error);
         setSuggestions([]);
       } finally {
         setLoading(false);
