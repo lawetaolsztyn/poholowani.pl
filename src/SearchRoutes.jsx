@@ -35,7 +35,7 @@ function MapEvents() {
                 }
             );
         } else {
-            setCenter([52.2297, 21.0122]); // Warszawa jako fallback
+            setCenter([52.2297, 21.0122]); // Warszawa jako 
         }
     }, [resetTrigger, setCenter]);
 
