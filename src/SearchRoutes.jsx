@@ -399,39 +399,42 @@ function MapViewAndInteractionSetter({ mapMode }) {
     const map = useMap();
 
     useEffect(() => {
-        console.log(`MapViewAndInteractionSetter: mapMode changed to ${mapMode}`);
-        if (mapMode === 'grid') {
-            map.setView([49.45, 11.07], 5); // Centrum Europy (Polska), zoom 5
-            map.setMaxZoom(5);
-            map.setMinZoom(5);
+    console.log(`MapViewAndInteractionSetter: mapMode changed to ${mapMode}`);
+    if (mapMode === 'grid') {
+        // Jeśli chcesz, aby w trybie GRID było przesuwanie dwoma palcami
+        // i jednym przewijanie strony, MUSISZ WŁĄCZYĆ TE INTERAKCJE
+        map.setMaxZoom(19); // Ustaw pełny zakres zoomu
+        map.setMinZoom(0);  // Ustaw pełny zakres zoomu
 
-            // Wyłącz interakcje
-            map.dragging.disable();
-            map.touchZoom.disable();
-            map.scrollWheelZoom.disable();
-            map.doubleClickZoom.disable();
-            map.boxZoom.disable();
-            map.keyboard.disable();
-            if (map.tap) map.tap.disable(); // `tap` może nie istnieć na wszystkich mapach
-            if (map.gestureHandling) map.gestureHandling.disable();
-            console.log("MapViewAndInteractionSetter: Interakcje mapy WYŁĄCZONE.");
+        map.dragging.enable(); // Włącz przeciąganie
+        map.touchZoom.enable(); // Włącz zoom dotykowy
+        map.scrollWheelZoom.enable(); // Włącz scroll kółkiem
+        map.doubleClickZoom.enable(); // Włącz double click zoom
+        map.boxZoom.enable(); // Włącz box zoom
+        map.keyboard.enable(); // Włącz klawiaturę
+        if (map.tap) map.tap.enable(); // Włącz tap
+        if (map.gestureHandling) map.gestureHandling.enable(); // Włącz gestureHandling
+        console.log("MapViewAndInteractionSetter: Interakcje mapy WŁĄCZONE (dla grid, z dwoma palcami).");
 
-        } else { // mapMode === 'search'
-            map.setMaxZoom(19); // Pełny zakres zoomu
-            map.setMinZoom(0); // Pełny zakres zoomu
+        // Możesz ustawić domyślny widok po włączeniu interakcji
+        map.setView([49.45, 11.07], 5); // Centrum Europy (Polska), zoom 5
 
-            // Włącz interakcje
-            map.dragging.enable();
-            map.touchZoom.enable();
-            map.scrollWheelZoom.enable();
-            map.doubleClickZoom.enable();
-            map.boxZoom.enable();
-            map.keyboard.enable();
-            if (map.tap) map.tap.enable();
-            if (map.gestureHandling) map.gestureHandling.enable();
-            console.log("MapViewAndInteractionSetter: Interakcje mapy WŁĄCZONE.");
-        }
-    }, [mapMode, map]); // Zależność od 'map' jest kluczowa
+    } else { // mapMode === 'search'
+        map.setMaxZoom(19); // Pełny zakres zoomu
+        map.setMinZoom(0); // Pełny zakres zoomu
+
+        // Włącz interakcje (już tak masz)
+        map.dragging.enable();
+        map.touchZoom.enable();
+        map.scrollWheelZoom.enable();
+        map.doubleClickZoom.enable();
+        map.boxZoom.enable();
+        map.keyboard.enable();
+        if (map.tap) map.tap.enable();
+        if (map.gestureHandling) map.gestureHandling.enable();
+        console.log("MapViewAndInteractionSetter: Interakcje mapy WŁĄCZONE.");
+    }
+}, [mapMode, map]);
 
     return null;
 }
