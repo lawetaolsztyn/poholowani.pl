@@ -252,18 +252,30 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
     return (
         <Polyline
             positions={coords}
-            pane={isHovered ? 'hovered' : 'routes'}
-            pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
-            eventHandlers={{
-                mouseover: (e) => handleOpenPopup(e.latlng),
-                mouseout: handleClosePopup,
-                mousemove: (e) => {
-                    if (popupRef.current && popupRef.current.isOpen()) {
-                        popupRef.current.setLatLng(e.latlng);
-                    }
+        pane={isHovered ? 'hovered' : 'routes'}
+        pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
+        eventHandlers={{
+            mouseover: (e) => {
+                handleOpenPopup(e.latlng);
+                // ZMIANA TUTAJ: Wywołujemy onPolylineMouseOver, aby zaktualizować hoveredRouteId w rodzicu
+                if (onPolylineMouseOver) onPolylineMouseOver(route.id);
+            },
+            mouseout: (e) => {
+                // ZMIANA TUTAJ: Wywołujemy onPolylineMouseOut, aby zresetować hoveredRouteId w rodzicu
+                if (onPolylineMouseOut) onPolylineMouseOut(null); // Przekazujemy null, aby żadna trasa nie była "hovered"
+
+                // Dodajemy małe opóźnienie do samego mouseout
+                setTimeout(() => {
+                    handleClosePopup();
+                }, 50); // Opóźnij wywołanie handleClosePopup o 50ms
+            },
+            mousemove: (e) => {
+                if (popupRef.current && popupRef.current.isOpen()) {
+                    popupRef.current.setLatLng(e.latlng);
                 }
-            }}
-        >
+            }
+        }}
+    >
             <Popup
                 ref={popupRef}
                 autoClose={false}
