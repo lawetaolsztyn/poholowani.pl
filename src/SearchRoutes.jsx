@@ -161,171 +161,145 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 
   return null;
 }
-const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
-    const popupRef = useRef(null);
+function MapAutoZoom({ fromLocation, toLocation, trigger, center, resetTrigger, selectedRoute, selectedRouteTrigger }) {
     const map = useMap();
-    const closeTimeoutIdRef = useRef(null); // Ref do przechowywania ID timeoutu zamknięcia
 
-    let coords = [];
-    if (route.geojson?.features?.[0]?.geometry?.coordinates) {
-        const rawCoords = route.geojson.features[0].geometry.coordinates;
-        if (Array.isArray(rawCoords)) {
-            coords = rawCoords
-                .filter(coordPair =>
-                    Array.isArray(coordPair) &&
-                    coordPair.length === 2 &&
-                    typeof coordPair[0] === 'number' && !isNaN(coordPair[0]) &&
-                    typeof coordPair[1] === 'number' && !isNaN(coordPair[1])
-                )
-                .map(([lng, lat]) => [lat, lng]);
+    useEffect(() => {
+        if (fromLocation && toLocation) {
+            const bounds = L.latLngBounds(
+                [fromLocation.lat, fromLocation.lng],
+                [toLocation.lat, toLocation.lng]
+            );
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (fromLocation) {
+            map.setView([fromLocation.lat, fromLocation.lng], 7);
+        } else if (toLocation) {
+            map.setView([toLocation.lat, toLocation.lng], 7);
+        }
+    }, [trigger]);
+
+    useEffect(() => {
+        if (center) {
+            map.setView(center, 10, { animate: true });
+        }
+    }, [resetTrigger]);
+
+    useEffect(() => {
+    if (selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
+        const coords = selectedRoute.geojson.features[0].geometry.coordinates
+            .filter(pair => Array.isArray(pair) && pair.length === 2)
+            .map(([lng, lat]) => [lat, lng]);
+
+        if (coords.length > 1) {
+            const bounds = L.latLngBounds(coords);
+            const paddedBounds = bounds.pad(0.1); // 10% margines
+
+            map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
         }
     }
+}, [selectedRouteTrigger]);
 
-    if (coords.length === 0) return null;
+    return null;
+}
 
-    // Funkcja do anulowania planowanego zamknięcia
-    const cancelClose = () => {
-        if (closeTimeoutIdRef.current) {
-            clearTimeout(closeTimeoutIdRef.current);
-            closeTimeoutIdRef.current = null;
-            console.log('CancelClose: Anulowano planowane zamknięcie popupu.');
+function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
+  const popupRef = useRef(null);
+  const map = useMap();
+  const closeTimeoutRef = useRef(null);
+
+  let coords = [];
+  if (route.geojson?.features?.[0]?.geometry?.coordinates) {
+    const rawCoords = route.geojson.features[0].geometry.coordinates;
+    if (Array.isArray(rawCoords)) {
+      coords = rawCoords
+        .filter(coordPair =>
+          Array.isArray(coordPair) &&
+          coordPair.length === 2 &&
+          typeof coordPair[0] === 'number' && !isNaN(coordPair[0]) &&
+          typeof coordPair[1] === 'number' && !isNaN(coordPair[1])
+        )
+        .map(([lng, lat]) => [lat, lng]);
+    }
+  }
+
+  if (coords.length === 0) return null;
+
+  return (
+    <Polyline
+      positions={coords}
+      pane={isHovered ? 'hovered' : 'routes'}
+      pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
+      eventHandlers={{
+        mouseover: (e) => {
+          if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+            closeTimeoutRef.current = null;
+          }
+          e.target.setStyle({ color: 'red' });
+          if (popupRef.current) {
+            popupRef.current.setLatLng(e.latlng).openOn(map);
+          }
+          if (onPolylineMouseOver) onPolylineMouseOver(route.id);
+        },
+        mouseout: (e) => {
+          e.target.setStyle({ color: 'blue' });
+          closeTimeoutRef.current = setTimeout(() => {
+            if (popupRef.current) {
+              popupRef.current.close();
+            }
+            closeTimeoutRef.current = null;
+          }, 1300);
+          if (onPolylineMouseOut) onPolylineMouseOut(null);
+        },
+        mousemove: (e) => {
+          if (popupRef.current && popupRef.current.isOpen()) {
+            popupRef.current.setLatLng(e.latlng);
+          }
         }
-    };
+      }}
+    >
+      <Popup ref={popupRef} autoClose={false} closeOnMouseOut={false} closeButton={false}>
+        <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+            <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
+            <strong>Do:</strong> {route.to_city?.split(',')[0]}
+          </div>
+          <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
+          <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
+          <div style={{ marginBottom: '6px' }}> {route.passenger_count || '–'}</div>
+          <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
+          {route.phone && (
+            <div style={{ marginBottom: '10px' }}>
+              📞 Telefon: <strong style={{ letterSpacing: '1px' }}>{route.phone}</strong>
+            </div>
+          )}
+          {route.messenger_link && (
+            <div style={{ marginBottom: '10px' }}>
+              <strong>Messenger:</strong>{' '}
+              <a href={route.messenger_link} target="_blank" rel="noopener noreferrer">
+                otwórz
+              </a>
+            </div>
+          )}
+         {route.user_id && route.users_extended?.nip && (
+  <div>
+    <div style={{ marginBottom: '8px' }}>
+      <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+        🏢 Firma
+      </span>
+    </div>
+    <strong>Profil przewoźnika:</strong>{' '}
+    <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+      otwórz
+    </a>
+  </div>
+)}
 
-    // Funkcja do otwierania popupu i zarządzania stanem hover
-    const handleOpenPopup = (latlng) => {
-        cancelClose(); // Anuluj każde planowane zamknięcie, bo kursor wszedł na trasę/popup
-        if (onPolylineMouseOver) onPolylineMouseOver(route.id); // Wyzwol hover na kafelku
-
-        // Otwórz popup tylko jeśli nie jest już otwarty
-        if (popupRef.current && !popupRef.current.isOpen()) {
-            // Małe opóźnienie, aby dać Reactowi czas na aktualizację DOM, jeśli popup był zamknięty
-            setTimeout(() => {
-                if (popupRef.current && !popupRef.current.isOpen()) { // Sprawdzamy ponownie na wypadek szybkiego ruchu
-                    popupRef.current.setLatLng(latlng).openOn(map);
-                    console.log('OpenPopup: Popup otwarty.');
-                }
-            }, 50); // Krótkie opóźnienie
-        } else {
-             console.log('OpenPopup: Popup już otwarty lub ref niedostępny.');
-        }
-    };
-
-    // Funkcja do planowania zamknięcia popupu
-    const handleClosePopup = () => {
-        // Planujemy zamknięcie popupu po 1.5 sekundy
-        // Tylko jeśli nie ma już aktywnego timeoutu
-        if (!closeTimeoutIdRef.current) {
-            closeTimeoutIdRefRef.current = setTimeout(() => {
-                if (popupRef.current && popupRef.current.isOpen()) {
-                    popupRef.current.close();
-                    console.log('ClosePopup: Popup zamknięty po opóźnieniu.');
-                }
-                closeTimeoutIdRef.current = null; // Zresetuj ID po wykonaniu
-            }, 1500); // 1.5 sekundy opóźnienia
-        }
-        if (onPolylineMouseOut) onPolylineMouseOut(null); // Wyzwol hover na kafelku
-    };
-
-    return (
-        <Polyline
-            positions={coords}
-            pane={isHovered ? 'hovered' : 'routes'}
-            pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
-            eventHandlers={{
-                mouseover: (e) => handleOpenPopup(e.latlng), // Wywołaj funkcję otwierającą
-                mouseout: handleClosePopup, // Wywołaj funkcję planującą zamknięcie
-                mousemove: (e) => {
-                    // Opcjonalnie: aktualizuj pozycję dymku, jeśli jest otwarty
-                    if (popupRef.current && popupRef.current.isOpen()) {
-                        popupRef.current.setLatLng(e.latlng);
-                    }
-                }
-            }}
-        >
-            <Popup
-                ref={popupRef}
-                autoClose={false}
-                closeOnEscapeKey={false}
-                closeButton={false}
-                closeOnClick={false}
-                onOpen={(e) => {
-                    console.log('Popup: onOpen wywołano. Podpinam mouseenter/mouseleave do kontenera.');
-                    const popupContent = e.popup._container;
-                    if (popupContent) {
-                        // Kiedy kursor wchodzi na sam popup, anulujemy jego zamknięcie
-                        popupContent.onmouseenter = cancelClose;
-                        // Kiedy kursor opuszcza popup, planujemy jego zamknięcie
-                        popupContent.onmouseleave = handleClosePopup;
-                    }
-                }}
-                onClose={() => {
-                    console.log('Popup: onClose wywołano.');
-                    // Tutaj nic więcej nie robimy, stan jest już zarządzany przez timery
-                }}
-            >
-                {/* ... (zawartość Popup bez zmian) ... */}
-                <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                        <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
-                        <strong>Do:</strong> {route.to_city?.split(',')[0]}
-                    </div>
-                    <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
-                    <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
-                    <div style={{ marginBottom: '6px' }}>🧍 {route.passenger_count || '–'}</div>
-                    <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-                    {route.phone && (
-                        <div style={{ marginBottom: '10px' }}>
-                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
-                                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
-                                    {route.phone}
-                                </a>
-                            </strong>
-                            {route.uses_whatsapp && (
-                                <div style={{ marginTop: '4px' }}>
-                                    <a
-                                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
-                                    >
-                                        🟢 WhatsApp
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    {route.messenger_link && (
-                        <div style={{ marginTop: '4px' }}>
-                            <a
-                                href={route.messenger_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
-                            >
-                                🔵 Messenger
-                            </a>
-                        </div>
-                    )}
-                    {route.user_id && route.users_extended?.nip && (
-                        <div>
-                            <div style={{ marginBottom: '8px' }}>
-                                <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                                    🏢 Firma
-                                </span>
-                            </div>
-                            <strong>Profil przewoźnika:</strong>{' '}
-                            <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
-                                otwórz
-                            </a>
-                        </div>
-                    )}
-                </div>
-            </Popup>
-        </Polyline>
-    );
-});
-const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
+        </div>
+      </Popup>
+    </Polyline>
+  );
+}const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
         const rawCoords = route.geojson.features[0].geometry.coordinates;
