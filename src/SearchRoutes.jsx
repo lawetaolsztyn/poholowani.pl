@@ -170,6 +170,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
     const map = useMap();
     const openTimeoutIdRef = useRef(null);
     const closeTimeoutIdRef = useRef(null);
+    const isMouseOverPopupRef = useRef(false);
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
@@ -192,7 +193,6 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
         if (closeTimeoutIdRef.current) {
             clearTimeout(closeTimeoutIdRef.current);
             closeTimeoutIdRef.current = null;
-            console.log('CancelClose: Anulowano planowane zamknięcie popupu.');
         }
     };
 
@@ -202,6 +202,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             clearTimeout(openTimeoutIdRef.current);
             openTimeoutIdRef.current = null;
         }
+
         openTimeoutIdRef.current = setTimeout(() => {
             if (popupRef.current && !popupRef.current.isOpen()) {
                 popupRef.current.setLatLng(latlng).openOn(map);
@@ -220,10 +221,12 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
         if (!closeTimeoutIdRef.current) {
             closeTimeoutIdRef.current = setTimeout(() => {
-                if (popupRef.current && popupRef.current.isOpen()) {
-                    popupRef.current.close();
+                if (!isMouseOverPopupRef.current) {
+                    if (popupRef.current && popupRef.current.isOpen()) {
+                        popupRef.current.close();
+                    }
+                    closeTimeoutIdRef.current = null;
                 }
-                closeTimeoutIdRef.current = null;
             }, 1500);
         }
 
@@ -245,7 +248,6 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             eventHandlers={{
                 mouseover: (e) => {
                     handleOpenPopup(e.latlng);
-                    if (onPolylineMouseOver) onPolylineMouseOver(route.id);
                 },
                 mouseout: () => {
                     setTimeout(() => {
@@ -268,15 +270,21 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                 onOpen={(e) => {
                     const popupContent = e.popup._container;
                     if (popupContent) {
-                        popupContent.addEventListener('mouseenter', cancelClose);
-                        popupContent.addEventListener('mouseleave', handleClosePopup);
+                        popupContent.addEventListener('mouseenter', () => {
+                            isMouseOverPopupRef.current = true;
+                            cancelClose();
+                        });
+                        popupContent.addEventListener('mouseleave', () => {
+                            isMouseOverPopupRef.current = false;
+                            handleClosePopup();
+                        });
                     }
                 }}
                 onClose={() => {
                     const popupContent = popupRef.current?._container;
                     if (popupContent) {
-                        popupContent.removeEventListener('mouseenter', cancelClose);
-                        popupContent.removeEventListener('mouseleave', handleClosePopup);
+                        popupContent.removeEventListener('mouseenter', () => {});
+                        popupContent.removeEventListener('mouseleave', () => {});
                     }
                 }}
             >
@@ -289,52 +297,6 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                     <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
                     <div style={{ marginBottom: '6px' }}>Osób: {route.passenger_count || '–'}</div>
                     <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-                    {route.phone && (
-                        <div style={{ marginBottom: '10px' }}>
-                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
-                                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
-                                    {route.phone}
-                                </a>
-                            </strong>
-                            {route.uses_whatsapp && (
-                                <div style={{ marginTop: '4px' }}>
-                                    <a
-                                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
-                                    >
-                                        🟢 WhatsApp
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    {route.messenger_link && (
-                        <div style={{ marginTop: '4px' }}>
-                            <a
-                                href={route.messenger_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
-                            >
-                                🔵 Messenger
-                            </a>
-                        </div>
-                    )}
-                    {route.user_id && route.users_extended?.nip && (
-                        <div>
-                            <div style={{ marginBottom: '8px' }}>
-                                <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                                    🏢 Firma
-                                </span>
-                            </div>
-                            <strong>Profil przewoźnika:</strong>{' '}
-                            <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
-                                otwórz
-                            </a>
-                        </div>
-                    )}
                 </div>
             </Popup>
         </Polyline>
