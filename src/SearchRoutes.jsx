@@ -294,7 +294,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                     <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
                     {route.phone && (
                         <div style={{ marginBottom: '10px' }}>
-                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
+                            📞  <strong style={{ letterSpacing: '1px' }}>
                                 <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
                                     {route.phone}
                                 </a>
