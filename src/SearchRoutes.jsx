@@ -164,10 +164,9 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
-    // const closeTimeoutRef = useRef(null); // <-- Tego już nie potrzebujemy w ten sposób
     const openTimeoutRef = useRef(null); // Nowy timeout do otwierania
     const closePopupTimeoutRef = useRef(null); // Nowy timeout do zamykania
-    const [showPopup, setShowPopup] = useState(false); // Nowy stan do kontrolowania widoczności dymku
+    // const [showPopup, setShowPopup] = useState(false); // <-- USUWAMY TEN STAN
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
@@ -188,64 +187,66 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     // Funkcja do otwierania dymku
     const openPopup = (latlng) => {
-        // Czyścimy timeout zamykania, jeśli istnieje
+        console.log('openPopup: Wywołano.');
+        // Czyścimy timeout zamykania, jeśli istnieje, aby utrzymać popup otwartym
         if (closePopupTimeoutRef.current) {
             clearTimeout(closePopupTimeoutRef.current);
             closePopupTimeoutRef.current = null;
-            console.log('openPopup: Anulowano planowane zamknięcie.'); // <--- DODANY LOG
-
+            console.log('openPopup: Anulowano planowane zamknięcie.');
         }
-        // Upewniamy się, że popup zostanie otwarty
-        if (!showPopup) {
-            console.log('openPopup: showPopup jest false, ustawiam na true.'); // <--- DODANY LOG
 
-            setShowPopup(true);
-            if (popupRef.current) {
-                console.log('openPopup: popupRef.current istnieje, planuję otwarcie Leaflet popup.'); // <--- DODANY LOG
-
-                // Leaflet potrzebuje położenia, aby otworzyć popup
-                // Używamy opóźnienia, aby React miał czas na zrenderowanie popupu
-                // zanim Leaflet spróbuje go otworzyć.
-                openTimeoutRef.current = setTimeout(() => {
-                    if (popupRef.current && !popupRef.current.isOpen()) {
-                        console.log('openPopup: Otwieram Leaflet popup.'); // <--- DODANY LOG
-
-                        popupRef.current.setLatLng(latlng).openOn(map);
-                    }
-                }, 50); // Krótkie opóźnienie
+        // Planujemy otwarcie dymku po bardzo krótkim opóźnieniu.
+        // To pozwala Reactowi na wykonanie bieżącego cyklu renderowania,
+        // a Leafletowi na upewnienie się, że popupRef.current jest gotowy.
+        if (popupRef.current) {
+            // Czyścimy poprzednie timeouty otwierania, aby uniknąć wielokrotnego otwierania
+            if (openTimeoutRef.current) {
+                clearTimeout(openTimeoutRef.current);
             }
+            openTimeoutRef.current = setTimeout(() => {
+                if (popupRef.current && !popupRef.current.isOpen()) {
+                    console.log('openPopup: Otwieram Leaflet popup.');
+                    popupRef.current.setLatLng(latlng).openOn(map);
+                } else {
+                    console.log('openPopup: Popup już otwarty lub ref niedostępny.');
+                }
+                openTimeoutRef.current = null; // Czyścimy ref po wykonaniu
+            }, 50); // Małe opóźnienie, aby dać Leafletowi czas
+        } else {
+            console.log('openPopup: popupRef.current jest NULL! Nie mogę otworzyć popupu.');
         }
     };
 
     // Funkcja do planowania zamknięcia dymku
     const scheduleClosePopup = () => {
-        console.log('scheduleClosePopup: Wywołano.'); // <--- DODANY LOG
-
-        // Czyścimy poprzednie timeouty otwierania (jeśli użytkownik szybko najechał/zjechał)
+        console.log('scheduleClosePopup: Wywołano.');
+        // Czyścimy timeout otwierania, jeśli istnieje
         if (openTimeoutRef.current) {
             clearTimeout(openTimeoutRef.current);
             openTimeoutRef.current = null;
+            console.log('scheduleClosePopup: Anulowano planowane otwarcie.');
         }
         // Planujemy zamknięcie dymku po 1.5 sekundy
         closePopupTimeoutRef.current = setTimeout(() => {
             if (popupRef.current && popupRef.current.isOpen()) {
+                console.log('scheduleClosePopup: Zamykam Leaflet popup.');
                 popupRef.current.close();
+            } else {
+                console.log('scheduleClosePopup: Popup już zamknięty lub ref niedostępny.');
             }
-            setShowPopup(false); // Aktualizujemy stan
             closePopupTimeoutRef.current = null;
         }, 1500); // <-- 1.5 sekundy opóźnienia
     };
 
     // Funkcja do anulowania zamknięcia dymku (gdy kursor wraca na trasę lub dymek)
     const cancelClosePopup = () => {
+        console.log('cancelClosePopup: Wywołano.');
         if (closePopupTimeoutRef.current) {
             clearTimeout(closePopupTimeoutRef.current);
             closePopupTimeoutRef.current = null;
+            console.log('cancelClosePopup: Anulowano planowane zamknięcie.');
         }
-        if (openTimeoutRef.current) {
-            clearTimeout(openTimeoutRef.current); // Czyścimy timeout otwierania, jeśli nadal planowany
-            openTimeoutRef.current = null;
-        }
+        // Nie trzeba czyścić openTimeoutRef tutaj, bo on się czyści po otwarciu
     };
 
 
@@ -256,12 +257,10 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
             eventHandlers={{
                 mouseover: (e) => {
-                    // Otwieramy dymek, gdy kursor najechał na linię
                     openPopup(e.latlng);
                     if (onPolylineMouseOver) onPolylineMouseOver(route.id);
                 },
                 mouseout: (e) => {
-                    // Planujemy zamknięcie dymku, gdy kursor zjedzie z linii
                     scheduleClosePopup();
                     if (onPolylineMouseOut) onPolylineMouseOut(null);
                 },
@@ -273,85 +272,85 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                 }
             }}
         >
-            {/* Warunkowe renderowanie Popup - renderujemy go tylko gdy showPopup jest true */}
-            {showPopup && (
-                <Popup
-                    ref={popupRef}
-                    autoClose={false}
-                    closeOnEscapeKey={false}
-                    closeButton={false}
-                    closeOnClick={false} // Nie zamykaj po kliknięciu
-                    // Dodajemy event handlery do zawartości popupu
-                    onOpen={(e) => {
-                        // Dodajemy event listenery do kontenera popupu po jego otwarciu
-                        const popupContent = e.popup._container;
-                        if (popupContent) {
-                            popupContent.onmouseenter = () => cancelClosePopup();
-                            popupContent.onmouseleave = () => scheduleClosePopup();
-                        }
-                    }}
-                    onClose={() => {
-                        setShowPopup(false); // Zaktualizuj stan, gdy Leaflet zamknie popup
-                    }}
-                >
-                    <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
-                        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                            <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
-                            <strong>Do:</strong> {route.to_city?.split(',')[0]}
-                        </div>
-                        <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
-                        <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
-                        <div style={{ marginBottom: '6px' }}>🧍 {route.passenger_count || '–'}</div>
-                        <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-                        {route.phone && (
-                            <div style={{ marginBottom: '10px' }}>
-                                📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
-                                    <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
-                                        {route.phone}
-                                    </a>
-                                </strong>
-                                {route.uses_whatsapp && (
-                                    <div style={{ marginTop: '4px' }}>
-                                        <a
-                                            href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
-                                        >
-                                            🟢 WhatsApp
-                                        </a>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        {route.messenger_link && (
-                            <div style={{ marginTop: '4px' }}>
-                                <a
-                                    href={route.messenger_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
-                                >
-                                    🔵 Messenger
-                                </a>
-                            </div>
-                        )}
-                        {route.user_id && route.users_extended?.nip && (
-                            <div>
-                                <div style={{ marginBottom: '8px' }}>
-                                    <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                                        🏢 Firma
-                                    </span>
-                                </div>
-                                <strong>Profil przewoźnika:</strong>{' '}
-                                <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
-                                    otwórz
-                                </a>
-                            </div>
-                        )}
+            {/* ZMIANA TUTAJ: Popup jest ZAWSZE renderowany. Usunęliśmy showPopup && */}
+            <Popup
+                ref={popupRef}
+                autoClose={false}
+                closeOnEscapeKey={false}
+                closeButton={false}
+                closeOnClick={false}
+                // onOpen i onClose są w porządku - będą wywoływane przez Leaflet
+                onOpen={(e) => {
+                    console.log('Popup: onOpen wywołano. Podpinam mouseenter/mouseleave do kontenera.');
+                    const popupContent = e.popup._container;
+                    if (popupContent) {
+                        popupContent.onmouseenter = () => { console.log('Popup Content: Mouse ENTER'); cancelClosePopup(); };
+                        popupContent.onmouseleave = () => { console.log('Popup Content: Mouse LEAVE'); scheduleClosePopup(); };
+                    }
+                }}
+                onClose={() => {
+                    console.log('Popup: onClose wywołano.');
+                    // Tutaj nie musimy zmieniać showPopup, bo go nie używamy
+                }}
+            >
+                {/* ... (zawartość Popup bez zmian) ... */}
+                <div style={{ fontSize: '14px', lineHeight: '1.4', backgroundColor: 'white', padding: '4px', borderRadius: '5px' }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                        <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
+                        <strong>Do:</strong> {route.to_city?.split(',')[0]}
                     </div>
-                </Popup>
-            )}
+                    <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
+                    <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
+                    <div style={{ marginBottom: '6px' }}>🧍 {route.passenger_count || '–'}</div>
+                    <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
+                    {route.phone && (
+                        <div style={{ marginBottom: '10px' }}>
+                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
+                                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
+                                    {route.phone}
+                                </a>
+                            </strong>
+                            {route.uses_whatsapp && (
+                                <div style={{ marginTop: '4px' }}>
+                                    <a
+                                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
+                                    >
+                                        🟢 WhatsApp
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {route.messenger_link && (
+                        <div style={{ marginTop: '4px' }}>
+                            <a
+                                href={route.messenger_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+                            >
+                                🔵 Messenger
+                            </a>
+                        </div>
+                    )}
+                    {route.user_id && route.users_extended?.nip && (
+                        <div>
+                            <div style={{ marginBottom: '8px' }}>
+                                <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+                                    🏢 Firma
+                                </span>
+                            </div>
+                            <strong>Profil przewoźnika:</strong>{' '}
+                            <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+                                otwórz
+                            </a>
+                        </div>
+                    )}
+                </div>
+            </Popup>
         </Polyline>
     );
 });
