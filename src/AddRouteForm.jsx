@@ -175,7 +175,7 @@ try {
         p_load_capacity: form.loadCapacity || null,
         p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
         p_max_detour_km: parseInt(form.maxDetour),
-        p_phone: form.phone ? `<span class="math-inline">\{form\.countryCode\}</span>{form.phone}` : null,
+        p_phone: form.phone ? `${form.countryCode}${form.phone}` : null,
         p_messenger_link: form.messenger || null,
         p_geojson: routeData, // Przekazujemy CAŁY obiekt GeoJSON
         p_browser_token: browserToken || null,
