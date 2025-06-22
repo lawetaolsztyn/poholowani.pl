@@ -40,7 +40,7 @@ export default function RouteMap({ routeData }) {
       )}
       {!hasValidRouteData && (
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000, color: '#555', fontSize: '1.2em', textAlign: 'center', padding: '20px', backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-          Brak danych trasy do wyświetlenia. Uzupełnij formularz i zapisz trasę.
+          Dodaj trasę lub zaloguj się by móc je edytować.
         </div>
       )}
     </MapContainer>
