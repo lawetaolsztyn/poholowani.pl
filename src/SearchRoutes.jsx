@@ -290,7 +290,7 @@ function MapViewAndInteractionSetter({ mapMode }) {
     const map = useMap();
 
     useEffect(() => {
-  console.log('MapAutoZoom: Uruchomiono efekt zooma.', { mapMode, filteredRoutesCount: filteredRoutes.length, selectedRouteId: selectedRoute?.id });
+        console.log(`MapViewAndInteractionSetter: mapMode changed to ${mapMode}`);
         if (mapMode === 'grid') {
             map.setView([49.45, 11.07], 5); // Centrum Europy (Polska), zoom 5
             map.setMaxZoom(5);
@@ -462,7 +462,14 @@ useEffect(() => {
     // 5000 metrów = 5 km.
     const defaultRadiusForVia = 5000;
 
-
+console.log("Parametry wysyłane do search_routes:");
+    console.log("p_from_lat:", fromLocation?.lat);
+    console.log("p_from_lng:", fromLocation?.lng);
+    console.log("p_to_lat:", toLocation?.lat);
+    console.log("p_to_lng:", toLocation?.lng);
+    console.log("p_date:", formattedDate);
+    console.log("p_vehicle_type:", vehicleType);
+    console.log("p_radius_meters:", defaultRadiusForVia);
 
     // Wywołujemy funkcję bazodanową Supabase 'search_routes'
     const { data, error } = await supabase.rpc('search_routes', {
@@ -481,7 +488,7 @@ useEffect(() => {
         console.error('Błąd podczas wyszukiwania tras w Supabase:', error);
         setFilteredRoutes([]); // W przypadku błędu, wyczyść trasy
     } else {
-    console.log('Supabase search_routes returned data. Count:', data.length, 'Data:', data);
+        console.log('Supabase search_routes zwróciło dane. Ilość:', data.length, 'Dane:', data);
 
         // Przetwarzamy dane zwrócone przez funkcję Supabase
         // Musimy zrekonstruować obiekt `users_extended`, bo Supabase RPC zwraca płaskie kolumny
@@ -498,9 +505,6 @@ useEffect(() => {
             }
         }));
         setFilteredRoutes(parsedRoutes); // Ustawiamy przefiltrowane trasy
-console.log('FilteredRoutes po ustawieniu (dla zooma):', parsedRoutes); // <--- DODAJ TĘ LINIĘ
-    console.log('Liczba przefiltrowanych tras (parsedRoutes.length):', parsedRoutes.length); // <--- DODAJ TĘ LINIĘ
-
         setMapMode('search'); // Przełączamy mapę w tryb wyszukiwania
         setSearchTrigger(prev => prev + 1); // Wyzwalamy zoom mapy
         if (parsedRoutes.length > 0) {
