@@ -56,25 +56,32 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
   useEffect(() => {
     console.log('MapAutoZoom: Uruchomiono główny efekt zooma.', { mapMode, filteredRoutesCount: filteredRoutes.length, selectedRouteId: selectedRoute?.id, fromLoc: fromLocation?.name, toLoc: toLocation?.name, trigger });
 
+    // --- ZMIANA TUTAJ: DEKLARACJA allCoords ---
+    let allCoords = []; // <--- DODANA LINIA
+    // --- KONIEC ZMIANY ---
+
+    let zoomExecuted = false;
+
     // Jeśli tryb to 'grid', nie robimy nic w tym efekcie - MapViewAndInteractionSetter ustawi domyślny widok.
     if (mapMode === 'grid') {
       return;
     }
 
     // --- Logika zoomowania w trybie 'search' ---
-    let coordsToFit = [];
-    let zoomExecuted = false;
 
     // Priorytet 1: Zoom do wybranej trasy (gdy użytkownik klika kafelek)
     if (selectedRoute && selectedRoute.geojson?.features?.[0]?.geometry?.coordinates) {
       console.log('MapAutoZoom: Zoom do wybranej trasy (selectedRoute).');
-      coordsToFit = selectedRoute.geojson.features[0].geometry.coordinates
+      allCoords = selectedRoute.geojson.features[0].geometry.coordinates // <--- ZMIENIONE: przypisujemy do allCoords
         .filter(pair => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === 'number' && !isNaN(pair[0]) && typeof pair[1] === 'number' && !isNaN(pair[1]))
         .map(([lng, lat]) => [lat, lng]);
 
-      if (coordsToFit.length > 1) {
-        const bounds = L.latLngBounds(coordsToFit);
+      if (allCoords.length > 1) { // L.latLngBounds wymaga co najmniej 2 punktów
+        const bounds = L.latLngBounds(allCoords);
         map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        zoomExecuted = true;
+      } else if (allCoords.length === 1) { // Obsłuż przypadek, gdy jest tylko jeden punkt
+        map.setView(allCoords[0], 12); // Ustaw widok na ten jeden punkt
         zoomExecuted = true;
       } else {
         console.warn('MapAutoZoom: selectedRoute ma niewystarczające/nieprawidłowe koordynaty dla fitBounds.', selectedRoute.id);
@@ -85,8 +92,12 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
     // Wykonuje się tylko, jeśli zoom jeszcze nie nastąpił przez selectedRoute
     if (!zoomExecuted && filteredRoutes && filteredRoutes.length > 0) {
       console.log('MapAutoZoom: Zoom do wszystkich przefiltrowanych tras (filteredRoutes).');
+      // Ważne: resetujemy allCoords przed ponownym wypełnieniem dla filteredRoutes
+      allCoords = []; // <--- ZRESETOWANIE allCoords tutaj
+
       filteredRoutes.forEach(route => {
         const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+        // Tutaj dodajemy punkty do allCoords
         if (coords && Array.isArray(coords)) {
           coords.forEach(coordPair => {
             if (Array.isArray(coordPair) && coordPair.length === 2) {
@@ -138,8 +149,6 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 
 
   // Zależności dla tego ujednoliconego efektu:
-  // Trigger jest dodany, aby wymusić ponowne wykonanie efektu po każdym wyszukiwaniu,
-  // nawet jeśli dane filteredRoutes czy selectedRoute są referencyjnie takie same.
   }, [map, mapMode, filteredRoutes, selectedRoute, fromLocation, toLocation, trigger, selectedRouteTrigger]);
 
   return null;
