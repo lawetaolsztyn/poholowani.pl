@@ -395,7 +395,7 @@ const StaticRoutePolyline = React.memo(function StaticRoutePolyline({ route }) {
 });
 
 // Nowy komponent do zarządzania widokiem i interakcjami mapy
-function MapViewAndInteractionSetter({ mapMode }) {
+function MapViewAndInteractionSetter({ mapMode, resetMapViewTrigger }) { // <-- ZMIEŃ TĘ LINIĘ (dodaj resetMapViewTrigger)
     const map = useMap();
 
     useEffect(() => {
@@ -434,7 +434,7 @@ function MapViewAndInteractionSetter({ mapMode }) {
         if (map.gestureHandling) map.gestureHandling.enable();
         console.log("MapViewAndInteractionSetter: Interakcje mapy WŁĄCZONE.");
     }
-}, [mapMode, map]);
+    }, [mapMode, map, resetMapViewTrigger]); // <-- ZMIEŃ TĘ LINIĘ (dodaj resetMapViewTrigger)
 
     return null;
 }
@@ -460,6 +460,8 @@ function SearchRoutes() {
     const today = new Date().toISOString().split('T')[0];
 
     const [mapMode, setMapMode] = useState('grid'); // Domyślnie tryb siatki
+    const [resetMapViewTrigger, setResetMapViewTrigger] = useState(0); // <-- DODAJ TĘ LINIĘ
+
 
     // Efekt do początkowego pobierania tras dla trybu "grid" i obsługi zmian w czasie rzeczywistym
 useEffect(() => {
@@ -645,6 +647,8 @@ console.log("Parametry wysyłane do search_routes:");
     setSelectedRoute(null); // Wyczyść wybraną trasę na mapie
     setSelectedRouteTrigger(prev => prev + 1); // Zresetuj trigger, aby mapa mogła się wycentrować na widoku grid
     setResetTrigger(prev => prev + 1); // Wyzwalamy reset w MapEvents i MapViewAndInteractionSetter
+    setResetMapViewTrigger(prev => prev + 1); // <-- DODAJ TĘ LINIĘ
+
 };
 
     return (
@@ -749,7 +753,7 @@ console.log("Parametry wysyłane do search_routes:");
 				filteredRoutes={filteredRoutes}
                             />
                             {/* === Nowy komponent, który zarządza widokiem i interakcjami === */}
-                            <MapViewAndInteractionSetter mapMode={mapMode} />
+    <MapViewAndInteractionSetter mapMode={mapMode} resetMapViewTrigger={resetMapViewTrigger} /> {/* <-- ZMIEŃ TĘ LINIĘ */}
 
                             {center && mapMode === 'search' && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
 
