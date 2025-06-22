@@ -52,36 +52,35 @@ function MapEvents() {
 function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode, filteredRoutes }) {
   const map = useMap();
 
-  // Ujednolicony useEffect do zarządzania zoomem mapy w trybie 'search'
   useEffect(() => {
     console.log('MapAutoZoom: Uruchomiono główny efekt zooma.', { mapMode, filteredRoutesCount: filteredRoutes.length, selectedRouteId: selectedRoute?.id, fromLoc: fromLocation?.name, toLoc: toLocation?.name, trigger });
 
-    // --- ZMIANA TUTAJ: DEKLARACJA allCoords ---
-    let allCoords = []; // <--- DODANA LINIA
-    // --- KONIEC ZMIANY ---
-
+    let allCoords = [];
     let zoomExecuted = false;
 
-    // Jeśli tryb to 'grid', nie robimy nic w tym efekcie - MapViewAndInteractionSetter ustawi domyślny widok.
     if (mapMode === 'grid') {
       return;
     }
 
-    // --- Logika zoomowania w trybie 'search' ---
-
     // Priorytet 1: Zoom do wybranej trasy (gdy użytkownik klika kafelek)
     if (selectedRoute && selectedRoute.geojson?.features?.[0]?.geometry?.coordinates) {
       console.log('MapAutoZoom: Zoom do wybranej trasy (selectedRoute).');
-      allCoords = selectedRoute.geojson.features[0].geometry.coordinates // <--- ZMIENIONE: przypisujemy do allCoords
+      allCoords = selectedRoute.geojson.features[0].geometry.coordinates
         .filter(pair => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === 'number' && !isNaN(pair[0]) && typeof pair[1] === 'number' && !isNaN(pair[1]))
         .map(([lng, lat]) => [lat, lng]);
 
-      if (allCoords.length > 1) { // L.latLngBounds wymaga co najmniej 2 punktów
-        const bounds = L.latLngBounds(allCoords);
-        map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+      if (allCoords.length > 1) {
+        // ZMIANA: setTimeout
+        setTimeout(() => {
+          const bounds = L.latLngBounds(allCoords);
+          map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        }, 0);
         zoomExecuted = true;
-      } else if (allCoords.length === 1) { // Obsłuż przypadek, gdy jest tylko jeden punkt
-        map.setView(allCoords[0], 12); // Ustaw widok na ten jeden punkt
+      } else if (allCoords.length === 1) {
+        // ZMIANA: setTimeout
+        setTimeout(() => {
+          map.setView(allCoords[0], 12);
+        }, 0);
         zoomExecuted = true;
       } else {
         console.warn('MapAutoZoom: selectedRoute ma niewystarczające/nieprawidłowe koordynaty dla fitBounds.', selectedRoute.id);
@@ -89,15 +88,12 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
     }
 
     // Priorytet 2: Zoom do wszystkich przefiltrowanych tras (jeśli nie wybrano konkretnej)
-    // Wykonuje się tylko, jeśli zoom jeszcze nie nastąpił przez selectedRoute
     if (!zoomExecuted && filteredRoutes && filteredRoutes.length > 0) {
       console.log('MapAutoZoom: Zoom do wszystkich przefiltrowanych tras (filteredRoutes).');
-      // Ważne: resetujemy allCoords przed ponownym wypełnieniem dla filteredRoutes
-      allCoords = []; // <--- ZRESETOWANIE allCoords tutaj
+      allCoords = []; // Zresetowanie allCoords tutaj
 
       filteredRoutes.forEach(route => {
         const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
-        // Tutaj dodajemy punkty do allCoords
         if (coords && Array.isArray(coords)) {
           coords.forEach(coordPair => {
             if (Array.isArray(coordPair) && coordPair.length === 2) {
@@ -111,8 +107,11 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
       });
 
       if (allCoords.length > 0) {
-        const bounds = L.latLngBounds(allCoords);
-        map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        // ZMIANA: setTimeout
+        setTimeout(() => {
+          const bounds = L.latLngBounds(allCoords);
+          map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        }, 0);
         zoomExecuted = true;
       } else {
           console.warn('MapAutoZoom: filteredRoutes (po filtracji) nie zawiera prawidłowych koordynat. Nie ustawiam bounds.');
@@ -120,23 +119,31 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
     }
 
     // Priorytet 3: Zoom do punktów początkowego/końcowego (jeśli nie ma tras)
-    // Wykonuje się tylko, jeśli zoom jeszcze nie nastąpił
     if (!zoomExecuted) {
         if (fromLocation && toLocation) {
             console.log('MapAutoZoom: Zoom do fromLocation i toLocation.');
-            const bounds = L.latLngBounds(
-                [fromLocation.lat, fromLocation.lng],
-                [toLocation.lat, toLocation.lng]
-            );
-            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+            // ZMIANA: setTimeout
+            setTimeout(() => {
+              const bounds = L.latLngBounds(
+                  [fromLocation.lat, fromLocation.lng],
+                  [toLocation.lat, toLocation.lng]
+              );
+              map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+            }, 0);
             zoomExecuted = true;
         } else if (fromLocation) {
             console.log('MapAutoZoom: Zoom do fromLocation.');
-            map.setView([fromLocation.lat, fromLocation.lng], 7);
+            // ZMIANA: setTimeout
+            setTimeout(() => {
+              map.setView([fromLocation.lat, fromLocation.lng], 7);
+            }, 0);
             zoomExecuted = true;
         } else if (toLocation) {
             console.log('MapAutoZoom: Zoom do toLocation.');
-            map.setView([toLocation.lat, toLocation.lng], 7);
+            // ZMIANA: setTimeout
+            setTimeout(() => {
+              map.setView([toLocation.lat, toLocation.lng], 7);
+            }, 0);
             zoomExecuted = true;
         }
     }
@@ -144,11 +151,12 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
     // Opcjonalnie: Jeśli żaden zoom nie nastąpił, a jesteśmy w trybie search, ustaw domyślny widok
     if (!zoomExecuted && mapMode === 'search') {
         console.log('MapAutoZoom: Brak tras/punktów, ustawiam domyślny widok w trybie search.');
-        map.setView([51.0504, 13.7373], 5); // Np. centrum Polski/Europy
+        // ZMIANA: setTimeout
+        setTimeout(() => {
+          map.setView([51.0504, 13.7373], 5);
+        }, 0);
     }
 
-
-  // Zależności dla tego ujednoliconego efektu:
   }, [map, mapMode, filteredRoutes, selectedRoute, fromLocation, toLocation, trigger, selectedRouteTrigger]);
 
   return null;
