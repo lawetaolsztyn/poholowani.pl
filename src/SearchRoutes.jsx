@@ -165,12 +165,15 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 
 // ... (inne importy i komponenty, np. MapEvents, MapAutoZoom, MapViewAndInteractionSetter) ...
 
+// src/SearchRoutes.jsx - w komponencie HighlightedRoute
+
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
     const openTimeoutIdRef = useRef(null);
     const closeTimeoutIdRef = useRef(null);
-    const [isMouseOverAnyRelatedElement, setIsMouseOverAnyRelatedElement] = useState(false); // <--- Aktywujemy ten stan
+    // Stan isMouseOverAnyRelatedElement będzie odzwierciedlał, czy mysz jest NAD polilinią LUB popupem
+    const [isMouseOverAnyRelatedElement, setIsMouseOverAnyRelatedElement] = useState(false); 
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
@@ -190,16 +193,16 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
     if (coords.length === 0) return null;
 
     // Funkcja do anulowania planowanego zamknięcia
-    const cancelClose = () => {
+    const cancelClose = useCallback(() => {
         if (closeTimeoutIdRef.current) {
             clearTimeout(closeTimeoutIdRef.current);
             closeTimeoutIdRef.current = null;
             console.log('CancelClose: Anulowano planowane zamknięcie popupu.');
         }
-    };
+    }, []); // Użyj useCallback
 
     // Funkcja do otwierania popupu
-    const handleOpenPopup = (latlng) => {
+    const handleOpenPopup = useCallback((latlng) => {
         console.log('handleOpenPopup: Wywołano.');
         cancelClose(); // Anuluj każde planowane zamknięcie
 
@@ -212,8 +215,8 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
         // Planujemy otwarcie popupu po opóźnieniu (100ms)
         openTimeoutIdRef.current = setTimeout(() => {
             if (popupRef.current && !popupRef.current.isOpen()) {
-                // Bezpośrednio otwórz popup, ponieważ isMouseOverAnyRelatedElement jest już ustawione na true w handlerze mouseover
-                // lub jeśli kursor wszedł na popup.
+                // Otwieramy popup bez dodatkowego sprawdzania isMouseOverAnyRelatedElement tutaj,
+                // bo zakładamy, że to wywołanie wynika z mouseover.
                 popupRef.current.setLatLng(latlng).openOn(map);
                 console.log('OpenPopup: Popup otwarty.');
             } else {
@@ -222,14 +225,11 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             openTimeoutIdRef.current = null; // Czyścimy ref po wykonaniu
         }, 100); // <-- Opóźnienie 100ms
         
-        // Zapewniamy, że stan isMouseOverAnyRelatedElement jest ustawiony na true przy próbie otwarcia
-        // Jest to ważne, gdy kursor wchodzi na sam popup.
-        setIsMouseOverAnyRelatedElement(true); 
         if (onPolylineMouseOver) onPolylineMouseOver(route.id); // Aktualizuj stan hover linii
-    };
+    }, [map, route.id, onPolylineMouseOver, cancelClose]); // Użyj useCallback
 
     // Funkcja do planowania zamknięcia popupu
-    const handleClosePopup = () => {
+    const handleClosePopup = useCallback(() => {
         console.log('handleClosePopup: Wywołano.');
         // Czyścimy timeout otwierania, jeśli istnieje
         if (openTimeoutIdRef.current) {
@@ -238,15 +238,12 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             console.log('handleClosePopup: Anulowano planowane otwarcie (bo kursor zjechał).');
         }
 
-        // Ustawiamy, że kursor NIE jest nad elementem.
-        // Ta zmiana stanu spowoduje re-render i może być użyta w timeout'cie zamknięcia.
-        setIsMouseOverAnyRelatedElement(false); 
-
-        // Planujemy zamknięcie popupu po 1.5 sekundy, ALE TYLKO JEŚLI KURSOR NIE JEST NAD ŻADNYM ZWIĄZANYM ELEMENTEM
+        // Planujemy zamknięcie popupu po 1.5 sekundy.
+        // Ważne: Sprawdzenie isMouseOverAnyRelatedElement nastąpi W ŚRODKU setTimeout.
         if (!closeTimeoutIdRef.current) { // Zapobiegamy wielokrotnemu ustawianiu timeoutu
             closeTimeoutIdRef.current = setTimeout(() => {
-                // To sprawdzenie isMouseOverAnyRelatedElement jest kluczowe po opóźnieniu
-                // Używamy aktualnej wartości stanu.
+                // Po 1.5 sekundy SPRAWDZAMY, czy kursor WCIĄŻ NIE JEST nad żadnym z elementów.
+                // Jeśli jest, to znaczy, że mysz wróciła lub przeszła na popup.
                 if (popupRef.current && popupRef.current.isOpen() && !isMouseOverAnyRelatedElement) { 
                     popupRef.current.close();
                     console.log('ClosePopup: Popup zamknięty po opóźnieniu.');
@@ -260,13 +257,12 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
         }
         
         if (onPolylineMouseOut) onPolylineMouseOut(null); // Aktualizuj stan hover linii
-    };
+    }, [onPolylineMouseOut, isMouseOverAnyRelatedElement]); // Użyj useCallback, isMouseOverAnyRelatedElement jest zależności
 
     // Użyj useEffect do czyszczenia timeoutów przy odmontowaniu komponentu
     useEffect(() => {
         return () => {
             if (openTimeoutIdRef.current) clearTimeout(openTimeoutIdRef.current);
-            // Poprawiony błąd literowy: closeTimeoutIdIdRef.current -> closeTimeoutIdRef.current
             if (closeTimeoutIdRef.current) clearTimeout(closeTimeoutIdRef.current); 
         };
     }, []);
@@ -279,15 +275,15 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
             eventHandlers={{
                 mouseover: (e) => {
-                    setIsMouseOverAnyRelatedElement(true); // Kursor nad polilinią
+                    // Ustawiamy, że mysz jest nad jakimkolwiek elementem powiązanym
+                    setIsMouseOverAnyRelatedElement(true); 
                     handleOpenPopup(e.latlng);
-                    if (onPolylineMouseOver) onPolylineMouseOver(route.id);
                 },
                 mouseout: (e) => {
-                    // Kursor zjechał z polilinii
-                    // Nie ustawiaj od razu isMouseOverAnyRelatedElement na false,
-                    // bo może od razu wlecieć na popup. handleClosePopup to zrobi.
-                    if (onPolylineMouseOut) onPolylineMouseOut(null);
+                    // Mysz opuściła polilinię. Planujemy zamknięcie, ale pozwalamy popupowi anulować to,
+                    // jeśli kursor na niego wleci.
+                    // NIE ustawiamy isMouseOverAnyRelatedElement na false TUTAJ.
+                    // Zostawiamy to dla Popup.onmouseleave, bo tam jest faktyczne opuszczenie.
                     handleClosePopup(); 
                 },
                 mousemove: (e) => {
@@ -308,19 +304,20 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                     const popupContent = e.popup._container;
                     if (popupContent) {
                         popupContent.onmouseenter = () => {
-                            setIsMouseOverAnyRelatedElement(true); // Kursor wszedł na popup
+                            // Mysz weszła na popup - anuluj zamykanie
+                            setIsMouseOverAnyRelatedElement(true); // Upewniamy się, że stan jest true
                             cancelClose();
                         };
                         popupContent.onmouseleave = () => {
-                            setIsMouseOverAnyRelatedElement(false); // Kursor zjechał z popupu
+                            // Mysz opuściła popup - uruchom proces zamykania
+                            setIsMouseOverAnyRelatedElement(false); // Ustawiamy, że kursor nie jest nad popupem
                             handleClosePopup();
                         };
                     }
                 }}
                 onClose={() => {
                     console.log('Popup: onClose wywołano.');
-                    // Po zamknięciu popupu upewnij się, że stan isMouseOverAnyRelatedElement jest poprawny
-                    // (np. jeśli popup został zamknięty w inny sposób niż mouseleave)
+                    // Gdy popup jest ZAMKNIĘTY (niezależnie od przyczyny), upewnij się, że stan jest false
                     setIsMouseOverAnyRelatedElement(false); 
                 }}
             >
