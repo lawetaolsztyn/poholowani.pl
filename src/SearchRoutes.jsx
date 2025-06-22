@@ -192,16 +192,24 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
         if (closePopupTimeoutRef.current) {
             clearTimeout(closePopupTimeoutRef.current);
             closePopupTimeoutRef.current = null;
+            console.log('openPopup: Anulowano planowane zamknięcie.'); // <--- DODANY LOG
+
         }
         // Upewniamy się, że popup zostanie otwarty
         if (!showPopup) {
+            console.log('openPopup: showPopup jest false, ustawiam na true.'); // <--- DODANY LOG
+
             setShowPopup(true);
             if (popupRef.current) {
+                console.log('openPopup: popupRef.current istnieje, planuję otwarcie Leaflet popup.'); // <--- DODANY LOG
+
                 // Leaflet potrzebuje położenia, aby otworzyć popup
                 // Używamy opóźnienia, aby React miał czas na zrenderowanie popupu
                 // zanim Leaflet spróbuje go otworzyć.
                 openTimeoutRef.current = setTimeout(() => {
                     if (popupRef.current && !popupRef.current.isOpen()) {
+                        console.log('openPopup: Otwieram Leaflet popup.'); // <--- DODANY LOG
+
                         popupRef.current.setLatLng(latlng).openOn(map);
                     }
                 }, 50); // Krótkie opóźnienie
@@ -211,6 +219,8 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     // Funkcja do planowania zamknięcia dymku
     const scheduleClosePopup = () => {
+        console.log('scheduleClosePopup: Wywołano.'); // <--- DODANY LOG
+
         // Czyścimy poprzednie timeouty otwierania (jeśli użytkownik szybko najechał/zjechał)
         if (openTimeoutRef.current) {
             clearTimeout(openTimeoutRef.current);
