@@ -164,9 +164,7 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
-    const openTimeoutRef = useRef(null); // Nowy timeout do otwierania
-    const closePopupTimeoutRef = useRef(null); // Nowy timeout do zamykania
-    // const [showPopup, setShowPopup] = useState(false); // <-- USUWAMY TEN STAN
+    const closeTimeoutIdRef = useRef(null); // Ref do przechowywania ID timeoutu zamknięcia
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
@@ -185,70 +183,49 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     if (coords.length === 0) return null;
 
-    // Funkcja do otwierania dymku
-    const openPopup = (latlng) => {
-        console.log('openPopup: Wywołano.');
-        // Czyścimy timeout zamykania, jeśli istnieje, aby utrzymać popup otwartym
-        if (closePopupTimeoutRef.current) {
-            clearTimeout(closePopupTimeoutRef.current);
-            closePopupTimeoutRef.current = null;
-            console.log('openPopup: Anulowano planowane zamknięcie.');
+    // Funkcja do anulowania planowanego zamknięcia
+    const cancelClose = () => {
+        if (closeTimeoutIdRef.current) {
+            clearTimeout(closeTimeoutIdRef.current);
+            closeTimeoutIdRef.current = null;
+            console.log('CancelClose: Anulowano planowane zamknięcie popupu.');
         }
+    };
 
-        // Planujemy otwarcie dymku po bardzo krótkim opóźnieniu.
-        // To pozwala Reactowi na wykonanie bieżącego cyklu renderowania,
-        // a Leafletowi na upewnienie się, że popupRef.current jest gotowy.
-        if (popupRef.current) {
-            // Czyścimy poprzednie timeouty otwierania, aby uniknąć wielokrotnego otwierania
-            if (openTimeoutRef.current) {
-                clearTimeout(openTimeoutRef.current);
-            }
-            openTimeoutRef.current = setTimeout(() => {
-                if (popupRef.current && !popupRef.current.isOpen()) {
-                    console.log('openPopup: Otwieram Leaflet popup.');
+    // Funkcja do otwierania popupu i zarządzania stanem hover
+    const handleOpenPopup = (latlng) => {
+        cancelClose(); // Anuluj każde planowane zamknięcie, bo kursor wszedł na trasę/popup
+        if (onPolylineMouseOver) onPolylineMouseOver(route.id); // Wyzwol hover na kafelku
+
+        // Otwórz popup tylko jeśli nie jest już otwarty
+        if (popupRef.current && !popupRef.current.isOpen()) {
+            // Małe opóźnienie, aby dać Reactowi czas na aktualizację DOM, jeśli popup był zamknięty
+            setTimeout(() => {
+                if (popupRef.current && !popupRef.current.isOpen()) { // Sprawdzamy ponownie na wypadek szybkiego ruchu
                     popupRef.current.setLatLng(latlng).openOn(map);
-                } else {
-                    console.log('openPopup: Popup już otwarty lub ref niedostępny.');
+                    console.log('OpenPopup: Popup otwarty.');
                 }
-                openTimeoutRef.current = null; // Czyścimy ref po wykonaniu
-            }, 50); // Małe opóźnienie, aby dać Leafletowi czas
+            }, 50); // Krótkie opóźnienie
         } else {
-            console.log('openPopup: popupRef.current jest NULL! Nie mogę otworzyć popupu.');
+             console.log('OpenPopup: Popup już otwarty lub ref niedostępny.');
         }
     };
 
-    // Funkcja do planowania zamknięcia dymku
-    const scheduleClosePopup = () => {
-        console.log('scheduleClosePopup: Wywołano.');
-        // Czyścimy timeout otwierania, jeśli istnieje
-        if (openTimeoutRef.current) {
-            clearTimeout(openTimeoutRef.current);
-            openTimeoutRef.current = null;
-            console.log('scheduleClosePopup: Anulowano planowane otwarcie.');
+    // Funkcja do planowania zamknięcia popupu
+    const handleClosePopup = () => {
+        // Planujemy zamknięcie popupu po 1.5 sekundy
+        // Tylko jeśli nie ma już aktywnego timeoutu
+        if (!closeTimeoutIdRef.current) {
+            closeTimeoutIdRefRef.current = setTimeout(() => {
+                if (popupRef.current && popupRef.current.isOpen()) {
+                    popupRef.current.close();
+                    console.log('ClosePopup: Popup zamknięty po opóźnieniu.');
+                }
+                closeTimeoutIdRef.current = null; // Zresetuj ID po wykonaniu
+            }, 1500); // 1.5 sekundy opóźnienia
         }
-        // Planujemy zamknięcie dymku po 1.5 sekundy
-        closePopupTimeoutRef.current = setTimeout(() => {
-            if (popupRef.current && popupRef.current.isOpen()) {
-                console.log('scheduleClosePopup: Zamykam Leaflet popup.');
-                popupRef.current.close();
-            } else {
-                console.log('scheduleClosePopup: Popup już zamknięty lub ref niedostępny.');
-            }
-            closePopupTimeoutRef.current = null;
-        }, 1500); // <-- 1.5 sekundy opóźnienia
+        if (onPolylineMouseOut) onPolylineMouseOut(null); // Wyzwol hover na kafelku
     };
-
-    // Funkcja do anulowania zamknięcia dymku (gdy kursor wraca na trasę lub dymek)
-    const cancelClosePopup = () => {
-        console.log('cancelClosePopup: Wywołano.');
-        if (closePopupTimeoutRef.current) {
-            clearTimeout(closePopupTimeoutRef.current);
-            closePopupTimeoutRef.current = null;
-            console.log('cancelClosePopup: Anulowano planowane zamknięcie.');
-        }
-        // Nie trzeba czyścić openTimeoutRef tutaj, bo on się czyści po otwarciu
-    };
-
 
     return (
         <Polyline
@@ -256,14 +233,8 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             pane={isHovered ? 'hovered' : 'routes'}
             pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
             eventHandlers={{
-                mouseover: (e) => {
-                    openPopup(e.latlng);
-                    if (onPolylineMouseOver) onPolylineMouseOver(route.id);
-                },
-                mouseout: (e) => {
-                    scheduleClosePopup();
-                    if (onPolylineMouseOut) onPolylineMouseOut(null);
-                },
+                mouseover: (e) => handleOpenPopup(e.latlng), // Wywołaj funkcję otwierającą
+                mouseout: handleClosePopup, // Wywołaj funkcję planującą zamknięcie
                 mousemove: (e) => {
                     // Opcjonalnie: aktualizuj pozycję dymku, jeśli jest otwarty
                     if (popupRef.current && popupRef.current.isOpen()) {
@@ -272,25 +243,25 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                 }
             }}
         >
-            {/* ZMIANA TUTAJ: Popup jest ZAWSZE renderowany. Usunęliśmy showPopup && */}
             <Popup
                 ref={popupRef}
                 autoClose={false}
                 closeOnEscapeKey={false}
                 closeButton={false}
                 closeOnClick={false}
-                // onOpen i onClose są w porządku - będą wywoływane przez Leaflet
                 onOpen={(e) => {
                     console.log('Popup: onOpen wywołano. Podpinam mouseenter/mouseleave do kontenera.');
                     const popupContent = e.popup._container;
                     if (popupContent) {
-                        popupContent.onmouseenter = () => { console.log('Popup Content: Mouse ENTER'); cancelClosePopup(); };
-                        popupContent.onmouseleave = () => { console.log('Popup Content: Mouse LEAVE'); scheduleClosePopup(); };
+                        // Kiedy kursor wchodzi na sam popup, anulujemy jego zamknięcie
+                        popupContent.onmouseenter = cancelClose;
+                        // Kiedy kursor opuszcza popup, planujemy jego zamknięcie
+                        popupContent.onmouseleave = handleClosePopup;
                     }
                 }}
                 onClose={() => {
                     console.log('Popup: onClose wywołano.');
-                    // Tutaj nie musimy zmieniać showPopup, bo go nie używamy
+                    // Tutaj nic więcej nie robimy, stan jest już zarządzany przez timery
                 }}
             >
                 {/* ... (zawartość Popup bez zmian) ... */}
