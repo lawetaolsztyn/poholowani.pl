@@ -14,6 +14,7 @@ import './SearchRoutes.css';
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 import { GestureHandling } from 'leaflet-gesture-handling';
 import 'leaflet-gesture-handling';
+import FloatingPopup from './components/FloatingPopup';
 
 
 const MapContext = createContext(null);
@@ -165,6 +166,7 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 
 // ... (inne importy i komponenty, np. MapEvents, MapAutoZoom, MapViewAndInteractionSetter) ...
 
+const [hoveredPopup, setHoveredPopup] = useState(null);
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
@@ -264,27 +266,25 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     return (
         <Polyline
-            positions={coords}
-            pane={isHovered ? 'hovered' : 'routes'}
-            pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
-            eventHandlers={{
-                mouseover: (e) => {
-                    handleOpenPopup(e.latlng);
-                    if (onPolylineMouseOver) onPolylineMouseOver(route.id); // Dodane w poprzednim kroku
-                },
-                mouseout: (e) => {
-                    if (onPolylineMouseOut) onPolylineMouseOut(null); // Dodane w poprzednim kroku
-                    setTimeout(() => { // To jest timeout z mouseout Polyline
-                        handleClosePopup();
-                    }, 50);
-                },
-                mousemove: (e) => {
-                    if (popupRef.current && popupRef.current.isOpen()) {
-                        popupRef.current.setLatLng(e.latlng);
-                    }
-                }
-            }}
-        >
+  positions={coords}
+  pane={isHovered ? 'hovered' : 'routes'}
+  pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
+  eventHandlers={{
+    mouseover: (e) => {
+      setHoveredPopup({ latlng: e.latlng, route });
+      if (onPolylineMouseOver) onPolylineMouseOver(route.id);
+    },
+    mousemove: (e) => {
+      setHoveredPopup(prev =>
+        prev ? { ...prev, latlng: e.latlng } : null
+      );
+    },
+    mouseout: () => {
+      if (onPolylineMouseOut) onPolylineMouseOut(null);
+      setTimeout(() => setHoveredPopup(null), 1500);
+    }
+  }}
+/>
             <Popup
                 ref={popupRef}
                 autoClose={false}
@@ -709,7 +709,14 @@ console.log("Parametry wysyłane do search_routes:");
                 </div>
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
-                        <MapContainer
+{hoveredPopup && mapRef.current && (
+  <FloatingPopup
+    map={mapRef.current}
+    latlng={hoveredPopup.latlng}
+    route={hoveredPopup.route}
+  />
+)}                        
+<MapContainer
                             // Ustawienia początkowe, które zostaną nadpisane przez MapViewAndInteractionSetter
                             center={[51.0504, 13.7373]} // Początkowe centrum
                             zoom={5} // Początkowy zoom
@@ -798,6 +805,14 @@ console.log("Parametry wysyłane do search_routes:");
                             {mapMode === 'search' && <RoadsideMarkers />}
 
                         </MapContainer>
+
+{hoveredPopup && mapRef.current && (
+  <FloatingPopup
+    map={mapRef.current}
+    latlng={hoveredPopup.latlng}
+    route={hoveredPopup.route}
+  />
+)}
                     </MapContext.Provider>
                 </div>
                 {mapMode === 'search' && (
