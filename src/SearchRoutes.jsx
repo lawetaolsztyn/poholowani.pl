@@ -648,7 +648,7 @@ console.log("Parametry wysyłane do search_routes:");
         <>
             <Navbar />
 
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 80px)', width: '100%', boxSizing: 'border-box', overflowY: 'auto', paddingBottom: '0px' }}>
+<div style={{ display: 'flex', flexDirection: 'column', width: '100%', boxSizing: 'border-box', overflowY: 'auto', paddingBottom: '0px' }}>
 
                 <div className="search-form-container">
                     <LocationAutocomplete
