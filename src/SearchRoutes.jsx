@@ -164,6 +164,7 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
+    const openTimeoutIdRef = useRef(null); // Zmienione na openTimeoutIdRef
     const closeTimeoutIdRef = useRef(null); // Ref do przechowywania ID timeoutu zamknięcia
 
     let coords = [];
@@ -194,32 +195,44 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     // Funkcja do otwierania popupu i zarządzania stanem hover
     const handleOpenPopup = (latlng) => {
+        console.log('handleOpenPopup: Wywołano.');
         cancelClose(); // Anuluj każde planowane zamknięcie, bo kursor wszedł na trasę/popup
-        if (onPolylineMouseOver) onPolylineMouseOver(route.id); // Wyzwol hover na kafelku
 
-        // Otwórz popup tylko jeśli nie jest już otwarty
-        if (popupRef.current && !popupRef.current.isOpen()) {
-            // Małe opóźnienie, aby dać Reactowi czas na aktualizację DOM, jeśli popup był zamknięty
-            setTimeout(() => {
-                if (popupRef.current && !popupRef.current.isOpen()) { // Sprawdzamy ponownie na wypadek szybkiego ruchu
-                    popupRef.current.setLatLng(latlng).openOn(map);
-                    console.log('OpenPopup: Popup otwarty.');
-                }
-            }, 50); // Krótkie opóźnienie
-        } else {
-             console.log('OpenPopup: Popup już otwarty lub ref niedostępny.');
+        // Czyścimy poprzednie timeouty otwierania, aby uniknąć wielokrotnego otwierania
+        if (openTimeoutIdRef.current) {
+            clearTimeout(openTimeoutIdRef.current);
         }
+
+        openTimeoutIdRef.current = setTimeout(() => { // Dodajemy timeout do otwierania
+            if (popupRef.current && !popupRef.current.isOpen()) {
+                popupRef.current.setLatLng(latlng).openOn(map);
+                console.log('OpenPopup: Popup otwarty.');
+            } else {
+                console.log('OpenPopup: Popup już otwarty lub ref niedostępny.');
+            }
+            openTimeoutIdRef.current = null; // Czyścimy ref po wykonaniu
+        }, 100); // <-- Zwiększone opóźnienie na otwarcie do 100ms
+        // To da więcej czasu na ustabilizowanie się kursora i uniknięcie natychmiastowego mouseout
     };
 
     // Funkcja do planowania zamknięcia popupu
     const handleClosePopup = () => {
+        console.log('handleClosePopup: Wywołano.');
+        // Czyścimy timeout otwierania, jeśli istnieje
+        if (openTimeoutIdRef.current) {
+            clearTimeout(openTimeoutIdRef.current);
+            openTimeoutIdRef.current = null;
+            console.log('handleClosePopup: Anulowano planowane otwarcie (bo kursor zjechał).');
+        }
+
         // Planujemy zamknięcie popupu po 1.5 sekundy
-        // Tylko jeśli nie ma już aktywnego timeoutu
-        if (!closeTimeoutIdRef.current) {
-closeTimeoutIdRef.current = setTimeout(() => {
-               if (popupRef.current && popupRef.current.isOpen()) {
+        if (!closeTimeoutIdRef.current) { // Tylko jeśli nie ma już aktywnego timeoutu
+            closeTimeoutIdRef.current = setTimeout(() => {
+                if (popupRef.current && popupRef.current.isOpen()) {
                     popupRef.current.close();
                     console.log('ClosePopup: Popup zamknięty po opóźnieniu.');
+                } else {
+                    console.log('ClosePopup: Popup już zamknięty lub ref niedostępny.');
                 }
                 closeTimeoutIdRef.current = null; // Zresetuj ID po wykonaniu
             }, 1500); // 1.5 sekundy opóźnienia
@@ -227,16 +240,24 @@ closeTimeoutIdRef.current = setTimeout(() => {
         if (onPolylineMouseOut) onPolylineMouseOut(null); // Wyzwol hover na kafelku
     };
 
+    // Użyj useEffect do czyszczenia timeoutów przy odmontowaniu komponentu
+    useEffect(() => {
+        return () => {
+            if (openTimeoutIdRef.current) clearTimeout(openTimeoutIdRef.current);
+            if (closeTimeoutIdRef.current) clearTimeout(closeTimeoutIdRef.current);
+        };
+    }, []);
+
+
     return (
         <Polyline
             positions={coords}
             pane={isHovered ? 'hovered' : 'routes'}
             pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
             eventHandlers={{
-                mouseover: (e) => handleOpenPopup(e.latlng), // Wywołaj funkcję otwierającą
-                mouseout: handleClosePopup, // Wywołaj funkcję planującą zamknięcie
+                mouseover: (e) => handleOpenPopup(e.latlng),
+                mouseout: handleClosePopup,
                 mousemove: (e) => {
-                    // Opcjonalnie: aktualizuj pozycję dymku, jeśli jest otwarty
                     if (popupRef.current && popupRef.current.isOpen()) {
                         popupRef.current.setLatLng(e.latlng);
                     }
@@ -253,15 +274,12 @@ closeTimeoutIdRef.current = setTimeout(() => {
                     console.log('Popup: onOpen wywołano. Podpinam mouseenter/mouseleave do kontenera.');
                     const popupContent = e.popup._container;
                     if (popupContent) {
-                        // Kiedy kursor wchodzi na sam popup, anulujemy jego zamknięcie
-                        popupContent.onmouseenter = cancelClose;
-                        // Kiedy kursor opuszcza popup, planujemy jego zamknięcie
-                        popupContent.onmouseleave = handleClosePopup;
+                        popupContent.onmouseenter = cancelClose; // Anuluj zamknięcie, gdy kursor wejdzie na popup
+                        popupContent.onmouseleave = handleClosePopup; // Planuj zamknięcie, gdy kursor opuści popup
                     }
                 }}
                 onClose={() => {
                     console.log('Popup: onClose wywołano.');
-                    // Tutaj nic więcej nie robimy, stan jest już zarządzany przez timery
                 }}
             >
                 {/* ... (zawartość Popup bez zmian) ... */}
