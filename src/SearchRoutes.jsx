@@ -164,9 +164,7 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
-    const openTimeoutIdRef = useRef(null);
-    const closeTimeoutIdRef = useRef(null);
-    const [isMouseOverAnyRelatedElement, setIsMouseOverAnyRelatedElement] = useState(false); // NOWY STAN
+    const closeTimeoutIdRef = useRef(null); // Ref do przechowywania ID timeoutu zamknięcia
 
     let coords = [];
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
@@ -185,6 +183,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 
     if (coords.length === 0) return null;
 
+    // Funkcja do anulowania planowanego zamknięcia
     const cancelClose = () => {
         if (closeTimeoutIdRef.current) {
             clearTimeout(closeTimeoutIdRef.current);
@@ -193,64 +192,40 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
         }
     };
 
+    // Funkcja do otwierania popupu i zarządzania stanem hover
     const handleOpenPopup = (latlng) => {
-        console.log('handleOpenPopup: Wywołano.');
-        cancelClose(); // Anuluj każde planowane zamknięcie
-        setIsMouseOverAnyRelatedElement(true); // Mysz jest nad elementem
+        cancelClose(); // Anuluj każde planowane zamknięcie, bo kursor wszedł na trasę/popup
+        if (onPolylineMouseOver) onPolylineMouseOver(route.id); // Wyzwol hover na kafelku
 
-        if (onPolylineMouseOver) onPolylineMouseOver(route.id);
-
+        // Otwórz popup tylko jeśli nie jest już otwarty
         if (popupRef.current && !popupRef.current.isOpen()) {
-            if (openTimeoutIdRef.current) {
-                clearTimeout(openTimeoutIdRef.current);
-            }
-            openTimeoutIdRef.current = setTimeout(() => {
-                if (popupRef.current && !popupRef.current.isOpen() && isMouseOverAnyRelatedElement) { // Dodatkowy warunek
+            // Małe opóźnienie, aby dać Reactowi czas na aktualizację DOM, jeśli popup był zamknięty
+            setTimeout(() => {
+                if (popupRef.current && !popupRef.current.isOpen()) { // Sprawdzamy ponownie na wypadek szybkiego ruchu
                     popupRef.current.setLatLng(latlng).openOn(map);
                     console.log('OpenPopup: Popup otwarty.');
-                } else {
-                    console.log('OpenPopup: Popup już otwarty lub ref niedostępny lub mysz już zjechała.');
                 }
-                openTimeoutIdRef.current = null;
-            }, 100);
+            }, 50); // Krótkie opóźnienie
         } else {
-            console.log('OpenPopup: Popup już otwarty lub ref niedostępny.');
+             console.log('OpenPopup: Popup już otwarty lub ref niedostępny.');
         }
     };
 
+    // Funkcja do planowania zamknięcia popupu
     const handleClosePopup = () => {
-        console.log('handleClosePopup: Wywołano.');
-        setIsMouseOverAnyRelatedElement(false); // Mysz zjechała z elementu
-        
-        if (openTimeoutIdRef.current) {
-            clearTimeout(openTimeoutIdRef.current);
-            openTimeoutIdRef.current = null;
-            console.log('handleClosePopup: Anulowano planowane otwarcie (bo kursor zjechał).');
-        }
-
-        // Planujemy zamknięcie popupu po 1.5 sekundy TYLKO JEŚLI MYSZ NIE JEST NAD ŻADNYM ELEMENTEM
-        if (!closeTimeoutIdRef.current && !isMouseOverAnyRelatedElement) { // Dodany warunek
-            closeTimeoutIdRef.current = setTimeout(() => {
+        // Planujemy zamknięcie popupu po 1.5 sekundy
+        // Tylko jeśli nie ma już aktywnego timeoutu
+        if (!closeTimeoutIdRef.current) {
+            closeTimeoutIdRefRef.current = setTimeout(() => {
                 if (popupRef.current && popupRef.current.isOpen()) {
                     popupRef.current.close();
                     console.log('ClosePopup: Popup zamknięty po opóźnieniu.');
-                } else {
-                    console.log('ClosePopup: Popup już zamknięty lub ref niedostępny.');
                 }
-                closeTimeoutIdRef.current = null;
-            }, 1500);
+                closeTimeoutIdRef.current = null; // Zresetuj ID po wykonaniu
+            }, 1500); // 1.5 sekundy opóźnienia
         }
-        if (onPolylineMouseOut) onPolylineMouseOut(null);
+        if (onPolylineMouseOut) onPolylineMouseOut(null); // Wyzwol hover na kafelku
     };
-
-    // Użyj useEffect do czyszczenia timeoutów przy odmontowaniu komponentu
-    useEffect(() => {
-        return () => {
-            if (openTimeoutIdRef.current) clearTimeout(openTimeoutIdRef.current);
-            if (closeTimeoutIdRef.current) clearTimeout(closeTimeoutIdRef.current);
-        };
-    }, []);
-
 
     return (
         <Polyline
@@ -258,9 +233,10 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
             pane={isHovered ? 'hovered' : 'routes'}
             pathOptions={{ color: isHovered ? 'red' : 'blue', weight: isHovered ? 6 : 5 }}
             eventHandlers={{
-                mouseover: (e) => handleOpenPopup(e.latlng),
-                mouseout: handleClosePopup,
+                mouseover: (e) => handleOpenPopup(e.latlng), // Wywołaj funkcję otwierającą
+                mouseout: handleClosePopup, // Wywołaj funkcję planującą zamknięcie
                 mousemove: (e) => {
+                    // Opcjonalnie: aktualizuj pozycję dymku, jeśli jest otwarty
                     if (popupRef.current && popupRef.current.isOpen()) {
                         popupRef.current.setLatLng(e.latlng);
                     }
@@ -277,20 +253,15 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                     console.log('Popup: onOpen wywołano. Podpinam mouseenter/mouseleave do kontenera.');
                     const popupContent = e.popup._container;
                     if (popupContent) {
-                        popupContent.onmouseenter = () => {
-                            console.log('Popup Content: Mouse ENTER');
-                            setIsMouseOverAnyRelatedElement(true); // Mysz nad popupem
-                            cancelClose(); // Anuluj zamknięcie
-                        };
-                        popupContent.onmouseleave = () => {
-                            console.log('Popup Content: Mouse LEAVE');
-                            setIsMouseOverAnyRelatedElement(false); // Mysz zjechała z popupu
-                            handleClosePopup(); // Planuj zamknięcie
-                        };
+                        // Kiedy kursor wchodzi na sam popup, anulujemy jego zamknięcie
+                        popupContent.onmouseenter = cancelClose;
+                        // Kiedy kursor opuszcza popup, planujemy jego zamknięcie
+                        popupContent.onmouseleave = handleClosePopup;
                     }
                 }}
                 onClose={() => {
                     console.log('Popup: onClose wywołano.');
+                    // Tutaj nic więcej nie robimy, stan jest już zarządzany przez timery
                 }}
             >
                 {/* ... (zawartość Popup bez zmian) ... */}
@@ -305,7 +276,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
                     <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
                     {route.phone && (
                         <div style={{ marginBottom: '10px' }}>
-                            📞 <strong style={{ letterSpacing: '1px' }}>
+                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
                                 <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
                                     {route.phone}
                                 </a>
