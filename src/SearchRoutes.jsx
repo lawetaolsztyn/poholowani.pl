@@ -216,8 +216,8 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
         // Planujemy zamknięcie popupu po 1.5 sekundy
         // Tylko jeśli nie ma już aktywnego timeoutu
         if (!closeTimeoutIdRef.current) {
-            closeTimeoutIdRefRef.current = setTimeout(() => {
-                if (popupRef.current && popupRef.current.isOpen()) {
+closeTimeoutIdRef.current = setTimeout(() => {
+               if (popupRef.current && popupRef.current.isOpen()) {
                     popupRef.current.close();
                     console.log('ClosePopup: Popup zamknięty po opóźnieniu.');
                 }
