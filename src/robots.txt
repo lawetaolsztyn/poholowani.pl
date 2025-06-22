@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /choose-role/
+Disallow: /reset-hasla/
+Disallow: /moje-trasy/
+Disallow: /admin-dashboard/
+Disallow: /messenger-link/
+Disallow: /profil/
+
+Sitemap: https://www.poholowani.pl/sitemap.xml
