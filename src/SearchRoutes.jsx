@@ -52,87 +52,98 @@ function MapEvents() {
 function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selectedRouteTrigger, mapMode, filteredRoutes }) {
   const map = useMap();
 
-  // Zoom do from/to albo selectedRoute — jak wcześniej
+  // Ujednolicony useEffect do zarządzania zoomem mapy w trybie 'search'
   useEffect(() => {
-    if (mapMode === 'search') {
-      if (fromLocation && toLocation) {
-        const bounds = L.latLngBounds(
-          [fromLocation.lat, fromLocation.lng],
-          [toLocation.lat, toLocation.lng]
-        );
-        map.fitBounds(bounds, { padding: [50, 50] });
-      } else if (fromLocation) {
-        map.setView([fromLocation.lat, fromLocation.lng], 7);
-      } else if (toLocation) {
-        map.setView([toLocation.lat, toLocation.lng], 7);
-      }
+    console.log('MapAutoZoom: Uruchomiono główny efekt zooma.', { mapMode, filteredRoutesCount: filteredRoutes.length, selectedRouteId: selectedRoute?.id, fromLoc: fromLocation?.name, toLoc: toLocation?.name, trigger });
+
+    // Jeśli tryb to 'grid', nie robimy nic w tym efekcie - MapViewAndInteractionSetter ustawi domyślny widok.
+    if (mapMode === 'grid') {
+      return;
     }
-  }, [trigger, mapMode, fromLocation, toLocation, map]);
 
-  // Zoom do wybranej trasy (selectedRoute) — jak wcześniej
- 
-useEffect(() => {
- if (mapMode === 'search' && selectedRoute?.geojson?.features?.[0]?.geometry?.coordinates) {
-   const coords = selectedRoute.geojson.features[0].geometry.coordinates
-     .filter(pair => // <--- DODANO PEŁNĄ WALIDACJĘ
-         Array.isArray(pair) &&
-         pair.length === 2 &&
-         typeof pair[0] === 'number' && !isNaN(pair[0]) &&
-         typeof pair[1] === 'number' && !isNaN(pair[1])
-     )
-     .map(([lng, lat]) => [lat, lng]);
+    // --- Logika zoomowania w trybie 'search' ---
+    let coordsToFit = [];
+    let zoomExecuted = false;
 
-   if (coords.length > 1) { // Sprawdzenie, czy po filtracji pozostało wystarczająco dużo punktów
-     const bounds = L.latLngBounds(coords);
-     const paddedBounds = bounds.pad(0.1);
-     map.fitBounds(paddedBounds, { padding: [80, 80], maxZoom: 12 });
-   } else {
-       console.warn('MapAutoZoom selectedRoute: Brak wystarczającej liczby prawidłowych współrzędnych dla trasy ID:', selectedRoute.id);
-   }
- }
-}, [selectedRoute, mapMode, map]);
+    // Priorytet 1: Zoom do wybranej trasy (gdy użytkownik klika kafelek)
+    if (selectedRoute && selectedRoute.geojson?.features?.[0]?.geometry?.coordinates) {
+      console.log('MapAutoZoom: Zoom do wybranej trasy (selectedRoute).');
+      coordsToFit = selectedRoute.geojson.features[0].geometry.coordinates
+        .filter(pair => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === 'number' && !isNaN(pair[0]) && typeof pair[1] === 'number' && !isNaN(pair[1]))
+        .map(([lng, lat]) => [lat, lng]);
 
-
-  // NOWY EFEKT: Zoom do WSZYSTKICH tras w filteredRoutes
-// src/SearchRoutes.jsx - w komponencie MapAutoZoom
-useEffect(() => {
-  console.log('MapAutoZoom: Zoom do wszystkich tras', filteredRoutes.length);
-  if (mapMode === 'search' && filteredRoutes && filteredRoutes.length > 1) {
-    const allCoords = [];
-    filteredRoutes.forEach(route => {
-      const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
-      if (coords && Array.isArray(coords)) {
-        coords.forEach(coordPair => { // <--- Zmieniono na iterację po parze
-          if (Array.isArray(coordPair) && coordPair.length === 2) { // Dodatkowe sprawdzenie
-              const [lng, lat] = coordPair; // Destrukturyzacja dla czytelności
-              if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) { // <--- DODANO !isNaN
-                allCoords.push([lat, lng]);
-              } else {
-                console.warn('MapAutoZoom filteredRoutes: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
-              }
-          } else {
-              console.warn('MapAutoZoom filteredRoutes: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
-          }
-        });
+      if (coordsToFit.length > 1) {
+        const bounds = L.latLngBounds(coordsToFit);
+        map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        zoomExecuted = true;
       } else {
-          console.warn('MapAutoZoom filteredRoutes: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
+        console.warn('MapAutoZoom: selectedRoute ma niewystarczające/nieprawidłowe koordynaty dla fitBounds.', selectedRoute.id);
       }
-    });
-
-    if (allCoords.length > 0) {
-      const bounds = L.latLngBounds(allCoords);
-      console.log('MapAutoZoom Bounds:', bounds.toBBoxString());
-      map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
-    } else {
-        console.warn('MapAutoZoom filteredRoutes: allCoords jest puste po filtracji, nie ustawiam bounds.');
     }
-  }
-}, [filteredRoutes, mapMode, map]);
 
+    // Priorytet 2: Zoom do wszystkich przefiltrowanych tras (jeśli nie wybrano konkretnej)
+    // Wykonuje się tylko, jeśli zoom jeszcze nie nastąpił przez selectedRoute
+    if (!zoomExecuted && filteredRoutes && filteredRoutes.length > 0) {
+      console.log('MapAutoZoom: Zoom do wszystkich przefiltrowanych tras (filteredRoutes).');
+      filteredRoutes.forEach(route => {
+        const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
+        if (coords && Array.isArray(coords)) {
+          coords.forEach(coordPair => {
+            if (Array.isArray(coordPair) && coordPair.length === 2) {
+              const [lng, lat] = coordPair;
+              if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
+                allCoords.push([lat, lng]);
+              }
+            }
+          });
+        }
+      });
+
+      if (allCoords.length > 0) {
+        const bounds = L.latLngBounds(allCoords);
+        map.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
+        zoomExecuted = true;
+      } else {
+          console.warn('MapAutoZoom: filteredRoutes (po filtracji) nie zawiera prawidłowych koordynat. Nie ustawiam bounds.');
+      }
+    }
+
+    // Priorytet 3: Zoom do punktów początkowego/końcowego (jeśli nie ma tras)
+    // Wykonuje się tylko, jeśli zoom jeszcze nie nastąpił
+    if (!zoomExecuted) {
+        if (fromLocation && toLocation) {
+            console.log('MapAutoZoom: Zoom do fromLocation i toLocation.');
+            const bounds = L.latLngBounds(
+                [fromLocation.lat, fromLocation.lng],
+                [toLocation.lat, toLocation.lng]
+            );
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+            zoomExecuted = true;
+        } else if (fromLocation) {
+            console.log('MapAutoZoom: Zoom do fromLocation.');
+            map.setView([fromLocation.lat, fromLocation.lng], 7);
+            zoomExecuted = true;
+        } else if (toLocation) {
+            console.log('MapAutoZoom: Zoom do toLocation.');
+            map.setView([toLocation.lat, toLocation.lng], 7);
+            zoomExecuted = true;
+        }
+    }
+
+    // Opcjonalnie: Jeśli żaden zoom nie nastąpił, a jesteśmy w trybie search, ustaw domyślny widok
+    if (!zoomExecuted && mapMode === 'search') {
+        console.log('MapAutoZoom: Brak tras/punktów, ustawiam domyślny widok w trybie search.');
+        map.setView([51.0504, 13.7373], 5); // Np. centrum Polski/Europy
+    }
+
+
+  // Zależności dla tego ujednoliconego efektu:
+  // Trigger jest dodany, aby wymusić ponowne wykonanie efektu po każdym wyszukiwaniu,
+  // nawet jeśli dane filteredRoutes czy selectedRoute są referencyjnie takie same.
+  }, [map, mapMode, filteredRoutes, selectedRoute, fromLocation, toLocation, trigger, selectedRouteTrigger]);
 
   return null;
 }
-
 const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered, onPolylineMouseOver, onPolylineMouseOut }) {
     const popupRef = useRef(null);
     const map = useMap();
