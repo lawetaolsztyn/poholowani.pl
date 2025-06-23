@@ -1,7 +1,7 @@
 // src/SearchRoutes.jsx
 import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents, Marker } from 'react-leaflet'; // Dodaj Marker
 import * as turf from '@turf/turf';
 import 'leaflet/dist/leaflet.css';
 import Navbar from './components/Navbar';
@@ -16,7 +16,7 @@ import { GestureHandling } from 'leaflet-gesture-handling';
 import 'leaflet-gesture-handling';
 
 // Importy dla klasteryzacji
-import MarkerClusterGroup from 'react-leaflet-markercluster';
+import MarkerClusterGroup from 'react-leaflet-markercluster'; // Jeśli używasz tego wrappera
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
@@ -61,13 +61,10 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
         let allCoords = [];
         let zoomExecuted = false;
 
-        // MapAutoZoom dla trybu grid jest wyłączony, bo klasteryzacja ma własne zarządzanie widokiem
         if (mapMode === 'grid') {
             return;
         }
 
-        // Reszta logiki MapAutoZoom, która używa selectedRoute.geojson
-        // Ta logika jest poprawna dla trybu 'search', gdzie full geojson jest dostępny.
         if (selectedRoute && selectedRoute.geojson?.features?.[0]?.geometry?.coordinates) {
             console.log('MapAutoZoom: Zoom do wybranej trasy (selectedRoute).');
             allCoords = selectedRoute.geojson.features[0].geometry.coordinates
@@ -95,7 +92,6 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
             allCoords = [];
 
             filteredRoutes.forEach(route => {
-                // Tutaj nadal polegamy na geojson dla trybu search, co jest OK
                 const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
                 if (coords && Array.isArray(coords)) {
                     coords.forEach(coordPair => {
@@ -169,7 +165,12 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
         const rawCoords = route.geojson.features[0].geometry.coordinates;
         if (Array.isArray(rawCoords)) {
             coords = rawCoords
-                .filter(pair => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === 'number' && !isNaN(pair[0]) && typeof pair[1] === 'number' && !isNaN(pair[1]))
+                .filter(coordPair =>
+                    Array.isArray(coordPair) &&
+                    coordPair.length === 2 &&
+                    typeof coordPair[0] === 'number' && !isNaN(coordPair[0]) &&
+                    typeof coordPair[1] === 'number' && !isNaN(coordPair[1])
+                )
                 .map(([lng, lat]) => [lat, lng]);
         }
     }
@@ -345,10 +346,16 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 // i obsługuje Popup dla Markera
 const StaticRouteClusterMarker = React.memo(function StaticRouteClusterMarker({ route }) {
     let startPointCoords = null;
-    // POBIERZ WSPÓŁRZĘDNE Z NOWYCH KOLUMN from_lat i from_lng
-    // Upewnij się, że te kolumny są typu NUMERIC w Twojej bazie danych i zawierają poprawne wartości
-    if (typeof route.from_lat === 'number' && typeof route.from_lng === 'number' && !isNaN(route.from_lat) && !isNaN(route.from_lng)) {
-        startPointCoords = [route.from_lat, route.from_lng]; // [lat, lng]
+    if (route.geojson?.features?.[0]?.geometry?.coordinates) {
+        const rawCoords = route.geojson.features[0].geometry.coordinates;
+        if (Array.isArray(rawCoords) && rawCoords.length > 0) {
+            const firstCoordPair = rawCoords[0];
+            if (Array.isArray(firstCoordPair) && firstCoordPair.length === 2 &&
+                typeof firstCoordPair[0] === 'number' && !isNaN(firstCoordPair[0]) &&
+                typeof firstCoordPair[1] === 'number' && !isNaN(firstCoordPair[1])) {
+                startPointCoords = [firstCoordPair[1], firstCoordPair[0]]; // [lat, lng]
+            }
+        }
     }
 
     if (!startPointCoords) return null;
@@ -367,22 +374,61 @@ const StaticRouteClusterMarker = React.memo(function StaticRouteClusterMarker({ 
     return (
         <Marker position={startPointCoords} icon={defaultIcon}>
             <Popup>
-                {/* TUTAJ ZMODYFIKUJ ZAWARTOŚĆ POPUPU DLA KLASTRÓW - POKAZUJ TYLKO TO, CO POBIERASZ */}
                 <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
                     <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
                         <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
                         <strong>Do:</strong> {route.to_city?.split(',')[0]}
                     </div>
-                    {/* Jeśli potrzebujesz daty w popupie klastra, upewnij się, że ją pobierasz */}
-                    {route.date && <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>}
-                    {/* USUNIĘTO LUB ZAKOMENTOWANO PONIŻSZE LINIE, JEŚLI ICH NIE POBIERASZ W TYM TRYBIE */}
-                    {/* <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div> */}
-                    {/* <div style={{ marginBottom: '6px' }}>Osób: {route.passenger_count || '–'}</div> */}
-                    {/* <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div> */}
-                    {/* {route.phone && ( ... )} */}
-                    {/* {route.uses_whatsapp && ( ... )} */}
-                    {/* {route.messenger_link && ( ... )} */}
-                    {/* {route.user_id && route.users_extended?.nip && ( ... )} */}
+                    <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
+                    <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
+                    <div style={{ marginBottom: '6px' }}>Osób: {route.passenger_count || '–'}</div>
+                    <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
+                    {route.phone && (
+                        <div style={{ marginBottom: '10px' }}>
+                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
+                                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
+                                    {route.phone}
+                                </a>
+                            </strong>
+                            {route.uses_whatsapp && (
+                                <div style={{ marginTop: '4px' }}>
+                                    <a
+                                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
+                                    >
+                                        🟢 WhatsApp
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {route.messenger_link && (
+                        <div style={{ marginTop: '4px' }}>
+                            <a
+                                href={route.messenger_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+                            >
+                                🔵 Messenger
+                            </a>
+                        </div>
+                    )}
+                    {route.user_id && route.users_extended?.nip && (
+                        <div>
+                            <div style={{ marginBottom: '8px' }}>
+                                <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+                                    🏢 Firma
+                                </span>
+                            </div>
+                            <strong>Profil przewoźnika:</strong>{' '}
+                            <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+                                otwórz
+                            </a>
+                        </div>
+                    )}
                 </div>
             </Popup>
         </Marker>
@@ -453,88 +499,66 @@ function SearchRoutes() {
     const [mapMode, setMapMode] = useState('grid');
     const [resetMapViewTrigger, setResetMapViewTrigger] = useState(0);
 
-    const CACHE_LIFETIME = 6 * 60 * 60 * 1000; // 6 godzin
-
     useEffect(() => {
-        const fetchAndCacheRoutes = async () => {
+        const fetchAllRoutesForGrid = async () => {
             setIsLoading(true);
-
-            const cachedData = localStorage.getItem('allRoutesCache');
-            const cachedTimestamp = localStorage.getItem('allRoutesCacheTimestamp');
-            const now = new Date().getTime();
-
-            if (cachedData && cachedTimestamp && (now - parseInt(cachedTimestamp, 10) < CACHE_LIFETIME)) {
-                console.log('Ładowanie tras z cache przeglądarki. Dane są świeże.');
-                try {
-                    // UWAGA: Jeśli zmieniasz strukturę danych pobieranych z Supabase
-                    // musisz upewnić się, że to parsowanie cache'owanych danych jest kompatybilne.
-                    // Najlepiej zapisać do cache te dane, które pobrałeś z Supabase.
-                    const parsed = JSON.parse(cachedData).map(route => ({
-                        ...route,
-                        // Już nie ma geojson, nie ma users_extended w tym trybie
-                    }));
-                    setAllRoutes(parsed);
-                    if (mapMode === 'grid') {
-                        setFilteredRoutes(parsed);
-                    }
-                } catch (e) {
-                    console.error("Błąd parsowania danych z localStorage, pobieram z Supabase:", e);
-                    // Jeśli błąd parsowania, przejdź do pobierania z Supabase
-                    await fetchFromSupabaseAndCache();
-                }
-                setIsLoading(false);
-                return; // Zakończ, użyto cache
-            }
-
-            console.log('Pobieranie tras z Supabase (cache nieaktualny/brak).');
-            await fetchFromSupabaseAndCache();
-        };
-
-        const fetchFromSupabaseAndCache = async () => {
-            // POBIERAJ TYLKO NIEZBĘDNE KOLUMNY DLA TRYBU GRID!
             const { data, error } = await supabase
                 .from('routes')
                 .select(`
-                    id, // ID jest niezbędne dla kluczy Reacta i ewentualnego pobierania szczegółów
-                    from_city,
-                    to_city,
-                    from_lat, // NOWA KOLUMNA z szerokością geograficzną
-                    from_lng, // NOWA KOLUMNA z długością geograficzną
-                    date // Pozostawiamy datę, aby móc filtrować po 'today'
-                    // UWAGA: Brak geojson i users_extended w tym zapytaniu dla trybu grid
-                `)
-                .gte('date', today) // Filtracja po dacie, aby zmniejszyć ilość tras
-                .order('date', { ascending: true }); // Opcjonalnie: sortowanie może pomóc, jeśli indeks jest na dacie
+                *,
+                users_extended (
+                    id,
+                    nip,
+                    role,
+                    is_premium
+                )
+            `);
 
             if (error) {
                 console.error('Błąd podczas pobierania wszystkich tras dla trybu siatki:', error);
-                // W przypadku błędu z timeoutem, usuń nieaktualny cache
-                localStorage.removeItem('allRoutesCache');
-                localStorage.removeItem('allRoutesCacheTimestamp');
             } else {
                 console.log('Supabase fetched all data for grid. Count:', data.length);
                 const parsed = data.map(route => ({
                     ...route,
-                    // Nie ma już potrzeby parsowania geojson ani rekonstrukcji users_extended
+                    geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson,
+                    users_extended: route.users_extended ? {
+                        id: route.users_extended.id,
+                        nip: route.users_extended.nip,
+                        role: route.users_extended.role,
+                        is_premium: route.users_extended.is_premium
+                    } : null
                 }));
                 setAllRoutes(parsed);
-                if (mapMode === 'grid') {
-                    setFilteredRoutes(parsed);
-                }
-                localStorage.setItem('allRoutesCache', JSON.stringify(data));
-                localStorage.setItem('allRoutesCacheTimestamp', new Date().getTime().toString());
+                setFilteredRoutes(parsed);
             }
             setIsLoading(false);
         };
 
-        if (mapMode === 'grid') {
-            fetchAndCacheRoutes();
-        }
+        fetchAllRoutesForGrid();
+
+        // Ogranicz subskrypcję Realtime! To jest kluczowe dla redukcji obciążenia.
+        // Jeśli nie potrzebujesz natychmiastowych aktualizacji wszystkich tras w trybie grid,
+        // możesz usunąć tę subskrypcję lub zmienić jej zakres.
+        // Na potrzeby klasteryzacji, jeśli chcesz, aby klastery odświeżały się w czasie rzeczywistym,
+        // subskrypcja jest potrzebna, ale jej efektywność będzie zależeć od `realtime.list_changes`.
+        // Jeśli obciążenie nadal będzie zbyt duże, rozważ odświeżanie danych co X czasu (polling)
+        // zamiast Realtime dla wszystkich tras.
+        const channel = supabase
+            .channel('public:routes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
+                // Ta funkcja jest wywoływana przy każdej zmianie w tabeli 'routes'
+                // W trybie grid, po zmianie, pobieramy wszystkie trasy ponownie.
+                // Możesz tu zaimplementować bardziej granularne aktualizacje,
+                // jeśli tylko jedna trasa się zmieniła.
+                console.log('Realtime change detected, refetching all routes.');
+                fetchAllRoutesForGrid();
+            })
+            .subscribe();
 
         return () => {
-            // Brak czyszczenia kanału, bo został usunięty
+            supabase.removeChannel(channel);
         };
-    }, [mapMode, today]); // Dodano 'today' do zależności, aby odświeżało się co dzień
+    }, []);
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route);
@@ -547,7 +571,7 @@ function SearchRoutes() {
             const allCoords = [];
 
             filteredRoutes.forEach(route => {
-                const coords = route.geojson?.features?.[0]?.geometry?.coordinates; // Nadal używamy geojson dla trybu search, to jest OK
+                const coords = route.geojson?.features?.[0]?.geometry?.coordinates;
                 if (coords && Array.isArray(coords)) {
                     coords.forEach(coordPair => {
                         if (Array.isArray(coordPair) && coordPair.length === 2) {
@@ -555,14 +579,14 @@ function SearchRoutes() {
                             if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
                                 allCoords.push([lat, lng]);
                             } else {
-                                console.warn('MapAutoZoom useEffect main: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
+                                console.warn('SearchRoutes useEffect main: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
                             }
                         } else {
-                            console.warn('MapAutoZoom useEffect main: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
+                            console.warn('SearchRoutes useEffect main: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
                         }
                     });
                 } else {
-                    console.warn('MapAutoZoom useEffect main: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
+                    console.warn('SearchRoutes useEffect main: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
                 }
             });
 
@@ -570,7 +594,7 @@ function SearchRoutes() {
                 const bounds = L.latLngBounds(allCoords);
                 mapRef.current.fitBounds(bounds.pad(0.1), { padding: [80, 80], maxZoom: 12 });
             } else {
-                console.warn('MapAutoZoom useEffect main: allCoords jest puste po filtracji, nie ustawiam bounds.');
+                console.warn('SearchRoutes useEffect main: allCoords jest puste po filtracji, nie ustawiam bounds.');
             }
         }
     }, [filteredRoutes, mapMode]);
@@ -642,7 +666,7 @@ function SearchRoutes() {
         setSearchTrigger(0);
 
         setMapMode('grid');
-        setFilteredRoutes(allRoutes); // allRoutes powinno być już ustawione przez fetchAndCacheRoutes
+        setFilteredRoutes(allRoutes);
         setSelectedRoute(null);
         setSelectedRouteTrigger(prev => prev + 1);
         setResetTrigger(prev => prev + 1);
@@ -762,6 +786,7 @@ function SearchRoutes() {
                                 </div>
                             ) : (
                                 mapMode === 'grid' ? (
+                                    // *** TUTAJ ZMIENIAMY RENDEROWANIE DLA TRYBU GRID ***
                                     <MarkerClusterGroup>
                                         {allRoutes.map((route) => (
                                             <StaticRouteClusterMarker key={route.id} route={route} />

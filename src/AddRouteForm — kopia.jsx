@@ -1,4 +1,3 @@
-// src/AddRouteForm.jsx
 import { useState, useEffect } from 'react';
 import LocationAutocomplete from './components/LocationAutocomplete';
 import { supabase } from './supabaseClient';
@@ -82,21 +81,21 @@ function AddRouteForm({ onRouteCreated }) {
   const handleFromSelect = (label, sug) => {
     setForm(prevForm => ({
       ...prevForm,
-      from: { label: label, coords: sug.geometry.coordinates } // coords to [lng, lat]
+      from: { label: label, coords: sug.geometry.coordinates }
     }));
   };
 
   const handleToSelect = (label, sug) => {
     setForm(prevForm => ({
       ...prevForm,
-      to: { label: label, coords: sug.geometry.coordinates } // coords to [lng, lat]
+      to: { label: label, coords: sug.geometry.coordinates }
     }));
   };
 
   const handleViaSelect = (label, sug) => {
     setForm(prevForm => ({
       ...prevForm,
-      via: { label: label, coords: sug.geometry.coordinates } // coords to [lng, lat]
+      via: { label: label, coords: sug.geometry.coordinates }
     }));
   };
 
@@ -119,103 +118,97 @@ function AddRouteForm({ onRouteCreated }) {
     }
 
     // Dodatkowa walidacja dla numeru telefonu: sprawdzamy, czy pole nie jest puste, gdy podano kod kraju
-    if (form.countryCode && !form.phone && form.phone !== '') {
+    if (form.countryCode && !form.phone && form.phone !== '') { // Sprawdzamy, czy nie jest pustym stringiem
         alert('❗Proszę podać numer telefonu po wybraniu kodu kraju.');
         setIsSaving(false);
         return;
     }
 
 
-    try {
-        const apiKey = import.meta.env.VITE_ORS_API_KEY;
-        const browserToken = localStorage.getItem('browser_token');
+    // ... wewnątrz funkcji handleSubmit ...
+try {
+    const apiKey = import.meta.env.VITE_ORS_API_KEY;
+    const browserToken = localStorage.getItem('browser_token');
 
-        let coordinates = [form.from.coords]; // form.from.coords to [lng, lat]
-        let radiuses = [1500];
+    let coordinates = [form.from.coords];
+    let radiuses = [1500];
 
-        if (form.via.coords) {
-            coordinates.push(form.via.coords);
-            radiuses.push(1500);
-        }
-
-        coordinates.push(form.to.coords);
-        radiuses.push(1500);
-
-        console.log('Coordinates sent to ORS:', coordinates);
-        console.log('Radiuses sent to ORS:', radiuses);
-
-        const routeRes = await fetchWithRetry('/api/ors-route', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                coordinates,
-                instructions: false,
-                geometry_simplify: true,
-                radiuses,
-            }),
-        });
-
-        const routeData = await routeRes.json();
-        setRouteData(routeData);
-
-        const { data: { user } } = await supabase.auth.getUser();
-        const userId = user?.id;
-
-        // WYCIĄGNIJ from_lat i from_lng Z from.coords
-        // Pamiętaj, że coords z Mapbox to [longitude, latitude]
-        const fromLat = form.from.coords[1]; // latitude
-        const fromLng = form.from.coords[0]; // longitude
-
-        // Tutaj zmieniamy sposób zapisywania do bazy danych
-        // Zamiast insert, wywołujemy funkcję RPC
-        const { error } = await supabase.rpc('create_route_with_geometry', {
-            p_user_id: userId || null,
-            p_from_city: form.from.label,
-            p_via: form.via.label || null,
-            p_to_city: form.to.label,
-            p_date: form.date, // Pamiętaj, że w funkcji SQL p_date jest DATE, a form.date jest stringiem RRRR-MM-DD
-            p_vehicle_type: form.vehicleType,
-            p_load_capacity: form.loadCapacity || null,
-            p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
-            p_max_detour_km: parseInt(form.maxDetour),
-            p_phone: form.phone ? `${form.countryCode}${form.phone}` : null,
-            p_messenger_link: form.messenger || null,
-            p_geojson: routeData, // Przekazujemy CAŁY obiekt GeoJSON
-            p_browser_token: browserToken || null,
-            p_uses_whatsapp: form.usesWhatsapp,
-            // --- TUTAJ DODAJEMY NOWE PARAMETRY ---
-            p_from_lat: fromLat, // Dodajemy szerokość geograficzną punktu początkowego
-            p_from_lng: fromLng  // Dodajemy długość geograficzną punktu początkowego
-        });
-
-        if (error) {
-            console.error('Błąd zapisu trasy przez funkcję RPC:', error);
-            alert('❌ Wystąpił błąd zapisu do bazy: ' + error.message);
-            setIsSaving(false);
-            return;
-        }
-
-        onRouteCreated(routeData); // Nadal możesz przekazać routeData do rodzica, jeśli potrzebne
-
-        // Resetowanie formularza po zapisie
-        setForm(prevForm => ({
-            ...prevForm,
-            from: { label: '', coords: null },
-            to: { label: '', coords: null },
-            via: { label: '', coords: null },
-            phone: '',
-            countryCode: '+48'
-        }));
-        alert('✅ Trasa zapisana do bazy danych!');
-
-    } catch (err) {
-        console.error('Błąd wyznaczania trasy lub zapisu:', err);
-        alert('❌ Wystąpił błąd podczas zapisu trasy: ' + err.message);
-    } finally {
-        setIsSaving(false);
+    if (form.via.coords) {
+      coordinates.push(form.via.coords);
+      radiuses.push(1500);
     }
+
+    coordinates.push(form.to.coords);
+    radiuses.push(1500);
+
+    console.log('Coordinates sent to ORS:', coordinates);
+    console.log('Radiuses sent to ORS:', radiuses);
+
+    const routeRes = await fetchWithRetry('/api/ors-route', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+    coordinates,
+    instructions: false,
+    geometry_simplify: true,
+    radiuses,
+}),
+    });
+
+    const routeData = await routeRes.json();
+    setRouteData(routeData);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+
+    // Tutaj zmieniamy sposób zapisywania do bazy danych
+    // Zamiast insert, wywołujemy funkcję RPC
+    const { error } = await supabase.rpc('create_route_with_geometry', {
+        p_user_id: userId || null,
+        p_from_city: form.from.label,
+        p_via: form.via.label || null,
+        p_to_city: form.to.label,
+        p_date: form.date, // Pamiętaj, że w funkcji SQL p_date jest DATE, a form.date jest stringiem YYYY-MM-DD
+        p_vehicle_type: form.vehicleType,
+        p_load_capacity: form.loadCapacity || null,
+        p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
+        p_max_detour_km: parseInt(form.maxDetour),
+        p_phone: form.phone ? `${form.countryCode}${form.phone}` : null,
+        p_messenger_link: form.messenger || null,
+        p_geojson: routeData, // Przekazujemy CAŁY obiekt GeoJSON
+        p_browser_token: browserToken || null,
+        p_uses_whatsapp: form.usesWhatsapp
+    });
+
+    if (error) {
+        console.error('Błąd zapisu trasy przez funkcję RPC:', error);
+        alert('❌ Wystąpił błąd zapisu do bazy: ' + error.message);
+        setIsSaving(false);
+        return;
+    }
+
+    onRouteCreated(routeData); // Nadal możesz przekazać routeData do rodzica, jeśli potrzebne
+
+    // Resetowanie formularza po zapisie
+    setForm(prevForm => ({
+        ...prevForm,
+        from: { label: '', coords: null },
+        to: { label: '', coords: null },
+        via: { label: '', coords: null },
+        phone: '',
+        countryCode: '+48'
+    }));
+    alert('✅ Trasa zapisana do bazy danych!');
+
+} catch (err) {
+    console.error('Błąd wyznaczania trasy lub zapisu:', err);
+    alert('❌ Wystąpił błąd podczas zapisu trasy: ' + err.message);
+} finally {
+    setIsSaving(false);
+}
+// ...
   };
 
   return (
@@ -293,48 +286,48 @@ function AddRouteForm({ onRouteCreated }) {
           {/* Zmienione pole Numer telefonu z selektorem kodu kraju */}
           <div className="form-field">
             <label>Numer telefonu:</label>
-            <div className="phone-input-group">
+            <div className="phone-input-group"> {/* Nowy div dla grupowania selektora i inputu */}
               <select
                 name="countryCode"
                 value={form.countryCode}
                 onChange={handleChange}
-                className="country-code-select uinput"
+                className="country-code-select uinput" // Dodajemy obie klasy: nową i .uinput
               >
                 <option value="+48">🇵🇱 +48</option>
                 <option value="+355">🇦🇱 Albania +355</option>
-                <option value="+43">🇦🇹 Austria +43</option>
-                <option value="+375">🇧🇾 Białoruś +375</option>
-                <option value="+32">🇧🇪 Belgia +32</option>
-                <option value="+387">🇧🇦 Bośnia i Hercegowina +387</option>
-                <option value="+359">🇧🇬 Bułgaria +359</option>
-                <option value="+385">🇭🇷 Chorwacja +385</option>
-                <option value="+420">🇨🇿 Czechy +420</option>
-                <option value="+45">🇩🇰 Dania +45</option>
-                <option value="+372">🇪🇪 Estonia +372</option>
-                <option value="+358">🇫🇮 Finlandia +358</option>
-                <option value="+33">🇫🇷 Francja +33</option>
-                <option value="+30">🇬🇷 Grecja +30</option>
-                <option value="+34">🇪🇸 Hiszpania +34</option>
-                <option value="+31">🇳🇱 Holandia +31</option>
-                <option value="+354">🇮🇸 Islandia +354</option>
-                <option value="+353">🇮🇪 Irlandia +353</option>
-                <option value="+423">🇱🇮 Liechtenstein +423</option>
-                <option value="+370">🇱🇹 Litwa +370</option>
-                <option value="+352">🇱🇺 Luksemburg +352</option>
-                <option value="+371">🇱🇻 Łotwa +371</option>
-                <option value="+49">🇩🇪 Niemcy +49</option>
-                <option value="+47">🇳🇴 Norwegia +47</option>
-                <option value="+351">🇵🇹 Portugalia +351</option>
-                <option value="+40">🇷🇴 Rumunia +40</option>
-                <option value="+421">🇸🇰 Słowacja +421</option>
-                <option value="+386">🇸🇮 Słowenia +386</option>
-                <option value="+46">🇸🇪 Szwecja +46</option>
-                <option value="+41">🇨🇭 Szwajcaria +41</option>
-                <option value="+90">🇹🇷 Turcja +90</option>
-                <option value="+380">🇺🇦 Ukraina +380</option>
-                <option value="+36">🇭🇺 Węgry +36</option>
-                <option value="+44">🇬🇧 Wielka Brytania +44</option>
-                <option value="+39">🇮🇹 Włochy +39</option>
+<option value="+43">🇦🇹 Austria +43</option>
+<option value="+375">🇧🇾 Białoruś +375</option>
+<option value="+32">🇧🇪 Belgia +32</option>
+<option value="+387">🇧🇦 Bośnia i Hercegowina +387</option>
+<option value="+359">🇧🇬 Bułgaria +359</option>
+<option value="+385">🇭🇷 Chorwacja +385</option>
+<option value="+420">🇨🇿 Czechy +420</option>
+<option value="+45">🇩🇰 Dania +45</option>
+<option value="+372">🇪🇪 Estonia +372</option>
+<option value="+358">🇫🇮 Finlandia +358</option>
+<option value="+33">🇫🇷 Francja +33</option>
+<option value="+30">🇬🇷 Grecja +30</option>
+<option value="+34">🇪🇸 Hiszpania +34</option>
+<option value="+31">🇳🇱 Holandia +31</option>
+<option value="+354">🇮🇸 Islandia +354</option>
+<option value="+353">🇮🇪 Irlandia +353</option>
+<option value="+423">🇱🇮 Liechtenstein +423</option>
+<option value="+370">🇱🇹 Litwa +370</option>
+<option value="+352">🇱🇺 Luksemburg +352</option>
+<option value="+371">🇱🇻 Łotwa +371</option>
+<option value="+49">🇩🇪 Niemcy +49</option>
+<option value="+47">🇳🇴 Norwegia +47</option>
+<option value="+351">🇵🇹 Portugalia +351</option>
+<option value="+40">🇷🇴 Rumunia +40</option>
+<option value="+421">🇸🇰 Słowacja +421</option>
+<option value="+386">🇸🇮 Słowenia +386</option>
+<option value="+46">🇸🇪 Szwecja +46</option>
+<option value="+41">🇨🇭 Szwajcaria +41</option>
+<option value="+90">🇹🇷 Turcja +90</option>
+<option value="+380">🇺🇦 Ukraina +380</option>
+<option value="+36">🇭🇺 Węgry +36</option>
+<option value="+44">🇬🇧 Wielka Brytania +44</option>
+<option value="+39">🇮🇹 Włochy +39</option>
               </select>
               <input
                 type="tel"
@@ -354,7 +347,7 @@ function AddRouteForm({ onRouteCreated }) {
                 name="usesWhatsapp"
                 checked={form.usesWhatsapp}
                 onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
-                className="whatsapp-checkbox"
+		className="whatsapp-checkbox"
               />
               Kontakt WhatsApp
             </label>
@@ -378,7 +371,7 @@ function AddRouteForm({ onRouteCreated }) {
   </small>
 </div>
 {/* TUTAJ DODAJE NOWY FORM-FIELD DLA PRZYCISKU W TYM SAMYM FORM-ROW */}
-<div className="form-field form-field-button">
+<div className="form-field form-field-button"> {/* Możesz dodać nową klasę dla stylizacji */}
   <button type="submit" className="submit-button" disabled={isSaving}>
     💾 {isSaving ? 'Zapisywanie...' : 'Zapisz trasę i pokaż na mapie'}
   </button>
