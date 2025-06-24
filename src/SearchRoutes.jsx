@@ -528,7 +528,7 @@ function SearchRoutes() {
         }).toString();
 
         // Adres URL Twojego Cloudflare Worker'a
-        const workerUrl = `https://lawetaolsztyn.workers.dev/api/routes?${queryParams}`;
+const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${queryParams}`; // <-- TAK POWINNO BYĆ TERAZ
 
         let data = null;
         let error = null;
