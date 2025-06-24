@@ -1,6 +1,6 @@
 // src/SearchRoutes.jsx
 import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback } from 'react';
-import { supabase } from './supabaseClient';
+// import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents, Marker } from 'react-leaflet'; // Dodaj Marker
 import * as turf from '@turf/turf';
 import 'leaflet/dist/leaflet.css';
@@ -479,8 +479,13 @@ function MapViewAndInteractionSetter({ mapMode, resetMapViewTrigger }) {
 
 function SearchRoutes() {
     const [center, setCenter] = useState([49.45, 11.07]);
-    const [allRoutes, setAllRoutes] = useState([]);
-    const [filteredRoutes, setFilteredRoutes] = useState([]);
+    const [allRoutes, setAllRoutes] = useState([]); // Będzie akumulować wszystkie załadowane trasy
+    const [filteredRoutes, setFilteredRoutes] = useState([]); // Nadal używane dla wyników wyszukiwania
+    const [displayedRoutes, setDisplayedRoutes] = useState([]); // <-- NOWY STAN: Trasy faktycznie wyświetlane na mapie/liście w trybie grid
+    const [hasMoreRoutes, setHasMoreRoutes] = useState(true); // <-- NOWY STAN: Czy są jeszcze trasy do pobrania
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // <-- NOWY STAN: Czy trwa ładowanie kolejnej partii
+    const routesPerPage = 50; // <-- NOWA STAŁA: Ile tras w jednej partii
+    const currentPageRef = useRef(0); // <-- NOWY REF: Aktualna strona paginacji
     const [hoveredRouteId, setHoveredRouteId] = useState(null);
     const [selectedRoute, setSelectedRoute] = useState(null);
     const [selectedRouteTrigger, setSelectedRouteTrigger] = useState(0);
@@ -499,66 +504,132 @@ function SearchRoutes() {
     const [mapMode, setMapMode] = useState('grid');
     const [resetMapViewTrigger, setResetMapViewTrigger] = useState(0);
 
-    useEffect(() => {
-        const fetchAllRoutesForGrid = async () => {
-            setIsLoading(true);
-            const { data, error } = await supabase
-                .from('routes')
-                .select(`
-                *,
-                users_extended (
-                    id,
-                    nip,
-                    role,
-                    is_premium
-                )
-            `);
+    // ... w SearchRoutes ...
 
-            if (error) {
-                console.error('Błąd podczas pobierania wszystkich tras dla trybu siatki:', error);
-            } else {
-                console.log('Supabase fetched all data for grid. Count:', data.length);
-                const parsed = data.map(route => ({
-                    ...route,
-                    geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson,
-                    users_extended: route.users_extended ? {
-                        id: route.users_extended.id,
-                        nip: route.users_extended.nip,
-                        role: route.users_extended.role,
-                        is_premium: route.users_extended.is_premium
-                    } : null
-                }));
-                setAllRoutes(parsed);
-                setFilteredRoutes(parsed);
+    // NOWA FUNKCJA fetchRoutes (zastępuje fetchAllRoutesForGrid)
+    const fetchRoutes = useCallback(async (isInitialLoad = true) => {
+        if (isLoadingMore) return; // Zapobieganie wielokrotnym zapytaniom
+
+        setIsLoading(true); // Główny loader dla całej strony
+        setIsLoadingMore(true); // Loader dla ładowania kolejnej partii
+
+        const today = new Date().toISOString().split('T')[0];
+        const startIndex = currentPageRef.current * routesPerPage;
+
+        // Parametry zapytania dla Worker'a, zgodne z API Supabase
+        const queryParams = new URLSearchParams({
+            // Upewnij się, że wybierasz wszystkie potrzebne kolumny, włącznie z zagnieżdżonymi users_extended
+            select: '*,users_extended(id,nip,role,is_premium)',
+            count: 'exact',
+            'date': `gte.${today}`, // Format dla Supabase: gte.YYYY-MM-DD
+            'order': 'created_at.desc', // Format dla Supabase: kolumna.desc/asc
+            'offset': startIndex,
+            'limit': routesPerPage,
+        }).toString();
+
+        // Adres URL Twojego Cloudflare Worker'a
+        const workerUrl = `https://lawetaolsztyn.workers.dev/api/routes?${queryParams}`;
+
+        let data = null;
+        let error = null;
+        let count = null;
+
+        try {
+            const response = await fetch(workerUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // NIE dodawaj tutaj kluczy API Supabase, Worker już to robi bezpiecznie
+                }
+            });
+
+            // Pobierz Content-Range z nagłówków odpowiedzi, aby uzyskać całkowitą liczbę rekordów
+            const contentRange = response.headers.get('Content-Range');
+            if (contentRange) {
+                const match = contentRange.match(/\/(.+)/);
+                if (match && match[1] !== '*') {
+                    count = parseInt(match[1], 10);
+                }
             }
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorBody}`);
+            }
+
+            // Parsuj odpowiedź JSON
+            data = await response.json();
+
+            // Upewnij się, że dane są tablicą
+            if (!Array.isArray(data)) {
+                console.error("Worker zwrócił nieoczekiwany format danych:", data);
+                throw new Error("Nieoczekiwany format danych z Worker'a (oczekiwano tablicy).");
+            }
+
+            // Parsowanie geojson i users_extended, tak jak to robisz w obecnym kodzie
+            const parsed = data.map(route => ({
+                ...route,
+                geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson,
+                users_extended: route.users_extended ? {
+                    id: route.users_extended.id,
+                    nip: route.users_extended.nip,
+                    role: route.users_extended.role,
+                    is_premium: route.users_extended.is_premium
+                } : null
+            }));
+
+
+            if (parsed.length > 0) {
+                if (isInitialLoad) {
+                    setAllRoutes(parsed); // Zawsze ustaw allRoutes, będzie rosło z kolejnymi stronami
+                    setDisplayedRoutes(parsed); // Dla początkowego renderowania mapy
+                } else {
+                    setAllRoutes(prev => [...prev, ...parsed]);
+                    setDisplayedRoutes(prev => [...prev, ...parsed]);
+                }
+                currentPageRef.current += 1; // Zwiększaj numer bieżącej strony
+
+                // Sprawdź, czy są jeszcze trasy do pobrania
+                if (count !== null && (startIndex + parsed.length) >= count) {
+                    setHasMoreRoutes(false);
+                } else {
+                    setHasMoreRoutes(true);
+                }
+            } else {
+                setHasMoreRoutes(false); // Brak więcej tras
+            }
+
+        } catch (e) {
+            error = e;
+            console.error("Błąd ładowania tras przez Worker'a:", e);
+            // Tutaj możesz dodać obsługę błędów dla użytkownika, np. wyświetlić komunikat
+        } finally {
             setIsLoading(false);
-        };
+            setIsLoadingMore(false);
+        }
+    }, [isLoadingMore, routesPerPage]); // Dodaj zależności
 
-        fetchAllRoutesForGrid();
-
-        // Ogranicz subskrypcję Realtime! To jest kluczowe dla redukcji obciążenia.
-        // Jeśli nie potrzebujesz natychmiastowych aktualizacji wszystkich tras w trybie grid,
-        // możesz usunąć tę subskrypcję lub zmienić jej zakres.
-        // Na potrzeby klasteryzacji, jeśli chcesz, aby klastery odświeżały się w czasie rzeczywistym,
-        // subskrypcja jest potrzebna, ale jej efektywność będzie zależeć od `realtime.list_changes`.
-        // Jeśli obciążenie nadal będzie zbyt duże, rozważ odświeżanie danych co X czasu (polling)
-        // zamiast Realtime dla wszystkich tras.
+    // NOWY useEffect do wywołania fetchRoutes na starcie i przy resecie
+    useEffect(() => {
+        fetchRoutes(true); // Początkowe ładowanie tras
+        // Realtime subscription - tutaj możesz zostawić lub usunąć, jeśli nie chcesz aktualizacji w czasie rzeczywistym wszystkich tras
         const channel = supabase
             .channel('public:routes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
-                // Ta funkcja jest wywoływana przy każdej zmianie w tabeli 'routes'
-                // W trybie grid, po zmianie, pobieramy wszystkie trasy ponownie.
-                // Możesz tu zaimplementować bardziej granularne aktualizacje,
-                // jeśli tylko jedna trasa się zmieniła.
-                console.log('Realtime change detected, refetching all routes.');
-                fetchAllRoutesForGrid();
+                console.log('Realtime change detected, refetching first page of routes.');
+                // W przypadku zmiany, resetujemy paginację i pobieramy pierwszą stronę
+                currentPageRef.current = 0;
+                setDisplayedRoutes([]);
+                setAllRoutes([]); // Wyczyść buforowane trasy, aby pobrać od nowa
+                setHasMoreRoutes(true);
+                fetchRoutes(true);
             })
             .subscribe();
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [fetchRoutes]); // Zależność od fetchRoutes (z useCallback), aby useEffect reagował na zmiany
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route);
@@ -655,7 +726,7 @@ function SearchRoutes() {
         setIsLoading(false);
     }, [fromLocation, toLocation, selectedDate, vehicleType]);
 
-    const handleResetClick = () => {
+    const handleResetClick = useCallback(() => { // Dodaj useCallback
         console.log("Przycisk Reset kliknięty. Ustawiam mapMode na 'grid'.");
         setFromLocation(null);
         setToLocation(null);
@@ -665,13 +736,22 @@ function SearchRoutes() {
         setSelectedDate('');
         setSearchTrigger(0);
 
+        // Reset stanów paginacji
+        currentPageRef.current = 0;
+        setDisplayedRoutes([]); // Wyczyść wyświetlane trasy na mapie
+        setAllRoutes([]); // Wyczyść wszystkie załadowane trasy
+        setHasMoreRoutes(true);
+
         setMapMode('grid');
-        setFilteredRoutes(allRoutes);
+        setFilteredRoutes([]); // Wyczyść filteredRoutes, będą uzupełniane przez fetchRoutes
         setSelectedRoute(null);
         setSelectedRouteTrigger(prev => prev + 1);
         setResetTrigger(prev => prev + 1);
         setResetMapViewTrigger(prev => prev + 1);
-    };
+
+        // Ponowne załadowanie pierwszej partii tras po resecie
+        fetchRoutes(true);
+    }, [fetchRoutes]); // Zależność od fetchRoutes
 
     return (
         <>
@@ -785,14 +865,13 @@ function SearchRoutes() {
                                     Ładowanie tras...
                                 </div>
                             ) : (
-                                mapMode === 'grid' ? (
-                                    // *** TUTAJ ZMIENIAMY RENDEROWANIE DLA TRYBU GRID ***
-                                    <MarkerClusterGroup>
-                                        {allRoutes.map((route) => (
-                                            <StaticRouteClusterMarker key={route.id} route={route} />
-                                        ))}
-                                    </MarkerClusterGroup>
-                                ) : (
+                                    mapMode === 'grid' ? (
+                                    <MarkerClusterGroup>
+                                        {displayedRoutes.map((route) => ( // <-- ZMIEŃ allRoutes NA displayedRoutes
+                                            <StaticRouteClusterMarker key={route.id} route={route} />
+                                        ))}
+                                    </MarkerClusterGroup>
+                                ) : (
                                     <>
                                         {/* Renderujemy WSZYSTKIE trasy oprócz tej hoverowanej */}
                                         {filteredRoutes.map((route) => {
@@ -828,6 +907,30 @@ function SearchRoutes() {
                         </MapContainer>
                     </MapContext.Provider>
                 </div>
+{/* NOWY KOD: Przycisk Załaduj więcej dla trybu GRID */}
+                {mapMode === 'grid' && hasMoreRoutes && (
+                    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <button
+                            onClick={() => fetchRoutes(false)} // isInitialLoad = false, aby doładować kolejną partię
+                            disabled={isLoadingMore || isLoading}
+                            className="load-more-button" // Dodaj klasę CSS do stylizacji
+                        >
+                            {isLoadingMore ? 'Ładowanie więcej tras...' : 'Załaduj więcej tras'}
+                        </button>
+                    </div>
+                )}
+                {mapMode === 'grid' && !hasMoreRoutes && !isLoading && displayedRoutes.length > 0 && (
+                    <div style={{ textAlign: 'center', marginBottom: '20px', color: '#555' }}>
+                        Wszystkie dostępne trasy zostały załadowane.
+                    </div>
+                )}
+                {mapMode === 'grid' && !isLoading && displayedRoutes.length === 0 && (
+                    <div style={{ textAlign: 'center', marginBottom: '20px', color: '#555' }}>
+                        Brak dostępnych tras w bazie danych.
+                    </div>
+                )}
+
+
                 {mapMode === 'search' && (
                     <div style={{ width: '98%', margin: '0 auto 20px auto', padding: '0px 10px 10px 10px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                         <RouteSlider
