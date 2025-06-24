@@ -518,14 +518,13 @@ function SearchRoutes() {
 
         // Parametry zapytania dla Worker'a, zgodne z API Supabase
         const queryParams = new URLSearchParams({
-            // Upewnij się, że wybierasz wszystkie potrzebne kolumny, włącznie z zagnieżdżonymi users_extended
-            select: '*,users_extended(id,nip,role,is_premium)',
-            count: 'exact',
-            'date': `gte.${today}`, // Format dla Supabase: gte.YYYY-MM-DD
-            'order': 'created_at.desc', // Format dla Supabase: kolumna.desc/asc
-            'offset': startIndex,
-            'limit': routesPerPage,
-        }).toString();
+        select: '*,users_extended(id,nip,role,is_premium)',
+        // count: 'exact', // <--- TA LINIJKA ZOSTAJE USUNIĘTA LUB ZAKOMENTOWANA
+        'date': `gte.${today}`,
+        'order': 'created_at.desc',
+        'offset': startIndex,
+        'limit': routesPerPage,
+    }).toString();
 
         // Adres URL Twojego Cloudflare Worker'a
 const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${queryParams}`; // <-- TAK POWINNO BYĆ TERAZ
