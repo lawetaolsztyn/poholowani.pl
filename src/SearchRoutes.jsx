@@ -522,8 +522,8 @@ function SearchRoutes() {
         // count: 'exact', // <--- TA LINIJKA ZOSTAJE USUNIĘTA LUB ZAKOMENTOWANA
         'date': `gte.${today}`,
         'order': 'created_at.desc',
-        'offset': startIndex,
-        'limit': routesPerPage,
+        // 'offset': startIndex,
+        // 'limit': routesPerPage,
     }).toString();
 
         // Adres URL Twojego Cloudflare Worker'a
@@ -615,13 +615,10 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
         const channel = supabase
             .channel('public:routes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
-                console.log('Realtime change detected, refetching first page of routes.');
-                // W przypadku zmiany, resetujemy paginację i pobieramy pierwszą stronę
-                currentPageRef.current = 0;
-                setDisplayedRoutes([]);
-                setAllRoutes([]); // Wyczyść buforowane trasy, aby pobrać od nowa
-                setHasMoreRoutes(true);
-                fetchRoutes(true);
+                 console.log('Realtime change detected, refetching ALL routes for grid mode.');
+                // W przypadku zmiany, po prostu odświeżamy wszystkie trasy, tak jak na początku
+                // Nie ma potrzeby resetowania paginacji, bo jej nie używamy w tym trybie
+                fetchRoutes(true); // Wywołaj fetchRoutes z argumentem 'true' aby załadować wszystkie trasy
             })
             .subscribe();
 
@@ -725,7 +722,7 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
         setIsLoading(false);
     }, [fromLocation, toLocation, selectedDate, vehicleType]);
 
-    const handleResetClick = useCallback(() => { // Dodaj useCallback
+    const handleResetClick = useCallback(() => {
         console.log("Przycisk Reset kliknięty. Ustawiam mapMode na 'grid'.");
         setFromLocation(null);
         setToLocation(null);
@@ -735,22 +732,19 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
         setSelectedDate('');
         setSearchTrigger(0);
 
-        // Reset stanów paginacji
-        currentPageRef.current = 0;
-        setDisplayedRoutes([]); // Wyczyść wyświetlane trasy na mapie
-        setAllRoutes([]); // Wyczyść wszystkie załadowane trasy
-        setHasMoreRoutes(true);
-
-        setMapMode('grid');
-        setFilteredRoutes([]); // Wyczyść filteredRoutes, będą uzupełniane przez fetchRoutes
+        // Wyczyść stany mapy - te są potrzebne do odświeżenia widoku
+        setDisplayedRoutes([]);
+        setAllRoutes([]);
         setSelectedRoute(null);
         setSelectedRouteTrigger(prev => prev + 1);
         setResetTrigger(prev => prev + 1);
         setResetMapViewTrigger(prev => prev + 1);
 
-        // Ponowne załadowanie pierwszej partii tras po resecie
+        setMapMode('grid'); // Przełącz na tryb grid
+
+        // Wywołaj funkcję ładowania wszystkich tras ponownie (bez paginacji)
         fetchRoutes(true);
-    }, [fetchRoutes]); // Zależność od fetchRoutes
+    }, [fetchRoutes]); // fetchRoutes jest w zależnościach, bo jest wywoływane
 
     return (
         <>
@@ -906,28 +900,7 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
                         </MapContainer>
                     </MapContext.Provider>
                 </div>
-{/* NOWY KOD: Przycisk Załaduj więcej dla trybu GRID */}
-                {mapMode === 'grid' && hasMoreRoutes && (
-                    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                        <button
-                            onClick={() => fetchRoutes(false)} // isInitialLoad = false, aby doładować kolejną partię
-                            disabled={isLoadingMore || isLoading}
-                            className="load-more-button" // Dodaj klasę CSS do stylizacji
-                        >
-                            {isLoadingMore ? 'Ładowanie więcej tras...' : 'Załaduj więcej tras'}
-                        </button>
-                    </div>
-                )}
-                {mapMode === 'grid' && !hasMoreRoutes && !isLoading && displayedRoutes.length > 0 && (
-                    <div style={{ textAlign: 'center', marginBottom: '20px', color: '#555' }}>
-                        Wszystkie dostępne trasy zostały załadowane.
-                    </div>
-                )}
-                {mapMode === 'grid' && !isLoading && displayedRoutes.length === 0 && (
-                    <div style={{ textAlign: 'center', marginBottom: '20px', color: '#555' }}>
-                        Brak dostępnych tras w bazie danych.
-                    </div>
-                )}
+
 
 
                 {mapMode === 'search' && (
