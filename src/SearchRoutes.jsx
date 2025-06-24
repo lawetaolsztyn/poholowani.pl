@@ -1,6 +1,6 @@
 // src/SearchRoutes.jsx
 import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback } from 'react';
-// import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline, Popup, Pane, useMap, useMapEvents, Marker } from 'react-leaflet'; // Dodaj Marker
 import * as turf from '@turf/turf';
 import 'leaflet/dist/leaflet.css';
