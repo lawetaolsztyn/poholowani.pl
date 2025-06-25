@@ -582,14 +582,14 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
     // useEffect do wywołania fetchRoutes na starcie i przy resecie
     useEffect(() => {
         fetchRoutes(); // Wywołaj fetchRoutes bez argumentu, bo zawsze ładujemy wszystko
-        // Realtime subscription
-       // const channel = supabase
-         //   .channel('public:routes')
-          //  .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
-           //     console.log('Realtime change detected, refetching ALL routes for grid mode.');
-            //    fetchRoutes(); // Wywołaj fetchRoutes bez argumentu
-            // })
-            // .subscribe();
+       // Realtime subscription
+        const channel = supabase
+            .channel('public:routes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
+                console.log('Realtime change detected, refetching ALL routes for grid mode.');
+                fetchRoutes(); // Wywołaj fetchRoutes bez argumentu
+             })
+             .subscribe();
 
         return () => {
             supabase.removeChannel(channel);
