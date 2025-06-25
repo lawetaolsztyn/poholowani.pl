@@ -345,10 +345,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 // Zmieniony komponent StaticRoutePolyline, który teraz renderuje Marker w punkcie początkowym trasy
 // i obsługuje Popup dla Markera
 const StaticRouteClusterMarker = React.memo(function StaticRouteClusterMarker({ route }) {
- console.log('Rendering StaticRouteClusterMarker for route ID:', route.id);
-    console.log('  route.geojson:', route.geojson);
-    console.log('  route.geojson.features[0]:', route.geojson?.features?.[0]);
-    console.log('  route.geojson.features[0].geometry:', route.geojson?.features?.[0]?.geometry);
+console.log('Rendering StaticRouteClusterMarker for route ID:', route.id);
     console.log('  route.geojson.features[0].geometry.coordinates:', route.geojson?.features?.[0]?.geometry?.coordinates);
 
       let startPointCoords = null;
@@ -363,6 +360,8 @@ const StaticRouteClusterMarker = React.memo(function StaticRouteClusterMarker({ 
             }
         }
     }
+    console.log('  Obliczone startPointCoords:', startPointCoords); // <-- DODAJ TĘ LINIĘ
+
 
     if (!startPointCoords) return null;
 
