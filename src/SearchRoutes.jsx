@@ -486,8 +486,9 @@ function SearchRoutes() {
     const [center, setCenter] = useState([49.45, 11.07]);
     const [allRoutes, setAllRoutes] = useState([]); // Będzie akumulować wszystkie załadowane trasy
     const [filteredRoutes, setFilteredRoutes] = useState([]); // Nadal używane dla wyników wyszukiwania
-   
-    const [hoveredRouteId, setHoveredRouteId] = useState(null);
+   const [displayedRoutes, setDisplayedRoutes] = useState([]); // <--- PRZYWRÓCONA DEFINICJA
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // <--- PRZYWRÓCONA (dla spójności, choć bez paginacji)
+        const [hoveredRouteId, setHoveredRouteId] = useState(null);
     const [selectedRoute, setSelectedRoute] = useState(null);
     const [selectedRouteTrigger, setSelectedRouteTrigger] = useState(0);
     const [fromLocation, setFromLocation] = useState(null);
