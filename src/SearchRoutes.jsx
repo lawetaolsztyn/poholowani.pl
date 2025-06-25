@@ -522,19 +522,22 @@ function SearchRoutes() {
         }).toString();
 
         // Adres URL Twojego Cloudflare Worker'a
-        const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${queryParams}`;
+const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${queryParams}`;
 
         let data = null;
         let error = null;
         // let count = null; // Nie potrzebujemy count, skoro ładujemy wszystko
 
         try {
-            const response = await fetch(workerUrl, {
+             const response = await fetch(workerUrl, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Prefer': 'count=exact', // Nadal wysyłamy to, bo to nie szkodzi i dostaniesz count w Content-Range
-                }
+                    'Prefer': 'count=exact',
+                },
+                cache: 'default' // <-- DODANA LINIA! Instruuje przeglądarkę, aby używała domyślnej polityki cache'owania HTTP
+                // Alternatywnie, jeśli chcesz agresywnie cacheować, możesz użyć:
+                // cache: 'force-cache' // To może być zbyt agresywne, 'default' jest zazwyczaj lepszy
             });
 
             if (!response.ok) {
