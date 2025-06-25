@@ -345,13 +345,7 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 // Zmieniony komponent StaticRoutePolyline, który teraz renderuje Marker w punkcie początkowym trasy
 // i obsługuje Popup dla Markera
 const StaticRouteClusterMarker = React.memo(function StaticRouteClusterMarker({ route }) {
- console.log('Rendering StaticRouteClusterMarker for route ID:', route.id);
-    console.log('  route.geojson:', route.geojson);
-    console.log('  route.geojson.features[0]:', route.geojson?.features?.[0]);
-    console.log('  route.geojson.features[0].geometry:', route.geojson?.features?.[0]?.geometry);
-    console.log('  route.geojson.features[0].geometry.coordinates:', route.geojson?.features?.[0]?.geometry?.coordinates);
-
-      let startPointCoords = null;
+    let startPointCoords = null;
     if (route.geojson?.features?.[0]?.geometry?.coordinates) {
         const rawCoords = route.geojson.features[0].geometry.coordinates;
         if (Array.isArray(rawCoords) && rawCoords.length > 0) {
@@ -574,7 +568,7 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
             // Parsowanie geojson i users_extended, tak jak to robisz w obecnym kodzie
             const parsed = data.map(route => ({
                 ...route,
-                geojson: route.geojson, // <-- ZMIENIONO NA TO!
+                geojson: typeof route.geojson === 'string' ? JSON.parse(route.geojson) : route.geojson,
                 users_extended: route.users_extended ? {
                     id: route.users_extended.id,
                     nip: route.users_extended.nip,
