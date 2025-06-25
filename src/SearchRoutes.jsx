@@ -513,8 +513,7 @@ function SearchRoutes() {
 
     // NOWA FUNKCJA fetchRoutes (zastępuje fetchAllRoutesForGrid)
     const fetchRoutes = useCallback(async (isInitialLoad = true) => {
-        if (isLoadingMore) return; // Zapobieganie wielokrotnym zapytaniom
-
+    }, [routesPerPage]);
         setIsLoading(true); // Główny loader dla całej strony
         setIsLoadingMore(true); // Loader dla ładowania kolejnej partii
 
