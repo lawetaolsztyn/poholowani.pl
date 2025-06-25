@@ -486,11 +486,7 @@ function SearchRoutes() {
     const [center, setCenter] = useState([49.45, 11.07]);
     const [allRoutes, setAllRoutes] = useState([]); // Będzie akumulować wszystkie załadowane trasy
     const [filteredRoutes, setFilteredRoutes] = useState([]); // Nadal używane dla wyników wyszukiwania
-    const [displayedRoutes, setDisplayedRoutes] = useState([]); // <-- NOWY STAN: Trasy faktycznie wyświetlane na mapie/liście w trybie grid
-    const [hasMoreRoutes, setHasMoreRoutes] = useState(true); // <-- NOWY STAN: Czy są jeszcze trasy do pobrania
-    const [isLoadingMore, setIsLoadingMore] = useState(false); // <-- NOWY STAN: Czy trwa ładowanie kolejnej partii
-    const routesPerPage = 50; // <-- NOWA STAŁA: Ile tras w jednej partii
-    const currentPageRef = useRef(0); // <-- NOWY REF: Aktualna strona paginacji
+   
     const [hoveredRouteId, setHoveredRouteId] = useState(null);
     const [selectedRoute, setSelectedRoute] = useState(null);
     const [selectedRouteTrigger, setSelectedRouteTrigger] = useState(0);
@@ -512,67 +508,49 @@ function SearchRoutes() {
     // ... w SearchRoutes ...
 
     // NOWA FUNKCJA fetchRoutes (zastępuje fetchAllRoutesForGrid)
-    const fetchRoutes = useCallback(async (isInitialLoad = true) => {
-    }, [routesPerPage]);
+   const fetchRoutes = useCallback(async () => { // Usunięto 'isInitialLoad', bo zawsze ładujemy wszystko
         setIsLoading(true); // Główny loader dla całej strony
-        setIsLoadingMore(true); // Loader dla ładowania kolejnej partii
 
         const today = new Date().toISOString().split('T')[0];
-        const startIndex = currentPageRef.current * routesPerPage;
 
-        // Parametry zapytania dla Worker'a, zgodne z API Supabase
+        // Parametry zapytania dla Worker'a - BEZ offset/limit
         const queryParams = new URLSearchParams({
-        select: '*,users_extended(id,nip,role,is_premium)',
-        // count: 'exact', // <--- TA LINIJKA ZOSTAJE USUNIĘTA LUB ZAKOMENTOWANA
-        'date': `gte.${today}`,
-        'order': 'created_at.desc',
-        // 'offset': startIndex,
-        // 'limit': routesPerPage,
-    }).toString();
+            select: '*,users_extended(id,nip,role,is_premium)',
+            'date': `gte.${today}`,
+            'order': 'created_at.desc',
+        }).toString();
 
         // Adres URL Twojego Cloudflare Worker'a
-const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${queryParams}`; // <-- TAK POWINNO BYĆ TERAZ
+        const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${queryParams}`;
 
         let data = null;
         let error = null;
-        let count = null;
+        // let count = null; // Nie potrzebujemy count, skoro ładujemy wszystko
 
         try {
             const response = await fetch(workerUrl, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    // NIE dodawaj tutaj kluczy API Supabase, Worker już to robi bezpiecznie
+                    'Prefer': 'count=exact', // Nadal wysyłamy to, bo to nie szkodzi i dostaniesz count w Content-Range
                 }
             });
-
-            // Pobierz Content-Range z nagłówków odpowiedzi, aby uzyskać całkowitą liczbę rekordów
-            const contentRange = response.headers.get('Content-Range');
-            if (contentRange) {
-                const match = contentRange.match(/\/(.+)/);
-                if (match && match[1] !== '*') {
-                    count = parseInt(match[1], 10);
-                }
-            }
 
             if (!response.ok) {
                 const errorBody = await response.text();
                 throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorBody}`);
             }
 
-            // Parsuj odpowiedź JSON
             data = await response.json();
 
-            // Upewnij się, że dane są tablicą
             if (!Array.isArray(data)) {
                 console.error("Worker zwrócił nieoczekiwany format danych:", data);
                 throw new Error("Nieoczekiwany format danych z Worker'a (oczekiwano tablicy).");
             }
 
-            // Parsowanie geojson i users_extended, tak jak to robisz w obecnym kodzie
             const parsed = data.map(route => ({
                 ...route,
-                geojson: route.geojson, // <-- ZMIENIONO NA TO!
+                geojson: route.geojson, // Zakładamy, że jest już obiektem
                 users_extended: route.users_extended ? {
                     id: route.users_extended.id,
                     nip: route.users_extended.nip,
@@ -581,55 +559,38 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
                 } : null
             }));
 
-
-            if (parsed.length > 0) {
-                if (isInitialLoad) {
-                    setAllRoutes(parsed); // Zawsze ustaw allRoutes, będzie rosło z kolejnymi stronami
-                    setDisplayedRoutes(parsed); // Dla początkowego renderowania mapy
-                } else {
-                    setAllRoutes(prev => [...prev, ...parsed]);
-                    setDisplayedRoutes(prev => [...prev, ...parsed]);
-                }
-                currentPageRef.current += 1; // Zwiększaj numer bieżącej strony
-
-                // Sprawdź, czy są jeszcze trasy do pobrania
-                if (count !== null && (startIndex + parsed.length) >= count) {
-                    setHasMoreRoutes(false);
-                } else {
-                    setHasMoreRoutes(true);
-                }
-            } else {
-                setHasMoreRoutes(false); // Brak więcej tras
-            }
+            // ZAWSZE ustawiamy WSZYSTKIE pobrane trasy
+            setAllRoutes(parsed);
+            setDisplayedRoutes(parsed); // Wyświetlamy wszystkie
 
         } catch (e) {
             error = e;
             console.error("Błąd ładowania tras przez Worker'a:", e);
-            // Tutaj możesz dodać obsługę błędów dla użytkownika, np. wyświetlić komunikat
         } finally {
             setIsLoading(false);
-            setIsLoadingMore(false);
+            // setIsLoadingMore(false); // Ta zmienna nie jest już używana, więc ją usuń
         }
-    }, [isLoadingMore, routesPerPage]); // Dodaj zależności
+    }, []); // <-- ZALEŻNOŚCI: Teraz jest pusta tablica [], bo funkcja nie zależy od żadnych zmiennych stanu, które by ją zmieniały.
 
     // NOWY useEffect do wywołania fetchRoutes na starcie i przy resecie
+    // ... w SearchRoutes ...
+
+    // useEffect do wywołania fetchRoutes na starcie i przy resecie
     useEffect(() => {
-        fetchRoutes(true); // Początkowe ładowanie tras
-        // Realtime subscription - tutaj możesz zostawić lub usunąć, jeśli nie chcesz aktualizacji w czasie rzeczywistym wszystkich tras
+        fetchRoutes(); // Wywołaj fetchRoutes bez argumentu, bo zawsze ładujemy wszystko
+        // Realtime subscription
         const channel = supabase
             .channel('public:routes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, payload => {
-                 console.log('Realtime change detected, refetching ALL routes for grid mode.');
-                // W przypadku zmiany, po prostu odświeżamy wszystkie trasy, tak jak na początku
-                // Nie ma potrzeby resetowania paginacji, bo jej nie używamy w tym trybie
-                fetchRoutes(true); // Wywołaj fetchRoutes z argumentem 'true' aby załadować wszystkie trasy
+                console.log('Realtime change detected, refetching ALL routes for grid mode.');
+                fetchRoutes(); // Wywołaj fetchRoutes bez argumentu
             })
             .subscribe();
 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [fetchRoutes]); // Zależność od fetchRoutes (z useCallback), aby useEffect reagował na zmiany
+    }, [fetchRoutes]); // Zależność od fetchRoutes (z useCallback) jest tutaj OK.
 
     const handleRouteClick = (route) => {
         setSelectedRoute(route);
@@ -736,9 +697,8 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
         setSelectedDate('');
         setSearchTrigger(0);
 
-        // Wyczyść stany mapy - te są potrzebne do odświeżenia widoku
-        setDisplayedRoutes([]);
-        setAllRoutes([]);
+        setDisplayedRoutes([]); // Wyczyść wyświetlane trasy
+        setAllRoutes([]);       // Wyczyść buforowane trasy
         setSelectedRoute(null);
         setSelectedRouteTrigger(prev => prev + 1);
         setResetTrigger(prev => prev + 1);
@@ -746,9 +706,8 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
 
         setMapMode('grid'); // Przełącz na tryb grid
 
-        // Wywołaj funkcję ładowania wszystkich tras ponownie (bez paginacji)
-        fetchRoutes(true);
-    }, [fetchRoutes]); // fetchRoutes jest w zależnościach, bo jest wywoływane
+        fetchRoutes(); // Wywołaj funkcję ładowania wszystkich tras (bez argumentu true)
+    }, [fetchRoutes]);
 
     return (
         <>
