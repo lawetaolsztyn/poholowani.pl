@@ -256,15 +256,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white; /* Domyślny kolor tekstu w klastrze */
+    color: black; /* Domyślny kolor tekstu w klastrze */
     font-weight: bold;
     text-align: center;
 }
 
 .marker-cluster-small {
     background-color: rgba(181, 226, 140, 0.9); /* Nieco mniej przezroczyste */
-    width: 45px;  /* Zwiększ rozmiar */
-    height: 45px; /* Zwiększ rozmiar */
+    width: 55px;  /* Zwiększ rozmiar */
+    height: 55px; /* Zwiększ rozmiar */
     margin-left: -22.5px; /* Połowa szerokości */
     margin-top: -22.5px;  /* Połowa wysokości */
     border-radius: 22.5px; /* Połowa rozmiaru dla okrągłości */
@@ -274,8 +274,8 @@
 
 .marker-cluster-medium {
     background-color: rgba(241, 211, 87, 0.9);
-    width: 55px;
-    height: 55px;
+    width: 65px;
+    height: 65px;
     margin-left: -27.5px;
     margin-top: -27.5px;
     border-radius: 27.5px;
@@ -285,8 +285,8 @@
 
 .marker-cluster-large {
     background-color: rgba(253, 156, 115, 0.9);
-    width: 65px;
-    height: 65px;
+    width: 75px;
+    height: 75px;
     margin-left: -32.5px;
     margin-top: -32.5px;
     border-radius: 32.5px;
@@ -297,8 +297,8 @@
 /* Możesz dodać marker-cluster-extra-large jeśli potrzebujesz */
 .marker-cluster-extra-large {
     background-color: rgba(255, 100, 100, 0.9);
-    width: 75px;
-    height: 75px;
+    width: 85px;
+    height: 85px;
     margin-left: -37.5px;
     margin-top: -37.5px;
     border-radius: 37.5px;
