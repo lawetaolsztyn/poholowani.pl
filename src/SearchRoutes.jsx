@@ -349,17 +349,9 @@ console.log('Rendering StaticRouteClusterMarker for route ID:', route.id);
     console.log('  route.geojson.features[0].geometry.coordinates:', route.geojson?.features?.[0]?.geometry?.coordinates);
 
       let startPointCoords = null;
-    if (route.geojson?.features?.[0]?.geometry?.coordinates) {
-        const rawCoords = route.geojson.features[0].geometry.coordinates;
-        if (Array.isArray(rawCoords) && rawCoords.length > 0) {
-            const firstCoordPair = rawCoords[0];
-            if (Array.isArray(firstCoordPair) && firstCoordPair.length === 2 &&
-                typeof firstCoordPair[0] === 'number' && !isNaN(firstCoordPair[0]) &&
-                typeof firstCoordPair[1] === 'number' && !isNaN(firstCoordPair[1])) {
-                startPointCoords = [firstCoordPair[1], firstCoordPair[0]]; // [lat, lng]
-            }
-        }
-    }
+if (typeof route.from_lat === 'number' && typeof route.from_lng === 'number') {
+    startPointCoords = [route.from_lat, route.from_lng]; // [lat, lng]
+}
     console.log('  Obliczone startPointCoords:', startPointCoords); // <-- DODAJ TĘ LINIĘ
 
 
@@ -516,7 +508,7 @@ function SearchRoutes() {
 
         // Parametry zapytania dla Worker'a - BEZ offset/limit
         const queryParams = new URLSearchParams({
-            select: '*,users_extended(id,nip,role,is_premium)',
+select: 'id,from_city,to_city,date,load_capacity,passenger_count,vehicle_type,phone,uses_whatsapp,messenger_link,user_id,from_lat,from_lng,users_extended(id,nip,role,is_premium)',
             'date': `gte.${today}`,
             'order': 'created_at.desc',
         }).toString();
