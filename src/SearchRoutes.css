@@ -249,3 +249,78 @@
 }
 }
 
+/* Nowe style dla kółek klasteryzacji - dodaj te sekcje na końcu pliku */
+
+/* Nadpisanie domyślnych stylów klastrów */
+.marker-cluster {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white; /* Domyślny kolor tekstu w klastrze */
+    font-weight: bold;
+    text-align: center;
+}
+
+.marker-cluster-small {
+    background-color: rgba(181, 226, 140, 0.9); /* Nieco mniej przezroczyste */
+    width: 45px;  /* Zwiększ rozmiar */
+    height: 45px; /* Zwiększ rozmiar */
+    margin-left: -22.5px; /* Połowa szerokości */
+    margin-top: -22.5px;  /* Połowa wysokości */
+    border-radius: 22.5px; /* Połowa rozmiaru dla okrągłości */
+    font-size: 20px; /* Większa czcionka */
+    line-height: 45px; /* Dopasuj do wysokości */
+}
+
+.marker-cluster-medium {
+    background-color: rgba(241, 211, 87, 0.9);
+    width: 55px;
+    height: 55px;
+    margin-left: -27.5px;
+    margin-top: -27.5px;
+    border-radius: 27.5px;
+    font-size: 24px;
+    line-height: 55px;
+}
+
+.marker-cluster-large {
+    background-color: rgba(253, 156, 115, 0.9);
+    width: 65px;
+    height: 65px;
+    margin-left: -32.5px;
+    margin-top: -32.5px;
+    border-radius: 32.5px;
+    font-size: 28px;
+    line-height: 65px;
+}
+
+/* Możesz dodać marker-cluster-extra-large jeśli potrzebujesz */
+.marker-cluster-extra-large {
+    background-color: rgba(255, 100, 100, 0.9);
+    width: 75px;
+    height: 75px;
+    margin-left: -37.5px;
+    margin-top: -37.5px;
+    border-radius: 37.5px;
+    font-size: 32px;
+    line-height: 75px;
+}
+
+/* Dostosowanie dla trybu ciemnego (jeśli chcesz inne kolory klastrów w trybie ciemnym) */
+@media (prefers-color-scheme: dark) {
+    .marker-cluster-small {
+        background-color: rgba(90, 150, 60, 0.9); /* Ciemniejszy zielony */
+    }
+    .marker-cluster-medium {
+        background-color: rgba(180, 160, 50, 0.9); /* Ciemniejszy żółty */
+    }
+    .marker-cluster-large {
+        background-color: rgba(200, 100, 80, 0.9); /* Ciemniejszy pomarańczowy */
+    }
+    .marker-cluster-extra-large {
+        background-color: rgba(200, 60, 60, 0.9); /* Ciemniejszy czerwony */
+    }
+    .marker-cluster span {
+        color: #eee; /* Jaśniejszy tekst */
+    }
+}
