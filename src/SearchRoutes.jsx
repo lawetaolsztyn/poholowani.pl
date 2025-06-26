@@ -99,9 +99,15 @@ function MapAutoZoom({ fromLocation, toLocation, trigger, selectedRoute, selecte
                             const [lng, lat] = coordPair;
                             if (typeof lat === 'number' && !isNaN(lat) && typeof lng === 'number' && !isNaN(lng)) {
                                 allCoords.push([lat, lng]);
+                            } else {
+                                console.warn('SearchRoutes useEffect main: Wykryto nieprawidłową parę współrzędnych (nie-liczba/NaN):', coordPair, 'dla trasy ID:', route.id);
                             }
+                        } else {
+                            console.warn('SearchRoutes useEffect main: Nieprawidłowy format współrzędnych (nie tablica pary):', coordPair, 'dla trasy ID:', route.id);
                         }
                     });
+                } else {
+                    console.warn('SearchRoutes useEffect main: Trasa ma problem z GeoJSON (brak coords) dla ID:', route.id);
                 }
             });
 
@@ -537,7 +543,7 @@ function SearchRoutes() {
 
         // Parametry zapytania dla Worker'a - BEZ offset/limit
         const queryParams = new URLSearchParams({
-    select: 'id,from_city,to_city,date,load_capacity,passenger_count,vehicle_type,phone,uses_whatsapp,messenger_link,user_id,from_lat,from_lng,to_lat,to_lng,users_extended(id,nip,role,is_premium)',
+select: 'id,from_city,to_city,date,load_capacity,passenger_count,vehicle_type,phone,uses_whatsapp,messenger_link,user_id,from_lat,from_lng,to_lat,to_lng,users_extended(id,nip,role,is_premium)',
             'date': `gte.${today}`,
             'order': 'created_at.desc',
         }).toString();
@@ -800,125 +806,125 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
                 <div style={{ position: 'relative', width: '98%', height: '550px', margin: '0 auto', marginBottom: '10px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
                     <MapContext.Provider value={{ center, setCenter, resetTrigger }}>
                         <MapContainer
-    center={[51.0504, 13.7373]}
-    zoom={5}
-    maxZoom={19}
-    minZoom={0}
-    gestureHandling={true}
-    whenCreated={mapInstance => {
-        mapRef.current = mapInstance;
-    }}
-    gestureHandlingOptions={{
-        touch: true,
-        text: 'Użyj dwóch palców, aby przesunąć mapę',
-        duration: 1000,
-        tap: false,
-        twoFingerPan: true,
-    }}
-    className="main-map-container"
->
-    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-    <Pane name="routes" style={{ zIndex: 400 }} />
-    <Pane name="hovered" style={{ zIndex: 500 }} />
+                            center={[51.0504, 13.7373]}
+                            zoom={5}
+                            maxZoom={19}
+                            minZoom={0}
 
-    <MapEvents />
-    <MapAutoZoom
-        fromLocation={fromLocation}
-        toLocation={toLocation}
-        trigger={searchTrigger}
-        selectedRoute={selectedRoute}
-        selectedRouteTrigger={selectedRouteTrigger}
-        mapMode={mapMode}
-        filteredRoutes={filteredRoutes}
-    />
-    <MapViewAndInteractionSetter mapMode={mapMode} resetMapViewTrigger={resetMapViewTrigger} />
+                            gestureHandling={true}
+                            whenCreated={mapInstance => {
+                                mapRef.current = mapInstance;
+                            }}
+                            gestureHandlingOptions={{
+                                touch: true,
+                                text: 'Użyj dwóch palców, aby przesunąć mapę',
+                                duration: 1000,
+                                tap: false,
+                                twoFingerPan: true,
+                            }}
+                            className="main-map-container"
+                        >
+                            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                            <Pane name="routes" style={{ zIndex: 400 }} />
+                            <Pane name="hovered" style={{ zIndex: 500 }} />
 
-    {center && mapMode === 'search' && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
+                            <MapEvents />
+                            <MapAutoZoom
+                                fromLocation={fromLocation}
+                                toLocation={toLocation}
+                                trigger={searchTrigger}
+                                selectedRoute={selectedRoute}
+                                selectedRouteTrigger={selectedRouteTrigger}
+                                mapMode={mapMode}
+                                filteredRoutes={filteredRoutes}
+                            />
+                            <MapViewAndInteractionSetter mapMode={mapMode} resetMapViewTrigger={resetMapViewTrigger} />
 
-    {isLoading ? (
-        <div style={{
-            position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)', zIndex: 600,
-            backgroundColor: 'rgba(255,255,255,0.8)', padding: '20px',
-            borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-        }}>
-            Ładowanie tras...
-        </div>
-    ) : (
-        mapMode === 'grid' ? (
-            <MarkerClusterGroup>
-                {displayedRoutes.map((route) => (
-                    <StaticRouteClusterMarker key={route.id} route={route} />
-                ))}
-            </MarkerClusterGroup>
-        ) : (
-            <>
-                {/* Renderujemy WSZYSTKIE trasy oprócz tej hoverowanej */}
-                {filteredRoutes.map((route) => {
-                    if (route.id === hoveredRouteId) return null;
-                    return (
-                        <HighlightedRoute
-                            key={route.id}
-                            route={route}
-                            isHovered={false}
-                            onPolylineMouseOver={setHoveredRouteId}
-                            onPolylineMouseOut={setHoveredRouteId}
-                        />
-                    );
-                })}
+                            {center && mapMode === 'search' && (<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 999, fontSize: '32px', color: 'red', pointerEvents: 'none' }}>+</div>)}
 
-                {/* Renderujemy osobno hoverowaną trasę NA WIERZCHU */}
-                {hoveredRouteId && (
-                    <HighlightedRoute
-                        key={'hovered-' + hoveredRouteId}
-                        route={filteredRoutes.find(r => r.id === hoveredRouteId)}
-                        isHovered={true}
-                        onPolylineMouseOver={setHoveredRouteId}
-                        onPolylineMouseOut={setHoveredRouteId}
-                    />
-                )}
-            </>
-        )
-    )}
+                            {isLoading ? (
+                                <div style={{
+                                    position: 'absolute', top: '50%', left: '50%',
+                                    transform: 'translate(-50%, -50%)', zIndex: 600,
+                                    backgroundColor: 'rgba(255,255,255,0.8)', padding: '20px',
+                                    borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                                }}>
+                                    Ładowanie tras...
+                                </div>
+                            ) : (
+                                mapMode === 'grid' ? (
+                                    <MarkerClusterGroup>
+                                        {displayedRoutes.map((route) => (
+                                            <StaticRouteClusterMarker key={route.id} route={route} />
+                                        ))}
+                                    </MarkerClusterGroup>
+                                ) : (
+                                    <>
+                                        {/* Renderujemy WSZYSTKIE trasy oprócz tej hoverowanej */}
+                                        {filteredRoutes.map((route) => {
+                                            if (route.id === hoveredRouteId) return null;
+                                            return (
+                                                <HighlightedRoute
+                                                    key={route.id}
+                                                    route={route}
+                                                    isHovered={false}
+                                                    onPolylineMouseOver={setHoveredRouteId}
+                                                    onPolylineMouseOut={setHoveredRouteId}
+                                                />
+                                            );
+                                        })}
 
-    {mapMode === 'search' && <RoadsideMarkers />}
+                                        {/* Renderujemy osobno hoverowaną trasę NA WIERZCHU */}
+                                        {hoveredRouteId && (
+                                            <HighlightedRoute
+                                                key={'hovered-' + hoveredRouteId}
+                                                route={filteredRoutes.find(r => r.id === hoveredRouteId)}
+                                                isHovered={true}
+                                                onPolylineMouseOver={setHoveredRouteId}
+                                                onPolylineMouseOut={setHoveredRouteId}
+                                            />
+                                        )}
+                                    </>
+                                )
+                            )}
 
-    {/* SEKCJA LEGENDY - DODAJ TEN KOD TUTAJ */}
-   {mapMode === 'grid' && ( /* Ten warunek sprawia, że legenda pojawi się tylko w trybie 'grid' */
-        <div className="map-legend-container" style={{ /* Dodana klasa CSS do tego diva */
-            position: 'absolute',
-            bottom: '20px',
-            left: '20px',
-            zIndex: 1000, /* Upewnij się, że jest nad mapą */
-            backgroundColor: 'white', /* To tło zostanie nadpisane przez CSS w trybie ciemnym */
-            padding: '10px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-            fontSize: '14px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px'
-        }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <img
-                    src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" /* Ścieżka do niebieskiej pinezki */
-                    alt="Początek trasy"
-                    style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }} /* Zmniejsz rozmiar */
-                />
-                <span>Początek trasy</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <img
-                    src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" /* Ścieżka do czerwonej pinezki */
-                    alt="Koniec trasy"
-                    style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }} /* Zmniejsz rozmiar */
-                />
-                <span>Koniec trasy</span>
-            </div>
-        </div>
-    {/* KONIEC SEKCJI LEGENDY */}
+                            {mapMode === 'search' && <RoadsideMarkers />}
 
-</MapContainer>
+                            {/* SEKCJA LEGENDY - DODAJ TEN KOD TUTAJ */}
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '20px',
+                                left: '20px',
+                                zIndex: 1000, /* Upewnij się, że jest nad mapą */
+                                backgroundColor: 'white',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                                fontSize: '14px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <img
+                                        src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" /* Ścieżka do niebieskiej pinezki */
+                                        alt="Początek trasy"
+                                        style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }} /* Zmniejsz rozmiar */
+                                    />
+                                    <span>Początek trasy</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <img
+                                        src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" /* Ścieżka do czerwonej pinezki */
+                                        alt="Koniec trasy"
+                                        style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }} /* Zmniejsz rozmiar */
+                                    />
+                                    <span>Koniec trasy</span>
+                                </div>
+                            </div>
+                            {/* KONIEC SEKCJI LEGENDY */}
+
+                        </MapContainer>
                     </MapContext.Provider>
                 </div>
 
