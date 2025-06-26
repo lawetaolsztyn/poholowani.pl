@@ -171,92 +171,13 @@
   }
 }
 
-/* --- Style dla trybu ciemnego (dostosowane dla nowych klas) --- */
-@media (prefers-color-scheme: dark) {
-  .search-form-container,
-  .route-slider-wrapper {
-    background: #333;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  /* ZMIANY DLA PÓL INPUT/SELECT */
-  .location-autocomplete-field input, /* Dotyczy pola input w LocationAutocomplete */
-  .form-select-field,
-  .form-date-field {
-    background-color: #444; /* Ciemne tło dla pól input/select w trybie ciemnym */
-    color: #e0e0e0; /* Jasny tekst dla pól input/select w trybie ciemnym */
-    border: 1px solid #666; /* Ciemniejsza ramka */
-  }
-
-  /* Domyślny kolor tekstu w inputach (ważne, żeby nadpisać domyślny biały z poprzedniej reguły) */
-  .location-autocomplete-field {
-      color: #e0e0e0; /* Ustawienie koloru tekstu w polu autocomplete */
-  }
-
-
-  .search-button {
-    background-color: #0056b3;
-  }
-  .search-button:hover {
-    background-color: #003f7f;
-  }
-
-  .reset-button {
-    background-color: #5a6268;
-  }
-  .reset-button:hover {
-    background-color: #4a5056;
-  }
-
-  .map-cross {
-    color: yellow;
-  }
-}
-
-.map-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1000; /* Upewnij się, że jest nad mapą */
-  background-color: rgba(0,0,0,0.5); /* Lekkie przyciemnienie */
-  display: flex;
-  flex-direction: column; /* Aby tekst był wyśrodkowany pionowo i instrukcje były pod sobą */
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 1.2rem;
-  text-align: center;
-  cursor: pointer;
-  padding: 10px; /* Dodaj trochę paddingu dla lepszego wyglądu */
-  box-sizing: border-box; /* Ważne, aby padding nie zwiększał całkowitego rozmiaru */
-}
-
-.map-overlay p {
-    margin: 5px 0; /* Odstęp między wierszami tekstu */
-}
-
-/* Style dla trybu ciemnego */
-@media (prefers-color-scheme: dark) {
-    .map-overlay {
-        background-color: rgba(255,255,255,0.2); /* Jaśniejsze przyciemnienie */
-        color: #333; /* Ciemniejszy tekst */
-    }
-/* 🍰 Pozwala scrollować stronę jednym palcem na telefonie */
-.leaflet-container {
-  touch-action: pan-y;
-}
-}
-
-/* Nowe style dla kółek klasteryzacji - dodaj te sekcje na końcu pliku */
-
+/* --- Style dla kółek klasteryzacji (zastosowane do wszystkich klastrów) --- */
 /* Nadpisanie domyślnych stylów klastrów */
 .leaflet-marker-icon.marker-cluster {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: black; /* Domyślny kolor tekstu w klastrze */
+    color: black; /* Domyślny kolor tekstu w klastrze (jasny tryb) */
     font-weight: bold;
     text-align: center;
 }
@@ -294,7 +215,6 @@
     line-height: 60px !important;
 }
 
-/* Możesz dodać marker-cluster-extra-large jeśli potrzebujesz */
 .leaflet-marker-icon.marker-cluster-extra-large {
     background-color: rgba(255, 100, 100, 0.9);
     width: 70px !important;
@@ -306,33 +226,13 @@
     line-height: 70px !important;
 }
 
-/* Dostosowanie dla trybu ciemnego (jeśli chcesz inne kolory klastrów w trybie ciemnym) */
-@media (prefers-color-scheme: dark) {
-    .leaflet-marker-icon.marker-cluster-small {
-        background-color: rgba(90, 150, 60, 0.9); /* Ciemniejszy zielony */
-    }
-    .leaflet-marker-icon.marker-cluster-medium {
-        background-color: rgba(180, 160, 50, 0.9); /* Ciemniejszy żółty */
-    }
-    .leaflet-marker-icon.marker-cluster-large {
-        background-color: rgba(200, 100, 80, 0.9); /* Ciemniejszy pomarańczowy */
-    }
-    .leaflet-marker-icon.marker-cluster-extra-large {
-        background-color: rgba(200, 60, 60, 0.9); /* Ciemniejszy czerwony */
-    }
-    .leaflet-marker-icon.marker-cluster span {
-        color: #eee !important; /* Jaśniejszy tekst */
-    }
-}
-
-/* DODANE NOWE REGUŁY DLA WYŚRODKOWANIA WEWNĘTRZNEGO KÓŁKA I LICZBY */
+/* DODANE REGUŁY DLA WYŚRODKOWANIA WEWNĘTRZNEGO KÓŁKA I LICZBY */
 /* Nadpisanie wewnętrznego diva klastra */
 .leaflet-marker-icon.marker-cluster div {
     width: 100% !important;
     height: 100% !important;
     margin: 0 !important;
     border-radius: inherit !important;
-    /* Dodatkowo, aby upewnić się, że tło domyślne div'a nie koliduje */
     background: transparent !important; /* Ustawiamy tło na przezroczyste */
 }
 
@@ -346,14 +246,83 @@
     line-height: normal !important; /* Zresetuj line-height */
 }
 
-/* --- Style dla trybu ciemnego --- */
-@media (prefers-color-scheme: dark) {
-    /* ... Twoje istniejące style dla trybu ciemnego ... */
 
-    /* Dodatkowy styl dla legendy w trybie ciemnym */
-    .map-legend-container { /* To jest klasa, którą zaraz dodamy do diva legendy w JSX */
-        background-color: #333 !important; /* Ciemne tło dla legendy */
-        color: #e0e0e0 !important; /* Jasny tekst dla legendy */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.5) !important; /* Ciemniejszy cień */
-    }
+/* !!! POŁĄCZONA I POPRAWIONA SEKCJA DLA TRYBU CIEMNEGO !!! */
+@media (prefers-color-scheme: dark) {
+  .search-form-container,
+  .route-slider-wrapper {
+    background: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ZMIANY DLA PÓL INPUT/SELECT */
+  .location-autocomplete-field input, /* Dotyczy pola input w LocationAutocomplete */
+  .form-select-field,
+  .form-date-field {
+    background-color: #444; /* Ciemne tło dla pól input/select w trybie ciemnym */
+    color: #e0e0e0; /* Jasny tekst dla pól input/select w trybie ciemnym */
+    border: 1px solid #666; /* Ciemniejsza ramka */
+  }
+
+  /* Domyślny kolor tekstu w inputach (ważne, żeby nadpisać domyślny biały z poprzedniej reguły) */
+  .location-autocomplete-field {
+      color: #e0e0e0; /* Ustawienie koloru tekstu w polu autocomplete */
+  }
+
+  .search-button {
+    background-color: #0056b3;
+  }
+  .search-button:hover {
+    background-color: #003f7f;
+  }
+
+  .reset-button {
+    background-color: #5a6268;
+  }
+  .reset-button:hover {
+    background-color: #4a5056;
+  }
+
+  .map-cross {
+    color: yellow;
+  }
+
+  .map-overlay {
+      background-color: rgba(255,255,255,0.2); /* Jaśniejsze przyciemnienie */
+      color: #333; /* Ciemniejszy tekst */
+  }
+
+  /* Klastry w trybie ciemnym */
+  .leaflet-marker-icon.marker-cluster-small {
+      background-color: rgba(90, 150, 60, 0.9) !important; /* Ciemniejszy zielony */
+      color: #eee !important; /* Jasny tekst */
+  }
+  .leaflet-marker-icon.marker-cluster-medium {
+      background-color: rgba(180, 160, 50, 0.9) !important; /* Ciemniejszy żółty */
+      color: #eee !important;
+  }
+  .leaflet-marker-icon.marker-cluster-large {
+      background-color: rgba(200, 100, 80, 0.9) !important; /* Ciemniejszy pomarańczowy */
+      color: #eee !important;
+  }
+  .leaflet-marker-icon.marker-cluster-extra-large {
+      background-color: rgba(200, 60, 60, 0.9) !important; /* Ciemniejszy czerwony */
+      color: #eee !important;
+  }
+  /* Upewnij się, że ogólny kolor tekstu w klastrach jest jasny w trybie ciemnym */
+  .leaflet-marker-icon.marker-cluster span {
+      color: #eee !important;
+  }
+
+  /* Legenda w trybie ciemnym */
+  .map-legend-container {
+      background-color: #333 !important; /* Ciemne tło dla legendy */
+      color: #e0e0e0 !important; /* Jasny tekst dla legendy */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5) !important; /* Ciemniejszy cień */
+  }
+}
+
+/* 🍰 Pozwala scrollować stronę jednym palcem na telefonie */
+.leaflet-container {
+  touch-action: pan-y;
 }
