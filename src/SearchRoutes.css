@@ -324,3 +324,20 @@
         color: #eee !important; /* Jaśniejszy tekst */
     }
 }
+
+/* Dodatkowe wymuszenie pozycji dla ikon klastrów */
+.leaflet-marker-icon.marker-cluster {
+    /* Wymuś prawidłowe pozycjonowanie bez przesuwania przez inne style */
+    transform: translate3d(0, 0, 0) !important; /* Resetuje wszelkie transformacje */
+    background-position: center !important; /* Upewnij się, że tło jest wyśrodkowane */
+    display: flex !important; /* Potwierdź flexbox, aby wyśrodkować zawartość (liczbę) */
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Upewnij się, że span wewnątrz jest wyśrodkowany */
+.leaflet-marker-icon.marker-cluster span {
+    display: block !important; /* Ważne, aby span był blokiem, by line-height działało */
+    width: 100% !important; /* Rozciągnij na całą szerokość klastra */
+    text-align: center !important; /* Wyśrodkuj tekst */
+}
