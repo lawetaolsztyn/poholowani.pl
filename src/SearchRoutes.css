@@ -263,47 +263,47 @@
 
 .leaflet-marker-icon.marker-cluster-small {
     background-color: rgba(181, 226, 140, 0.9); /* Nieco mniej przezroczyste */
-    width: 55px !important;  /* Zwiększ rozmiar */
-    height: 55px !important; /* Zwiększ rozmiar */
-    margin-left: -27.5px !important; /* Połowa szerokości */
-    margin-top: -27.5px !important;  /* Połowa wysokości */
-    border-radius: 27.5px !important; /* Połowa rozmiaru dla okrągłości */
-    font-size: 24px !important; /* Większa czcionka */
-    line-height: 55px !important; /* Dopasuj do wysokości */
+    width: 50px !important;  /* Zwiększ rozmiar */
+    height: 50px !important; /* Zwiększ rozmiar */
+    margin-left: -25.5px !important; /* Połowa szerokości */
+    margin-top: -25.5px !important;  /* Połowa wysokości */
+    border-radius: 25.5px !important; /* Połowa rozmiaru dla okrągłości */
+    font-size: 22px !important; /* Większa czcionka */
+    line-height: 50px !important; /* Dopasuj do wysokości */
 }
 
 .leaflet-marker-icon.marker-cluster-medium {
     background-color: rgba(241, 211, 87, 0.9);
-    width: 65px !important;
-    height: 65px !important;
-    margin-left: -32.5px !important;
-    margin-top: -32.5px !important;
-    border-radius: 32.5px !important;
-    font-size: 28px !important;
-    line-height: 65px !important;
+    width: 60px !important;
+    height: 60px !important;
+    margin-left: -30.5px !important;
+    margin-top: -30.5px !important;
+    border-radius: 30.5px !important;
+    font-size: 26px !important;
+    line-height: 60px !important;
 }
 
 .leaflet-marker-icon.marker-cluster-large {
     background-color: rgba(253, 156, 115, 0.9);
-    width: 75px !important;
-    height: 75px !important;
-    margin-left: -37.5px !important; /* Zmienione na 37.5 */
-    margin-top: -37.5px !important;  /* Zmienione na 37.5 */
-    border-radius: 37.5px !important; /* Zmienione na 37.5 */
-    font-size: 32px !important;
-    line-height: 75px !important;
+    width: 70px !important;
+    height: 70px !important;
+    margin-left: -35.5px !important; /* Zmienione na 37.5 */
+    margin-top: -35.5px !important;  /* Zmienione na 37.5 */
+    border-radius: 35.5px !important; /* Zmienione na 37.5 */
+    font-size: 30px !important;
+    line-height: 70px !important;
 }
 
 /* Możesz dodać marker-cluster-extra-large jeśli potrzebujesz */
 .leaflet-marker-icon.marker-cluster-extra-large {
     background-color: rgba(255, 100, 100, 0.9);
-    width: 85px !important;
-    height: 85px !important;
-    margin-left: -42.5px !important; /* Zmienione na 42.5 */
-    margin-top: -42.5px !important;  /* Zmienione na 42.5 */
-    border-radius: 42.5px !important; /* Zmienione na 42.5 */
-    font-size: 36px !important; /* Zwiększona czcionka dla największego klastra */
-    line-height: 85px !important;
+    width: 80px !important;
+    height: 80px !important;
+    margin-left: -40.5px !important; /* Zmienione na 42.5 */
+    margin-top: -40.5px !important;  /* Zmienione na 42.5 */
+    border-radius: 40.5px !important; /* Zmienione na 42.5 */
+    font-size: 34px !important; /* Zwiększona czcionka dla największego klastra */
+    line-height: 80px !important;
 }
 
 /* Dostosowanie dla trybu ciemnego (jeśli chcesz inne kolory klastrów w trybie ciemnym) */
