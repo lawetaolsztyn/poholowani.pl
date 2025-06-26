@@ -265,9 +265,9 @@
     background-color: rgba(181, 226, 140, 0.9); /* Nieco mniej przezroczyste */
     width: 40px !important;  /* Zwiększ rozmiar */
     height: 40px !important; /* Zwiększ rozmiar */
-    margin-left: -20.5px !important; /* Połowa szerokości */
-    margin-top: -20.5px !important;  /* Połowa wysokości */
-    border-radius: 20.5px !important; /* Połowa rozmiaru dla okrągłości */
+    margin-left: -20px !important; /* Połowa szerokości */
+    margin-top: -20px !important;  /* Połowa wysokości */
+    border-radius: 20px !important; /* Połowa rozmiaru dla okrągłości */
     font-size: 20px !important; /* Większa czcionka */
     line-height: 40px !important; /* Dopasuj do wysokości */
 }
@@ -276,9 +276,9 @@
     background-color: rgba(241, 211, 87, 0.9);
     width: 50px !important;
     height: 50px !important;
-    margin-left: -25.5px !important;
-    margin-top: -25.5px !important;
-    border-radius: 25.5px !important;
+    margin-left: -25px !important;
+    margin-top: -25px !important;
+    border-radius: 25px !important;
     font-size: 24px !important;
     line-height: 50px !important;
 }
@@ -287,9 +287,9 @@
     background-color: rgba(253, 156, 115, 0.9);
     width: 60px !important;
     height: 60px !important;
-    margin-left: -30.5px !important; /* Zmienione na 37.5 */
-    margin-top: -30.5px !important;  /* Zmienione na 37.5 */
-    border-radius: 30.5px !important; /* Zmienione na 37.5 */
+    margin-left: -30px !important; /* Zmienione na 37.5 */
+    margin-top: -30px !important;  /* Zmienione na 37.5 */
+    border-radius: 30px !important; /* Zmienione na 37.5 */
     font-size: 28px !important;
     line-height: 60px !important;
 }
@@ -299,9 +299,9 @@
     background-color: rgba(255, 100, 100, 0.9);
     width: 70px !important;
     height: 70px !important;
-    margin-left: -35.5px !important; /* Zmienione na 42.5 */
-    margin-top: -35.5px !important;  /* Zmienione na 42.5 */
-    border-radius: 35.5px !important; /* Zmienione na 42.5 */
+    margin-left: -35px !important; /* Zmienione na 42.5 */
+    margin-top: -35px !important;  /* Zmienione na 42.5 */
+    border-radius: 35px !important; /* Zmienione na 42.5 */
     font-size: 32px !important; /* Zwiększona czcionka dla największego klastra */
     line-height: 70px !important;
 }
