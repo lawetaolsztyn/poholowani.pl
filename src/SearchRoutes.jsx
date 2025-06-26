@@ -345,19 +345,22 @@ const HighlightedRoute = React.memo(function HighlightedRoute({ route, isHovered
 // Zmieniony komponent StaticRoutePolyline, który teraz renderuje Marker w punkcie początkowym trasy
 // i obsługuje Popup dla Markera
 const StaticRouteClusterMarker = React.memo(function StaticRouteClusterMarker({ route }) {
-console.log('Rendering StaticRouteClusterMarker for route ID:', route.id);
-    console.log('  route.geojson.features[0].geometry.coordinates:', route.geojson?.features?.[0]?.geometry?.coordinates);
+    console.log('Rendering StaticRouteClusterMarker for route ID:', route.id);
 
-      let startPointCoords = null;
-if (typeof route.from_lat === 'number' && typeof route.from_lng === 'number') {
-    startPointCoords = [route.from_lat, route.from_lng]; // [lat, lng]
-}
-    console.log('  Obliczone startPointCoords:', startPointCoords); // <-- DODAJ TĘ LINIĘ
+    let fromPointCoords = null;
+    if (typeof route.from_lat === 'number' && typeof route.from_lng === 'number') {
+        fromPointCoords = [route.from_lat, route.from_lng]; // [lat, lng]
+    }
 
+    let toPointCoords = null;
+    if (typeof route.to_lat === 'number' && typeof route.to_lng === 'number') {
+        toPointCoords = [route.to_lat, route.to_lng]; // [lat, lng]
+    }
 
-    if (!startPointCoords) return null;
+    // Jeśli brakuje obu punktów, nie renderuj nic
+    if (!fromPointCoords && !toPointCoords) return null;
 
-    // Tworzenie domyślnej ikony markera, aby uniknąć problemów z brakującymi ikonami Leaflet
+    // Tworzenie domyślnej ikony markera (możesz użyć różnych ikon dla "from" i "to" jeśli chcesz)
     const defaultIcon = L.icon({
         iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -368,70 +371,96 @@ if (typeof route.from_lat === 'number' && typeof route.from_lng === 'number') {
         shadowSize: [41, 41]
     });
 
-    return (
-        <Marker position={startPointCoords} icon={defaultIcon}>
-            <Popup>
-                <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                        <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
-                        <strong>Do:</strong> {route.to_city?.split(',')[0]}
-                    </div>
-                    <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
-                    <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
-                    <div style={{ marginBottom: '6px' }}>Osób: {route.passenger_count || '–'}</div>
-                    <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
-                    {route.phone && (
-                        <div style={{ marginBottom: '10px' }}>
-                            📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
-                                <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
-                                    {route.phone}
-                                </a>
-                            </strong>
-                            {route.uses_whatsapp && (
-                                <div style={{ marginTop: '4px' }}>
-                                    <a
-                                        href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
-                                    >
-                                        🟢 WhatsApp
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    {route.messenger_link && (
+    // Możesz stworzyć osobną ikonę dla punktu końcowego, np. czerwoną
+    const toIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', // Przykład czerwonej ikony
+        iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+
+    // Funkcja do renderowania zawartości popupu
+    const renderPopupContent = (route) => (
+        <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                <strong>Z:</strong> {route.from_city?.split(',')[0]}<br />
+                <strong>Do:</strong> {route.to_city?.split(',')[0]}
+            </div>
+            <div style={{ marginBottom: '6px' }}>📅 {route.date}</div>
+            <div style={{ marginBottom: '6px' }}>📦 {route.load_capacity || '–'}</div>
+            <div style={{ marginBottom: '6px' }}>Osób: {route.passenger_count || '–'}</div>
+            <div style={{ marginBottom: '6px' }}>🚚 {route.vehicle_type === 'laweta' ? 'Laweta' : 'Bus'}</div>
+            {route.phone && (
+                <div style={{ marginBottom: '10px' }}>
+                    📞 Telefon: <strong style={{ letterSpacing: '1px' }}>
+                        <a href={`tel:${route.phone}`} style={{ color: '#007bff', textDecoration: 'none' }}>
+                            {route.phone}
+                        </a>
+                    </strong>
+                    {route.uses_whatsapp && (
                         <div style={{ marginTop: '4px' }}>
                             <a
-                                href={route.messenger_link}
+                                href={`https://wa.me/${route.phone.replace(/\D/g, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+                                style={{ textDecoration: 'none', color: '#25D366', fontWeight: 'bold' }}
                             >
-                                🔵 Messenger
-                            </a>
-                        </div>
-                    )}
-                    {route.user_id && route.users_extended?.nip && (
-                        <div>
-                            <div style={{ marginBottom: '8px' }}>
-                                <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
-                                    🏢 Firma
-                                </span>
-                            </div>
-                            <strong>Profil przewoźnika:</strong>{' '}
-                            <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
-                                otwórz
+                                🟢 WhatsApp
                             </a>
                         </div>
                     )}
                 </div>
-            </Popup>
-        </Marker>
+            )}
+            {route.messenger_link && (
+                <div style={{ marginTop: '4px' }}>
+                    <a
+                        href={route.messenger_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: 'none', color: '#0084FF', fontWeight: 'bold' }}
+                    >
+                        🔵 Messenger
+                    </a>
+                </div>
+            )}
+            {route.user_id && route.users_extended?.nip && (
+                <div>
+                    <div style={{ marginBottom: '8px' }}>
+                        <span title="Zarejestrowana firma" style={{ display: 'inline-block', padding: '4px 8px', backgroundColor: '#007bff', color: '#FFC107', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>
+                            🏢 Firma
+                        </span>
+                    </div>
+                    <strong>Profil przewoźnika:</strong>{' '}
+                    <a href={`https://poholowani.pl/profil/${route.user_id}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+                        otwórz
+                    </a>
+                </div>
+            )}
+        </div>
+    );
+
+    return (
+        <>
+            {/* Marker dla punktu początkowego */}
+            {fromPointCoords && (
+                <Marker position={fromPointCoords} icon={defaultIcon}>
+                    <Popup>{renderPopupContent(route)}</Popup>
+                </Marker>
+            )}
+
+            {/* Marker dla punktu końcowego */}
+            {toPointCoords && (
+                <Marker position={toPointCoords} icon={toIcon}> {/* Użyj innej ikony dla wyróżnienia */}
+                    <Popup>{renderPopupContent(route)}</Popup>
+                </Marker>
+            )}
+        </>
     );
 });
-
 
 function MapViewAndInteractionSetter({ mapMode, resetMapViewTrigger }) {
     const map = useMap();
@@ -508,7 +537,7 @@ function SearchRoutes() {
 
         // Parametry zapytania dla Worker'a - BEZ offset/limit
         const queryParams = new URLSearchParams({
-select: 'id,from_city,to_city,date,load_capacity,passenger_count,vehicle_type,phone,uses_whatsapp,messenger_link,user_id,from_lat,from_lng,users_extended(id,nip,role,is_premium)',
+    select: 'id,from_city,to_city,date,load_capacity,passenger_count,vehicle_type,phone,uses_whatsapp,messenger_link,user_id,from_lat,from_lng,to_lat,to_lng,users_extended(id,nip,role,is_premium)',
             'date': `gte.${today}`,
             'order': 'created_at.desc',
         }).toString();
