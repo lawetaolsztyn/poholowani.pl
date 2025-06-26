@@ -345,3 +345,15 @@
     height: 100% !important;
     line-height: normal !important; /* Zresetuj line-height */
 }
+
+/* --- Style dla trybu ciemnego --- */
+@media (prefers-color-scheme: dark) {
+    /* ... Twoje istniejące style dla trybu ciemnego ... */
+
+    /* Dodatkowy styl dla legendy w trybie ciemnym */
+    .map-legend-container { /* To jest klasa, którą zaraz dodamy do diva legendy w JSX */
+        background-color: #333 !important; /* Ciemne tło dla legendy */
+        color: #e0e0e0 !important; /* Jasny tekst dla legendy */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5) !important; /* Ciemniejszy cień */
+    }
+}
