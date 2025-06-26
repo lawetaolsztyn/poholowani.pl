@@ -252,7 +252,7 @@
 /* Nowe style dla kółek klasteryzacji - dodaj te sekcje na końcu pliku */
 
 /* Nadpisanie domyślnych stylów klastrów */
-.marker-cluster {
+.leaflet-marker-icon.marker-cluster {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -261,66 +261,66 @@
     text-align: center;
 }
 
-.marker-cluster-small {
+.leaflet-marker-icon.marker-cluster-small {
     background-color: rgba(181, 226, 140, 0.9); /* Nieco mniej przezroczyste */
-    width: 55px;  /* Zwiększ rozmiar */
-    height: 55px; /* Zwiększ rozmiar */
-    margin-left: -27.5px; /* Połowa szerokości */
-    margin-top: -27.5px;  /* Połowa wysokości */
-    border-radius: 22.5px; /* Połowa rozmiaru dla okrągłości */
-    font-size: 20px; /* Większa czcionka */
-    line-height: 45px; /* Dopasuj do wysokości */
+    width: 55px !important;  /* Zwiększ rozmiar */
+    height: 55px !important; /* Zwiększ rozmiar */
+    margin-left: -27.5px !important; /* Połowa szerokości */
+    margin-top: -27.5px !important;  /* Połowa wysokości */
+    border-radius: 27.5px !important; /* Połowa rozmiaru dla okrągłości */
+    font-size: 24px !important; /* Większa czcionka */
+    line-height: 55px !important; /* Dopasuj do wysokości */
 }
 
-.marker-cluster-medium {
+.leaflet-marker-icon.marker-cluster-medium {
     background-color: rgba(241, 211, 87, 0.9);
-    width: 65px;
-    height: 65px;
-    margin-left: -32.5px;
-    margin-top: -32.5px;
-    border-radius: 27.5px;
-    font-size: 24px;
-    line-height: 55px;
+    width: 65px !important;
+    height: 65px !important;
+    margin-left: -32.5px !important;
+    margin-top: -32.5px !important;
+    border-radius: 32.5px !important;
+    font-size: 28px !important;
+    line-height: 65px !important;
 }
 
-.marker-cluster-large {
+.leaflet-marker-icon.marker-cluster-large {
     background-color: rgba(253, 156, 115, 0.9);
-    width: 75px;
-    height: 75px;
-    margin-left: -42.5px;
-    margin-top: -42.5px;
-    border-radius: 32.5px;
-    font-size: 28px;
-    line-height: 65px;
+    width: 75px !important;
+    height: 75px !important;
+    margin-left: -37.5px !important; /* Zmienione na 37.5 */
+    margin-top: -37.5px !important;  /* Zmienione na 37.5 */
+    border-radius: 37.5px !important; /* Zmienione na 37.5 */
+    font-size: 32px !important;
+    line-height: 75px !important;
 }
 
 /* Możesz dodać marker-cluster-extra-large jeśli potrzebujesz */
-.marker-cluster-extra-large {
+.leaflet-marker-icon.marker-cluster-extra-large {
     background-color: rgba(255, 100, 100, 0.9);
-    width: 85px;
-    height: 85px;
-    margin-left: -37.5px;
-    margin-top: -37.5px;
-    border-radius: 37.5px;
-    font-size: 32px;
-    line-height: 75px;
+    width: 85px !important;
+    height: 85px !important;
+    margin-left: -42.5px !important; /* Zmienione na 42.5 */
+    margin-top: -42.5px !important;  /* Zmienione na 42.5 */
+    border-radius: 42.5px !important; /* Zmienione na 42.5 */
+    font-size: 36px !important; /* Zwiększona czcionka dla największego klastra */
+    line-height: 85px !important;
 }
 
 /* Dostosowanie dla trybu ciemnego (jeśli chcesz inne kolory klastrów w trybie ciemnym) */
 @media (prefers-color-scheme: dark) {
-    .marker-cluster-small {
+    .leaflet-marker-icon.marker-cluster-small {
         background-color: rgba(90, 150, 60, 0.9); /* Ciemniejszy zielony */
     }
-    .marker-cluster-medium {
+    .leaflet-marker-icon.marker-cluster-medium {
         background-color: rgba(180, 160, 50, 0.9); /* Ciemniejszy żółty */
     }
-    .marker-cluster-large {
+    .leaflet-marker-icon.marker-cluster-large {
         background-color: rgba(200, 100, 80, 0.9); /* Ciemniejszy pomarańczowy */
     }
-    .marker-cluster-extra-large {
+    .leaflet-marker-icon.marker-cluster-extra-large {
         background-color: rgba(200, 60, 60, 0.9); /* Ciemniejszy czerwony */
     }
-    .marker-cluster span {
-        color: #eee; /* Jaśniejszy tekst */
+    .leaflet-marker-icon.marker-cluster span {
+        color: #eee !important; /* Jaśniejszy tekst */
     }
 }
