@@ -164,50 +164,30 @@ try {
     const userId = user?.id;
 
     // Tutaj zmieniamy sposób zapisywania do bazy danych
-      // --- ZMIENIONA SEKCJA: Wysyłanie danych do Cloudflare Workera zamiast bezpośrednio do Supabase RPC ---
-        const { data: { user } } = await supabase.auth.getUser(); // Nadal potrzebujemy user ID
-        const userId = user?.id;
+    // Zamiast insert, wywołujemy funkcję RPC
+    const { error } = await supabase.rpc('create_route_with_geometry', {
+        p_user_id: userId || null,
+        p_from_city: form.from.label,
+        p_via: form.via.label || null,
+        p_to_city: form.to.label,
+        p_date: form.date, // Pamiętaj, że w funkcji SQL p_date jest DATE, a form.date jest stringiem YYYY-MM-DD
+        p_vehicle_type: form.vehicleType,
+        p_load_capacity: form.loadCapacity || null,
+        p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
+        p_max_detour_km: parseInt(form.maxDetour),
+        p_phone: form.phone ? `${form.countryCode}${form.phone}` : null,
+        p_messenger_link: form.messenger || null,
+        p_geojson: routeData, // Przekazujemy CAŁY obiekt GeoJSON
+        p_browser_token: browserToken || null,
+        p_uses_whatsapp: form.usesWhatsapp
+    });
 
-        const routePayload = {
-            p_user_id: userId || null,
-            p_from_city: form.from.label,
-            p_via: form.via.label || null,
-            p_to_city: form.to.label,
-            p_date: form.date,
-            p_vehicle_type: form.vehicleType,
-            p_load_capacity: form.loadCapacity || null,
-            p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
-            p_max_detour_km: parseInt(form.maxDetour),
-            p_phone: form.phone ? `${form.countryCode}${form.phone}` : null,
-            p_messenger_link: form.messenger || null,
-            p_geojson: routeData, // Przekazujemy CAŁY obiekt GeoJSON (już sparsowany, nie string)
-            p_browser_token: browserToken || null,
-            p_uses_whatsapp: form.usesWhatsapp
-        };
-
-        // Wysyłanie do Workera, który następnie wywoła funkcję RPC Supabase
-        const workerResponse = await fetch('/api/routes', { // Endpoint Workera
-            method: 'POST', // Ważne, żeby była to metoda POST
-            headers: {
-                'Content-Type': 'application/json',
-                // Możesz przekazać token autoryzacji Supabase, jeśli Worker go potrzebuje
-                // 'Authorization': `Bearer ${supabase.auth.getSession().access_token}` // Jeśli Worker wymaga autoryzacji
-            },
-            body: JSON.stringify(routePayload), // Wysyłamy nasze dane jako JSON
-        });
-
-        if (!workerResponse.ok) {
-            const errorBody = await workerResponse.json(); // Załóżmy, że Worker zwróci JSON z błędem
-            console.error('Błąd zapisu trasy przez Worker:', errorBody);
-            alert(`❌ Wystąpił błąd zapisu trasy: ${errorBody.message || 'Nieznany błąd z serwera.'}`);
-            setIsSaving(false);
-            return;
-        }
-
-        // Jeśli Worker zwrócił sukces (np. 200 OK), oznacza to, że trasa została zapisana
-        // Możesz tutaj odczytać odpowiedź z Workera, jeśli zwraca jakieś dane (np. id nowej trasy)
-        const successData = await workerResponse.json();
-        console.log('Trasa dodana pomyślnie przez Workera:', successData);
+    if (error) {
+        console.error('Błąd zapisu trasy przez funkcję RPC:', error);
+        alert('❌ Wystąpił błąd zapisu do bazy: ' + error.message);
+        setIsSaving(false);
+        return;
+    }
 
     onRouteCreated(routeData); // Nadal możesz przekazać routeData do rodzica, jeśli potrzebne
 
