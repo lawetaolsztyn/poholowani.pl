@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "include": [
+    "/*"
+  ],
+  "exclude": [
+    "/api/routes*",  // Wyklucz /api/routes i wszystkie podścieżki
+    "/api/ors-route*" // Nadal obsługujemy przez ten plik, ale ten exclude jest po to, aby nie kolidować z potencjalnym Workerm dla ORS.
+                       // Jeśli or-route.js jest Page Function, to ten exclude jest OK.
+                       // Jeśli to jest endpoint, który ma iść przez Workera, to ten exclude jest też OK.
+  ]
+}
