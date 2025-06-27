@@ -185,7 +185,7 @@ try {
         };
 
         // Wysyłanie do Workera, który następnie wywoła funkcję RPC Supabase
-        const workerResponse = await fetch('/api/routes', { // Endpoint Workera
+const workerResponse = await fetch('https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes', { // ZMIENIONY URL!
             method: 'POST', // Ważne, żeby była to metoda POST
             headers: {
                 'Content-Type': 'application/json',
