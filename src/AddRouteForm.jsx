@@ -144,7 +144,7 @@ try {
     console.log('Coordinates sent to ORS:', coordinates);
     console.log('Radiuses sent to ORS:', radiuses);
 
-    const routeRes = await fetchWithRetry('/api/ors-route', {
+const routeRes = await fetchWithRetry('https://map-api-proxy.lawetaolsztyn.workers.dev/api/ors-route', { // ZMIENIONY URL!
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
