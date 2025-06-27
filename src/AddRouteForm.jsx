@@ -160,8 +160,7 @@ try {
     const routeData = await routeRes.json();
     setRouteData(routeData);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id;
+
 
     // Tutaj zmieniamy sposób zapisywania do bazy danych
       // --- ZMIENIONA SEKCJA: Wysyłanie danych do Cloudflare Workera zamiast bezpośrednio do Supabase RPC ---
