@@ -437,24 +437,31 @@ export default function UserProfileDashboard() {
                 
                 {/* ZASTĄPIONE STANDARDOWE INPUTY KOMPONENTAMI LocationAutocomplete */}
                 <label className="form-label">
-                  Miasto:
+                  Ulica:
                   <LocationAutocomplete
-                    value={roadsideCityAutocompleteValue}
+                    value={roadsideStreetAutocompleteValue}
                     onSelectLocation={(label, sug) => {
+                      const streetName = sug.text || '';
+                      const houseNumber = sug.address || ''; // Mapbox często zwraca numer budynku w sug.address
+
                       setFormData(prev => ({ 
                         ...prev, 
-                        roadside_city: sug.text || '', // sug.text to nazwa miasta z Mapbox
-                        roadside_street: '', // Wyczyść ulicę
-                        roadside_number: '' // Wyczyść numer
+                        roadside_street: streetName, 
+                        roadside_number: houseNumber 
                       }));
-                      setRoadsideCityAutocompleteValue(label); // Aktualizuj wartość wyświetlaną w input
-                      setRoadsideStreetAutocompleteValue(''); // Wyczyść input dla ulicy
-                      // Ustaw koordynaty z wybranej sugestii miasta
-                      setRoadsideSelectedCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                      setRoadsideStreetAutocompleteValue(label); 
+
+                      // KLUCZOWA ZMIANA: Sprawdzamy, czy sug.center istnieje
+                      if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) { // Zabezpieczenie
+                          setRoadsideSelectedCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                      } else {
+                          console.warn("Brak koordynatów (sug.center) dla wybranej sugestii ulicy:", sug);
+                          setRoadsideSelectedCoords({ latitude: null, longitude: null }); // Resetuj koordynaty
+                      }
                     }}
-                    placeholder="Wpisz miasto działalności"
+                    placeholder="Wpisz ulicę i numer"
                     className="form-input"
-                    searchType="city" // Dodano searchType: 'city'
+                    searchType="street"
                   />
                 </label>
 
