@@ -250,28 +250,42 @@ justify-content: center; /* Wymuś centrowanie w poziomie dla flexboxa */
   }
 }
 
-/* Dodatkowe media query dla bardzo małych ekranów, jeśli 768px to za dużo */
 @media (max-width: 480px) {
     .map-wrapper {
-        min-height: 450px; /* Dodatkowo zmniejsz wysokość mapy, jeśli potrzeba */
+        min-height: 550px; /* Może być potrzeba dostosowania tej wartości */
     }
+    /* CEL: UPEWNIENIE SIĘ, ŻE CENTROWANIE DZIAŁA RÓWNIEŻ TUTAJ */
     .action-buttons,
     .info-banners-container {
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        width: auto !important; /* Ważne, aby width było auto */
+        max-width: 180px !important; /* Maksymalna szerokość dla obu grup */
         gap: 0.6rem; /* Jeszcze mniejszy odstęp */
     }
+    .action-buttons {
+        top: 15% !important; /* Dostosuj pozycję górnych, jeśli się zsuną */
+    }
+    .info-banners-container {
+        bottom: 10% !important; /* Dostosuj pozycję dolnych */
+    }
+
     .primary-button,
     .secondary-button,
     .info-banner-button {
-        font-size: 0.9rem; /* Jeszcze mniejsza czcionka */
-        padding: 0.6rem 0.8rem; /* Jeszcze mniejszy padding */
+        font-size: 0.8rem; /* Może być potrzeba dalszego zmniejszenia */
+        padding: 0.5rem 0.6rem;
+        width: 100% !important; /* Wymuś 100% szerokości w kontenerze */
     }
     .primary-button .subtext,
     .secondary-button .subtext,
     .info-banner-button .subtext {
-        font-size: 0.6rem;
+        font-size: 0.55rem;
     }
 }
-
 
 /* Tryb ciemny dla LandingPage - ZOPTYMALIZOWANE */
 @media (prefers-color-scheme: dark) {
