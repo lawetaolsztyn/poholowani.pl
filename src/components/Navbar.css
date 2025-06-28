@@ -141,3 +141,16 @@
     width: 100%;
   }
 }
+
+/* Style dla linku "Transport Na Już!" */
+.transport-na-juz-link {
+    color: red !important; /* Użyj !important, aby nadpisać inne style (np. domyślne dla active/hover) */
+    font-weight: bold; /* Opcjonalnie: pogrubienie */
+}
+
+/* Opcjonalnie: Kolor czerwony w trybie ciemnym, jeśli chcesz, aby był inny */
+@media (prefers-color-scheme: dark) {
+    .transport-na-juz-link {
+        color: #ff6666 !important; /* Jaśniejszy odcień czerwieni dla trybu ciemnego */
+    }
+}

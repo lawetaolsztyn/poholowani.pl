@@ -83,8 +83,11 @@ export default function Navbar() {
           <Link to="/szukam" className={isActive('/szukam')} onClick={() => setIsMobileMenuOpen(false)}>Szukam Transportu</Link>
           <Link to="/oferuje" className={isActive('/oferuje')} onClick={() => setIsMobileMenuOpen(false)}>Oferuję Transport</Link>
 <Link to="/tablica-ogloszen" className={isActive('/tablica-ogloszen')} onClick={() => setIsMobileMenuOpen(false)}>Tablica Ogłoszeń</Link>
-      <Link to="/transport-na-juz" className={isActive('/transport-na-juz')} onClick={() => setIsMobileMenuOpen(false)}>Transport Na Już!</Link>
-               <Link to="/kontakt" className={isActive('/kontakt')} onClick={() => setIsMobileMenuOpen(false)}>Kontakt</Link>
+<Link to="/transport-na-juz" className={`${isActive('/transport-na-juz')} transport-na-juz-link`} // Dodana klasa
+          onClick={() => setIsMobileMenuOpen(false)}
+      >
+          Transport Na Już!
+      </Link>               <Link to="/kontakt" className={isActive('/kontakt')} onClick={() => setIsMobileMenuOpen(false)}>Kontakt</Link>
 
           {email && (
             <>
