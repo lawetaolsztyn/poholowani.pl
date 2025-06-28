@@ -1,7 +1,7 @@
 .navbar {
   display: flex;
   justify-content: space-between;
-  background: linear-gradient(135deg, #43cea2, #185a9d); /* ten sam co w overlay-header */
+  background-color: #1a2a40; /* Ciemny granat */
   color: white;
   padding: 1rem 2rem;
   position: sticky;
@@ -142,15 +142,71 @@
   }
 }
 
-/* Style dla linku "Transport Na Już!" */
+/* NOWE STYLE DLA LINKU "TRANSPORT NA JUŻ!" - POPRAWIONE */
 .transport-na-juz-link {
-    color: red !important; /* Użyj !important, aby nadpisać inne style (np. domyślne dla active/hover) */
-    font-weight: bold; /* Opcjonalnie: pogrubienie */
+    /* Kolor tekstu dla stanu normalnego (nieaktywnego i nie-hoverowanego) */
+    /* Użyj jasnego, jaskrawego pomarańczowego, który dobrze kontrastuje z granatowym tłem */
+    color: #FFA500 !important; /* Czysty, jasny pomarańczowy */
+
+    font-weight: bold;
+
+    /* Wyraźny cień tekstu dla lepszej czytelności i efektu "glow" */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.9), /* Ciemny cień */
+                 0 0 10px rgba(255, 255, 255, 0.7); /* Jasna, mocna poświata */
+
+
+    /* Tło i ramka dla stanu normalnego (lekko widoczne, ale nie dominujące) */
+    background-color: rgba(255, 255, 255, 0.05) !important; /* Bardzo subtelne, przezroczyste białe tło */
+    border: 1px solid #FFA500 !important; /* Ramka w kolorze tekstu */
+    padding: 0.5rem 1rem !important;
+    border-radius: 5px !important;
+    transition: all 0.3s ease;
 }
 
-/* Opcjonalnie: Kolor czerwony w trybie ciemnym, jeśli chcesz, aby był inny */
+/* Stan HOVER dla linku "Transport Na Już!" */
+.transport-na-juz-link:hover {
+    /* PRZYWRÓCENIE STYLI AKTYWNYCH/HOVEROWYCH NAVBARR'a */
+    background-color: rgba(255, 255, 255, 0.1) !important; /* Dopasuj do .navbar a:hover */
+    color: white !important; /* Tekst biały */
+    text-shadow: none !important; /* Usuń cień tekstu przy najechaniu */
+    border-color: transparent !important; /* Usuń ramkę przy najechaniu */
+}
+
+/* Stan ACTIVE dla linku "Transport Na Już!" */
+.navbar a.active.transport-na-juz-link {
+    /* PRZYWRÓCENIE STYLI AKTYWNYCH NAVBARR'a */
+    background-color: #ff6600 !important; /* Pomarańczowe tło jak dla innych aktywnych linków */
+    color: white !important; /* Tekst biały */
+    text-shadow: none !important; /* Usuń cień tekstu */
+    border-color: transparent !important; /* Usuń ramkę */
+}
+
+/* Opcjonalnie: Style dla trybu ciemnego */
 @media (prefers-color-scheme: dark) {
+    /* Upewnij się, że gradient na nav-links.open jest widoczny w trybie ciemnym */
+    .nav-links.open {
+      background: linear-gradient(135deg, #185a9d, #43cea2) !important; /* Odwrócony gradient dla lepszego wyglądu */
+    }
+
     .transport-na-juz-link {
-        color: #ff6666 !important; /* Jaśniejszy odcień czerwieni dla trybu ciemnego */
+        color: #FFBB33 !important; /* Jaśniejszy, bardziej "złoty" pomarańcz dla trybu ciemnego */
+        border-color: #FFBB33 !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.9),
+                     0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .transport-na-juz-link:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        text-shadow: none !important;
+        border-color: transparent !important;
+    }
+
+    .navbar a.active.transport-na-juz-link {
+        background-color: #E65100 !important; /* Ciemniejszy pomarańcz aktywny w trybie ciemnym */
+        color: white !important;
+        text-shadow: none !important;
+        border-color: transparent !important;
     }
 }
