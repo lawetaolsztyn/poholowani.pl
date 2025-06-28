@@ -1,7 +1,6 @@
 // src/TablicaOgloszen.jsx
 import React from 'react';
 import Navbar from './components/Navbar'; // Upewnij się, że ścieżka do Navbar jest poprawna
-import Footer from './components/Footer'; // Upewnij się, że ścieżka do Footer jest poprawna
 import Header from './components/Header'; // Importujemy komponent Header
 import './TablicaOgloszen.css'; // Utworzymy ten plik CSS w kolejnym kroku
 
@@ -20,7 +19,6 @@ export default function TablicaOgloszen() {
         <p>Możesz składać zapytania, filtrować ogłoszenia i kontaktować się ze zleceniodawcami.</p>
         {/* PRZYKŁADOWA TREŚĆ - DO UZGODNIENIA PÓŹNIEJ */}
       </div>
-      <Footer />
     </>
   );
 }
