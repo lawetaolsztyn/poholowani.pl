@@ -1,6 +1,6 @@
 // src/TransportNaJuz.jsx
 import React from 'react';
-import Navbar from './Navbar'; // Upewnij się, że ścieżka do Navbar jest poprawna
+import Navbar from './components/Navbar'; // Upewnij się, że ścieżka do Navbar jest poprawna
 import Footer from './components/Footer'; // Upewnij się, że ścieżka do Footer jest poprawna
 import Header from './components/Header'; // Importujemy komponent Header
 import './TransportNaJuz.css'; // Utworzymy ten plik CSS w kolejnym kroku
