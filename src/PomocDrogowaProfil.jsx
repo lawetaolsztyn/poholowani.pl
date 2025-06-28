@@ -28,17 +28,7 @@ export default function PomocDrogowaProfil() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [newImages, setNewImages] = useState([]); // Przechowuje pliki do przesłania
   const [uploadingImages, setUploadingImages] = useState(false); // Stan ładowania plików
-  // --- KONIEC STANÓW GALERII I LIGHTBOXA ---
-
-  // --- STANY DLA EDYCJI DANYCH FIRMOWYCH ORAZ ZGODY (POPRAWIONE/DODANE) ---
-  const [editCompanyName, setEditCompanyName] = useState('');
-  const [editRoadsideStreet, setEditRoadsideStreet] = useState('');
-  const [editRoadsideNumber, setEditRoadsideNumber] = useState('');
-  const [editRoadsideCity, setEditRoadsideCity] = useState('');
-  const [editRoadsidePhone, setEditRoadsidePhone] = useState('');
-  // STAN DLA ZGODY NA PUBLICZNY PROFIL POMOCY DROGOWEJ - KLUCZOWY ELEMENT RODO
-  const [consentPublicRoadsideProfile, setConsentPublicRoadsideProfile] = useState(false);
-  // --- KONIEC STANÓW DANYCH FIRMOWYCH ---
+  // --- KONIEC STANÓW ---
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +37,7 @@ export default function PomocDrogowaProfil() {
         const { data: userData } = await supabase.auth.getUser();
         const { data, error } = await supabase
           .from('users_extended')
-          .select('*')
+          .select('*') // Pobieramy wszystkie kolumny, w tym roadside_image_urls i roadside_description
           .eq('roadside_slug', slug)
           .eq('is_pomoc_drogowa', true)
           .single();
@@ -70,21 +60,6 @@ export default function PomocDrogowaProfil() {
 
         setProfileData(data);
         setIsOwner(userData?.user?.id === data.id);
-
-        // --- INICJALIZACJA STANÓW DANYMI Z PROFILU (W TYM ZGODY) ---
-        if (data) {
-          setEditCompanyName(data.company_name || '');
-          setEditRoadsideStreet(data.roadside_street || '');
-          setEditRoadsideNumber(data.roadside_number || '');
-          setEditRoadsideCity(data.roadside_city || '');
-          setEditRoadsidePhone(data.roadside_phone || '');
-          // Inicjalizuj stan zgody na podstawie danych z bazy.
-          // WAŻNE: Upewnij się, że w tabeli 'users_extended' w Supabase masz kolumnę
-          // 'has_accepted_roadside_public_terms' typu BOOLEAN z wartością domyślną FALSE.
-          setConsentPublicRoadsideProfile(data.has_accepted_roadside_public_terms || false);
-        }
-        // --- KONIEC INICJALIZACJI ---
-
       } catch (error) {
         console.error("Błąd ładowania profilu pomocy drogowej:", error.message);
         setProfileData(null);
@@ -112,7 +87,7 @@ export default function PomocDrogowaProfil() {
     }
   };
 
-  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA (BEZ ZMIAN) ---
+  // --- FUNKCJE OBSŁUGUJĄCE ZDJĘCIA ---
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file => {
@@ -146,7 +121,7 @@ export default function PomocDrogowaProfil() {
     let updatedImageUrls = [...(profileData.roadside_image_urls || [])];
 
     try {
-      const { data: { user } = {} } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user || user.id !== profileData.id) throw new Error("Brak autoryzacji do edycji.");
 
       for (const file of newImages) {
@@ -212,50 +187,6 @@ export default function PomocDrogowaProfil() {
   };
   // --- KONIEC FUNKCJI OBSŁUGUJĄCYCH LIGHTBOX ---
 
-  // --- FUNKCJA DO ZAPISU GŁÓWNYCH DANYCH FIRMOWYCH (W TYM ZGODY RODO) ---
-  const handleSaveMainInfo = async () => {
-    if (!profileData) return;
-
-    // WALIDACJA: Zablokuj zapis, jeśli zgoda nie jest zaznaczona
-    if (!consentPublicRoadsideProfile) {
-      alert('Aby zapisać dane profilu Pomocy Drogowej, musisz wyrazić zgodę na ich publiczne udostępnienie.');
-      setLoading(false); // Ustawienie loading na false w przypadku błędu walidacji
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data: { user } = {} } = await supabase.auth.getUser();
-      if (!user || user.id !== profileData.id) throw new Error("Brak autoryzacji do edycji.");
-
-      const updatePayload = {
-        company_name: editCompanyName,
-        roadside_street: editRoadsideStreet,
-        roadside_number: editRoadsideNumber,
-        roadside_city: editRoadsideCity,
-        roadside_phone: editRoadsidePhone,
-        has_accepted_roadside_public_terms: consentPublicRoadsideProfile, // Zapisz stan zgody w bazie
-      };
-
-      const { error } = await supabase
-        .from('users_extended')
-        .update(updatePayload)
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      setProfileData(prev => ({ ...prev, ...updatePayload })); // Aktualizuj lokalny stan
-      setEditingSection(null); // Wyjdź z trybu edycji
-      alert('Dane firmy zapisane pomyślnie!');
-    } catch (error) {
-      console.error('Błąd zapisu danych firmy:', error.message);
-      alert(`❌ Błąd zapisu danych firmy: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  // --- KONIEC FUNKCJI ZAPISU DANYCH FIRMOWYCH ---
-
 
   if (loading) {
     return (
@@ -286,158 +217,21 @@ export default function PomocDrogowaProfil() {
       <Navbar />
       <div className="min-h-screen bg-gray-100 py-8">
         <div className="container mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-
+          
           {/* Nagłówek główny i dane podstawowe (sekcja wizytówki) */}
           <div className="text-center mb-8 pb-4 border-b border-gray-200">
-            {/* Nagłówek i przycisk Edytuj/Anuluj zawsze widoczne na górze sekcji */}
-            <div className="flex justify-between items-center mb-4">
-                {editingSection === 'mainInfo' && isOwner ? (
-                    <h1 className="text-4xl font-bold text-gray-800">Edycja danych firmy</h1>
-                ) : (
-                    <h1 className="text-4xl font-bold text-gray-800">{profileData.company_name || profileData.roadside_slug || 'Profil Pomocy Drogowej'}</h1>
-                )}
-
-                {isOwner && editingSection !== 'mainInfo' && ( // Przycisk "Edytuj" widoczny tylko w trybie wyświetlania
-                    <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200"
-                        onClick={() => setEditingSection('mainInfo')}
-                    >
-                        ✏ Edytuj
-                    </button>
-                )}
-            </div>
-
-            {/* --- SEKCJA EDYCJI/WYŚWIETLANIA DANYCH GŁÓWNYCH (POPRAWIONA I DZIAŁAJĄCA) --- */}
-            {editingSection === 'mainInfo' && isOwner ? (
-                // Tryb edycji danych głównych - Widoczne inputy i checkbox
-                <div className="space-y-4 text-left"> {/* text-left dla formularza */}
-                    <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="company_name">Nazwa firmy:</label>
-                        <input
-                            type="text"
-                            id="company_name"
-                            value={editCompanyName}
-                            onChange={(e) => setEditCompanyName(e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="Nazwa Twojej firmy"
-                            // Pola są wyłączone, jeśli zgoda nie jest zaznaczona I pole jest puste.
-                            // To pozwala na odznaczenie zgody i wyczyszczenie pola, jeśli już coś było.
-                            disabled={!consentPublicRoadsideProfile && editCompanyName === ''}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="roadside_street">Ulica:</label>
-                        <input
-                            type="text"
-                            id="roadside_street"
-                            value={editRoadsideStreet}
-                            onChange={(e) => setEditRoadsideStreet(e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="Ulica"
-                            disabled={!consentPublicRoadsideProfile && editRoadsideStreet === ''}
-                        />
-                    </div>
-                    <div className="flex gap-4">
-                        <div className="w-1/3">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="roadside_number">Numer:</label>
-                            <input
-                                type="text"
-                                id="roadside_number"
-                                value={editRoadsideNumber}
-                                onChange={(e) => setEditRoadsideNumber(e.target.value)}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                placeholder="Nr budynku"
-                                disabled={!consentPublicRoadsideProfile && editRoadsideNumber === ''}
-                            />
-                        </div>
-                        <div className="w-2/3">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="roadside_city">Miasto:</label>
-                            <input
-                                type="text"
-                                id="roadside_city"
-                                value={editRoadsideCity}
-                                onChange={(e) => setEditRoadsideCity(e.target.value)}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                placeholder="Miasto"
-                                disabled={!consentPublicRoadsideProfile && editRoadsideCity === ''}
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="roadside_phone">Numer telefonu:</label>
-                        <input
-                            type="tel"
-                            id="roadside_phone"
-                            value={editRoadsidePhone}
-                            onChange={(e) => setEditRoadsidePhone(e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="Numer telefonu"
-                            disabled={!consentPublicRoadsideProfile && editRoadsidePhone === ''}
-                        />
-                    </div>
-
-                    {/* --- CHECKBOX ZGODY (TERAZ WIDOCZNY!) --- */}
-                    <div className="form-field public-profile-consent">
-                      <label htmlFor="consentPublicRoadsideProfile">
-                        <input
-                          type="checkbox"
-                          id="consentPublicRoadsideProfile"
-                          name="consentPublicRoadsideProfile"
-                          checked={consentPublicRoadsideProfile}
-                          onChange={(e) => setConsentPublicRoadsideProfile(e.target.checked)}
-                          className="consent-checkbox"
-                        />
-                        Zgadzam się na publiczne udostępnienie danych mojego profilu Pomocy Drogowej (nazwa firmy, adres, numer telefonu) w celu świadczenia usług w serwisie.
-                      </label>
-                      <small style={{ marginTop: '5px', fontSize: '0.8em', color: '#666' }}>
-                        Dane te będą widoczne dla innych użytkowników serwisu. Bez tej zgody Twój profil Pomocy Drogowej nie będzie publiczny.
-                        Szczegóły przetwarzania danych znajdziesz w naszej <a href="/polityka-prywatnosci" target="_blank" rel="noopener noreferrer">Polityce Prywatności</a>.
-                      </small>
-                    </div>
-                    {/* --- KONIEC CHECKBOXA ZGODY --- */}
-
-                    <button
-                        onClick={handleSaveMainInfo}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200 w-full"
-                        disabled={!consentPublicRoadsideProfile} // Wyłącz przycisk zapisu, jeśli zgoda nie jest zaznaczona
-                    >
-                        Zapisz dane firmy
-                    </button>
-                    <button
-                        onClick={() => {
-                            setEditingSection(null);
-                            // Resetuj pola do wartości oryginalnych po anulowaniu
-                            setEditCompanyName(profileData.company_name || '');
-                            setEditRoadsideStreet(profileData.roadside_street || '');
-                            setEditRoadsideNumber(profileData.roadside_number || '');
-                            setEditRoadsideCity(profileData.roadside_city || '');
-                            setEditRoadsidePhone(profileData.roadside_phone || '');
-                            setConsentPublicRoadsideProfile(profileData.has_accepted_roadside_public_terms || false); // Resetuj zgodę
-                        }}
-                        className="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                    >
-                        Anuluj
-                    </button>
-                </div>
-            ) : (
-                // Tryb wyświetlania danych głównych - Widoczne tylko dane
-                <>
-                    <p className="text-gray-600 text-lg mb-1">
-                        <strong>Nazwa firmy:</strong> {profileData.company_name || 'Brak nazwy'}
-                    </p>
-                    <p className="text-gray-600 text-lg mb-1">
-                        <strong>Adres:</strong> {profileData.roadside_street} {profileData.roadside_number}, {profileData.roadside_city}, {profileData.country || 'Polska'}
-                    </p>
-                    <p className="text-blue-600 text-xl font-semibold">
-                        📞 {profileData.roadside_phone ? (
-                            <a href={`tel:${profileData.roadside_phone}`} className="hover:underline">
-                                {profileData.roadside_phone}
-                            </a>
-                        ) : 'Brak telefonu'}
-                    </p>
-                </>
-            )}
-          </div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">{profileData.company_name || profileData.roadside_slug || 'Profil Pomocy Drogowej'}</h1>
+            <p className="text-gray-600 text-lg mb-1">
+              <strong>Adres:</strong> {profileData.roadside_street} {profileData.roadside_number}, {profileData.roadside_city}, {profileData.country || 'Polska'}
+            </p>
+           <p className="text-blue-600 text-xl font-semibold">
+              📞 {profileData.roadside_phone ? (
+                <a href={`tel:${profileData.roadside_phone}`} className="hover:underline">
+                  {profileData.roadside_phone}
+                </a>
+              ) : 'Brak telefonu'}
+            </p>
+          </div>	
 
           {/* Sekcja Opisu Usługi Pomocy Drogowej (roadside_description) */}
           {profileData.roadside_description && (
@@ -461,12 +255,12 @@ export default function PomocDrogowaProfil() {
               </MapContainer>
             </div>
           )}
-
+          
           {/* SEKCJA GALERII ZDJĘĆ - TAK JAK W PUBLICPROFILE.JSX - POD MAPĄ */}
-          <div className="mb-8 mt-8">
+          <div className="mb-8 mt-8"> {/* Dodany margines od góry, aby oddzielić od mapy */}
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Galeria zdjęć</h2>
-              {isOwner && (
+              {isOwner && ( // Pokaż przycisk "Edytuj" tylko jeśli jest właścicielem
                 <button
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200"
                   onClick={() => setEditingSection('images')}
@@ -488,9 +282,9 @@ export default function PomocDrogowaProfil() {
                   className="w-full p-2 border rounded-lg"
                 />
                 {newImages.length > 0 && (
-                  <div className="flex flex-wrap gap-4 mt-4">
+                  <div className="flex flex-wrap gap-4 mt-4"> {/* <--- ZMIANA TUTAJ: Flexbox */}
                     {newImages.map((file, index) => (
-                      <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
+                      <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40"> {/* Ustawione stałe rozmiary */}
                         <img
                           src={URL.createObjectURL(file)}
                           alt={`Nowe zdjęcie ${index + 1}`}
@@ -508,9 +302,9 @@ export default function PomocDrogowaProfil() {
                 )}
 
                 {/* Istniejące zdjęcia */}
-                <div className="flex flex-wrap gap-4 mt-4">
+                <div className="flex flex-wrap gap-4 mt-4"> {/* <--- ZMIANA TUTAJ: Flexbox */}
                   {(profileData.roadside_image_urls || []).map((url, index) => (
-                    <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
+                    <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40"> {/* Ustawione stałe rozmiary */}
                       <img
                         src={url}
                         alt={`Zdjęcie ${index + 1}`}
@@ -547,7 +341,7 @@ export default function PomocDrogowaProfil() {
               // Tryb wyświetlania zdjęć (dla wszystkich)
               <div>
                 {(roadsideImageUrls.length > 0) ? (
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-wrap gap-4"> {/* <--- ZMIANA TUTAJ: Flexbox */}
                     {roadsideImageUrls.map((url, index) => (
                       <div
                         key={index}
