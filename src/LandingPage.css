@@ -1,24 +1,26 @@
 /* src/LandingPage.css */
 
-/* ... (pozostały kod CSS - globalne style, landing-container - bez zmian) ... */
-
 /* Styl dla CAŁEGO PASKA BANERA (który zawiera komponent Header) */
 .overlay-header {
   background: linear-gradient(135deg, #43cea2, #185a9d);
   width: 100%;
-  min-height: 120px; /* **KLUCZOWE: Twoja preferowana wysokość (np. 130px, dostosuj!)** */
+  min-height: 120px;
   height: auto;
   box-sizing: border-box;
+  display: flex; /* Dodane dla lepszego centrowania Header wewnątrz */
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem; /* Dodany padding, aby tekst nie dotykał krawędzi */
 }
 
 /* Tryb ciemny dla TŁA BANERA */
 @media (prefers-color-scheme: dark) {
   .overlay-header {
-    background: linear-gradient(135deg, #0f3d6a, #0b2a47);
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
   }
 }
 
-/* **KLUCZOWE: Fade-in animacja (DEFINTION) - MUSI BYĆ TUTAJ** */
+/* Fade-in animacja (DEFINTION) */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -30,17 +32,15 @@
   }
 }
 
-
 /* ===== MAPA ===== */
-
 .map-wrapper {
   flex: 1;
   position: relative;
   min-height: 600px; /* Dobra wysokość dla mapy na desktopie */
-  width: 100%; /* **KLUCZOWE: Mapa na 100% szerokości** */
+  width: 100%;
   box-sizing: border-box;
-  padding: 0; /* **KLUCZOWE: Upewnij się, że nie ma paddingu** */
-  margin: 0; /* **KLUCZOWE: Zeruj marginesy zewnętrzne map-wrapper** */
+  padding: 0;
+  margin: 0;
 }
 
 .map-background {
@@ -52,37 +52,40 @@
   z-index: 0;
   filter: blur(2px) brightness(0.8);
   pointer-events: none;
-  margin: 0; /* **KLUCZOWE: Zeruj marginesy zewnętrzne map-background** */
-  padding: 0; /* **KLUCZOWE: Zeruj paddingi map-background** */
+  margin: 0;
+  padding: 0;
 }
 
 /* Styl dla kontenera Leaflet MapContainer, który jest wewnątrz map-background */
 .leaflet-map-container {
   height: 100%;
-  width: 100% !important; 
-  margin: 0 !important; /* WAŻNE: Zerowanie marginesów Leaflet */
-  padding: 0 !important; /* WAŻNE: Zerowanie paddingów Leaflet */
-  border-radius: 0 !important; /* Usunięcie zaokrągleń, które mogą powodować białe rogi */
-  box-shadow: none !important; /* Usunięcie cienia, który mógłby być widoczny */
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
-/* ... (pozostały kod CSS - przyciski, formularze, media queries - bez zmian) ... */
-
-/* ===== PRZYCISKI ===== */
-.action-buttons {
-  position: absolute;
-  top: 45%;
+/* ===== PRZYCISKI - WSPÓLNE STYLE DLA WSZYSTKICH PRZYCISKÓW NA MAPIE ===== */
+.action-buttons,
+.info-banners-container {
+  position: absolute; /* Pozycjonowanie na mapie */
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%); /* Centrowanie poziome */
   z-index: 1001;
   display: flex;
-  gap: 3rem;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
   width: 100%;
+  padding: 0 1rem;
   box-sizing: border-box;
+}
+
+/* Style dla większych przycisków */
+.action-buttons {
+  top: 40%; /* Pozycjonowanie od góry mapy */
+  gap: 3rem; /* Odstęp między dużymi przyciskami */
 }
 
 .primary-button,
@@ -96,13 +99,18 @@
   border-radius: 10px;
   text-align: center;
   text-decoration: none;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   white-space: nowrap;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 0 0 auto; /* Niech się nie rozciągają zbyt mocno */
+  min-width: 250px; /* Minimalna szerokość, żeby tekst się zmieścił */
 }
 
 .primary-button:hover,
 .secondary-button:hover {
   background-color: #0056b3;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .primary-button .subtext,
@@ -113,7 +121,55 @@
   display: block;
 }
 
-/* ===== FORMULARZ WYSZUKIWANIA ===== */
+/* Style dla mniejszych przycisków */
+.info-banners-container {
+  top: 60%; /* Pozycjonowanie od góry mapy, poniżej głównych przycisków */
+  gap: 2rem; /* Odstęp między mniejszymi przyciskami */
+}
+
+.info-banner-button {
+  background-color: #007bff;
+  color: white;
+  font-size: 1.1rem; /* Mniejsza czcionka */
+  padding: 0.7rem 1.2rem; /* Mniejszy padding */
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 0 0 auto;
+  min-width: 200px; /* Minimalna szerokość */
+}
+
+.info-banner-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.info-banner-button .subtext {
+  font-size: 0.75rem; /* Mniejszy subtext */
+  margin-top: 0.3rem;
+  color: #FFFFFF;
+  display: block;
+}
+
+/* Styl dla pilnego baneru - Transport Na Już! */
+.info-banner-button.urgent {
+  background-color: #dc3545; /* Czerwony kolor */
+  color: white;
+  border: 1px solid #dc3545; /* Czerwona ramka */
+}
+
+.info-banner-button.urgent:hover {
+  background-color: #c82333; /* Ciemniejsza czerwień na hover */
+}
+
+
+/* ===== FORMULARZ WYSZUKIWANIA (niezwiązany z banerami) ===== */
 .search-container {
   display: flex;
   flex-direction: column;
@@ -137,42 +193,83 @@
 }
 
 
-/* Media Queries dla responsywności */
+/* Media Queries dla responsywności - ZOPTYMALIZOWANE */
 @media (max-width: 768px) {
   .overlay-header {
-    min-height: 120px;
-    padding: 15px 10px;
+    min-height: 100px; /* Mniejszy nagłówek na mobile */
+    padding: 10px 10px;
   }
 
   .map-wrapper {
-    min-height: 350px;
+    min-height: 500px; /* Wystarczająca wysokość mapy na mobile, aby pomieścić przyciski */
+    position: relative;
   }
 
-  .action-buttons {
-    top: auto;
-    bottom: 5%;
-    transform: translateX(-50%);
-    flex-direction: column;
-    gap: 1rem;
-    max-width: 90vw;
+  /* Wszystkie przyciski na mobile - pionowo i węższe */
+  .action-buttons,
+  .info-banners-container {
+    flex-direction: column; /* Ułóż pionowo */
+    position: absolute; /* Pozostawiamy absolutne pozycjonowanie */
+    width: 90%; /* Prawie pełna szerokość ekranu */
+    max-width: 300px; /* Ograniczenie szerokości */
     padding: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    gap: 0.8rem; /* Jednolity, mniejszy odstęp między przyciskami */
   }
 
+  /* Pozycjonowanie grup przycisków na mobile */
+  .action-buttons {
+    top: 20%; /* Duże przyciski na 20% od góry map-wrapper */
+  }
+
+  .info-banners-container {
+    top: auto; /* Wyłącz top */
+    bottom: 5%; /* Mniejsze przyciski na 5% od dołu map-wrapper */
+  }
+
+  /* Skalowanie rozmiarów samych przycisków na mobile */
   .primary-button,
-  .secondary-button {
-    font-size: 1.2rem;
-    width: 90vw;
-    max-width: 300px;
-    margin: 0.5rem auto;
+  .secondary-button,
+  .info-banner-button {
+    width: 100%; /* Rozciągnij na pełną szerokość swojego kontenera */
+    font-size: 1rem; /* Zmniejsz czcionkę dla wszystkich */
+    padding: 0.7rem 1rem; /* Zmniejsz padding dla wszystkich */
+    margin: 0; /* Zeruj marginesy, bo gap to załatwi */
   }
 
   .primary-button .subtext,
-  .secondary-button .subtext {
-    font-size: 0.8rem;
+  .secondary-button .subtext,
+  .info-banner-button .subtext {
+    font-size: 0.7rem; /* Zmniejsz czcionkę subtextu dla wszystkich */
+    margin-top: 0.3rem;
   }
 }
 
-/* Tryb ciemny dla LandingPage */
+/* Dodatkowe media query dla bardzo małych ekranów, jeśli 768px to za dużo */
+@media (max-width: 480px) {
+    .map-wrapper {
+        min-height: 450px; /* Dodatkowo zmniejsz wysokość mapy, jeśli potrzeba */
+    }
+    .action-buttons,
+    .info-banners-container {
+        gap: 0.6rem; /* Jeszcze mniejszy odstęp */
+    }
+    .primary-button,
+    .secondary-button,
+    .info-banner-button {
+        font-size: 0.9rem; /* Jeszcze mniejsza czcionka */
+        padding: 0.6rem 0.8rem; /* Jeszcze mniejszy padding */
+    }
+    .primary-button .subtext,
+    .secondary-button .subtext,
+    .info-banner-button .subtext {
+        font-size: 0.6rem;
+    }
+}
+
+
+/* Tryb ciemny dla LandingPage - ZOPTYMALIZOWANE */
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #1a1a1a;
@@ -187,266 +284,31 @@
     background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
   }
 
-  .action-buttons .primary-button,
-  .action-buttons .secondary-button {
+  .primary-button,
+  .secondary-button,
+  .info-banner-button { /* Zastosuj do wszystkich przycisków */
     background-color: #0056b3;
     color: white;
   }
 
-  .action-buttons .primary-button:hover,
-  .action-buttons .secondary-button:hover {
+  .primary-button:hover,
+  .secondary-button:hover,
+  .info-banner-button:hover { /* Zastosuj do wszystkich przycisków */
     background-color: #003f8c;
   }
 
   .primary-button .subtext,
-  .secondary-button .subtext {
+  .secondary-button .subtext,
+  .info-banner-button .subtext { /* Zastosuj do wszystkich subtextów */
     color: #FFFFFF;
   }
-}
 
-/* ===== DODATKOWE BANERY ===== */
-.info-banners-container {
-  display: flex;
-  justify-content: center;
-  gap: 20px; /* Odstęp między banerami */
-  margin: 40px auto; /* Marginesy góra/dół i centrowanie */
-  padding: 0 20px; /* Padding po bokach */
-  max-width: 1000px; /* Maksymalna szerokość, żeby nie były zbyt rozciągnięte */
-  flex-wrap: wrap; /* Pozwól na łamanie wierszy na małych ekranach */
-}
-
-.info-banner {
-  flex: 1; /* Pozwól banerom rosnąć i zajmować dostępną przestrzeń */
-  min-width: 300px; /* Minimalna szerokość baneru przed złamaniem */
-  background-color: #f0f0f0; /* Jasne tło */
-  color: #333; /* Ciemny tekst */
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-  position: relative; /* Dla pozycjonowania linku */
-}
-
-.info-banner:hover {
-  transform: translateY(-5px); /* Lekkie uniesienie przy najechaniu */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-.info-banner h3 {
-  font-size: 1.8rem;
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: #185a9d; /* Kolor z Twojej palety */
-}
-
-.info-banner p {
-  font-size: 1rem;
-  line-height: 1.5;
-  margin-bottom: 15px;
-}
-
-.info-banner-link {
-  display: inline-block;
-  margin-top: 10px;
-  font-weight: bold;
-  color: #007bff; /* Standardowy niebieski link */
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.info-banner-link:hover {
-  color: #0056b3;
-}
-
-/* Specyficzny styl dla pilnego baneru */
-.info-banner.urgent {
-  background-color: #ffe0e0; /* Jasno czerwone tło */
-  border: 2px solid #dc3545; /* Czerwona ramka */
-  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3); /* Czerwony cień */
-}
-
-.info-banner.urgent h3 {
-  color: #dc3545; /* Czerwony tytuł */
-}
-
-.info-banner.urgent .info-banner-link {
-  color: #dc3545; /* Czerwony link */
-}
-
-.info-banner.urgent:hover {
-    background-color: #faeded; /* Nieco jaśniejsze tło przy najechaniu */
-    box-shadow: 0 8px 16px rgba(220, 53, 69, 0.4);
-}
-
-
-/* Media Queries dla responsywności nowych banerów */
-@media (max-width: 768px) {
-  .info-banners-container {
-    flex-direction: column; /* Ułóż banery jeden pod drugim */
-    align-items: center; /* Wyśrodkuj je */
-    padding: 0 10px;
+  .info-banner-button.urgent {
+    background-color: #a02020; /* Ciemniejsza czerwień w trybie ciemnym */
+    border-color: #e05050;
   }
 
-  .info-banner {
-    width: 100%; /* Pełna szerokość */
-    max-width: 400px; /* Maksymalna szerokość na mniejszych ekranach */
-    margin-bottom: 20px; /* Odstęp między banerami */
-  }
-}
-
-
-/* Tryb ciemny dla nowych banerów */
-@media (prefers-color-scheme: dark) {
-  .info-banner {
-    background-color: #2a2a2a; /* Ciemne tło */
-    color: #e0e0e0; /* Jasny tekst */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  }
-
-  .info-banner h3 {
-    color: #43cea2; /* Jasny zielony/niebieski z palety */
-  }
-
-  .info-banner-link {
-    color: #43cea2;
-  }
-
-  /* Pilny baner w trybie ciemnym */
-  .info-banner.urgent {
-    background-color: #401010; /* Ciemniejsza czerwień */
-    border: 2px solid #e05050;
-    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.5);
-  }
-
-  .info-banner.urgent h3 {
-    color: #e05050;
-  }
-
-  .info-banner.urgent .info-banner-link {
-    color: #e05050;
-  }
-}
-
-/* ===== NOWE BANERY POD PRZYCISKAMI NA MAPIE ===== */
-.info-banners-container {
-  position: absolute; /* Pozycjonowanie na mapie */
-  top: 52%; /* Dostosuj tę wartość, aby były pod górnymi przyciskami */
-  left: 50%;
-  transform: translateX(-50%); /* Centrowanie poziome */
-  z-index: 1001; /* Tak samo jak główne przyciski */
-  display: flex;
-  gap: 5.3rem; /* Odstęp między mniejszymi banerami */
-  flex-wrap: wrap; /* Pozwól na łamanie wierszy na małych ekranach */
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 0 1rem; /* Trochę paddingu po bokach */
-  box-sizing: border-box;
-}
-
-.info-banner-button {
-  /* Style dla mniejszych banerów, wzorowane na .primary-button/.secondary-button */
-  background-color: #007bff; /* Standardowy niebieski */
-  color: white;
-  font-size: 1.2rem; /* Mniejsza czcionka */
-  padding: 0.8rem 1.5rem; /* Mniejszy padding */
-  border: none;
-  cursor: pointer;
-  border-radius: 8px; /* Lekko mniejszy border-radius */
-  text-align: center;
-  text-decoration: none; /* Przyciski nie mają text-decoration */
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-  flex: 1 1 auto; /* Pozwól im się rozciągać, ale zachowaj minimalną szerokość */
-  max-width: 280px; /* Maksymalna szerokość, aby nie były zbyt duże */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Delikatny cień */
-}
-
-.info-banner-button:hover {
-  background-color: #0056b3;
-}
-
-.info-banner-button .subtext {
-  font-size: 0.8rem; /* Mniejszy subtext */
-  margin-top: 0.4rem;
-  color: #FFFFFF;
-  display: block;
-}
-
-/* Styl dla pilnego baneru - Transport Na Już! */
-.info-banner-button.urgent {
-  background-color: #dc3545; /* Czerwony kolor */
-  color: white;
-  border: 1px solid #dc3545; /* Czerwona ramka */
-}
-
-.info-banner-button.urgent:hover {
-  background-color: #c82333; /* Ciemniejsza czerwień na hover */
-}
-
-.info-banner-button.urgent .subtext {
-  color: white;
-}
-
-/* Media Queries dla responsywności */
-@media (max-width: 768px) {
-  .overlay-header {
-    min-height: 120px;
-    padding: 15px 10px;
-  }
-
-  .map-wrapper {
-    min-height: 400px; /* Zwiększ wysokość mapy, aby pomieścić oba zestawy przycisków */
-    position: relative; /* Ważne, aby absolutne pozycjonowanie działało poprawnie */
-  }
-
-  /* PRZYCISKI AKCJI - TE WIĘKSZE (na górze mapy) */
-  .action-buttons {
-    top: 25%; /* Dostosuj procent, aby były wyżej na mapie na mobilnym */
-    bottom: auto; /* Wyłącz bottom */
-    transform: translateX(-50%); /* Nadal centrowanie poziome */
-    flex-direction: column; /* Ułożenie pionowe */
-    gap: 1rem; /* Mniejszy odstęp między przyciskami */
-    width: 90%; /* Prawie pełna szerokość ekranu */
-    max-width: 300px; /* Ograniczenie, żeby nie były za duże */
-    padding: 0;
-  }
-
-  .primary-button,
-  .secondary-button {
-    font-size: 1.2rem;
-    width: 100%; /* Wypełnij dostępną szerokość kontenera */
-    margin: 0.5rem auto; /* Pionowe marginesy i centrowanie */
-  }
-
-  .primary-button .subtext,
-  .secondary-button .subtext {
-    font-size: 0.8rem;
-  }
-
-  /* NOWE BANERY POD PRZYCISKAMI NA MAPIE (na dole mapy) */
-  .info-banners-container {
-    top: auto; /* Wyłącz top, będziemy pozycjonować od dołu */
-    bottom: 5%; /* Pozycjonuj od dołu map-wrapper, dostosuj tę wartość */
-    transform: translateX(-50%); /* Centrowanie poziome */
-    flex-direction: column; /* Ułożenie pionowe */
-    gap: 1rem; /* Mniejszy odstęp między banerami */
-    width: 90%; /* Prawie pełna szerokość ekranu */
-    padding: 0;
-  }
-
-  .info-banner-button {
-    width: 100%; /* Wypełnij dostępną szerokość kontenera */
-    max-width: 300px; /* Ograniczenie */
-    font-size: 1rem;
-    padding: 0.7rem 1rem;
-    margin: 0.5rem auto; /* Pionowe marginesy i centrowanie */
-  }
-
-  .info-banner-button .subtext {
-    font-size: 0.7rem;
-    margin-top: 0.3rem;
+  .info-banner-button.urgent:hover {
+    background-color: #801818;
   }
 }
