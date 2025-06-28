@@ -500,6 +500,11 @@ export default function UserProfileDashboard() {
                     placeholder="Wpisz ulicę i numer"
                     className="form-input"
                     searchType="street" // Dodano searchType: 'street'
+proximityCoords={
+    roadsideSelectedCoords.latitude != null && roadsideSelectedCoords.longitude != null
+      ? { latitude: roadsideSelectedCoords.latitude, longitude: roadsideSelectedCoords.longitude }
+      : null
+  }
                   />
                 </label>
                 

@@ -3,32 +3,36 @@
 import { useState, useEffect, useRef } from 'react';
 import './LocationAutocomplete.css';
 
-export default function LocationAutocomplete({ value, onSelectLocation, placeholder, className, style, searchType = 'city', contextCity = '' }) {
+export default function LocationAutocomplete({
+  value,
+  onSelectLocation,
+  placeholder,
+  className,
+  style,
+  searchType = 'city',
+  proximityCoords = null // NOWY PROP
+}) {
   const [internalInput, setInternalInput] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef(null);
   const isMouseInListRef = useRef(false);
-  const ignoreNextSearchRef = useRef(false); // Poprawiona nazwa refa - wszędzie powinna być taka
-
+  const ignoreNextSearchRef = useRef(false);
   const hasUserTypedRef = useRef(false);
 
-  // Efekt do inicjalizacji internalInput z propa 'value'
   useEffect(() => {
     setInternalInput(value || '');
     hasUserTypedRef.current = false;
   }, [value]);
 
-  // Efekt do pobierania sugestii (DZIAŁA TYLKO GDY UŻYTKOWNIK ZACZNIE PISAĆ)
   useEffect(() => {
     if (!hasUserTypedRef.current) {
-        setSuggestions([]);
-        return;
+      setSuggestions([]);
+      return;
     }
 
-    // Używamy spójnej nazwy refa: ignoreNextSearchRef
-    if (ignoreNextSearchRef.current) { // <-- POPRAWKA TUTAJ
-      ignoreNextSearchRef.current = false; // Zresetuj flagę
+    if (ignoreNextSearchRef.current) {
+      ignoreNextSearchRef.current = false;
       setSuggestions([]);
       return;
     }
@@ -40,24 +44,30 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
 
     const fetchSuggestions = async () => {
       const sanitizedText = internalInput.replace(/(\d{2})-(\d{3})/, '$1$2');
-      
+
       let typesParam = '';
       let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
         sanitizedText
       )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&country=PL`;
 
       if (searchType === 'city') {
-          typesParam = 'place,postcode';
+        typesParam = 'place,postcode';
       } else if (searchType === 'street') {
-    typesParam = 'address,street';
-    // Tymczasowo nie dodawaj contextCity, bo `place_context` nie działa
-    // Można dodać później wsparcie dla koordynatów (proximity)
-}
-
-       else {
-          typesParam = 'locality,place,address,street,postcode';
+        typesParam = 'address,street';
+      } else {
+        typesParam = 'locality,place,address,street,postcode';
       }
+
       url += `&types=${typesParam}`;
+
+      // ✅ Dodaj proximity, jeśli dostępne
+      if (
+        proximityCoords &&
+        proximityCoords.longitude != null &&
+        proximityCoords.latitude != null
+      ) {
+        url += `&proximity=${proximityCoords.longitude},${proximityCoords.latitude}`;
+      }
 
       setLoading(true);
       try {
@@ -73,10 +83,8 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
 
     const timeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timeout);
-  }, [internalInput, searchType, contextCity]);
+  }, [internalInput, searchType, proximityCoords]);
 
-
-  // Efekt do obsługi kliknięcia poza komponentem
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -86,8 +94,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
       ) {
         setTimeout(() => {
           setSuggestions([]);
-          // Używamy spójnej nazwy refa: ignoreNextSearchRef
-          if (!ignoreNextSearchRef.current && internalInput.length > 0 && suggestions.length > 0) { // <-- POPRAWKA TUTAJ
+          if (!ignoreNextSearchRef.current && internalInput.length > 0 && suggestions.length > 0) {
             handleBlurLogic();
           }
         }, 100);
@@ -97,33 +104,28 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [internalInput, suggestions, onSelectLocation]);
 
-  // Funkcja formatująca etykiety
   const formatLabel = (sug) => {
     const label = sug.place_name || sug.text || 'Nieznana lokalizacja';
-    const sub = sug.context ? sug.context.map(c => c.text).filter(Boolean).join(', ') : ''; 
+    const sub = sug.context ? sug.context.map(c => c.text).filter(Boolean).join(', ') : '';
     return { label, sub };
   };
 
-  // Obsługa zmiany wartości w polu input
   const handleInputChange = (e) => {
     setInternalInput(e.target.value);
     hasUserTypedRef.current = true;
-    ignoreNextSearchRef.current = false; // <-- POPRAWKA TUTAJ
+    ignoreNextSearchRef.current = false;
   };
 
-  // Obsługa kliknięcia na sugestię
   const handleSuggestionClick = (sug) => {
     const { label } = formatLabel(sug);
-    ignoreNextSearchRef.current = true; // <-- POPRAWKA TUTAJ
+    ignoreNextSearchRef.current = true;
     hasUserTypedRef.current = false;
-    
+
     onSelectLocation(label, sug);
-    
-    setInternalInput(label); // Ustawia wybraną wartość w input
-    setSuggestions([]); // Natychmiast ukryj listę sugestii
+    setInternalInput(label);
+    setSuggestions([]);
   };
 
-  // Funkcja logiki dla onBlur
   const handleBlurLogic = () => {
     if (!isMouseInListRef.current && suggestions.length > 0 && internalInput.length > 0) {
       const firstSuggestion = suggestions[0];
@@ -132,20 +134,20 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
       const inputLower = internalInput.toLowerCase().trim();
       const suggestionLower = firstSuggestionLabel.toLowerCase().trim();
 
-      if (inputLower === suggestionLower || 
-          (suggestions.length === 1 && suggestionLower.includes(inputLower)) ||
-          suggestionLower.startsWith(inputLower)
+      if (
+        inputLower === suggestionLower ||
+        (suggestions.length === 1 && suggestionLower.includes(inputLower)) ||
+        suggestionLower.startsWith(inputLower)
       ) {
-          handleSuggestionClick(firstSuggestion);
+        handleSuggestionClick(firstSuggestion);
       } else {
-          setSuggestions([]);
+        setSuggestions([]);
       }
     } else if (internalInput.length === 0) {
-        onSelectLocation('', { geometry: { coordinates: null }, text: '', address: '' });
-        setSuggestions([]);
+      onSelectLocation('', { geometry: { coordinates: null }, text: '', address: '' });
+      setSuggestions([]);
     }
   };
-
 
   return (
     <div className={`autocomplete-container ${className || ''}`} ref={containerRef} style={style}>
