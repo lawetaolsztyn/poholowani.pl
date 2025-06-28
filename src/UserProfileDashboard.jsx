@@ -494,7 +494,7 @@ export default function UserProfileDashboard() {
                           setRoadsideSelectedCoords({ latitude: null, longitude: null });
                       }
                     }}
-                    placeholder="Wpisz ulicę" {/* Zmieniono placeholder */}
+                    placeholder="Wpisz ulicę" 
                     className="form-input"
                     searchType="street" // Dodano searchType: 'street'
                     // Przekazujemy kontekst miasta dla lepszych wyników ulicy
