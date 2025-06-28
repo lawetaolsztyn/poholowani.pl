@@ -198,6 +198,8 @@
     max-width: 100%; /* Zapewnij pełną szerokość */
     margin-left: 0; /* Usuń margines z lewej */
     margin-top: 15px; /* Daj trochę odstępu od messengera */
+    /* Upewnij się, że tekst się zawija, nawet jeśli label nie jest display:block,
+       a flex-direction:column dla form-field-consent już to robi */
   }
 
   .form-row.submit-button-row {
