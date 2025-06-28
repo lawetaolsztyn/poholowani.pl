@@ -390,53 +390,63 @@
   color: white;
 }
 
-/* Media Queries dla responsywności nowych banerów */
+/* Media Queries dla responsywności */
 @media (max-width: 768px) {
+  .overlay-header {
+    min-height: 120px;
+    padding: 15px 10px;
+  }
+
+  .map-wrapper {
+    min-height: 400px; /* Zwiększ wysokość mapy, aby pomieścić oba zestawy przycisków */
+    position: relative; /* Ważne, aby absolutne pozycjonowanie działało poprawnie */
+  }
+
+  /* PRZYCISKI AKCJI - TE WIĘKSZE (na górze mapy) */
+  .action-buttons {
+    top: 25%; /* Dostosuj procent, aby były wyżej na mapie na mobilnym */
+    bottom: auto; /* Wyłącz bottom */
+    transform: translateX(-50%); /* Nadal centrowanie poziome */
+    flex-direction: column; /* Ułożenie pionowe */
+    gap: 1rem; /* Mniejszy odstęp między przyciskami */
+    width: 90%; /* Prawie pełna szerokość ekranu */
+    max-width: 300px; /* Ograniczenie, żeby nie były za duże */
+    padding: 0;
+  }
+
+  .primary-button,
+  .secondary-button {
+    font-size: 1.2rem;
+    width: 100%; /* Wypełnij dostępną szerokość kontenera */
+    margin: 0.5rem auto; /* Pionowe marginesy i centrowanie */
+  }
+
+  .primary-button .subtext,
+  .secondary-button .subtext {
+    font-size: 0.8rem;
+  }
+
+  /* NOWE BANERY POD PRZYCISKAMI NA MAPIE (na dole mapy) */
   .info-banners-container {
-    top: auto; /* Zmieniamy pozycjonowanie na dole ekranu */
-    bottom: 5%; /* Dostosuj, jeśli chcesz inny margines od dołu */
+    top: auto; /* Wyłącz top, będziemy pozycjonować od dołu */
+    bottom: 5%; /* Pozycjonuj od dołu map-wrapper, dostosuj tę wartość */
     transform: translateX(-50%); /* Centrowanie poziome */
-    flex-direction: column; /* Ułóż pionowo na małych ekranach */
-    gap: 1rem; /* Mniejszy odstęp */
+    flex-direction: column; /* Ułożenie pionowe */
+    gap: 1rem; /* Mniejszy odstęp między banerami */
+    width: 90%; /* Prawie pełna szerokość ekranu */
     padding: 0;
   }
 
   .info-banner-button {
-    width: 90vw; /* Prawie pełna szerokość */
+    width: 100%; /* Wypełnij dostępną szerokość kontenera */
     max-width: 300px; /* Ograniczenie */
     font-size: 1rem;
     padding: 0.7rem 1rem;
-    margin: 0.5rem auto; /* Centrowanie */
+    margin: 0.5rem auto; /* Pionowe marginesy i centrowanie */
   }
 
   .info-banner-button .subtext {
     font-size: 0.7rem;
     margin-top: 0.3rem;
-  }
-}
-
-/* Tryb ciemny dla nowych banerów */
-@media (prefers-color-scheme: dark) {
-  .info-banner-button {
-    background-color: #0056b3; /* Ciemniejszy niebieski */
-    color: #e0e0e0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  .info-banner-button:hover {
-    background-color: #003f8c;
-  }
-
-  .info-banner-button .subtext {
-    color: #e0e0e0;
-  }
-
-  .info-banner-button.urgent {
-    background-color: #a02020; /* Ciemniejsza czerwień w trybie ciemnym */
-    border-color: #e05050;
-  }
-
-  .info-banner-button.urgent:hover {
-    background-color: #801818;
   }
 }
