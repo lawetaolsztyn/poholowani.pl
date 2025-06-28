@@ -330,13 +330,13 @@
   .primary-button,
   .secondary-button {
     font-size: 1.3rem;              /* Mniejsza czcionka */
-    min-width: 240px;               /* Mniejsza szerokość przycisków */
+    min-width: 260px;               /* Mniejsza szerokość przycisków */
     padding: 0.8rem 1.4rem;         /* Mniejszy padding */
   }
 
   .info-banner-button {
     font-size: 1rem;                /* Mniejsza czcionka dla banerów */
-    min-width: 200px;               /* Mniejsze banery dolne */
+    min-width: 220px;               /* Mniejsze banery dolne */
     padding: 0.6rem 1.2rem;
   }
 
