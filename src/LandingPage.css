@@ -211,7 +211,7 @@
     flex-direction: column; /* Ułóż pionowo */
     position: absolute; /* Pozostawiamy absolutne pozycjonowanie */
     width: 90%; /* Prawie pełna szerokość ekranu */
-    max-width: 300px; /* Ograniczenie szerokości */
+    max-width: 200px; /* Ograniczenie szerokości */
     padding: 0;
     left: 50%;
     transform: translateX(-50%);
@@ -232,7 +232,7 @@
   .primary-button,
   .secondary-button,
   .info-banner-button {
-    width: 100%; /* Rozciągnij na pełną szerokość swojego kontenera */
+    width: 90%; /* Rozciągnij na pełną szerokość swojego kontenera */
     font-size: 1rem; /* Zmniejsz czcionkę dla wszystkich */
     padding: 0.7rem 1rem; /* Zmniejsz padding dla wszystkich */
     margin: 0; /* Zeruj marginesy, bo gap to załatwi */
