@@ -3,30 +3,32 @@
 import { useState, useEffect, useRef } from 'react';
 import './LocationAutocomplete.css';
 
-// DODANO: contextCity jako nowy prop
-export default function LocationAutocomplete({ value, onSelectLocation, placeholder, className, style, searchType = 'city', contextCity = '' }) { // DODANO contextCity
+export default function LocationAutocomplete({ value, onSelectLocation, placeholder, className, style, searchType = 'city', contextCity = '' }) {
   const [internalInput, setInternalInput] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef(null);
   const isMouseInListRef = useRef(false);
-  const ignoreNextSearchRef = useRef(false);
+  const ignoreNextSearchRef = useRef(false); // Poprawiona nazwa refa - wszędzie powinna być taka
 
   const hasUserTypedRef = useRef(false);
 
+  // Efekt do inicjalizacji internalInput z propa 'value'
   useEffect(() => {
     setInternalInput(value || '');
     hasUserTypedRef.current = false;
   }, [value]);
 
+  // Efekt do pobierania sugestii (DZIAŁA TYLKO GDY UŻYTKOWNIK ZACZNIE PISAĆ)
   useEffect(() => {
     if (!hasUserTypedRef.current) {
         setSuggestions([]);
         return;
     }
 
-    if (ignoreNextSearchRef.current) {
-      ignoreNextRef.current = false; // Zmieniono ignoreNextSearchRef na ignoreNextRef dla zgodności
+    // Używamy spójnej nazwy refa: ignoreNextSearchRef
+    if (ignoreNextSearchRef.current) { // <-- POPRAWKA TUTAJ
+      ignoreNextSearchRef.current = false; // Zresetuj flagę
       setSuggestions([]);
       return;
     }
@@ -37,31 +39,26 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
     }
 
     const fetchSuggestions = async () => {
-      const sanitizedText = internalInput.replace(/(\d{2})-(\d{3})/, '$1$2'); 
+      const sanitizedText = internalInput.replace(/(\d{2})-(\d{3})/, '$1$2');
       
       let typesParam = '';
       let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
         sanitizedText
-      )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&country=PL`; // Zmieniono kraje na PL dla prostoty i precyzji
+      )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&country=PL`;
 
       if (searchType === 'city') {
           typesParam = 'place,postcode';
       } else if (searchType === 'street') {
           typesParam = 'address,street';
-          // KLUCZOWA ZMIANA: Dodajemy kontekst miasta, jeśli jest dostępny
           if (contextCity) {
               // Mapbox API preferuje koordynaty dla parametru proximity.
-              // Aby użyć nazwy miasta, musimy najpierw ją geokodować lub użyć bbox.
-              // Najprostsza opcja to użycie filtra 'place' (miasta)
-              url += `&proximity=-0.000000,0.000000`; // Domyślne koordynaty, jeśli nie mamy konkretnych
-              // Lepsza opcja: wyszukać koordynaty dla contextCity i użyć ich.
-              // Na razie, żeby zadziałało, dodajmy tylko filtr.
-              url += `&place_context=${encodeURIComponent(contextCity)}`; // Filtr po nazwie miasta
+              // Używamy place_context jako filtr tekstowy, jeśli contextCity jest nazwą
+              url += `&place_context=${encodeURIComponent(contextCity)}`; 
           }
       } else {
           typesParam = 'locality,place,address,street,postcode';
       }
-      url += `&types=${typesParam}`; // Dodajemy typesParam do URL
+      url += `&types=${typesParam}`;
 
       setLoading(true);
       try {
@@ -77,9 +74,10 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
 
     const timeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timeout);
-  }, [internalInput, searchType, contextCity]); // DODANO contextCity do zależności useEffect
+  }, [internalInput, searchType, contextCity]);
 
 
+  // Efekt do obsługi kliknięcia poza komponentem
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -89,7 +87,8 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
       ) {
         setTimeout(() => {
           setSuggestions([]);
-          if (!ignoreNextSearchRef.current && internalInput.length > 0 && suggestions.length > 0) {
+          // Używamy spójnej nazwy refa: ignoreNextSearchRef
+          if (!ignoreNextSearchRef.current && internalInput.length > 0 && suggestions.length > 0) { // <-- POPRAWKA TUTAJ
             handleBlurLogic();
           }
         }, 100);
@@ -99,29 +98,33 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [internalInput, suggestions, onSelectLocation]);
 
+  // Funkcja formatująca etykiety
   const formatLabel = (sug) => {
     const label = sug.place_name || sug.text || 'Nieznana lokalizacja';
     const sub = sug.context ? sug.context.map(c => c.text).filter(Boolean).join(', ') : ''; 
     return { label, sub };
   };
 
+  // Obsługa zmiany wartości w polu input
   const handleInputChange = (e) => {
     setInternalInput(e.target.value);
     hasUserTypedRef.current = true;
-    ignoreNextRef.current = false; // Poprawiono nazwę ref
+    ignoreNextSearchRef.current = false; // <-- POPRAWKA TUTAJ
   };
 
+  // Obsługa kliknięcia na sugestię
   const handleSuggestionClick = (sug) => {
     const { label } = formatLabel(sug);
-    ignoreNextRef.current = true; // Poprawiono nazwę ref
+    ignoreNextSearchRef.current = true; // <-- POPRAWKA TUTAJ
     hasUserTypedRef.current = false;
     
     onSelectLocation(label, sug);
     
-    setInternalInput(label);
-    setSuggestions([]);
+    setInternalInput(label); // Ustawia wybraną wartość w input
+    setSuggestions([]); // Natychmiast ukryj listę sugestii
   };
 
+  // Funkcja logiki dla onBlur
   const handleBlurLogic = () => {
     if (!isMouseInListRef.current && suggestions.length > 0 && internalInput.length > 0) {
       const firstSuggestion = suggestions[0];
