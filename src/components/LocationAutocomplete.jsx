@@ -52,14 +52,14 @@ export default function LocationAutocomplete({
 
   if (searchType === 'city') {
     typesParam = 'place,postcode';
-  } else if (searchType === 'street') {
+  } else if (searchType === 'adress') {
     if (/\d/.test(internalInput)) {
-      typesParam = 'address,street,place'; // rozszerzone types na wszelki wypadek
+      typesParam = 'address,place'; // rozszerzone types na wszelki wypadek
     } else {
-      typesParam = 'street,address,place';
+      typesParam = 'address,place';
     }
   } else {
-    typesParam = 'locality,place,address,street,postcode';
+    typesParam = 'locality,place,address,postcode';
   }
 
   url += `&types=${typesParam}`;
@@ -100,7 +100,7 @@ export default function LocationAutocomplete({
     setLoading(false);
   }
 };
-
+	
 
     const timeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timeout);
