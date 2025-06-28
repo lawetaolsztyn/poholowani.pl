@@ -35,7 +35,7 @@
 /* ===== MAPA ===== */
 .map-wrapper {
   flex: 1;
-  position: relative; /* Zachowaj relative dla map-background */
+  position: relative;
   min-height: 600px; /* Dobra wysokość dla mapy na desktopie */
   width: 100%;
   box-sizing: border-box;
@@ -44,16 +44,16 @@
 
   /* Desktop: Flexbox dla pozycjonowania przycisków wewnątrz map-wrapper */
   display: flex;
-  flex-direction: column; /* Ułożenie pionowe (header, przyciski, banery) */
-  justify-content: center; /* Centrowanie pionowe dla desktopu */
-  align-items: center; /* Centrowanie poziome dla desktopu */
-  gap: 3rem; /* Odstęp między grupami przycisków na desktopie */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
 }
 
 .map-background {
   height: 100%;
   width: 100%;
-  position: absolute; /* Nadal absolute, aby pokrywać map-wrapper */
+  position: absolute;
   top: 0;
   left: 0;
   z-index: 0;
@@ -76,12 +76,12 @@
 /* ===== PRZYCISKI - WSPÓLNE STYLE DLA WSZYSTKICH PRZYCISKÓW NA MAPIE (DESKTOP) ===== */
 .action-buttons,
 .info-banners-container {
-  z-index: 1001; /* Nadal nad mapą */
+  z-index: 1001;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* Centrowanie poziome wewnątrz grupy */
-  align-items: center; /* Centrowanie pionowe wewnątrz grupy */
-  width: 100%; /* Rozciągnij na 100% szerokości map-wrapper */
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Domyślna szerokość na desktop */
   padding: 0 1rem;
   box-sizing: border-box;
 
@@ -93,8 +93,8 @@
 
 /* Style dla większych przycisków */
 .action-buttons {
-  top: 40%; /* Pozycjonowanie od góry mapy */
-  gap: 3rem; /* Odstęp między dużymi przyciskami */
+  top: 40%;
+  gap: 3rem;
   max-width: 600px; /* Domyślna max-width dla desktopu */
 }
 
@@ -212,8 +212,9 @@
   }
 
   .map-wrapper {
-    min-height: 580px; /* Zwiększona wysokość, aby pomieścić przyciski na mobile */
-    position: relative; /* Ważne, aby absolutne pozycjonowanie działało poprawnie */
+    min-height: 600px; /* Wysokość mapy na tabletach, dostosuj jeśli jest za dużo/za mało */
+    position: relative;
+    /* Usunięto desktopowe style flexbox z map-wrapper */
   }
 
   /* Wszystkie kontenery przycisków na tabletach/małych desktopach */
@@ -221,10 +222,10 @@
   .info-banners-container {
     position: absolute !important; /* WAŻNE: Wymuś absolutne pozycjonowanie */
     left: 50% !important;
-    transform: translateX(-50%) !important;
+    transform: translateX(-50%) !important; /* WAŻNE: Wymuś centrowanie */
     flex-direction: column; /* Pionowo */
     padding: 0;
-    margin: 0 !important; /* Zeruj marginesy */
+    margin: 0 !important; /* Zeruj marginesy, bo to często koliduje */
     gap: 0.8rem; /* Odstęp między przyciskami w grupie */
     width: 90% !important; /* Kontener na 90% szerokości, aby był margines boczny */
     max-width: 300px !important; /* Maksymalna szerokość dla obu grup na tabletach */

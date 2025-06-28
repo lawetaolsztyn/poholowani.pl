@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import './App.css';
-import './index.css';
 
+import './index.css';
+import './App.css';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from './supabaseClient';
 
