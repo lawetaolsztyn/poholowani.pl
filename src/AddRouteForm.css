@@ -1,8 +1,40 @@
 /* src/AddRouteForm.css */
 
 .whatsapp-checkbox {
-  margin-right: 8px; /* Dostosuj wartość, np. 5px, 10px, 15px */
+  margin-right: 8px;
 }
+
+/* NOWE STYLE DLA CHECKBOXA ZGODY */
+.form-field-consent {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto; /* Pozwalamy mu rosnąć i kurczyć się, ale nie mniej niż zawartość */
+    min-width: 250px; /* Minimalna szerokość, żeby tekst się zawijał, ale nie był zbyt wąski */
+    max-width: 350px; /* Ograniczenie szerokości na bardzo dużych ekranach */
+    box-sizing: border-box;
+    align-items: flex-start; /* Wyrównanie do góry, aby checkbox był obok pierwszej linii tekstu */
+    /* Dodatkowy margines, aby oddzielić go od Messengera, jeśli jest w tej samej linii */
+    margin-left: 20px; /* Daj trochę miejsca po lewej */
+}
+
+.form-field-consent label {
+    display: flex;
+    align-items: flex-start; /* Wyrównanie do góry, aby checkbox był obok pierwszej linii tekstu */
+    font-weight: normal;
+    margin-bottom: 0;
+    cursor: pointer;
+    white-space: normal; /* POZWALA NA ZAWIJANIE TEKSTU */
+    line-height: 1.4; /* Poprawia czytelność zawiniętego tekstu */
+}
+
+.consent-checkbox {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0; /* Zapobiega zmniejszaniu się checkboxa */
+}
+/* KONIEC NOWYCH STYLI DLA CHECKBOXA ZGODY */
+
 
 .route-form {
   padding: 20px;
@@ -15,20 +47,21 @@
   display: flex;
   flex-wrap: wrap;
   gap: 30px;
-  margin-bottom: 10px; /* ZMNIEJSZONO: Ogólny odstęp między rzędami formularza */
+  margin-bottom: 10px;
   justify-content: flex-start;
-  /* ZMIENIONO: Wyrównanie zawartości pól do dołu rzędu, aby inputy były na tej samej linii */
   align-items: flex-end;
 }
 
-/* NOWA REGULA: Precyzyjne zmniejszenie marginesu pod OSTATNIM rzędem pól formularza */
-/* Ta reguła ma zastosowanie tylko wtedy, gdy NIE przeniesiesz przycisku do tego form-row.
-   Jeśli przeniesiesz przycisk do form-row (zalecane), ta reguła może być mniej potrzebna,
-   lub będziesz musiał dostosować ją, jeśli chcesz kontrolować odstęp po CAŁYM tym ostatnim rzędzie.
-   Na początek, spróbuj z nią.
-*/
+/* Nowa reguła dla rzędu z samym przyciskiem submit */
+.form-row.submit-button-row {
+    margin-top: 20px; /* Odstęp od poprzedniego rzędu */
+    justify-content: center; /* Wyśrodkuj przycisk */
+    width: 100%; /* Upewnij się, że ten rząd zajmuje pełną szerokość dla centrowania */
+}
+
+
 .route-form .form-row:last-of-type {
-  margin-bottom: 0px; /* Ustawiono na 0px */
+  margin-bottom: 0px;
 }
 
 
@@ -46,7 +79,7 @@
   font-weight: bold;
   color: #333;
   text-align: left;
-  white-space: nowrap;
+  white-space: nowrap; /* Zachowaj no-wrap dla innych labeli */
 }
 
 /* Dostosowanie szerokości inputów i selectów wewnątrz form-field */
@@ -76,33 +109,22 @@
   font-size: 1.1rem;
   transition: background-color 0.3s ease;
   width: auto;
-  
-  /* ZMIENIONO MARGINES PRZYCISKU:
-     Teraz, gdy jest wewnątrz form-row, jego centrowanie będzie kontrolowane przez form-field-button.
-     Ustawiamy marginesy na 0, a paddingi będą kontrolować przestrzeń wewnątrz.
-     Możesz dodać mały margin-top, jeśli chcesz, aby przycisk był trochę niżej w swoim polu.
-  */
-  margin: 0; /* Zresetuj wszystkie marginesy, aby uniknąć konfliktów z Flexbox */
-  display: block; /* Nadal element blokowy */
+  margin: 0;
+  display: block;
 }
 
 .submit-button:hover {
   background-color: #218838;
 }
 
-/* NOWA KLASA DLA KONTENERA PRZYCISKU, GDY JEST W TYM SAMYM FORM-ROW CO INNE POLA */
 .form-field-button {
-    display: flex; /* Użyj flexbox do wyrównania przycisku w pionie */
-    flex-direction: column; /* Utrzymaj układ kolumnowy dla zawartości pola */
-    justify-content: flex-end; /* WYROWNAJ PRZYCISK DO DOLU JEGO POLA */
-    align-items: center; /* WYŚRODKUJ PRZYCISK POZIOMO W JEGO WŁASNYM POLU */
-    width: 280px; /* Przykład: taka sama szerokość jak inne form-field */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center; /* Wyśrodkuj przycisk */
+    width: 280px; /* Utrzymaj szerokość taką jak inne pola */
     max-width: 100%;
     box-sizing: border-box;
-    /* Domyślny gap 30px z .form-row i tak działa.
-       Jeśli potrzebujesz dodatkowego marginesu nad przyciskiem w tym polu,
-       możesz dodać margin-top do .submit-button, np. margin-top: 20px;
-       aby przycisk był na wysokości inputów nad nim, pomimo dodatkowego tekstu pod Messengerem. */
 }
 
 /* --- NOWE STYLE DLA POLA TELEFONU Z KODEM KRAJU --- */
@@ -120,19 +142,25 @@
 .phone-input-group .uinput {
   flex-grow: 1;
 }
+
+/* Style dla zablokowanych pól */
+.uinput:disabled, .country-code-select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
 /* --- KONIEC NOWYCH STYLI --- */
 
 
 /* Media Queries dla mniejszych ekranów (np. telefony) */
 @media (max-width: 768px) {
   .form-row {
-    flex-direction: column; /* Wszystkie pola w jednej kolumnie */
+    flex-direction: column;
     gap: 15px;
-    margin-bottom: 10px; /* ZMNIEJSZONO odstęp na mobilnych */
-    align-items: flex-start; /* Na mobilnych często lepiej, żeby pola były wyrównane do góry */
+    margin-bottom: 10px;
+    align-items: flex-start;
   }
 
-  /* Specyficzna reguła dla ostatniego rzędu na mobilnych */
   .route-form .form-row:last-of-type {
     margin-bottom: 5px;
   }
@@ -142,12 +170,11 @@
     min-width: unset;
   }
 
-  /* NOWA REGULA DLA PRZYCISKU NA MOBILNYCH, GDY JEST W FORM-ROW */
   .form-field-button {
-      width: 100%; /* Na mobilnych niech przycisk zajmuje całą szerokość */
-      align-items: stretch; /* Rozciągnij przycisk, aby wypełnił pole */
-      justify-content: flex-start; /* Na mobilnych, przycisk może być wyrównany do góry lub flex-start */
-      margin-top: 0; /* Resetuj ewentualny margin-top dla mobilnych */
+      width: 100%;
+      align-items: stretch;
+      justify-content: flex-start;
+      margin-top: 0;
   }
 
   .route-form {
@@ -155,15 +182,28 @@
   }
 
   .submit-button {
-    width: 100%; /* Przycisk zajmuje całą szerokość */
+    width: 100%;
     padding: 15px;
     font-size: 1rem;
-    margin: 0; /* Resetuj marginesy na mobilnych, aby nie tworzyć niepotrzebnych odstępów */
+    margin: 0;
   }
 
-  /* Dostosowanie dla telefonów: selektor i input są wciąż obok siebie, ale zajmują 100% szerokości rodzica */
   .phone-input-group {
     flex-wrap: nowrap;
+  }
+
+  /* Na mobilnych, pole zgody powinno zająć całą szerokość i być pod messengerem */
+  .form-field-consent {
+    width: 100%;
+    max-width: 100%; /* Zapewnij pełną szerokość */
+    margin-left: 0; /* Usuń margines z lewej */
+    margin-top: 15px; /* Daj trochę odstępu od messengera */
+  }
+
+  .form-row.submit-button-row {
+    flex-direction: column; /* Upewnij się, że przycisk jest w kolumnie na mobilnych */
+    align-items: flex-start; /* Wyrównaj przycisk do lewej */
+    margin-top: 15px; /* Mniejszy odstęp na mobilnych */
   }
 }
 
@@ -195,5 +235,12 @@
 
   .submit-button:hover {
     background-color: #003f8c;
+  }
+
+  /* Dark mode dla zablokowanych pól */
+  .uinput:disabled, .country-code-select:disabled {
+      background-color: #4a4a4a;
+      color: #999;
+      border-color: #666;
   }
 }
