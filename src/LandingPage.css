@@ -7,16 +7,16 @@
   min-height: 120px;
   height: auto;
   box-sizing: border-box;
-  display: flex; /* Dodane dla lepszego centrowania Header wewnątrz */
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 1rem; /* Dodany padding, aby tekst nie dotykał krawędzi */
+  padding: 0 1rem;
 }
 
 /* Tryb ciemny dla TŁA BANERA */
 @media (prefers-color-scheme: dark) {
   .overlay-header {
-    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47);
   }
 }
 
@@ -35,18 +35,25 @@
 /* ===== MAPA ===== */
 .map-wrapper {
   flex: 1;
-  position: relative;
+  position: relative; /* Zachowaj relative dla map-background */
   min-height: 600px; /* Dobra wysokość dla mapy na desktopie */
   width: 100%;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+
+  /* NOWOŚĆ: Flexbox dla pozycjonowania przycisków wewnątrz map-wrapper na desktopie */
+  display: flex;
+  flex-direction: column; /* Ułożenie pionowe (header, przyciski, banery) */
+  justify-content: center; /* Centrowanie pionowe dla desktopu */
+  align-items: center; /* Centrowanie poziome dla desktopu */
+  gap: 3rem; /* Odstęp między grupami przycisków na desktopie */
 }
 
 .map-background {
   height: 100%;
   width: 100%;
-  position: absolute;
+  position: absolute; /* Nadal absolute, aby pokrywać map-wrapper */
   top: 0;
   left: 0;
   z-index: 0;
@@ -69,22 +76,23 @@
 /* ===== PRZYCISKI - WSPÓLNE STYLE DLA WSZYSTKICH PRZYCISKÓW NA MAPIE ===== */
 .action-buttons,
 .info-banners-container {
-  position: absolute; /* Pozycjonowanie na mapie */
-  left: 50%;
-  transform: translateX(-50%); /* Centrowanie poziome */
-  z-index: 1001;
+  z-index: 1001; /* Nadal nad mapą */
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
+  justify-content: center; /* Centrowanie poziome wewnątrz grupy */
+  align-items: center; /* Centrowanie pionowe wewnątrz grupy */
+  width: 100%; /* Rozciągnij na 100% szerokości map-wrapper */
   padding: 0 1rem;
   box-sizing: border-box;
+
+  /* USUŃ position: absolute; left: 50%; transform: translateX(-50%); */
+  /* Będą one centrowane przez rodzica (map-wrapper) za pomocą flexboxa */
+  position: relative; /* Użyj relative, aby nie wpływały na siebie absolutnie */
 }
 
 /* Style dla większych przycisków */
 .action-buttons {
-  top: 40%; /* Pozycjonowanie od góry mapy */
+  /* top: 40%; - USUŃ TO */
   gap: 3rem; /* Odstęp między dużymi przyciskami */
 }
 
@@ -102,8 +110,8 @@
   transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   white-space: nowrap;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  flex: 0 0 auto; /* Niech się nie rozciągają zbyt mocno */
-  min-width: 250px; /* Minimalna szerokość, żeby tekst się zmieścił */
+  flex: 0 0 auto;
+  min-width: 250px;
 }
 
 .primary-button:hover,
@@ -123,15 +131,15 @@
 
 /* Style dla mniejszych przycisków */
 .info-banners-container {
-  top: 60%; /* Pozycjonowanie od góry mapy, poniżej głównych przycisków */
+  /* top: 60%; - USUŃ TO */
   gap: 2rem; /* Odstęp między mniejszymi przyciskami */
 }
 
 .info-banner-button {
   background-color: #007bff;
   color: white;
-  font-size: 1.1rem; /* Mniejsza czcionka */
-  padding: 0.7rem 1.2rem; /* Mniejszy padding */
+  font-size: 1.1rem;
+  padding: 0.7rem 1.2rem;
   border: none;
   cursor: pointer;
   border-radius: 8px;
@@ -141,7 +149,7 @@
   white-space: nowrap;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   flex: 0 0 auto;
-  min-width: 200px; /* Minimalna szerokość */
+  min-width: 200px;
 }
 
 .info-banner-button:hover {
@@ -151,7 +159,7 @@
 }
 
 .info-banner-button .subtext {
-  font-size: 0.75rem; /* Mniejszy subtext */
+  font-size: 0.75rem;
   margin-top: 0.3rem;
   color: #FFFFFF;
   display: block;
@@ -159,13 +167,13 @@
 
 /* Styl dla pilnego baneru - Transport Na Już! */
 .info-banner-button.urgent {
-  background-color: #dc3545; /* Czerwony kolor */
+  background-color: #dc3545;
   color: white;
-  border: 1px solid #dc3545; /* Czerwona ramka */
+  border: 1px solid #dc3545;
 }
 
 .info-banner-button.urgent:hover {
-  background-color: #c82333; /* Ciemniejsza czerwień na hover */
+  background-color: #c82333;
 }
 
 
@@ -193,92 +201,74 @@
 }
 
 
-/* Media Queries dla responsywności - ZOPTYMALIZOWANE */
+/* Media Queries dla responsywności - ZOPTYMALIZOWANE PRZYCISKI NA MAPIE */
 @media (max-width: 768px) {
   .overlay-header {
-    min-height: 100px; /* Mniejszy nagłówek na mobile */
+    min-height: 100px;
     padding: 10px 10px;
   }
 
   .map-wrapper {
-    min-height: 500px; /* Wystarczająca wysokość mapy na mobile, aby pomieścić przyciski */
+    min-height: 450px; /* ZMNIEJSZONO wysokość mapy, aby była bardziej realna na mobile */
     position: relative;
+    /* NOWOŚĆ: Używamy flexboxa do centrowania WSZYSTKICH przycisków pionowo */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centruj zawartość pionowo */
+    align-items: center; /* Centruj zawartość poziomo */
+    gap: 0.8rem; /* Jednolity odstęp między grupami przycisków na mobile */
+    padding: 1rem 0; /* Dodatkowy padding pionowy */
   }
 
   /* Wszystkie przyciski na mobile - pionowo i węższe */
   .action-buttons,
   .info-banners-container {
-    flex-direction: column; /* Ułóż pionowo */
-    position: absolute; /* Pozostawiamy absolutne pozycjonowanie */
-    /* width: 100%;  Prawie pełna szerokość ekranu */
-    max-width: 180px; /* Ograniczenie szerokości */
+    flex-direction: column;
+    /* position: absolute; - USUNIĘTO */
+    /* left: 50%; - USUNIĘTO */
+    /* transform: translateX(-50%); - USUNIĘTO */
+    /* top / bottom - USUNIĘTO */
+    
+    width: 90%; /* Kontener na 90% szerokości ekranu */
+    max-width: 280px; /* Maksymalna szerokość kontenera */
     padding: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    gap: 0.8rem; /* Jednolity, mniejszy odstęp między przyciskami */
-justify-content: center; /* Wymuś centrowanie w poziomie dla flexboxa */
-    align-items: center;   /* Wymuś centrowanie w pionie dla flexboxa */
-    margin-left: auto; /* Dodaj te auto marginesy */
-    margin-right: auto;
+    gap: 0.6rem; /* Odstęp między przyciskami w grupie */
   }
 
-  /* Pozycjonowanie grup przycisków na mobile */
-  .action-buttons {
-    top: 20%; /* Duże przyciski na 20% od góry map-wrapper */
-  }
-
-  .info-banners-container {
-    top: auto; /* Wyłącz top */
-    bottom: 5%; /* Mniejsze przyciski na 5% od dołu map-wrapper */
-  }
-
-  /* Skalowanie rozmiarów samych przycisków na mobile */
+  /* Właściwe przyciski */
   .primary-button,
   .secondary-button,
   .info-banner-button {
-    width: 90%; /* Rozciągnij na pełną szerokość swojego kontenera */
-    font-size: 1rem; /* Zmniejsz czcionkę dla wszystkich */
-    padding: 0.7rem 1rem; /* Zmniejsz padding dla wszystkich */
-    margin: 0; /* Zeruj marginesy, bo gap to załatwi */
+    width: 100%; /* Rozciągnij na pełną szerokość swojego kontenera (action-buttons lub info-banners-container) */
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+    margin: 0; /* Upewnij się, że marginesy są zerowe */
   }
 
   .primary-button .subtext,
   .secondary-button .subtext,
   .info-banner-button .subtext {
-    font-size: 0.7rem; /* Zmniejsz czcionkę subtextu dla wszystkich */
-    margin-top: 0.3rem;
+    font-size: 0.65rem;
+    margin-top: 0.2rem;
   }
 }
 
+/* Dodatkowe media query dla bardzo małych ekranów (np. telefony z małym ekranem) */
 @media (max-width: 480px) {
     .map-wrapper {
-        min-height: 550px; /* Może być potrzeba dostosowania tej wartości */
+        min-height: 400px; /* Jeszcze mniejsza wysokość mapy */
+        gap: 0.7rem; /* Zmniejszony odstęp między grupami */
     }
-    /* CEL: UPEWNIENIE SIĘ, ŻE CENTROWANIE DZIAŁA RÓWNIEŻ TUTAJ */
     .action-buttons,
     .info-banners-container {
-        left: 0 !important;
-        right: 0 !important;
-        transform: none !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        width: auto !important; /* Ważne, aby width było auto */
-        max-width: 180px !important; /* Maksymalna szerokość dla obu grup */
-        gap: 0.6rem; /* Jeszcze mniejszy odstęp */
+        max-width: 240px; /* Jeszcze węższy kontener */
+        gap: 0.5rem; /* Jeszcze mniejszy odstęp w grupie */
     }
-    .action-buttons {
-        top: 15% !important; /* Dostosuj pozycję górnych, jeśli się zsuną */
-    }
-    .info-banners-container {
-        bottom: 10% !important; /* Dostosuj pozycję dolnych */
-    }
-
     .primary-button,
     .secondary-button,
     .info-banner-button {
-        font-size: 0.8rem; /* Może być potrzeba dalszego zmniejszenia */
+        font-size: 0.8rem;
         padding: 0.5rem 0.6rem;
-        width: 100% !important; /* Wymuś 100% szerokości w kontenerze */
     }
     .primary-button .subtext,
     .secondary-button .subtext,
@@ -286,6 +276,7 @@ justify-content: center; /* Wymuś centrowanie w poziomie dla flexboxa */
         font-size: 0.55rem;
     }
 }
+
 
 /* Tryb ciemny dla LandingPage - ZOPTYMALIZOWANE */
 @media (prefers-color-scheme: dark) {
@@ -299,30 +290,30 @@ justify-content: center; /* Wymuś centrowanie w poziomie dla flexboxa */
   }
 
   .overlay-header {
-    background: linear-gradient(135deg, #0f3d6a, #0b2a47); /* Ciemniejszy gradient */
+    background: linear-gradient(135deg, #0f3d6a, #0b2a47);
   }
 
   .primary-button,
   .secondary-button,
-  .info-banner-button { /* Zastosuj do wszystkich przycisków */
+  .info-banner-button {
     background-color: #0056b3;
     color: white;
   }
 
   .primary-button:hover,
   .secondary-button:hover,
-  .info-banner-button:hover { /* Zastosuj do wszystkich przycisków */
+  .info-banner-button:hover {
     background-color: #003f8c;
   }
 
   .primary-button .subtext,
   .secondary-button .subtext,
-  .info-banner-button .subtext { /* Zastosuj do wszystkich subtextów */
+  .info-banner-button .subtext {
     color: #FFFFFF;
   }
 
   .info-banner-button.urgent {
-    background-color: #a02020; /* Ciemniejsza czerwień w trybie ciemnym */
+    background-color: #a02020;
     border-color: #e05050;
   }
 
