@@ -1,0 +1,18 @@
+/* Wspólny styl dla kontenerów treści nowych zakładek */
+.content-container {
+  padding: 20px;
+  margin: 20px auto; /* Centrowanie i odstępy */
+  max-width: 960px; /* Maksymalna szerokość dla czytelności */
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+  .content-container {
+    background-color: #333;
+    color: #e0e0e0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+}
