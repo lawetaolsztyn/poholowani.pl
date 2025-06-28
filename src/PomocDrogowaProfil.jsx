@@ -79,7 +79,8 @@ export default function PomocDrogowaProfil() {
           setEditRoadsideCity(data.roadside_city || '');
           setEditRoadsidePhone(data.roadside_phone || '');
           // Inicjalizuj stan zgody na podstawie danych z bazy (lub domyślnie, jeśli pole nie istnieje)
-          setConsentPublicRoadsideProfile(data.has_accepted_roadside_public_terms || false); // Załóżmy, że masz takie pole w bazie
+          // UWAGA: Upewnij się, że masz pole 'has_accepted_roadside_public_terms' typu BOOLEAN w tabeli users_extended w Supabase.
+          setConsentPublicRoadsideProfile(data.has_accepted_roadside_public_terms || false);
         }
         // --- KONIEC INICJALIZACJI ---
 
@@ -144,7 +145,7 @@ export default function PomocDrogowaProfil() {
     let updatedImageUrls = [...(profileData.roadside_image_urls || [])];
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } = {} } = await supabase.auth.getUser(); // Dodane {} = {} na wypadek, gdy user jest null
       if (!user || user.id !== profileData.id) throw new Error("Brak autoryzacji do edycji.");
 
       for (const file of newImages) {
@@ -214,7 +215,7 @@ export default function PomocDrogowaProfil() {
   const handleSaveMainInfo = async () => {
     if (!profileData) return;
 
-    // Walidacja zgody
+    // Walidacja zgody: Zablokuj zapis, jeśli zgoda nie jest zaznaczona
     if (!consentPublicRoadsideProfile) {
       alert('Aby zapisać dane profilu Pomocy Drogowej, musisz wyrazić zgodę na ich publiczne udostępnienie.');
       return;
@@ -222,7 +223,7 @@ export default function PomocDrogowaProfil() {
 
     setLoading(true); // Użyj isSavingMainInfo, jeśli wolisz bardziej granularny stan
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } = {} } = await supabase.auth.getUser(); // Dodane {} = {} na wypadek, gdy user jest null
       if (!user || user.id !== profileData.id) throw new Error("Brak autoryzacji do edycji.");
 
       const updatePayload = {
@@ -286,33 +287,30 @@ export default function PomocDrogowaProfil() {
 
           {/* Nagłówek główny i dane podstawowe (sekcja wizytówki) */}
           <div className="text-center mb-8 pb-4 border-b border-gray-200">
-            <div className="flex justify-between items-center mb-4"> {/* Dodane dla przycisku edycji */}
+            <div className="flex justify-between items-center mb-4">
                 {/* Tytuł profilu Pomocy Drogowej */}
+                {/* UWAGA: Tutaj wstawiono warunkowe renderowanie nagłówka */}
                 {editingSection === 'mainInfo' && isOwner ? (
                     <h1 className="text-4xl font-bold text-gray-800">Edycja danych firmy</h1>
                 ) : (
                     <h1 className="text-4xl font-bold text-gray-800">{profileData.company_name || profileData.roadside_slug || 'Profil Pomocy Drogowej'}</h1>
                 )}
 
-                {/* Przycisk Edytuj/Zapisz dla danych głównych */}
-                {isOwner && (
-                    editingSection === 'mainInfo' ? (
-                        // Przycisk "Zapisz" i "Anuluj" są w bloku edycji, więc tutaj tylko puste miejsce
-                        null
-                    ) : (
-                        <button
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200"
-                            onClick={() => setEditingSection('mainInfo')}
-                        >
-                            ✏ Edytuj
-                        </button>
-                    )
+                {/* Przycisk Edytuj/Zapisz/Anuluj dla danych głównych */}
+                {/* UWAGA: Ten przycisk będzie widoczny tylko jeśli NIE JESTEŚ w trybie edycji mainInfo */}
+                {isOwner && editingSection !== 'mainInfo' && (
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200"
+                        onClick={() => setEditingSection('mainInfo')}
+                    >
+                        ✏ Edytuj
+                    </button>
                 )}
             </div>
 
             {/* --- SEKCJA EDYCJI/WYŚWIETLANIA DANYCH GŁÓWNYCH (ZMIENIONA) --- */}
             {editingSection === 'mainInfo' && isOwner ? (
-                // Tryb edycji danych głównych
+                // Tryb edycji danych głównych - Widoczne inputy i checkbox
                 <div className="space-y-4 text-left"> {/* text-left dla formularza */}
                     <div>
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="company_name">Nazwa firmy:</label>
@@ -323,7 +321,7 @@ export default function PomocDrogowaProfil() {
                             onChange={(e) => setEditCompanyName(e.target.value)}
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             placeholder="Nazwa Twojej firmy"
-                            disabled={!consentPublicRoadsideProfile} // Wyłącz, jeśli zgoda nie jest zaznaczona
+                            disabled={!consentPublicRoadsideProfile && editCompanyName === ''} // Wyłącz, jeśli zgoda nie jest zaznaczona i pole jest puste
                         />
                     </div>
                     <div>
@@ -335,7 +333,7 @@ export default function PomocDrogowaProfil() {
                             onChange={(e) => setEditRoadsideStreet(e.target.value)}
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             placeholder="Ulica"
-                            disabled={!consentPublicRoadsideProfile} // Wyłącz, jeśli zgoda nie jest zaznaczona
+                            disabled={!consentPublicRoadsideProfile && editRoadsideStreet === ''} // Wyłącz, jeśli zgoda nie jest zaznaczona i pole jest puste
                         />
                     </div>
                     <div className="flex gap-4">
@@ -348,7 +346,7 @@ export default function PomocDrogowaProfil() {
                                 onChange={(e) => setEditRoadsideNumber(e.target.value)}
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 placeholder="Nr budynku"
-                                disabled={!consentPublicRoadsideProfile} // Wyłącz, jeśli zgoda nie jest zaznaczona
+                                disabled={!consentPublicRoadsideProfile && editRoadsideNumber === ''} // Wyłącz, jeśli zgoda nie jest zaznaczona i pole jest puste
                             />
                         </div>
                         <div className="w-2/3">
@@ -360,7 +358,7 @@ export default function PomocDrogowaProfil() {
                                 onChange={(e) => setEditRoadsideCity(e.target.value)}
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 placeholder="Miasto"
-                                disabled={!consentPublicRoadsideProfile} // Wyłącz, jeśli zgoda nie jest zaznaczona
+                                disabled={!consentPublicRoadsideProfile && editRoadsideCity === ''} // Wyłącz, jeśli zgoda nie jest zaznaczona i pole jest puste
                             />
                         </div>
                     </div>
@@ -373,7 +371,7 @@ export default function PomocDrogowaProfil() {
                             onChange={(e) => setEditRoadsidePhone(e.target.value)}
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             placeholder="Numer telefonu"
-                            disabled={!consentPublicRoadsideProfile} // Wyłącz, jeśli zgoda nie jest zaznaczona
+                            disabled={!consentPublicRoadsideProfile && editRoadsidePhone === ''} // Wyłącz, jeśli zgoda nie jest zaznaczona i pole jest puste
                         />
                     </div>
 
@@ -407,13 +405,13 @@ export default function PomocDrogowaProfil() {
                     <button
                         onClick={() => {
                             setEditingSection(null);
-                            // Opcjonalnie zresetuj pola do wartości oryginalnych po anulowaniu
+                            // Resetuj pola do wartości oryginalnych po anulowaniu
                             setEditCompanyName(profileData.company_name || '');
                             setEditRoadsideStreet(profileData.roadside_street || '');
                             setEditRoadsideNumber(profileData.roadside_number || '');
                             setEditRoadsideCity(profileData.roadside_city || '');
                             setEditRoadsidePhone(profileData.roadside_phone || '');
-                            setConsentPublicRoadsideProfile(profileData.has_accepted_roadside_public_terms || false); // Zresetuj zgodę
+                            setConsentPublicRoadsideProfile(profileData.has_accepted_roadside_public_terms || false); // Resetuj zgodę
                         }}
                         className="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg text-base font-semibold transition-colors duration-200 w-full"
                     >
@@ -421,9 +419,8 @@ export default function PomocDrogowaProfil() {
                     </button>
                 </div>
             ) : (
-                // Tryb wyświetlania danych głównych
+                // Tryb wyświetlania danych głównych - Widoczne tylko dane
                 <>
-                    <h1 className="text-4xl font-bold text-gray-800 mb-2">{profileData.company_name || profileData.roadside_slug || 'Profil Pomocy Drogowej'}</h1>
                     <p className="text-gray-600 text-lg mb-1">
                         <strong>Adres:</strong> {profileData.roadside_street} {profileData.roadside_number}, {profileData.roadside_city}, {profileData.country || 'Polska'}
                     </p>
