@@ -35,7 +35,7 @@
 /* ===== MAPA ===== */
 .map-wrapper {
   flex: 1;
-  position: relative; /* Zachowaj relative, aby map-background nadal się pozycjonował */
+  position: relative; /* Zachowaj relative dla map-background */
   min-height: 600px; /* Dobra wysokość dla mapy na desktopie */
   width: 100%;
   box-sizing: border-box;
@@ -73,7 +73,7 @@
   box-shadow: none !important;
 }
 
-/* ===== PRZYCISKI - WSPÓLNE STYLE DLA WSZYSTKICH PRZYCISKÓW NA MAPIE ===== */
+/* ===== PRZYCISKI - WSPÓLNE STYLE DLA WSZYSTKICH PRZYCISKÓW NA MAPIE (DESKTOP) ===== */
 .action-buttons,
 .info-banners-container {
   z-index: 1001; /* Nadal nad mapą */
@@ -210,120 +210,44 @@
   }
 
   .map-wrapper {
-    min-height: 580px; /* Zwiększona wysokość, aby pomieścić WSZYSTKIE przyciski na mobile */
-    /* USUNIĘTO: display: flex, flex-direction, justify-content, align-items, gap, padding */
-    /* Te style zostaną przeniesione do body/root/app lub będą domyślne dla layoutu */
+    min-height: 600px; /* Zwiększono wysokość, aby pomieścić przyciski na mobile, można dostosować */
+    position: relative; /* Zachowaj relative */
   }
 
-  /* Wszystkie przyciski na mobile - pionowo i wyśrodkowane */
+  /* Wszystkie kontenery przycisków na mobile - Z POWROTEM ABSOLUTE */
   .action-buttons,
   .info-banners-container {
-    position: relative; /* Zmieniamy na relative, aby flow dokumentu działał */
-    width: 90%; /* Szerokość kontenera przycisków */
-    max-width: 280px; /* Maksymalna szerokość kontenera przycisków */
-    margin: 1rem auto; /* Centrowanie poziome i odstępy pionowe */
-    padding: 0; /* Zeruj paddingi */
-    flex-direction: column; /* Ułóż pionowo */
+    position: absolute; /* Przywracamy absolutne pozycjonowanie */
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: column;
+    padding: 0;
     gap: 0.8rem; /* Odstęp między przyciskami w grupie */
+    width: 90%; /* Kontener na 90% szerokości, aby był margines boczny */
+    max-width: 300px; /* Maksymalna szerokość kontenera przycisków */
+    margin: 0; /* Zeruj marginesy */
+    /* ZAWARTOSC PRZYCISKOW bedzie wyśrodkowana przez justify-content i align-items */
   }
 
-  /* Pozycjonowanie grup przycisków na mobile - TERAZ KONTROLOWANE PRZEZ MARGIN-TOP/BOTTOM */
+  /* Pozycjonowanie grup przycisków na mobile - dostosowane wartości */
   .action-buttons {
-    margin-top: 2rem; /* Odstęp od góry map-wrapper */
+    top: 15%; /* Górne przyciski wysoko na mapie */
   }
 
   .info-banners-container {
-    margin-bottom: 2rem; /* Odstęp od dołu map-wrapper */
-    max-width: 220px; /* Dolne banery WĘŻSZE */
+    top: auto; /* Działa w połączeniu z bottom */
+    bottom: 15%; /* Dolne przyciski nisko na mapie */
+    max-width: 250px; /* DOLNE BANERY WĘŻSZE (np. 250px) */
   }
 
-  /* Skalowanie rozmiarów samych przycisków na mobile */
+  /* Skalowanie rozmiarów samych przycisków na mobile (zarówno górnych, jak i dolnych) */
   .primary-button,
   .secondary-button,
   .info-banner-button {
     width: 100%; /* Rozciągnij na pełną szerokość swojego kontenera */
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Mniejsza czcionka */
     padding: 0.6rem 0.8rem;
-    margin: 0; /* Upewnij się, że marginesy są zerowe */
+    margin: 0; /* Zeruj marginesy, bo gap to załatwi */
   }
 
   .primary-button .subtext,
-  .secondary-button .subtext,
-  .info-banner-button .subtext {
-    font-size: 0.65rem;
-    margin-top: 0.2rem;
-  }
-}
-
-/* Dodatkowe media query dla bardzo małych ekranów (np. telefony z małym ekranem) */
-@media (max-width: 480px) {
-    .map-wrapper {
-        min-height: 520px; /* Jeszcze mniejsza wysokość mapy, ale wystarczająca */
-        gap: 0.7rem; /* Odstęp między grupami */
-    }
-    .action-buttons,
-    .info-banners-container {
-        max-width: 240px; /* Jeszcze węższy kontener dla obu grup */
-        gap: 0.5rem; /* Jeszcze mniejszy odstęp w grupie */
-    }
-    .info-banners-container {
-        max-width: 200px; /* Dolne banery BARDZO WĘŻSZE */
-    }
-
-    .primary-button,
-    .secondary-button,
-    .info-banner-button {
-        font-size: 0.8rem;
-        padding: 0.5rem 0.6rem;
-    }
-    .primary-button .subtext,
-    .secondary-button .subtext,
-    .info-banner-button .subtext {
-        font-size: 0.55rem;
-    }
-}
-
-
-/* Tryb ciemny dla LandingPage - ZOPTYMALIZOWANE */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #1a1a1a;
-    color: #e0e0e0;
-  }
-
-  .landing-container {
-    box-shadow: none;
-  }
-
-  .overlay-header {
-    background: linear-gradient(135deg, #0f3d6a, #0b2a47);
-  }
-
-  .primary-button,
-  .secondary-button,
-  .info-banner-button {
-    background-color: #0056b3;
-    color: white;
-  }
-
-  .primary-button:hover,
-  .secondary-button:hover,
-  .info-banner-button:hover {
-    background-color: #003f8c;
-  }
-
-  .primary-button .subtext,
-  .secondary-button .subtext,
-  .info-banner-button .subtext {
-    color: #FFFFFF;
-  }
-
-  .info-banner-button.urgent {
-    background-color: #a02020;
-    border-color: #e05050;
-  }
-
-  .info-banner-button.urgent:hover {
-    background-color: #801818;
-  }
-}
