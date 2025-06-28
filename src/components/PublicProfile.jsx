@@ -343,6 +343,8 @@ export default function UserProfileDashboard() {
 
       case 'Pomoc drogowa':
         return (
+          // Przycisk submit dla całego formularza pomocy drogowej jest na dole,
+          // więc ten komponent jest otoczony tagami <form>
           <form onSubmit={handleSave} className="dashboard-form-section">
             <h3>Pomoc drogowa</h3>
 
@@ -373,8 +375,7 @@ export default function UserProfileDashboard() {
             )}
 
             {/* DODANY PRZYCISK ZAPISU DLA ZGÓD POMOCY DROGOWEJ */}
-            {/* Ten przycisk jest widoczny, nawet jeśli pola formularza poniżej nie są,
-                pozwala zapisać same stany checkboxów. */}
+            {/* Ten przycisk jest widoczny ZAWSZE w tej zakładce, pozwala zapisać same stany checkboxów. */}
             <button
                 onClick={handleSave} // Wywołanie handleSave, które zapisze oba stany checkboxów
                 disabled={saving}
@@ -384,7 +385,8 @@ export default function UserProfileDashboard() {
                 {saving ? 'Zapisywanie...' : 'Zapisz ustawienia zgód pomocy drogowej'}
             </button>
 
-            {/* Pola formularza pomocy drogowej, które wyświetlają się, jeśli obie zgody są zaznaczone */}
+            {/* Pola formularza pomocy drogowej, które wyświetlają się, jeśli oba checkboxy są zaznaczone */}
+            {/* Ten blok jest otoczony tagami <> </> aby zgrupować elementy, gdy warunek jest prawdziwy. */}
             {(formData.is_pomoc_drogowa && isRoadsideAssistanceAgreed) && ( 
               <>
                 <label className="form-label">
