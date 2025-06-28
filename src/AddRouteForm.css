@@ -192,6 +192,12 @@
   .phone-input-group {
     flex-wrap: nowrap; /* Zachowaj je obok siebie */
   }
+.form-field-consent label span {
+  display: inline;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
 
   /* SPECYFICZNA POPRAWKA DLA form-field-consent NA TELEFONIE */
   .form-field-consent {

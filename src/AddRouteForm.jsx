@@ -392,21 +392,22 @@ function AddRouteForm({ onRouteCreated }) {
 
           {/* PRZENIESIONE POLE: Zgoda na udostępnienie numeru telefonu - TERAZ W TEJ SAMEJ LINII, PO MESSENGERZE */}
           <div className="form-field form-field-consent">
-            <label htmlFor="consentPhoneShare">
-              <input
-                type="checkbox"
-                id="consentPhoneShare"
-                name="consentPhoneShare"
-                checked={form.consentPhoneShare}
-                onChange={handleChange}
-                className="consent-checkbox"
-              />
-              Zgadzam się na udostępnienie mojego numeru telefonu publicznie.
-            </label>
-            <small style={{ marginTop: '5px', fontSize: '0.8em', color: '#666' }}>
-                Numer telefonu będzie widoczny dla innych użytkowników.
-            </small>
-          </div>
+  <label htmlFor="consentPhoneShare">
+    <input
+      type="checkbox"
+      id="consentPhoneShare"
+      name="consentPhoneShare"
+      checked={form.consentPhoneShare}
+      onChange={handleChange}
+      className="consent-checkbox"
+    />
+    <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie.</span>
+  </label>
+  <small style={{ marginTop: '5px', fontSize: '0.8em', color: '#666' }}>
+    Numer telefonu będzie widoczny dla innych użytkowników.
+  </small>
+</div>
+
 
           {/* Przycisk "Zapisz trasę" również w nowym rzędzie, aby był zawsze dostępny i czytelny */}
         </div> {/* ZAMYKAMY TEN SAM form-row */}
