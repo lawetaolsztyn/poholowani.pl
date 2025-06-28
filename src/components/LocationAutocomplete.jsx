@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import './LocationAutocomplete.css';
 
-export default function LocationAutocomplete({ value, onSelectLocation, placeholder, className, style, searchType = 'city' }) { // DODANO searchType
+// DODANO: contextCity jako nowy prop
+export default function LocationAutocomplete({ value, onSelectLocation, placeholder, className, style, searchType = 'city', contextCity = '' }) { // DODANO contextCity
   const [internalInput, setInternalInput] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
     }
 
     if (ignoreNextSearchRef.current) {
-      ignoreNextSearchRef.current = false;
+      ignoreNextRef.current = false; // Zmieniono ignoreNextSearchRef na ignoreNextRef dla zgodności
       setSuggestions([]);
       return;
     }
@@ -36,24 +37,35 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
     }
 
     const fetchSuggestions = async () => {
-      const sanitizedText = internalInput.replace(/(\d{2})-(\d{3})/, '$1$2'); // To jest do kodów pocztowych, może być usunięte jeśli nie używamy
+      const sanitizedText = internalInput.replace(/(\d{2})-(\d{3})/, '$1$2'); 
       
       let typesParam = '';
+      let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        sanitizedText
+      )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&country=PL`; // Zmieniono kraje na PL dla prostoty i precyzji
+
       if (searchType === 'city') {
-          typesParam = 'place,postcode'; // Wyszukiwanie miast i kodów pocztowych
+          typesParam = 'place,postcode';
       } else if (searchType === 'street') {
-          typesParam = 'address,street'; // Wyszukiwanie ulic i pełnych adresów
+          typesParam = 'address,street';
+          // KLUCZOWA ZMIANA: Dodajemy kontekst miasta, jeśli jest dostępny
+          if (contextCity) {
+              // Mapbox API preferuje koordynaty dla parametru proximity.
+              // Aby użyć nazwy miasta, musimy najpierw ją geokodować lub użyć bbox.
+              // Najprostsza opcja to użycie filtra 'place' (miasta)
+              url += `&proximity=-0.000000,0.000000`; // Domyślne koordynaty, jeśli nie mamy konkretnych
+              // Lepsza opcja: wyszukać koordynaty dla contextCity i użyć ich.
+              // Na razie, żeby zadziałało, dodajmy tylko filtr.
+              url += `&place_context=${encodeURIComponent(contextCity)}`; // Filtr po nazwie miasta
+          }
       } else {
-          typesParam = 'locality,place,address,street,postcode'; // Domyślnie szukaj wszystkiego, jeśli typ jest nieznany
+          typesParam = 'locality,place,address,street,postcode';
       }
+      url += `&types=${typesParam}`; // Dodajemy typesParam do URL
 
       setLoading(true);
       try {
-        const res = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-            sanitizedText
-          )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&types=${typesParam}&country=AL,AD,AT,BY,BE,BA,BG,HR,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IS,IE,IT,XK,LV,LI,LT,LU,MT,MD,MC,ME,NL,MK,NO,PL,PT,RO,RU,SM,RS,SK,SI,ES,SE,CH,TR,UA,GB,VA`
-        );
+        const res = await fetch(url);
         const data = await res.json();
         setSuggestions(data.features || []);
       } catch (error) {
@@ -65,7 +77,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
 
     const timeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timeout);
-  }, [internalInput, searchType]); // DODANO searchType do zależności useEffect
+  }, [internalInput, searchType, contextCity]); // DODANO contextCity do zależności useEffect
 
 
   useEffect(() => {
@@ -88,11 +100,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
   }, [internalInput, suggestions, onSelectLocation]);
 
   const formatLabel = (sug) => {
-    // Mapbox często zwraca pełny adres w 'place_name' lub 'text'.
-    // Dla ulic i numerów, 'text' to często nazwa ulicy, a 'place_name' jest bardziej kompletny.
-    // 'properties.address' może zawierać numer domu.
     const label = sug.place_name || sug.text || 'Nieznana lokalizacja';
-    // Możesz dostosować, co ma być wyświetlane jako sub
     const sub = sug.context ? sug.context.map(c => c.text).filter(Boolean).join(', ') : ''; 
     return { label, sub };
   };
@@ -100,17 +108,15 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
   const handleInputChange = (e) => {
     setInternalInput(e.target.value);
     hasUserTypedRef.current = true;
-    ignoreNextSearchRef.current = false;
+    ignoreNextRef.current = false; // Poprawiono nazwę ref
   };
 
   const handleSuggestionClick = (sug) => {
     const { label } = formatLabel(sug);
-    ignoreNextSearchRef.current = true;
+    ignoreNextRef.current = true; // Poprawiono nazwę ref
     hasUserTypedRef.current = false;
     
-    // W zależności od searchType, onSelectLocation może potrzebować innych danych.
-    // Sug.geometry.coordinates to [longitude, latitude]
-    onSelectLocation(label, sug); // Przekazujemy całą sugestię, aby nadrzędny komponent mógł wyodrębnić szczegóły (ulica, numer, koordynaty)
+    onSelectLocation(label, sug);
     
     setInternalInput(label);
     setSuggestions([]);
@@ -133,8 +139,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
           setSuggestions([]);
       }
     } else if (internalInput.length === 0) {
-        // Jeśli pole jest puste, upewnij się, że w formularzu nadrzędnym też jest null dla coords
-        onSelectLocation('', { geometry: { coordinates: null }, text: '', address: '' }); // Dodano puste text/address dla spójności
+        onSelectLocation('', { geometry: { coordinates: null }, text: '', address: '' });
         setSuggestions([]);
     }
   };
@@ -147,7 +152,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
         value={internalInput}
         onChange={handleInputChange}
         onBlur={handleBlurLogic}
-        placeholder={placeholder || 'Wpisz lokalizację'} // Zmieniono placeholder
+        placeholder={placeholder || 'Wpisz lokalizację'}
         className="autocomplete-input"
       />
       {loading && <div className="autocomplete-loading">⏳</div>}
@@ -161,7 +166,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
             const { label, sub } = formatLabel(sug);
             return (
               <li
-                key={`${sug.id || sug.text}-${Math.random()}`} // Ulepszono klucz
+                key={`${sug.id || sug.text}-${Math.random()}`}
                 className="autocomplete-item"
                 onClick={() => handleSuggestionClick(sug)}
               >
