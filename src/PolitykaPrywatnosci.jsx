@@ -29,7 +29,7 @@ const PolitykaPrywatnosci = () => {
       <p>
         Dane osobowe są przetwarzane w celu:<br />
         – realizacji usług świadczonych przez serwis poholowani.pl,<br />
-        – umożliwienia kontaktu między użytkownikami (klientami i przewoźnikami),<br />
+        – umożliwienia wzajemnego kontaktu między użytkownikami serwisu (klientami i przewoźnikami) poprzez udostępnienie numeru telefonu innym użytkownikom przeglądającym ogłoszenia o trasach. Dane te są udostępniane wyłącznie za wyraźną, dobrowolną zgodą użytkownika. W przypadku użytkowników posiadających publiczny profil (np. Pomoc Drogowa, Przewoźnik), dane takie jak nazwa firmy, adres, numer telefonu oraz imię i nazwisko (jeśli podane jako publiczne dane kontaktowe firmy) mogą być widoczne dla innych użytkowników serwisu w celu umożliwienia kontaktu w ramach oferowanych usług.<br />
         – zapewnienia bezpieczeństwa i zapobiegania nadużyciom,<br />
         – analityki i poprawy działania serwisu.<br />
       </p>
@@ -46,7 +46,7 @@ const PolitykaPrywatnosci = () => {
 
       <h2>5. Czas przechowywania danych</h2>
       <p>
-        Dane są przechowywane przez okres korzystania z serwisu oraz przez okres wymagany przepisami prawa lub do momentu żądania ich usunięcia przez użytkownika.
+        Dane są przechowywane przez okres korzystania z serwisu oraz przez okres wymagany przepisami prawa lub do momentu żądania ich usunięcia przez użytkownika. W szczególności, dane osobowe powiązane z ogłoszeniami o trasach (takie jak numer telefonu przypisany do konkretnej trasy) są usuwane z systemu automatycznie przez mechanizm crona po upływie 24 godzin od daty realizacji danej trasy. Wycofanie zgody na udostępnienie numeru telefonu lub usunięcie konta przez użytkownika skutkuje natychmiastowym usunięciem numeru telefonu z widoku publicznego i z bazy danych, niezależnie od terminu wygaśnięcia trasy.
       </p>
 
       <h2>6. Pliki cookies</h2>
@@ -60,7 +60,7 @@ const PolitykaPrywatnosci = () => {
         Użytkownik ma prawo do:<br />
         – dostępu do swoich danych,<br />
         – ich sprostowania,<br />
-        – usunięcia („prawo do bycia zapomnianym”),<br />
+        – wycofania zgody na przetwarzanie danych osobowych (np. numeru telefonu) w dowolnym momencie. Zgoda może zostać wycofana poprzez zmianę ustawień w panelu użytkownika lub poprzez bezpośredni kontakt z Administratorem. Wycofanie zgody nie wpływa na zgodność z prawem przetwarzania, którego dokonano na podstawie zgody przed jej wycofaniem,<br />
         – ograniczenia przetwarzania,<br />
         – przenoszenia danych,<br />
         – wniesienia sprzeciwu wobec przetwarzania,<br />
