@@ -155,10 +155,10 @@
 /* Media Queries dla mniejszych ekranów (np. telefony) */
 @media (max-width: 768px) {
   .form-row {
-    flex-direction: column;
+    flex-direction: column; /* Wszystkie pola w jednej kolumnie */
     gap: 15px;
     margin-bottom: 10px;
-    align-items: flex-start;
+    align-items: flex-start; /* Wyrównanie do lewej na mobilnych */
   }
 
   .route-form .form-row:last-of-type {
@@ -166,8 +166,9 @@
   }
 
   .form-field {
-    width: 100%;
-    min-width: unset;
+    width: 100%; /* Na mobilnych wszystkie pola powinny mieć 100% szerokości */
+    min-width: unset; /* Usuń minimalną szerokość, aby się skalowały */
+    max-width: 100%; /* Upewnij się, że nie jest ograniczony */
   }
 
   .form-field-button {
@@ -189,23 +190,39 @@
   }
 
   .phone-input-group {
-    flex-wrap: nowrap;
+    flex-wrap: nowrap; /* Zachowaj je obok siebie */
   }
 
-  /* Na mobilnych, pole zgody powinno zająć całą szerokość i być pod messengerem */
+  /* SPECYFICZNA POPRAWKA DLA form-field-consent NA TELEFONIE */
   .form-field-consent {
-    width: 100%;
-    max-width: 100%; /* Zapewnij pełną szerokość */
-    margin-left: 0; /* Usuń margines z lewej */
-    margin-top: 15px; /* Daj trochę odstępu od messengera */
-    /* Upewnij się, że tekst się zawija, nawet jeśli label nie jest display:block,
-       a flex-direction:column dla form-field-consent już to robi */
+    width: 100%; /* Zapewnij pełną szerokość */
+    max-width: 100%; /* Usuń ograniczenie max-width */
+    margin-left: 0; /* Usuń margines z lewej, bo będzie w nowej linii */
+    margin-top: 15px; /* Daj trochę odstępu od poprzedniego elementu (np. Messengera) */
+    /* Te dwa style poniżej są kluczowe dla zawijania tekstu w labelu */
+    flex-shrink: 1; /* Pozwól temu elementowi się kurczyć, jeśli brakuje miejsca */
+    min-width: 0; /* Zezwól na całkowite kurczenie się, jeśli to konieczne (zapobiega overflow) */
   }
+
+  .form-field-consent label {
+      display: flex; /* Upewnij się, że label jest flex containerem */
+      flex-wrap: wrap; /* WYMUUUUUSZAMY ZAWIJANIE TEKSTU W LABELU */
+      align-items: flex-start; /* Wyrównaj checkbox do góry tekstu */
+      text-align: left; /* Upewnij się, że tekst jest wyrównany do lewej */
+      width: 100%; /* Label powinien zajmować całą dostępną szerokość w swoim rodzicu */
+  }
+
+  .consent-checkbox {
+      margin-right: 10px;
+      flex-shrink: 0; /* Zapobiegnij zmniejszaniu się checkboxa */
+      margin-top: 2px; /* Drobna korekta pionowa */
+  }
+
 
   .form-row.submit-button-row {
-    flex-direction: column; /* Upewnij się, że przycisk jest w kolumnie na mobilnych */
-    align-items: flex-start; /* Wyrównaj przycisk do lewej */
-    margin-top: 15px; /* Mniejszy odstęp na mobilnych */
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 15px;
   }
 }
 
