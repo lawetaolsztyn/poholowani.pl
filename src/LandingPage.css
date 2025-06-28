@@ -210,8 +210,8 @@
   .info-banners-container {
     flex-direction: column; /* Ułóż pionowo */
     position: absolute; /* Pozostawiamy absolutne pozycjonowanie */
-    width: 90%; /* Prawie pełna szerokość ekranu */
-    max-width: 200px; /* Ograniczenie szerokości */
+    width: 10%; /* Prawie pełna szerokość ekranu */
+    max-width: 180px; /* Ograniczenie szerokości */
     padding: 0;
     left: 50%;
     transform: translateX(-50%);
