@@ -101,14 +101,74 @@ export default function UserProfileDashboard() {
   const handlePasswordReset = async (e) => { /* ... bez zmian ... */ };
 
   const renderTab = () => {
-    if (loading) { /* ... bez zmian ... */ }
-    if (!formData) { /* ... bez zmian ... */ }
+    if (loading) {
+      return <p>Ładowanie danych użytkownika...</p>;
+    }
+    // Ten warunek jest kluczowy, aby zapobiec dostępowi do formData, gdy jest null
+    if (!formData) {
+      return <p className="dashboard-message error">Nie udało się załadować danych użytkownika.</p>;
+    }
 
     switch (activeTab) {
       case 'Moje dane':
         return (
           <form onSubmit={handleSave} className="dashboard-form-section">
-            {/* ... istniejące pola 'Moje dane' ... */}
+            <h3>Moje dane</h3>
+            {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>}
+
+            <label className="form-label">
+              Imię i nazwisko:
+              <input type="text" name="full_name" value={formData.full_name || ''} onChange={handleChange} className="form-input" />
+            </label>
+
+            {/* Upewnij się, że formData.role jest bezpiecznie dostępne */}
+            {formData.role === 'firma' && (
+              <>
+                <label className="form-label">
+                  NIP:
+                  <input type="text" name="nip" value={formData.nip || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Nazwa firmy:
+                  <input type="text" name="company_name" value={formData.company_name || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Telefon:
+                  <input type="text" name="phone" value={formData.phone || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  <input
+                    type="checkbox"
+                    name="vat_payer"
+                    checked={formData.vat_payer || false}
+                    onChange={(e) => setFormData({ ...formData, vat_payer: e.target.checked })}
+                  />{' '}
+                  Płatnik VAT
+                </label>
+              </>
+            )}
+
+            <label className="form-label">
+              Kraj:
+              <input type="text" name="country" value={formData.country || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Miasto:
+              <input type="text" name="city" value={formData.city || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Kod pocztowy:
+              <input type="text" name="postal_code" value={formData.postal_code || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Ulica:
+              <input type="text" name="street" value={formData.street || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Numer budynku:
+              <input type="text" name="building_number" value={formData.building_number || ''} onChange={handleChange} className="form-input" />
+            </label>
+
             <button type="submit" disabled={saving} className="form-button">
               {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
             </button>
@@ -116,19 +176,28 @@ export default function UserProfileDashboard() {
         );
 
       case 'Hasło':
+        // ... (bez zmian)
         return (
-          <form onSubmit={handlePasswordReset} className="dashboard-form-section">
-            {/* ... istniejące pola 'Hasło' ... */}
-            <button type="submit" disabled={saving} className="form-button">
-              {saving ? 'Zmienianie...' : 'Zmień hasło'}
-            </button>
-          </form>
+            <form onSubmit={handlePasswordReset} className="dashboard-form-section">
+                <h3>Zmiana hasła</h3>
+                {passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p>}
+                <label className="form-label">
+                    Nowe hasło:
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="form-input" />
+                </label>
+                <label className="form-label">
+                    Potwierdź nowe hasło:
+                    <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required className="form-input" />
+                </label>
+                <button type="submit" disabled={saving} className="form-button">
+                    {saving ? 'Zmienianie...' : 'Zmień hasło'}
+                </button>
+            </form>
         );
 
       case 'Profil publiczny':
-        // Pobierz wszystkie pola związane z profilem publicznym (z "Moje dane")
         const publicProfileFields = ['full_name', 'nip', 'company_name', 'phone', 'vat_payer', 'country', 'city', 'postal_code', 'street', 'building_number'];
-        const isAnyPublicFieldFilled = publicProfileFields.some(field => formData[field]);
+        const isAnyPublicFieldFilled = formData && publicProfileFields.some(field => formData[field]);
 
         return (
           <div className="dashboard-form-section">
@@ -152,21 +221,13 @@ export default function UserProfileDashboard() {
             )}
 
             <button
-                onClick={() => window.open(`/profil/${formData.id}`, '_blank')}
+                onClick={() => window.open(`/profil/${formData?.id}`, '_blank')}
                 className="form-button"
                 style={{ backgroundColor: '#007bff', marginTop: '20px' }}
-                disabled={!isPublicProfileAgreed && !isAnyPublicFieldFilled} // Wyłączony, jeśli zgoda nie jest zaznaczona i brak wypełnionych danych publicznych
+                disabled={!isPublicProfileAgreed && !isAnyPublicFieldFilled}
             >
                 Przejdź do profilu publicznego
             </button>
-
-            {/* Ważne: Pola do edycji publicznego profilu (np. opis, flota, trasy, zdjęcia)
-                są edytowane w komponencie PublicProfile.jsx.
-                Tutaj jedynie kontrolujemy zgodę na widoczność.
-                Jeśli chcesz, aby niektóre podstawowe pola były tutaj edytowalne i zależne od zgody,
-                musisz je dodać do tego formularza i ustawić disabled.
-                Obecnie, główna edycja profilu publicznego odbywa się na stronie /profil/:id
-            */}
           </div>
         );
 
@@ -201,7 +262,8 @@ export default function UserProfileDashboard() {
                 </p>
             )}
 
-            {formData.is_pomoc_drogowa && isRoadsideAssistanceAgreed && ( // Warunek: oba checkboxy zaznaczone
+            {/* Zabezpieczenie przed próbą dostępu do niezdefiniowanych pól formData */}
+            {formData.is_pomoc_drogowa && isRoadsideAssistanceAgreed && (
               <>
                 <label className="form-label">
                   Nazwa przyjazna (widoczna publicznie):
@@ -261,6 +323,7 @@ export default function UserProfileDashboard() {
     <>
       <Navbar />
       <div className="user-dashboard-container">
+        {/* Ten warunek obejmuje cały kontener zakładek */}
         {formData && (
           <div className="dashboard-tabs-wrapper">
             {getTabs().map(tab => (
@@ -272,6 +335,7 @@ export default function UserProfileDashboard() {
                 {tab}
               </button>
             ))}
+            {/* Zabezpieczenie na formData również dla przycisku "Moje trasy" */}
             {formData && (
               <button
                 key="moje-trasy-button"
