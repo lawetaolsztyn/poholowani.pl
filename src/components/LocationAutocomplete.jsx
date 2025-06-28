@@ -53,25 +53,46 @@ export default function LocationAutocomplete({
       if (searchType === 'city') {
         typesParam = 'place,postcode';
       } else if (searchType === 'street') {
-  if (/\d/.test(internalInput)) {
-    typesParam = 'address,street';
-  } else {
-    typesParam = 'street';
-  }
-} else {
+        if (/\d/.test(internalInput)) {
+          typesParam = 'address,street';
+        } else {
+          typesParam = 'street';
+        }
+      } else {
         typesParam = 'locality,place,address,street,postcode';
       }
 
       url += `&types=${typesParam}`;
 
-      // ✅ Dodaj proximity, jeśli dostępne
+      // ✅ LOG proximityCoords przed budowaniem URL
+      console.log('Proximity coords:', proximityCoords);
+
+      // ✅ Poprawiona walidacja i konwersja proximityCoords
       if (
         proximityCoords &&
         proximityCoords.longitude != null &&
         proximityCoords.latitude != null
       ) {
-        url += `&proximity=${proximityCoords.longitude},${proximityCoords.latitude}`;
+        // Konwertuj na liczby jeśli są stringami
+        const lon = typeof proximityCoords.longitude === 'string'
+          ? parseFloat(proximityCoords.longitude)
+          : proximityCoords.longitude;
+        const lat = typeof proximityCoords.latitude === 'string'
+          ? parseFloat(proximityCoords.latitude)
+          : proximityCoords.latitude;
+
+        if (
+          typeof lon === 'number' &&
+          !isNaN(lon) &&
+          typeof lat === 'number' &&
+          !isNaN(lat)
+        ) {
+          url += `&proximity=${lon},${lat}`;
+        }
       }
+
+      // ✅ Log finalny URL
+      console.log('URL do Mapboxa:', url);
 
       setLoading(true);
       try {
