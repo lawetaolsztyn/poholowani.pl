@@ -410,7 +410,7 @@ export default function UserProfileDashboard() {
                           setRoadsideSelectedCoords({ latitude: null, longitude: null });
                       }
                     }}
-                    placeholder="Wpisz ulicę" {/* Zmieniono placeholder */}
+                    placeholder="Wpisz ulicę" 
                     className="form-input"
                     searchType="street" // Dodano searchType: 'street'
                     // KLUCZOWA POPRAWKA: Przekazujemy contextCity w bezpieczny sposób
