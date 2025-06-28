@@ -1,616 +1,480 @@
-// src/components/PublicProfile.jsx
+// src/UserProfileDashboard.jsx
 
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import Navbar from './Navbar';
+import { supabase } from './supabaseClient';
+import Navbar from './components/Navbar';
+import './UserProfileDashboard.css';
 
-// Opcje typów floty
-const fleetOptions = [
-  'auto osobowe', 'bus', 'autolaweta', 'przyczepa towarowa', 'przyczepa laweta',
-  'przyczepa laweta podwójna', 'pojazd ciężarowy', 'naczepa ciężarowa', 'przyczepa ciężarowa', 'dostawczak'
-];
-
-// Funkcja pomocnicza do pobierania ikon pojazdów
-const getFleetIcon = (type) => {
-  switch (type) {
-    case 'auto osobowe': return '🚗';
-    case 'bus': return '🚌';
-    case 'autolaweta': return '🛻';
-    case 'przyczepa towarowa': return '🚛';
-    case 'przyczepa laweta': return '🚜';
-    case 'przyczepa laweta podwójna': return '🚚';
-    case 'pojazd ciężarowy': return '🚚';
-    case 'naczepa ciężarowa': return '🚛';
-    case 'przyczepa ciężarowa': return '🚛';
-    case 'dostawczak': return '🚌';
-    default: return '❓';
-  }
-};
-
-export default function PublicProfile() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
+export default function UserProfileDashboard() {
+  const [activeTab, setActiveTab] = useState('Moje dane');
+  const [userData, setUserData] = useState(null);
+  const [formData, setFormData] = useState(null); // Będzie przechowywać rozszerzone dane profilu użytkownika
   const [loading, setLoading] = useState(true);
-  const [isOwner, setIsOwner] = useState(false);
-  const [editingSection, setEditingSection] = useState(null);
-  const [showLightbox, setShowLightbox] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [newImages, setNewImages] = useState([]);
-  const [uploadingImages, setUploadingImages] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
+  
+  // NOWE STANY DLA ZGÓD
+  const [isPublicProfileAgreed, setIsPublicProfileAgreed] = useState(false);
+  const [isRoadsideAssistanceAgreed, setIsRoadsideAssistanceAgreed] = useState(false);
 
   useEffect(() => {
-    async function fetchProfile() {
+    const fetchUser = async () => {
       setLoading(true);
       try {
-        const { data: userData } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          // Brak zalogowanego użytkownika, wyczyść dane i zakończ ładowanie
+          setUserData(null);
+          setFormData(null);
+          setIsPublicProfileAgreed(false);
+          setIsRoadsideAssistanceAgreed(false);
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase
           .from('users_extended')
-          .select('*') // 'select(*)' pobierze również is_public_profile_agreed
-          .eq('id', id)
+          .select('*')
+          .eq('id', user.id)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Błąd pobierania danych użytkownika z Supabase:", error.message);
+          setMessage("Błąd ładowania danych użytkownika.");
+          setUserData(null);
+          setFormData(null);
+          setIsPublicProfileAgreed(false);
+          setIsRoadsideAssistanceAgreed(false);
+        } else {
+          // Upewnij się, że 'data' nie jest nullem przed ustawieniem stanów
+          const fetchedData = data || {}; // Użyj pustego obiektu, jeśli 'data' jest nullem, aby zapobiec błędom
 
-        // Parsowanie stringów JSON na tablice
-        if (typeof data.fleet_flags === 'string') {
-          try { data.fleet_flags = JSON.parse(data.fleet_flags); } catch { data.fleet_flags = []; }
-        } else if (!Array.isArray(data.fleet_flags)) {
-          data.fleet_flags = [];
+          setUserData(fetchedData);
+          setFormData(fetchedData);
+          // Ustaw stany zgód na podstawie pobranych danych, domyślnie na false
+          setIsPublicProfileAgreed(fetchedData.is_public_profile_agreed || false);
+          setIsRoadsideAssistanceAgreed(fetchedData.is_roadside_assistance_agreed || false);
         }
-
-        if (typeof data.image_urls === 'string') {
-          try { data.image_urls = JSON.parse(data.image_urls); } catch { data.image_urls = []; }
-        } else if (!Array.isArray(data.image_urls)) {
-          data.image_urls = [];
-        }
-
-        if (typeof data.routes === 'string') {
-          try { data.routes = JSON.parse(data.routes); } catch { data.routes = []; }
-        } else if (!Array.isArray(data.routes)) {
-          data.routes = [];
-        }
-
-        setProfile(data);
-        setIsOwner(userData?.user?.id === id);
-      } catch (error) {
-        console.error("Błąd ładowania profilu:", error.message);
-        setProfile(null);
+      } catch (err) {
+        console.error("Ogólny błąd podczas pobierania danych użytkownika:", err.message);
+        setMessage("Wystąpił nieoczekiwany błąd podczas ładowania danych.");
+        setUserData(null);
+        setFormData(null);
+        setIsPublicProfileAgreed(false);
+        setIsRoadsideAssistanceAgreed(false);
       } finally {
         setLoading(false);
       }
+    };
+
+    fetchUser();
+  }, []); // Pusta tablica zależności oznacza, że uruchamia się raz po zamontowaniu komponentu
+
+  // Memoizuj getTabs, aby zapewnić stabilność i ponowne obliczenia tylko po zmianie formData
+  const getTabs = () => {
+    if (!formData) {
+      return [];
     }
 
-    fetchProfile();
-  }, [id]);
+    let baseTabs = ['Moje dane', 'Hasło'];
+    
+    // Sprawdź formData.role bezpiecznie
+    if (formData.role === 'firma') {
+      baseTabs.push('Profil publiczny');
+      baseTabs.push('Pomoc drogowa');
+    }
+    return baseTabs;
+  };
 
-  const handleSave = async (field, value) => {
-    if (!profile) return;
+  const handleChange = (e) => {
+    // Upewnij się, że formData istnieje przed aktualizacją
+    if (formData) {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value
+      });
+    }
+  };
+
+  const handleSave = async (e) => {
+    // Zapobiegamy domyślnemu zachowaniu formularza, jeśli handleSave jest wywoływane przez 'submit'
+    if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+    }
+    setSaving(true);
+    setMessage('');
+
+    if (!formData) {
+        setMessage("Błąd: Brak danych do zapisu.");
+        setSaving(false);
+        return;
+    }
+
+    let updatedFormData = { ...formData }; // Utwórz zmienną kopię do aktualizacji
+
+    // Logika geokodowania dla pomocy drogowej
+    if (updatedFormData.is_pomoc_drogowa) {
+      const address = `${updatedFormData.roadside_street || ''} ${updatedFormData.roadside_number || ''}, ${updatedFormData.roadside_city || ''}`;
+      try {
+        const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`);
+        const json = await response.json();
+        const coords = json?.features?.[0]?.center;
+        if (coords) {
+          updatedFormData = { ...updatedFormData, longitude: coords[0], latitude: coords[1] };
+        } else {
+            console.warn("Geokodowanie nie zwróciło koordynatów dla adresu:", address);
+            setMessage("Ostrzeżenie: Nie udało się uzyskać koordynatów dla adresu pomocy drogowej.");
+        }
+      } catch (err) {
+        console.error('Błąd geokodowania:', err.message);
+        setMessage(`❌ Błąd geokodowania: ${err.message}`);
+        setSaving(false);
+        setTimeout(() => setMessage(''), 3000);
+        return; // Zatrzymaj zapis, jeśli geokodowanie się nie powiedzie
+      }
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.id !== id) throw new Error("Brak autoryzacji do edycji.");
+      if (!user) throw new Error("Użytkownik niezalogowany.");
 
-      let updatePayload = {};
-
-      if (field === 'firm') {
-        updatePayload = {
-          nip: profile.nip,
-          phone: profile.phone,
-          street: profile.street,
-          building_number: profile.building_number,
-          postal_code: profile.postal_code,
-          city: profile.city,
-          country: profile.country,
-        };
-      } else {
-        updatePayload = { [field]: Array.isArray(value) ? JSON.stringify(value) : value };
-      }
+      // Dodaj stany zgód do payloadu
+      const finalUpdatePayload = {
+        ...updatedFormData, // Użyj updatedFormData, które może zawierać współrzędne geograficzne
+        is_public_profile_agreed: isPublicProfileAgreed,
+        is_roadside_assistance_agreed: isRoadsideAssistanceAgreed,
+      };
 
       const { error } = await supabase
         .from('users_extended')
-        .update(updatePayload)
-        .eq('id', id);
+        .update(finalUpdatePayload)
+        .eq('id', user.id);
 
       if (error) throw error;
 
-      setProfile(prev => ({ ...prev, [field]: value }));
-      setEditingSection(null);
-      alert('Dane zapisane pomyślnie!');
+      setMessage('✅ Dane zapisane pomyślnie!');
+      // Zaktualizuj stan formData komponentu o pomyślne zmiany, w tym współrzędne geograficzne
+      setFormData(finalUpdatePayload); 
+      setUserData(finalUpdatePayload); // Zaktualizuj również userData, jeśli jest używane gdzie indziej do wyświetlania
     } catch (error) {
-      console.error(`Błąd zapisu ${field}:`, error.message);
-      alert(`❌ Błąd zapisu ${field}: ${error.message}`);
+      console.error('Błąd zapisu danych:', error.message);
+      setMessage(`❌ Błąd zapisu danych: ${error.message}`);
+    } finally {
+      setSaving(false);
+      setTimeout(() => setMessage(''), 3000);
     }
   };
 
-  // --- Funkcje do obsługi edycji poszczególnych pól ---
-  const handleDescriptionChange = (e) => {
-    setProfile(prev => ({ ...prev, description: e.target.value }));
-  };
-
-  const handleFleetChange = (flag) => {
-    setProfile(prev => {
-      const currentFlags = new Set(prev.fleet_flags || []);
-      if (currentFlags.has(flag)) {
-        currentFlags.delete(flag);
-      } else {
-        currentFlags.add(flag);
-      }
-      return { ...prev, fleet_flags: Array.from(currentFlags) };
-    });
-  };
-
-  const handleRouteChange = (index, value) => {
-    setProfile(prev => {
-      const updatedRoutes = [...(prev.routes || [])];
-      updatedRoutes[index] = value;
-      return { ...prev, routes: updatedRoutes };
-    });
-  };
-
-  const addRouteField = () => {
-    setProfile(prev => ({ ...prev, routes: [...(prev.routes || []), ''] }));
-  };
-
-  // --- Funkcje do obsługi zdjęć ---
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const validFiles = files.filter(file => {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert(`Plik ${file.name} jest za duży (max 5MB).`);
-        return false;
-      }
-      return true;
-    });
-
-    if ((profile.image_urls || []).length + newImages.length + validFiles.length > 5) {
-      alert("Możesz mieć maksymalnie 5 zdjęć w galerii.");
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setPasswordMessage('');
+    if (password !== confirm) {
+      setPasswordMessage('❌ Hasła nie pasują do siebie.');
       return;
     }
-    setNewImages(prev => [...prev, ...validFiles]);
-  };
+    if (password.length < 6) {
+      setPasswordMessage('❌ Hasło musi mieć co najmniej 6 znaków.');
+      return;
+    }
 
-  const handleRemoveNewImage = (indexToRemove) => {
-    setNewImages(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
-
-  const handleRemoveExistingImage = (indexToRemove) => {
-    setProfile(prev => {
-      const updatedImageUrls = prev.image_urls.filter((_, index) => index !== indexToRemove);
-      return { ...prev, image_urls: updatedImageUrls };
-    });
-  };
-
-  const handleSaveImages = async () => {
-    setUploadingImages(true);
-    let updatedImageUrls = [...(profile.image_urls || [])];
-
+    setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.id !== id) throw new Error("Brak autoryzacji do edycji.");
-
-      for (const file of newImages) {
-        const formData = new FormData();
-        formData.append('userId', user.id);
-        formData.append('file', file);
-
-        const response = await fetch('https://serwer2595576.home.pl/upload.php', {
-          method: 'POST',
-          body: formData
-        });
-
-        const result = await response.json();
-        if (result.success) {
-          updatedImageUrls.push(result.url);
-        } else {
-          throw new Error(result.error || 'Upload error');
-        }
-      }
-
-      const { error: updateError } = await supabase
-        .from('users_extended')
-        .update({ image_urls: updatedImageUrls })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      setProfile(prev => ({ ...prev, image_urls: updatedImageUrls }));
-      setNewImages([]);
-      setEditingSection(null);
-      alert('Zdjęcia zapisane pomyślnie!');
+      const { data, error } = await supabase.auth.updateUser({ password: password });
+      if (error) throw error;
+      setPasswordMessage('✅ Hasło zmienione pomyślnie!');
+      setPassword('');
+      setConfirm('');
     } catch (error) {
-      console.error('Błąd zapisu zdjęć:', error.message);
-      alert(`❌ Błąd zapisu zdjęć: ${error.message}`);
+      console.error('Błąd zmiany hasła:', error.message);
+      setPasswordMessage(`❌ Błąd zmiany hasła: ${error.message}`);
     } finally {
-      setUploadingImages(false);
+      setSaving(false);
+      setTimeout(() => setPasswordMessage(''), 3000);
     }
   };
 
-  // --- Funkcje do obsługi Lightboxa ---
-  const openLightbox = (index) => {
-    setCurrentImageIndex(index);
-    setShowLightbox(true);
-    document.body.style.overflow = 'hidden';
+  const renderTab = () => {
+    if (loading) {
+      return <p>Ładowanie danych użytkownika...</p>;
+    }
+    // Kluczowe sprawdzenie: jeśli formData jest nullem po załadowaniu, pokaż błąd.
+    // To powinno zapobiec dalszemu dostępowi do właściwości formData.
+    if (!formData) {
+      return <p className="dashboard-message error">Nie udało się załadować danych użytkownika. Spróbuj odświeżyć stronę.</p>;
+    }
+
+    switch (activeTab) {
+      case 'Moje dane':
+        return (
+          <form onSubmit={handleSave} className="dashboard-form-section">
+            <h3>Moje dane</h3>
+            {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>}
+
+            <label className="form-label">
+              Imię i nazwisko:
+              <input type="text" name="full_name" value={formData.full_name || ''} onChange={handleChange} className="form-input" />
+            </label>
+
+            {/* Warunkowo renderuj pola na podstawie roli, bezpieczny dostęp do formData.role */}
+            {formData.role === 'firma' && (
+              <>
+                <label className="form-label">
+                  NIP:
+                  <input type="text" name="nip" value={formData.nip || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Nazwa firmy:
+                  <input type="text" name="company_name" value={formData.company_name || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Telefon:
+                  <input type="text" name="phone" value={formData.phone || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  <input
+                    type="checkbox"
+                    name="vat_payer"
+                    checked={formData.vat_payer || false}
+                    onChange={(e) => setFormData({ ...formData, vat_payer: e.target.checked })}
+                  />{' '}
+                  Płatnik VAT
+                </label>
+              </>
+            )}
+
+            <label className="form-label">
+              Kraj:
+              <input type="text" name="country" value={formData.country || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Miasto:
+              <input type="text" name="city" value={formData.city || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Kod pocztowy:
+              <input type="text" name="postal_code" value={formData.postal_code || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Ulica:
+              <input type="text" name="street" value={formData.street || ''} onChange={handleChange} className="form-input" />
+            </label>
+            <label className="form-label">
+              Numer budynku:
+              <input type="text" name="building_number" value={formData.building_number || ''} onChange={handleChange} className="form-input" />
+            </label>
+
+            <button type="submit" disabled={saving} className="form-button">
+              {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
+            </button>
+          </form>
+        );
+
+      case 'Hasło':
+        return (
+          <form onSubmit={handlePasswordReset} className="dashboard-form-section">
+            <h3>Zmiana hasła</h3>
+            {passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p>}
+            <label className="form-label">
+              Nowe hasło:
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="form-input" />
+            </label>
+            <label className="form-label">
+              Potwierdź nowe hasło:
+              <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required className="form-input" />
+            </label>
+            <button type="submit" disabled={saving} className="form-button">
+              {saving ? 'Zmienianie...' : 'Zmień hasło'}
+            </button>
+          </form>
+        );
+
+      case 'Profil publiczny':
+        const publicProfileFields = ['full_name', 'nip', 'company_name', 'phone', 'vat_payer', 'country', 'city', 'postal_code', 'street', 'building_number'];
+        const isAnyPublicFieldFilled = formData && publicProfileFields.some(field => formData[field]);
+
+        return (
+          <div className="dashboard-form-section">
+            <h3>Profil publiczny</h3>
+            <p>Twój profil publiczny jest widoczny pod tym linkiem:</p>
+
+            <label className="form-label">
+                <input
+                    type="checkbox"
+                    checked={isPublicProfileAgreed}
+                    onChange={(e) => setIsPublicProfileAgreed(e.target.checked)}
+                    name="is_public_profile_agreed"
+                />{' '}
+                Wyrażam zgodę na udostępnianie moich danych (imię i nazwisko/nazwa firmy, NIP, numer telefonu, adres, dane floty, trasy, opis, zdjęcia) w publicznym profilu widocznym dla wszystkich użytkowników. Zapoznałem/am się z klauzulą informacyjną RODO.
+            </label>
+
+            {!isPublicProfileAgreed && (
+                <p className="dashboard-message error" style={{marginTop: '10px'}}>
+                    Aby Twój profil publiczny był widoczny, musisz wyrazić powyższą zgodę.
+                </p>
+            )}
+
+            {/* DODANY PRZYCISK ZAPISU DLA USTAWIEN WIDOCZNOSCI PROFILU PUBLICZNEGO */}
+            <button
+                // Nie używamy type="submit" tutaj, aby nie wysyłać całego formularza.
+                // handleSave jest wywoływane bezpośrednio
+                onClick={handleSave} 
+                disabled={saving} 
+                className="form-button"
+                style={{ backgroundColor: '#28a745', marginTop: '20px' }}
+            >
+                {saving ? 'Zapisywanie...' : 'Zapisz ustawienia widoczności profilu'}
+            </button>
+
+            <button
+                onClick={() => window.open(`/profil/${formData?.id}`, '_blank')}
+                className="form-button"
+                style={{ backgroundColor: '#007bff', marginTop: '10px' }} 
+                // Przycisk "Przejdź do profilu publicznego" jest wyłączony, jeśli zgoda nie jest zaznaczona
+                disabled={!isPublicProfileAgreed} 
+            >
+                Przejdź do profilu publicznego
+            </button>
+          </div>
+        );
+
+      case 'Pomoc drogowa':
+        return (
+          <form onSubmit={handleSave} className="dashboard-form-section">
+            <h3>Pomoc drogowa</h3>
+
+            <label className="form-label">
+                <input
+                    type="checkbox"
+                    name="is_pomoc_drogowa"
+                    checked={formData.is_pomoc_drogowa || false}
+                    onChange={(e) => setFormData({ ...formData, is_pomoc_drogowa: e.target.checked })}
+                />{' '}
+                Oświadczam, że prowadzę działalność gospodarczą w zakresie pomocy drogowej i posiadam wpisany kod PKD 52.21.A
+            </label>
+
+            <label className="form-label" style={{marginTop: '15px'}}>
+                <input
+                    type="checkbox"
+                    checked={isRoadsideAssistanceAgreed}
+                    onChange={(e) => setIsRoadsideAssistanceAgreed(e.target.checked)}
+                    name="is_roadside_assistance_agreed"
+                />{' '}
+                Wyrażam zgodę na udostępnianie moich danych (nazwa, miasto, ulica, numer, telefon, opis) dla profilu pomocy drogowej widocznego publicznie. Zapoznałem/am się z klauzulą informacyjną RODO.
+            </label>
+
+            {(!formData.is_pomoc_drogowa || !isRoadsideAssistanceAgreed) && (
+                <p className="dashboard-message error" style={{marginTop: '10px'}}>
+                    Aby uzupełnić i udostępnić dane pomocy drogowej, musisz zaznaczyć powyższe oświadczenia.
+                </p>
+            )}
+
+            {/* DODANY PRZYCISK ZAPISU DLA ZGÓD POMOCY DROGOWEJ */}
+            {/* Ten przycisk jest widoczny, nawet jeśli pola formularza poniżej nie są,
+                pozwala zapisać same stany checkboxów. */}
+            <button
+                onClick={handleSave} // Wywołanie handleSave, które zapisze oba stany checkboxów
+                disabled={saving}
+                className="form-button"
+                style={{ backgroundColor: '#28a745', marginTop: '20px' }}
+            >
+                {saving ? 'Zapisywanie...' : 'Zapisz ustawienia zgód pomocy drogowej'}
+            </button>
+
+            {/* Pola formularza pomocy drogowej, które wyświetlają się, jeśli obie zgody są zaznaczone */}
+            {(formData.is_pomoc_drogowa && isRoadsideAssistanceAgreed) && ( 
+              <>
+                <label className="form-label">
+                  Nazwa przyjazna (widoczna publicznie):
+                  <input type="text" name="roadside_slug" value={formData.roadside_slug || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Miasto:
+                  <input type="text" name="roadside_city" value={formData.roadside_city || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Ulica:
+                  <input type="text" name="roadside_street" value={formData.roadside_street || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Numer:
+                  <input type="text" name="roadside_number" value={formData.roadside_number || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Numer telefonu:
+                  <input type="text" name="roadside_phone" value={formData.roadside_phone || ''} onChange={handleChange} className="form-input" />
+                </label>
+                <label className="form-label">
+                  Opis usługi pomocy drogowej (max 500 znaków):
+                  <textarea
+                    name="roadside_description"
+                    value={formData.roadside_description || ''}
+                    onChange={handleChange}
+                    maxLength={500}
+                    className="form-input resize-y min-h-[100px]"
+                    placeholder="Opisz swoje usługi pomocy drogowej, specjalizacje, dostępność 24/7 itp."
+                  ></textarea>
+                </label>
+
+                {/* Istniejący przycisk zapisu dla danych formularza pomocy drogowej (z 'type="submit"') */}
+                <button type="submit" disabled={saving} className="form-button" style={{marginTop: '20px'}}>
+                  {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
+                </button>
+
+                <div className="dashboard-form-section" style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                  <button
+                    onClick={() => window.open(`/pomoc-drogowa/${formData.roadside_slug}`, '_blank')}
+                    className="form-button"
+                    style={{ backgroundColor: '#007bff' }}
+                  >
+                    Przejdź do profilu pomocy drogowej
+                  </button>
+                </div>
+              </>
+            )}
+          </form>
+        );
+      default:
+        return null;
+    }
   };
 
-  const closeLightbox = () => {
-    setShowLightbox(false);
-    document.body.style.overflow = 'unset';
-  };
-
-  const goToNextImage = () => {
-    setCurrentImageIndex((prevIndex) =>
-      (prevIndex + 1) % profile.image_urls.length
-    );
-  };
-
-  const goToPrevImage = () => {
-    setCurrentImageIndex((prevIndex) =>
-      (prevIndex - 1 + profile.image_urls.length) % profile.image_urls.length
-    );
-  };
-
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="container mx-auto p-8 text-center text-gray-700">Ładowanie profilu...</div>
-      </>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <>
-        <Navbar />
-        <div className="container mx-auto p-8 text-center text-red-600">Profil nie został znaleziony.</div>
-      </>
-    );
-  }
-
-  // GŁÓWNA ZMIANA: WARUNKOWE RENDEROWANIE CAŁEGO PROFILU
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-100 py-8">
-        {/* Warunek na wyświetlanie zawartości profilu */}
-        {profile.is_public_profile_agreed ? (
-          <>
-            {/* Sekcja ogólnych danych firmy/osoby */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 mx-auto max-w-4xl border border-gray-200">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                <h1 className="text-3xl font-bold text-gray-800">{profile.company_name || profile.full_name || 'Profil użytkownika'}</h1>
-              </div>
-
-              <div className="text-gray-700 text-lg leading-loose mb-4">
-                {profile.role === 'firma' && (
-                  <>
-                    <p><strong>NIP:</strong> {profile.nip || 'Brak danych'}</p>
-                    <p>
-                      <strong>Telefon:</strong>{' '}
-                      {profile.phone ? (
-                        <a href={`tel:${profile.phone.replace(/\s/g, '')}`} className="text-blue-600 hover:underline">
-                          {profile.phone}
-                        </a>
-                      ) : (
-                        'Brak danych'
-                      )}
-                    </p>
-                  </>
-                )}
-                {profile.full_name && <p><strong>Osoba kontaktowa:</strong> {profile.full_name}</p>}
-                <p><strong>Adres:</strong> {profile.street} {profile.building_number}, {profile.postal_code} {profile.city}, {profile.country}</p>
-              </div>
-            </div>
-
-            {/* Sekcja Opisu */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 mx-auto max-w-4xl border border-gray-200">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">Opis firmy</h2>
-                {isOwner && (
-                  <button
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200"
-                    onClick={() => setEditingSection('description')}
-                  >
-                    ✏ Edytuj
-                  </button>
-                )}
-              </div>
-              {editingSection === 'description' && isOwner ? (
-                <div className="space-y-4">
-                  <textarea
-                    value={profile.description || ''}
-                    onChange={handleDescriptionChange}
-                    className="w-full p-3 border rounded-lg resize-y min-h-[100px]"
-                    placeholder="Dodaj opis swojej firmy, doświadczenie, specjalizacje..."
-                  ></textarea>
-                  <button
-                    onClick={() => handleSave('description', profile.description)}
-                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    Zapisz opis
-                  </button>
-                  <button
-                    onClick={() => setEditingSection(null)}
-                    className="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    Anuluj
-                  </button>
-                </div>
-              ) : (
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{profile.description || 'Brak opisu.'}</p>
-              )}
-            </div>
-
-            {/* Pojazdy we flocie */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 mx-auto max-w-4xl border border-gray-200">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">Pojazdy we flocie</h2>
-                {isOwner && (
-                  <button
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200"
-                    onClick={() => setEditingSection('fleet')}
-                  >
-                    ✏ Edytuj
-                  </button>
-                )}
-              </div>
-              {editingSection === 'fleet' && isOwner ? (
-                <div className="space-y-2">
-                  {fleetOptions.map(option => (
-                    <div key={option} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`fleet-${option}`}
-                        checked={(profile.fleet_flags || []).includes(option)}
-                        onChange={() => handleFleetChange(option)}
-                        className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                      />
-                      <label htmlFor={`fleet-${option}`} className="ml-2 text-gray-700 cursor-pointer">
-                        {getFleetIcon(option)} <span className="ml-2">{option}</span>
-                      </label>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => handleSave('fleet_flags', profile.fleet_flags)}
-                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    Zapisz flotę
-                  </button>
-                  <button
-                    onClick={() => setEditingSection(null)}
-                    className="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    Anuluj
-                  </button>
-                </div>
-              ) : (
-                (profile.fleet_flags && profile.fleet_flags.length > 0) ? (
-                  <ul className="list-none p-0 m-0">
-                    {profile.fleet_flags.map((flag, index) => (
-                      <li key={index} className="flex items-center text-gray-700 mb-2 text-lg">
-                        {getFleetIcon(flag)} <span className="ml-2">{flag}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-600">Brak danych o flocie.</p>
-                )
-              )}
-            </div>
-
-            {/* Najczęstsze trasy */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 mx-auto max-w-4xl border border-gray-200">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">Najczęstsze trasy</h2>
-                {isOwner && (
-                  <button
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200"
-                    onClick={() => setEditingSection('routes')}
-                  >
-                    ✏ Edytuj
-                  </button>
-                )}
-              </div>
-              {editingSection === 'routes' && isOwner ? (
-                <div className="space-y-2">
-                  {(profile.routes || []).map((route, index) => (
-                    <input
-                      key={index}
-                      type="text"
-                      value={route}
-                      onChange={(e) => handleRouteChange(index, e.target.value)}
-                      className="w-full p-2 border rounded-lg"
-                      placeholder={`Trasa ${index + 1} (np. Warszawa - Kraków)`}
-                    />
-                  ))}
-                  {(profile.routes || []).length < 5 && (
-                    <button
-                      onClick={addRouteField}
-                      className="text-blue-600 hover:text-blue-800 text-sm mt-2 font-medium transition-colors duration-200"
-                    >
-                      ➕ Dodaj pole trasy
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleSave('routes', profile.routes)}
-                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    Zapisz trasy
-                  </button>
-                  <button
-                    onClick={() => setEditingSection(null)}
-                    className="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    Anuluj
-                  </button>
-                </div>
-              ) : (
-                (profile.routes && profile.routes.length > 0) ? (
-                  <ul className="list-disc list-inside p-0 m-0">
-                    {profile.routes.map((route, index) => (
-                      <li key={index} className="text-gray-700 mb-1">{route}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-600">Brak zdefiniowanych tras.</p>
-                )
-              )}
-            </div>
-
-            {/* Sekcja Galerii zdjęć */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 mx-auto max-w-4xl border border-gray-200">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">Galeria zdjęć</h2>
-                {isOwner && (
-                  <button
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200"
-                    onClick={() => setEditingSection('images')}
-                  >
-                    ✏ Edytuj
-                  </button>
-                )}
-              </div>
-
-              {editingSection === 'images' && isOwner ? (
-                <div className="space-y-4">
-                  <p className="text-gray-600">Dodaj do 5 zdjęć (JPG, PNG). Maksymalny rozmiar 5MB na zdjęcie.</p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/jpeg, image/png"
-                    onChange={handleImageUpload}
-                    className="w-full p-2 border rounded-lg"
-                  />
-                  {newImages.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                      {newImages.map((file, index) => (
-                        <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt={`Nowe zdjęcie ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            onClick={() => handleRemoveNewImage(index)}
-                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            X
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                    {(profile.image_urls || []).map((url, index) => (
-                      <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg shadow-md aspect-w-1 aspect-h-1 w-full">
-                        <img
-                          src={url}
-                          alt={`Zdjęcie ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={() => handleRemoveExistingImage(index)}
-                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          X
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={handleSaveImages}
-                    disabled={uploadingImages}
-                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    {uploadingImages ? 'Zapisywanie zdjęć...' : 'Zapisz zdjęcia'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingSection(null);
-                      setNewImages([]);
-                    }}
-                    className="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg w-full text-lg font-semibold transition-colors duration-200"
-                  >
-                    Anuluj
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  {(profile.image_urls && profile.image_urls.length > 0) ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {profile.image_urls.map((url, index) => (
-                        <div
-                          key={index}
-                          className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 overflow-hidden rounded-lg shadow-md cursor-pointer transform transition-transform duration-200 hover:scale-105"
-                          onClick={() => openLightbox(index)}
-                        >
-                          <img src={url} alt={`Galeria ${index + 1}`} className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-600">Brak zdjęć w galerii.</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Lightbox dla zdjęć */}
-            {showLightbox && profile && profile.image_urls && profile.image_urls.length > 0 && (
-              <div
-                className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
-                onClick={closeLightbox}
+      <div className="user-dashboard-container">
+        {/* Renderuj zakładki tylko, jeśli formData jest dostępne */}
+        {formData ? (
+          <div className="dashboard-tabs-wrapper">
+            {getTabs().map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`dashboard-tab-button ${activeTab === tab ? 'active' : ''}`}
               >
-                <div className="relative max-w-4xl max-h-full" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    onClick={closeLightbox}
-                    className="absolute top-4 right-4 text-white text-3xl font-bold bg-gray-800 bg-opacity-70 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-100 transition-colors"
-                  >
-                    &times;
-                  </button>
-
-                  <img
-                    src={profile.image_urls[currentImageIndex]}
-                    alt={`Zdjęcie ${currentImageIndex + 1}`}
-                    className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-xl"
-                  />
-
-                  {profile.image_urls.length > 1 && (
-                    <>
-                      <button
-                        onClick={goToPrevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-5xl bg-gray-800 bg-opacity-70 rounded-full w-14 h-14 flex items-center justify-center hover:bg-opacity-100 transition-colors"
-                      >
-                        &larr;
-                      </button>
-                      <button
-                        onClick={goToNextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-5xl bg-gray-800 bg-opacity-70 rounded-full w-14 h-14 flex items-center justify-center hover:bg-opacity-100 transition-colors"
-                      >
-                        &rarr;
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          // Komunikat, jeśli użytkownik nie wyraził zgody na publiczny profil
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8 mx-auto max-w-4xl border border-gray-200 text-center text-gray-700">
-            <h2 className="text-2xl font-bold mb-4">Profil nie jest publicznie dostępny</h2>
-            <p className="text-lg">Użytkownik nie wyraził zgody na publiczne udostępnianie swojego profilu.</p>
-            {isOwner && (
-              <p className="mt-4 text-sm text-gray-500">
-                Możesz zmienić ustawienia widoczności w swoim panelu użytkownika.
-              </p>
-            )}
+                {tab}
+              </button>
+            ))}
+            {/* Przycisk "Moje trasy" */}
+            <button
+              key="moje-trasy-button"
+              onClick={() => {
+                setActiveTab('Moje trasy');
+                window.location.href = '/moje-trasy';
+              }}
+              className={`dashboard-tab-button ${activeTab === 'Moje trasy' ? 'active' : ''}`}
+            >
+              Moje trasy
+            </button>
           </div>
+        ) : (
+          // Renderuj nic lub spinner ładowania dla sekcji zakładek, jeśli formData jest nullem
+          null 
         )}
+        <div>{renderTab()}</div>
       </div>
     </>
   );
