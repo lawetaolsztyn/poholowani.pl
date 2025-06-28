@@ -389,24 +389,34 @@ export default function UserProfileDashboard() {
             <h3>Pomoc drogowa</h3>
 
             <label className="form-label">
-                <input
-                    type="checkbox"
-                    name="is_pomoc_drogowa"
-                    checked={formData.is_pomoc_drogowa || false}
-                    onChange={(e) => setFormData({ ...formData, is_pomoc_drogowa: e.target.checked })}
-                />{' '}
-                Oświadczam, że prowadzę działalność gospodarczą w zakresie pomocy drogowej i posiadam wpisany kod PKD 52.21.A
-            </label>
+                  Ulica: {/* Zmieniono etykietę na samą "Ulica" */}
+                  <LocationAutocomplete
+                    value={roadsideStreetAutocompleteValue}
+                    onSelectLocation={(label, sug) => {
+                      const streetName = sug.text || '';
+                      const houseNumber = sug.address || ''; 
 
-            <label className="form-label" style={{marginTop: '15px'}}>
-                <input
-                    type="checkbox"
-                    checked={isRoadsideAssistanceAgreed}
-                    onChange={(e) => setIsRoadsideAssistanceAgreed(e.target.checked)}
-                    name="is_roadside_assistance_agreed"
-                />{' '}
-                Wyrażam zgodę na udostępnianie moich danych (nazwa, miasto, ulica, numer, telefon, opis) dla profilu pomocy drogowej widocznego publicznie. Zapoznałem/am się z klauzulą informacyjną RODO.
-            </label>
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        roadside_street: streetName, 
+                        roadside_number: houseNumber 
+                      }));
+                      setRoadsideStreetAutocompleteValue(label); 
+                      
+                      if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
+                          setRoadsideSelectedCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                      } else {
+                          console.warn("Brak koordynatów (sug.center) dla wybranej sugestii ulicy:", sug);
+                          setRoadsideSelectedCoords({ latitude: null, longitude: null });
+                      }
+                    }}
+                    placeholder="Wpisz ulicę" {/* Zmieniono placeholder */}
+                    className="form-input"
+                    searchType="street" // Dodano searchType: 'street'
+                    // KLUCZOWA POPRAWKA: Przekazujemy contextCity w bezpieczny sposób
+                    contextCity={roadsideCityAutocompleteValue ? roadsideCityAutocompleteValue : ''} // Upewnij się, że zawsze jest string
+                  />
+                </label>
 
             {(!formData.is_pomoc_drogowa || !isRoadsideAssistanceAgreed) && (
                 <p className="dashboard-message error" style={{marginTop: '10px'}}>
