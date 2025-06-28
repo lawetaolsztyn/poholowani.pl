@@ -49,12 +49,11 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
       if (searchType === 'city') {
           typesParam = 'place,postcode';
       } else if (searchType === 'street') {
-          typesParam = 'address,street';
-          if (contextCity) {
-              // Mapbox API preferuje koordynaty dla parametru proximity.
-              // Używamy place_context jako filtr tekstowy, jeśli contextCity jest nazwą
-              url += `&place_context=${encodeURIComponent(contextCity)}`; 
-          }
+    typesParam = 'address,street';
+    // Tymczasowo nie dodawaj contextCity, bo `place_context` nie działa
+    // Można dodać później wsparcie dla koordynatów (proximity)
+}
+
       } else {
           typesParam = 'locality,place,address,street,postcode';
       }
