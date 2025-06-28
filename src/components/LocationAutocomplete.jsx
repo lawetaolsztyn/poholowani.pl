@@ -54,7 +54,7 @@ export default function LocationAutocomplete({ value, onSelectLocation, placehol
     // Można dodać później wsparcie dla koordynatów (proximity)
 }
 
-      } else {
+       else {
           typesParam = 'locality,place,address,street,postcode';
       }
       url += `&types=${typesParam}`;
