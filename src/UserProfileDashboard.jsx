@@ -77,7 +77,6 @@ export default function UserProfileDashboard() {
   // Memoizuj getTabs, aby zapewnić stabilność i ponowne obliczenia tylko po zmianie formData
   const getTabs = () => {
     if (!formData) {
-      // console.log("DEBUG: getTabs - formData is null/undefined, returning empty array for tabs.");
       return [];
     }
 
@@ -88,7 +87,6 @@ export default function UserProfileDashboard() {
       baseTabs.push('Profil publiczny');
       baseTabs.push('Pomoc drogowa');
     }
-    // console.log("DEBUG: getTabs - Returning baseTabs:", baseTabs);
     return baseTabs;
   };
 
@@ -103,7 +101,10 @@ export default function UserProfileDashboard() {
   };
 
   const handleSave = async (e) => {
-    e.preventDefault();
+    // Zapobiegamy domyślnemu zachowaniu formularza, jeśli handleSave jest wywoływane przez 'submit'
+    if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+    }
     setSaving(true);
     setMessage('');
 
@@ -293,7 +294,6 @@ export default function UserProfileDashboard() {
 
       case 'Profil publiczny':
         const publicProfileFields = ['full_name', 'nip', 'company_name', 'phone', 'vat_payer', 'country', 'city', 'postal_code', 'street', 'building_number'];
-        // Upewnij się, że formData istnieje przed dostępem do jego właściwości w .some()
         const isAnyPublicFieldFilled = formData && publicProfileFields.some(field => formData[field]);
 
         return (
@@ -313,18 +313,28 @@ export default function UserProfileDashboard() {
 
             {!isPublicProfileAgreed && (
                 <p className="dashboard-message error" style={{marginTop: '10px'}}>
-                    Aby Twój profil publiczny był widoczny i edytowalny, musisz wyrazić powyższą zgodę.
+                    Aby Twój profil publiczny był widoczny, musisz wyrazić powyższą zgodę.
                 </p>
             )}
 
+            {/* DODANY PRZYCISK ZAPISU DLA USTAWIEN WIDOCZNOSCI PROFILU PUBLICZNEGO */}
             <button
-                onClick={() => window.open(`/profil/${formData?.id}`, '_blank')} // Użyj opcjonalnego łańcuchowania dla formData.id
+                // Nie używamy type="submit" tutaj, aby nie wysyłać całego formularza.
+                // handleSave jest wywoływane bezpośrednio
+                onClick={handleSave} 
+                disabled={saving} 
                 className="form-button"
-                style={{ backgroundColor: '#007bff', marginTop: '20px' }}
-                // Przycisk jest wyłączony, jeśli zgoda NIE jest udzielona I żadne pola publiczne nie są wypełnione.
-                // Jeśli zgoda NIE jest udzielona, ale pola publiczne SĄ wypełnione (np. dane starsze), przycisk powinien być nadal aktywny do przeglądania.
-                // Uproszczony warunek: przycisk jest włączony, jeśli zgoda jest udzielona, LUB jeśli istniejące dane publiczne.
-                disabled={!isPublicProfileAgreed && !isAnyPublicFieldFilled} 
+                style={{ backgroundColor: '#28a745', marginTop: '20px' }}
+            >
+                {saving ? 'Zapisywanie...' : 'Zapisz ustawienia widoczności profilu'}
+            </button>
+
+            <button
+                onClick={() => window.open(`/profil/${formData?.id}`, '_blank')}
+                className="form-button"
+                style={{ backgroundColor: '#007bff', marginTop: '10px' }} 
+                // Przycisk "Przejdź do profilu publicznego" jest wyłączony, jeśli zgoda nie jest zaznaczona
+                disabled={!isPublicProfileAgreed} 
             >
                 Przejdź do profilu publicznego
             </button>
@@ -333,6 +343,8 @@ export default function UserProfileDashboard() {
 
       case 'Pomoc drogowa':
         return (
+          // Przycisk submit dla całego formularza pomocy drogowej jest na dole,
+          // więc ten komponent jest otoczony tagami <form>
           <form onSubmit={handleSave} className="dashboard-form-section">
             <h3>Pomoc drogowa</h3>
 
@@ -362,8 +374,20 @@ export default function UserProfileDashboard() {
                 </p>
             )}
 
-            {/* Pola są renderowane tylko, jeśli oba checkboxy są zaznaczone */}
-            {(formData.is_pomoc_drogowa && isRoadsideAssistanceAgreed) && (
+            {/* DODANY PRZYCISK ZAPISU DLA ZGÓD POMOCY DROGOWEJ */}
+            {/* Ten przycisk jest widoczny ZAWSZE w tej zakładce, pozwala zapisać same stany checkboxów. */}
+            <button
+                onClick={handleSave} // Wywołanie handleSave, które zapisze oba stany checkboxów
+                disabled={saving}
+                className="form-button"
+                style={{ backgroundColor: '#28a745', marginTop: '20px' }}
+            >
+                {saving ? 'Zapisywanie...' : 'Zapisz ustawienia zgód pomocy drogowej'}
+            </button>
+
+            {/* Pola formularza pomocy drogowej, które wyświetlają się, jeśli oba checkboxy są zaznaczone */}
+            {/* Ten blok jest otoczony tagami <> </> aby zgrupować elementy, gdy warunek jest prawdziwy. */}
+            {(formData.is_pomoc_drogowa && isRoadsideAssistanceAgreed) && ( 
               <>
                 <label className="form-label">
                   Nazwa przyjazna (widoczna publicznie):
@@ -397,7 +421,8 @@ export default function UserProfileDashboard() {
                   ></textarea>
                 </label>
 
-                <button type="submit" disabled={saving} className="form-button">
+                {/* Istniejący przycisk zapisu dla danych formularza pomocy drogowej (z 'type="submit"') */}
+                <button type="submit" disabled={saving} className="form-button" style={{marginTop: '20px'}}>
                   {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
                 </button>
 
