@@ -53,8 +53,12 @@ export default function LocationAutocomplete({
       if (searchType === 'city') {
         typesParam = 'place,postcode';
       } else if (searchType === 'street') {
-        typesParam = 'address,street';
-      } else {
+  if (/\d/.test(internalInput)) {
+    typesParam = 'address,street';
+  } else {
+    typesParam = 'street';
+  }
+} else {
         typesParam = 'locality,place,address,street,postcode';
       }
 
