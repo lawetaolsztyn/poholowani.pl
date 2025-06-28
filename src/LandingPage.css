@@ -71,7 +71,7 @@
 /* ===== PRZYCISKI ===== */
 .action-buttons {
   position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1001;
@@ -201,5 +201,242 @@
   .primary-button .subtext,
   .secondary-button .subtext {
     color: #FFFFFF;
+  }
+}
+
+/* ===== DODATKOWE BANERY ===== */
+.info-banners-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Odstęp między banerami */
+  margin: 40px auto; /* Marginesy góra/dół i centrowanie */
+  padding: 0 20px; /* Padding po bokach */
+  max-width: 1000px; /* Maksymalna szerokość, żeby nie były zbyt rozciągnięte */
+  flex-wrap: wrap; /* Pozwól na łamanie wierszy na małych ekranach */
+}
+
+.info-banner {
+  flex: 1; /* Pozwól banerom rosnąć i zajmować dostępną przestrzeń */
+  min-width: 300px; /* Minimalna szerokość baneru przed złamaniem */
+  background-color: #f0f0f0; /* Jasne tło */
+  color: #333; /* Ciemny tekst */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  position: relative; /* Dla pozycjonowania linku */
+}
+
+.info-banner:hover {
+  transform: translateY(-5px); /* Lekkie uniesienie przy najechaniu */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.info-banner h3 {
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #185a9d; /* Kolor z Twojej palety */
+}
+
+.info-banner p {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.info-banner-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #007bff; /* Standardowy niebieski link */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.info-banner-link:hover {
+  color: #0056b3;
+}
+
+/* Specyficzny styl dla pilnego baneru */
+.info-banner.urgent {
+  background-color: #ffe0e0; /* Jasno czerwone tło */
+  border: 2px solid #dc3545; /* Czerwona ramka */
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3); /* Czerwony cień */
+}
+
+.info-banner.urgent h3 {
+  color: #dc3545; /* Czerwony tytuł */
+}
+
+.info-banner.urgent .info-banner-link {
+  color: #dc3545; /* Czerwony link */
+}
+
+.info-banner.urgent:hover {
+    background-color: #faeded; /* Nieco jaśniejsze tło przy najechaniu */
+    box-shadow: 0 8px 16px rgba(220, 53, 69, 0.4);
+}
+
+
+/* Media Queries dla responsywności nowych banerów */
+@media (max-width: 768px) {
+  .info-banners-container {
+    flex-direction: column; /* Ułóż banery jeden pod drugim */
+    align-items: center; /* Wyśrodkuj je */
+    padding: 0 10px;
+  }
+
+  .info-banner {
+    width: 100%; /* Pełna szerokość */
+    max-width: 400px; /* Maksymalna szerokość na mniejszych ekranach */
+    margin-bottom: 20px; /* Odstęp między banerami */
+  }
+}
+
+
+/* Tryb ciemny dla nowych banerów */
+@media (prefers-color-scheme: dark) {
+  .info-banner {
+    background-color: #2a2a2a; /* Ciemne tło */
+    color: #e0e0e0; /* Jasny tekst */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .info-banner h3 {
+    color: #43cea2; /* Jasny zielony/niebieski z palety */
+  }
+
+  .info-banner-link {
+    color: #43cea2;
+  }
+
+  /* Pilny baner w trybie ciemnym */
+  .info-banner.urgent {
+    background-color: #401010; /* Ciemniejsza czerwień */
+    border: 2px solid #e05050;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.5);
+  }
+
+  .info-banner.urgent h3 {
+    color: #e05050;
+  }
+
+  .info-banner.urgent .info-banner-link {
+    color: #e05050;
+  }
+}
+
+/* ===== NOWE BANERY POD PRZYCISKAMI NA MAPIE ===== */
+.info-banners-container {
+  position: absolute; /* Pozycjonowanie na mapie */
+  top: 52%; /* Dostosuj tę wartość, aby były pod górnymi przyciskami */
+  left: 50%;
+  transform: translateX(-50%); /* Centrowanie poziome */
+  z-index: 1001; /* Tak samo jak główne przyciski */
+  display: flex;
+  gap: 5.3rem; /* Odstęp między mniejszymi banerami */
+  flex-wrap: wrap; /* Pozwól na łamanie wierszy na małych ekranach */
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem; /* Trochę paddingu po bokach */
+  box-sizing: border-box;
+}
+
+.info-banner-button {
+  /* Style dla mniejszych banerów, wzorowane na .primary-button/.secondary-button */
+  background-color: #007bff; /* Standardowy niebieski */
+  color: white;
+  font-size: 1.2rem; /* Mniejsza czcionka */
+  padding: 0.8rem 1.5rem; /* Mniejszy padding */
+  border: none;
+  cursor: pointer;
+  border-radius: 8px; /* Lekko mniejszy border-radius */
+  text-align: center;
+  text-decoration: none; /* Przyciski nie mają text-decoration */
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+  flex: 1 1 auto; /* Pozwól im się rozciągać, ale zachowaj minimalną szerokość */
+  max-width: 280px; /* Maksymalna szerokość, aby nie były zbyt duże */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Delikatny cień */
+}
+
+.info-banner-button:hover {
+  background-color: #0056b3;
+}
+
+.info-banner-button .subtext {
+  font-size: 0.8rem; /* Mniejszy subtext */
+  margin-top: 0.4rem;
+  color: #FFFFFF;
+  display: block;
+}
+
+/* Styl dla pilnego baneru - Transport Na Już! */
+.info-banner-button.urgent {
+  background-color: #dc3545; /* Czerwony kolor */
+  color: white;
+  border: 1px solid #dc3545; /* Czerwona ramka */
+}
+
+.info-banner-button.urgent:hover {
+  background-color: #c82333; /* Ciemniejsza czerwień na hover */
+}
+
+.info-banner-button.urgent .subtext {
+  color: white;
+}
+
+/* Media Queries dla responsywności nowych banerów */
+@media (max-width: 768px) {
+  .info-banners-container {
+    top: auto; /* Zmieniamy pozycjonowanie na dole ekranu */
+    bottom: 5%; /* Dostosuj, jeśli chcesz inny margines od dołu */
+    transform: translateX(-50%); /* Centrowanie poziome */
+    flex-direction: column; /* Ułóż pionowo na małych ekranach */
+    gap: 1rem; /* Mniejszy odstęp */
+    padding: 0;
+  }
+
+  .info-banner-button {
+    width: 90vw; /* Prawie pełna szerokość */
+    max-width: 300px; /* Ograniczenie */
+    font-size: 1rem;
+    padding: 0.7rem 1rem;
+    margin: 0.5rem auto; /* Centrowanie */
+  }
+
+  .info-banner-button .subtext {
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+  }
+}
+
+/* Tryb ciemny dla nowych banerów */
+@media (prefers-color-scheme: dark) {
+  .info-banner-button {
+    background-color: #0056b3; /* Ciemniejszy niebieski */
+    color: #e0e0e0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .info-banner-button:hover {
+    background-color: #003f8c;
+  }
+
+  .info-banner-button .subtext {
+    color: #e0e0e0;
+  }
+
+  .info-banner-button.urgent {
+    background-color: #a02020; /* Ciemniejsza czerwień w trybie ciemnym */
+    border-color: #e05050;
+  }
+
+  .info-banner-button.urgent:hover {
+    background-color: #801818;
   }
 }

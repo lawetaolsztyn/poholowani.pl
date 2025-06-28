@@ -86,7 +86,7 @@ export default function Navbar() {
 <Link to="/transport-na-juz" className={`${isActive('/transport-na-juz')} transport-na-juz-link`} // Dodana klasa
           onClick={() => setIsMobileMenuOpen(false)}
       >
-          Transport Na Już!
+          Transport na Już!
       </Link>               <Link to="/kontakt" className={isActive('/kontakt')} onClick={() => setIsMobileMenuOpen(false)}>Kontakt</Link>
 
           {email && (

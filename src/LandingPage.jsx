@@ -30,7 +30,7 @@ const LandingPage = () => {
             <CustomMap /> {/* Użyj nowego komponentu mapy tutaj */}
           </div>
 
-          {/* PRZYCISKI AKCJI - W map-wrapper */}
+          {/* PRZYCISKI AKCJI - TE WIĘKSZE */}
           <div className="action-buttons">
             <button className="secondary-button" onClick={() => navigate('/szukam')}>
               SZUKAM TRANSPORTU
@@ -41,8 +41,24 @@ const LandingPage = () => {
               <div className="subtext">JESTEM PRZEWOŹNIKIEM</div>
             </button>
           </div>
-        </div>
-      </div>
+
+          {/* NOWA SEKCJA: Dodatkowe banery - TERAZ W ŚRODKU MAP-WRAPPER */}
+          {/* WAŻNE: To jest ten blok, który powinien być wklejony TUTAJ */}
+          <div className="info-banners-container">
+            <button className="info-banner-button" onClick={() => navigate('/tablica-ogloszen')}>
+              Tablica Ogłoszeń
+              <div className="subtext">PRZEGLĄDAJ →</div>
+            </button>
+            <button className="info-banner-button urgent" onClick={() => navigate('/transport-na-juz')}>
+              Transport na Już!
+              <div className="subtext">ZGŁOŚ PILNIE →</div>
+            </button>
+          </div>
+          {/* KONIEC NOWEJ SEKCJI W MAP-WRAPPER */}
+
+        </div> {/* <-- To zamyka div.map-wrapper */}
+
+      </div> {/* <-- To zamyka div.landing-container */}
     </>
   );
 };
