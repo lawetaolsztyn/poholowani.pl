@@ -85,14 +85,15 @@
   padding: 0 1rem;
   box-sizing: border-box;
 
-  /* USUŃ position: absolute; left: 50%; transform: translateX(-50%); */
-  /* Będą one centrowane przez rodzica (map-wrapper) za pomocą flexboxa */
-  position: relative; /* Użyj relative, aby nie wpływały na siebie absolutnie */
+  /* WAŻNE: Pozycjonowanie absolutne dla desktopu */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* Style dla większych przycisków */
 .action-buttons {
-  /* top: 40%; - USUŃ TO */
+  top: 40%; /* Pozycjonowanie od góry mapy */
   gap: 3rem; /* Odstęp między dużymi przyciskami */
 }
 
@@ -131,7 +132,7 @@
 
 /* Style dla mniejszych przycisków */
 .info-banners-container {
-  /* top: 60%; - USUŃ TO */
+  top: 60%; /* Pozycjonowanie od góry mapy, poniżej głównych przycisków */
   gap: 2rem; /* Odstęp między mniejszymi przyciskami */
 }
 
@@ -201,7 +202,7 @@
 }
 
 
-/* Media Queries dla responsywności - ZOPTYMALIZOWANE PRZYCISKI NA MAPIE */
+/* Media Queries dla responsywności - ZOPTYMALIZOWANE */
 @media (max-width: 768px) {
   .overlay-header {
     min-height: 100px;
@@ -209,71 +210,85 @@
   }
 
   .map-wrapper {
-    min-height: 450px; /* ZMNIEJSZONO wysokość mapy, aby była bardziej realna na mobile */
+    min-height: 550px; /* Zwiększono wysokość, aby pomieścić przyciski na tabletach */
     position: relative;
-    /* NOWOŚĆ: Używamy flexboxa do centrowania WSZYSTKICH przycisków pionowo */
-    display: flex;
+    display: flex; /* Używamy flexboxa do centrowania WSZYSTKICH przycisków pionowo */
     flex-direction: column;
     justify-content: center; /* Centruj zawartość pionowo */
     align-items: center; /* Centruj zawartość poziomo */
-    gap: 0.8rem; /* Jednolity odstęp między grupami przycisków na mobile */
-    padding: 1rem 0; /* Dodatkowy padding pionowy */
+    gap: 1.5rem; /* Odstęp między grupami przycisków na tabletach */
+    padding: 1rem 0;
   }
 
-  /* Wszystkie przyciski na mobile - pionowo i węższe */
+  /* Wszystkie przyciski na mobile (domyślny rozmiar dla tabletów) */
   .action-buttons,
   .info-banners-container {
     flex-direction: column;
-    /* position: absolute; - USUNIĘTO */
-    /* left: 50%; - USUNIĘTO */
-    /* transform: translateX(-50%); - USUNIĘTO */
-    /* top / bottom - USUNIĘTO */
-    
-    width: 90%; /* Kontener na 90% szerokości ekranu */
-    max-width: 280px; /* Maksymalna szerokość kontenera */
+    /* ZREZYGNOWANO Z POSITION: ABSOLUTE W TYM MEDIA QUERY */
+    /* ZOSTAWIAMY FLUID WIDTH I CENTROWANIE PRZEZ RODZICA (map-wrapper) */
+    width: 90%; /* Prawie pełna szerokość ekranu, dopasuje się do gap */
+    max-width: 300px; /* Maksymalna szerokość dla obu grup na tabletach */
     padding: 0;
-    gap: 0.6rem; /* Odstęp między przyciskami w grupie */
+    gap: 0.8rem; /* Odstęp między przyciskami w grupie */
+    margin: 0; /* Upewnij się, że nie ma marginesów */
   }
 
-  /* Właściwe przyciski */
+  /* Pozycjonowanie grup przycisków na mobile - TERAZ KONTROLOWANE PRZEZ GAP W map-wrapper */
+  .action-buttons {
+    /* top: USUNIĘTO */
+    /* bottom: USUNIĘTO */
+  }
+
+  .info-banners-container {
+    /* top: USUNIĘTO */
+    /* bottom: USUNIĘTO */
+  }
+
+  /* Skalowanie rozmiarów samych przycisków na mobile */
   .primary-button,
   .secondary-button,
   .info-banner-button {
-    width: 100%; /* Rozciągnij na pełną szerokość swojego kontenera (action-buttons lub info-banners-container) */
-    font-size: 0.9rem;
-    padding: 0.6rem 0.8rem;
+    width: 100%; /* Rozciągnij na pełną szerokość swojego kontenera */
+    font-size: 1rem;
+    padding: 0.7rem 1rem;
     margin: 0; /* Upewnij się, że marginesy są zerowe */
   }
 
   .primary-button .subtext,
   .secondary-button .subtext,
   .info-banner-button .subtext {
-    font-size: 0.65rem;
-    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
   }
 }
 
 /* Dodatkowe media query dla bardzo małych ekranów (np. telefony z małym ekranem) */
 @media (max-width: 480px) {
     .map-wrapper {
-        min-height: 400px; /* Jeszcze mniejsza wysokość mapy */
-        gap: 0.7rem; /* Zmniejszony odstęp między grupami */
+        min-height: 500px; /* Dalsze zmniejszenie wysokości mapy dla małych telefonów */
+        gap: 1rem; /* Mniejszy odstęp między grupami przycisków */
+        padding: 0.5rem 0;
     }
     .action-buttons,
     .info-banners-container {
-        max-width: 240px; /* Jeszcze węższy kontener */
-        gap: 0.5rem; /* Jeszcze mniejszy odstęp w grupie */
+        max-width: 260px; /* Nieco mniejsza maksymalna szerokość */
+        gap: 0.6rem; /* Jeszcze mniejszy odstęp w grupie */
     }
+    /* Dolne banery (info-banners-container) - jeszcze węższe */
+    .info-banners-container {
+        max-width: 220px; /* ZMNIEJSZONE TYLKO DLA DOLNYCH */
+    }
+
     .primary-button,
     .secondary-button,
     .info-banner-button {
-        font-size: 0.8rem;
-        padding: 0.5rem 0.6rem;
+        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
     }
     .primary-button .subtext,
     .secondary-button .subtext,
     .info-banner-button .subtext {
-        font-size: 0.55rem;
+        font-size: 0.6rem;
     }
 }
 
