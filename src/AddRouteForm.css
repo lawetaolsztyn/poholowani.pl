@@ -198,9 +198,7 @@
   word-break: break-word;
   overflow-wrap: anywhere;
 }
-.form-field-consent small {
-  color: #ccc;
-}
+
 
   /* SPECYFICZNA POPRAWKA DLA form-field-consent NA TELEFONIE */
   .form-field-consent {
@@ -270,5 +268,9 @@
       background-color: #4a4a4a;
       color: #999;
       border-color: #666;
+  }
+}
+.form-field-consent small {
+    color: #ccc;
   }
 }
