@@ -30,31 +30,32 @@ const LandingPage = () => {
             <CustomMap /> {/* Użyj nowego komponentu mapy tutaj */}
           </div>
 
-          {/* PRZYCISKI AKCJI - TE WIĘKSZE */}
-          <div className="action-buttons">
-            <button className="secondary-button" onClick={() => navigate('/szukam')}>
-              SZUKAM TRANSPORTU
-              <div className="subtext">JESTEM KLIENTEM</div>
-            </button>
-            <button className="primary-button" onClick={() => navigate('/oferuje')}>
-              OFERUJĘ TRANSPORT
-              <div className="subtext">JESTEM PRZEWOŹNIKIEM</div>
-            </button>
-          </div>
+          {/* NOWY KONTENER GRID DLA WSZYSTKICH PRZYCISKÓW */}
+          <div className="all-buttons-grid-container">
+            {/* PRZYCISKI AKCJI - TE WIĘKSZE */}
+            <div className="action-buttons"> {/* To będzie jeden z elementów siatki */}
+              <button className="secondary-button" onClick={() => navigate('/szukam')}>
+                SZUKAM TRANSPORTU
+                <div className="subtext">JESTEM KLIENTEM</div>
+              </button>
+              <button className="primary-button" onClick={() => navigate('/oferuje')}>
+                OFERUJĘ TRANSPORT
+                <div className="subtext">JESTEM PRZEWOŹNIKIEM</div>
+              </button>
+            </div>
 
-          {/* NOWA SEKCJA: Dodatkowe banery - TERAZ W ŚRODKU MAP-WRAPPER */}
-          {/* WAŻNE: To jest ten blok, który powinien być wklejony TUTAJ */}
-          <div className="info-banners-container">
-            <button className="info-banner-button" onClick={() => navigate('/tablica-ogloszen')}>
-              Tablica Ogłoszeń
-              <div className="subtext">PRZEGLĄDAJ →</div>
-            </button>
-            <button className="info-banner-button urgent" onClick={() => navigate('/transport-na-juz')}>
-              Transport na Już!
-              <div className="subtext">ZGŁOŚ PILNIE →</div>
-            </button>
-          </div>
-          {/* KONIEC NOWEJ SEKCJI W MAP-WRAPPER */}
+            {/* NOWA SEKCJA: Dodatkowe banery */}
+            <div className="info-banners-container"> {/* To będzie drugi element siatki */}
+              <button className="info-banner-button" onClick={() => navigate('/tablica-ogloszen')}>
+                Tablica Ogłoszeń
+                <div className="subtext">PRZEGLĄDAJ →</div>
+              </button>
+              <button className="info-banner-button urgent" onClick={() => navigate('/transport-na-juz')}>
+                Transport Na Już!
+                <div className="subtext">ZGŁOŚ PILNIE →</div>
+              </button>
+            </div>
+          </div> {/* <-- To zamyka div.all-buttons-grid-container */}
 
         </div> {/* <-- To zamyka div.map-wrapper */}
 
