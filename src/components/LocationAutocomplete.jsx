@@ -42,69 +42,65 @@ export default function LocationAutocomplete({
       return;
     }
 
-    const fetchSuggestions = async () => {
-      const sanitizedText = internalInput.replace(/(\d{2})-(\d{3})/, '$1$2');
+   const fetchSuggestions = async () => {
+  const sanitizedText = internalInput.replace(/(\d{2})-(\d{3})/, '$1$2');
 
-      let typesParam = '';
-      let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        sanitizedText
-      )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&country=PL`;
+  let typesParam = '';
+  let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+    sanitizedText
+  )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&country=PL`;
 
-      if (searchType === 'city') {
-        typesParam = 'place,postcode';
-      } else if (searchType === 'street') {
-        if (/\d/.test(internalInput)) {
-          typesParam = 'address,street';
-        } else {
-          typesParam = 'street';
-        }
-      } else {
-        typesParam = 'locality,place,address,street,postcode';
-      }
+  if (searchType === 'city') {
+    typesParam = 'place,postcode';
+  } else if (searchType === 'street') {
+    if (/\d/.test(internalInput)) {
+      typesParam = 'address,street,place'; // rozszerzone types na wszelki wypadek
+    } else {
+      typesParam = 'street,address,place';
+    }
+  } else {
+    typesParam = 'locality,place,address,street,postcode';
+  }
 
-      url += `&types=${typesParam}`;
+  url += `&types=${typesParam}`;
 
-      // ✅ LOG proximityCoords przed budowaniem URL
-      console.log('Proximity coords:', proximityCoords);
+  if (
+    proximityCoords &&
+    typeof proximityCoords.longitude === 'number' &&
+    typeof proximityCoords.latitude === 'number' &&
+    !isNaN(proximityCoords.longitude) &&
+    !isNaN(proximityCoords.latitude)
+  ) {
+    console.log('Proximity coords:', proximityCoords);
+    url += `&proximity=${proximityCoords.longitude},${proximityCoords.latitude}`;
+  }
 
-      // ✅ Poprawiona walidacja i konwersja proximityCoords
-      if (
-        proximityCoords &&
-        proximityCoords.longitude != null &&
-        proximityCoords.latitude != null
-      ) {
-        // Konwertuj na liczby jeśli są stringami
-        const lon = typeof proximityCoords.longitude === 'string'
-          ? parseFloat(proximityCoords.longitude)
-          : proximityCoords.longitude;
-        const lat = typeof proximityCoords.latitude === 'string'
-          ? parseFloat(proximityCoords.latitude)
-          : proximityCoords.latitude;
+  console.log('URL do Mapboxa:', url);
 
-        if (
-          typeof lon === 'number' &&
-          !isNaN(lon) &&
-          typeof lat === 'number' &&
-          !isNaN(lat)
-        ) {
-          url += `&proximity=${lon},${lat}`;
-        }
-      }
+  setLoading(true);
+  try {
+    const res = await fetch(url);
 
-      // ✅ Log finalny URL
-      console.log('URL do Mapboxa:', url);
+    if (!res.ok) {
+      console.error('Błąd odpowiedzi:', res.status, res.statusText);
+      const errorBody = await res.text();
+      console.error('Body błędu:', errorBody);
+      setSuggestions([]);
+      setLoading(false);
+      return;
+    }
 
-      setLoading(true);
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        setSuggestions(data.features || []);
-      } catch (error) {
-        setSuggestions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const data = await res.json();
+    console.log('Mapbox data:', data);
+    setSuggestions(data.features || []);
+  } catch (error) {
+    console.error('Fetch error:', error);
+    setSuggestions([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     const timeout = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timeout);
