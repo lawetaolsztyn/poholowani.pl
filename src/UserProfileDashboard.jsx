@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
 import './UserProfileDashboard.css';
+import LocationAutocomplete from './components/LocationAutocomplete'; // Import już był, super!
 
 export default function UserProfileDashboard() {
   const [activeTab, setActiveTab] = useState('Moje dane');
@@ -19,6 +20,11 @@ export default function UserProfileDashboard() {
   // NOWE STANY DLA ZGÓD
   const [isPublicProfileAgreed, setIsPublicProfileAgreed] = useState(false);
   const [isRoadsideAssistanceAgreed, setIsRoadsideAssistanceAgreed] = useState(false);
+
+  // NOWE STANY DLA AUTO-UZUPEŁNIANIA ADRESÓW POMOCY DROGOWEJ
+  const [roadsideCityAutocompleteValue, setRoadsideCityAutocompleteValue] = useState('');
+  const [roadsideStreetAutocompleteValue, setRoadsideStreetAutocompleteValue] = useState('');
+  const [roadsideSelectedCoords, setRoadsideSelectedCoords] = useState({ latitude: null, longitude: null });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -54,10 +60,39 @@ export default function UserProfileDashboard() {
           const fetchedData = data || {}; // Użyj pustego obiektu, jeśli 'data' jest nullem, aby zapobiec błędom
 
           setUserData(fetchedData);
-          setFormData(fetchedData);
-          // Ustaw stany zgód na podstawie pobranych danych, domyślnie na false
-          setIsPublicProfileAgreed(fetchedData.is_public_profile_agreed || false);
-          setIsRoadsideAssistanceAgreed(fetchedData.is_roadside_assistance_agreed || false);
+          
+          // KLUCZOWA ZMIANA W useEffect: Inicjalizacja formData i stanów autouzupełniania
+          // Zapewnienie, że wszystkie pola są stringami, jeśli są null/undefined
+          const initialFormData = {
+            ...fetchedData,
+            roadside_street: fetchedData.roadside_street || '',
+            roadside_number: fetchedData.roadside_number || '',
+            roadside_city: fetchedData.roadside_city || '',
+            roadside_phone: fetchedData.roadside_phone || '',
+            roadside_slug: fetchedData.roadside_slug || '',
+            roadside_description: fetchedData.roadside_description || '',
+            is_pomoc_drogowa: fetchedData.is_pomoc_drogowa || false,
+            is_public_profile_agreed: fetchedData.is_public_profile_agreed || false,
+            is_roadside_assistance_agreed: fetchedData.is_roadside_assistance_agreed || false,
+          };
+          setFormData(initialFormData); 
+
+          // Ustaw wartości początkowe dla komponentów LocationAutocomplete
+          setRoadsideCityAutocompleteValue(initialFormData.roadside_city);
+          // Dla ulicy, możemy połączyć ulicę i numer, aby LocationAutocomplete to rozpoznał
+          const fullRoadsideStreet = initialFormData.roadside_street + (initialFormData.roadside_number ? ' ' + initialFormData.roadside_number : '');
+          setRoadsideStreetAutocompleteValue(fullRoadsideStreet.trim());
+          
+          // Jeśli koordynaty już istnieją w profilu, ustaw je jako 'selected'
+          if (fetchedData.latitude != null && fetchedData.longitude != null) {
+            setRoadsideSelectedCoords({ latitude: fetchedData.latitude, longitude: fetchedData.longitude });
+          } else {
+            setRoadsideSelectedCoords({ latitude: null, longitude: null });
+          }
+
+          // Ustaw stany zgód na podstawie pobranych danych
+          setIsPublicProfileAgreed(initialFormData.is_public_profile_agreed);
+          setIsRoadsideAssistanceAgreed(initialFormData.is_roadside_assistance_agreed);
         }
       } catch (err) {
         console.error("Ogólny błąd podczas pobierania danych użytkownika:", err.message);
@@ -74,15 +109,13 @@ export default function UserProfileDashboard() {
     fetchUser();
   }, []); // Pusta tablica zależności oznacza, że uruchamia się raz po zamontowaniu komponentu
 
-  // Memoizuj getTabs, aby zapewnić stabilność i ponowne obliczenia tylko po zmianie formData
-  const getTabs = () => {
+  const getTabs = () => { 
     if (!formData) {
       return [];
     }
 
     let baseTabs = ['Moje dane', 'Hasło'];
     
-    // Sprawdź formData.role bezpiecznie
     if (formData.role === 'firma') {
       baseTabs.push('Profil publiczny');
       baseTabs.push('Pomoc drogowa');
@@ -114,52 +147,82 @@ export default function UserProfileDashboard() {
         return;
     }
 
-    let updatedFormData = { ...formData }; // Utwórz zmienną kopię do aktualizacji
+    let updatedFormData = { ...formData }; 
 
-    // Logika geokodowania dla pomocy drogowej
-    if (updatedFormData.is_pomoc_drogowa) {
-      const address = `${updatedFormData.roadside_street || ''} ${updatedFormData.roadside_number || ''}, ${updatedFormData.roadside_city || ''}`;
-      try {
-        const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`);
-        const json = await response.json();
-        const coords = json?.features?.[0]?.center;
-        if (coords) {
-          updatedFormData = { ...updatedFormData, longitude: coords[0], latitude: coords[1] };
+    // KLUCZOWA ZMIANA: Logika geokodowania - preferujemy koordynaty z LocationAutocomplete
+    if (activeTab === 'Pomoc drogowa' && updatedFormData.is_pomoc_drogowa && isRoadsideAssistanceAgreed) {
+        if (roadsideSelectedCoords.latitude != null && roadsideSelectedCoords.longitude != null) {
+            // Jeśli koordynaty zostały wybrane z autocomplete, używamy ich bezpośrednio
+            updatedFormData = { 
+                ...updatedFormData, 
+                latitude: roadsideSelectedCoords.latitude, 
+                longitude: roadsideSelectedCoords.longitude 
+            };
+            console.log('DEBUG: Użyto koordynatów z LocationAutocomplete:', roadsideSelectedCoords);
         } else {
-            console.warn("Geokodowanie nie zwróciło koordynatów dla adresu:", address);
-            setMessage("Ostrzeżenie: Nie udało się uzyskać koordynatów dla adresu pomocy drogowej.");
+            // Jeśli koordynaty z autocomplete nie są dostępne (np. użytkownik wpisał ręcznie i nie wybrał sugestii)
+            // Spróbuj geokodować adres ręcznie wpisany.
+            // Ważne: budujemy adres z roadsideCityAutocompleteValue i roadsideStreetAutocompleteValue,
+            // bo to są wartości z inputów LocationAutocomplete. Numer budynku jest osobnym polem.
+            const fullAddressToGeocode = `${roadsideStreetAutocompleteValue || ''} ${updatedFormData.roadside_number || ''}, ${roadsideCityAutocompleteValue || ''}, Polska`;
+            
+            console.log('DEBUG: Adres do geokodowania (ręczny/fallback):', fullAddressToGeocode);
+
+            // Dodatkowe sprawdzenie, czy adres nie jest pusty/niekompletny przed wysłaniem do Mapbox
+            if (fullAddressToGeocode.trim() === ',' || fullAddressToGeocode.trim() === ', Polska' || fullAddressToGeocode.trim().length < 5) {
+                console.warn('Ostrzeżenie: Adres pomocy drogowej jest pusty lub niekompletny. Pomijam geokodowanie.');
+                setMessage("Ostrzeżenie: Wprowadź pełny adres pomocy drogowej.");
+                updatedFormData = { ...updatedFormData, longitude: null, latitude: null }; // Resetuj koordynaty, jeśli adres jest zły
+            } else {
+                try {
+                    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fullAddressToGeocode)}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`);
+                    const json = await response.json();
+                    const coords = json?.features?.[0]?.center;
+                    if (coords) {
+                        updatedFormData = { ...updatedFormData, longitude: coords[0], latitude: coords[1] };
+                        console.log('DEBUG: Geokodowanie ręcznego adresu sukces:', coords);
+                    } else {
+                        console.warn('Geokodowanie nie zwróciło koordynatów dla adresu:', fullAddressToGeocode);
+                        setMessage("Ostrzeżenie: Nie udało się uzyskać koordynatów dla adresu pomocy drogowej.");
+                        updatedFormData = { ...updatedFormData, longitude: null, latitude: null }; // Resetuj koordynaty
+                    }
+                } catch (err) {
+                    console.error('Błąd geokodowania:', err.message);
+                    setMessage(`❌ Błąd geokodowania: ${err.message}`);
+                    setSaving(false);
+                    setTimeout(() => setMessage(''), 3000);
+                    return; // Zatrzymaj zapis, jeśli geokodowanie się nie powiedzie
+                }
+            }
         }
-      } catch (err) {
-        console.error('Błąd geokodowania:', err.message);
-        setMessage(`❌ Błąd geokodowania: ${err.message}`);
-        setSaving(false);
-        setTimeout(() => setMessage(''), 3000);
-        return; // Zatrzymaj zapis, jeśli geokodowanie się nie powiedzie
-      }
     }
+
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Użytkownik niezalogowany.");
 
-      // Dodaj stany zgód do payloadu
       const finalUpdatePayload = {
-        ...updatedFormData, // Użyj updatedFormData, które może zawierać współrzędne geograficzne
-        is_public_profile_agreed: isPublicProfileAgreed,
-        is_roadside_assistance_agreed: isRoadsideAssistanceAgreed,
+        ...updatedFormData, 
+        is_public_profile_agreed: isPublicProfileAgreed, 
+        is_roadside_assistance_agreed: isRoadsideAssistanceAgreed, 
       };
 
       const { error } = await supabase
         .from('users_extended')
-        .update(finalUpdatePayload)
-        .eq('id', user.id);
+        .update(finalUpdatePayload) 
+        .eq('id', user.id); 
 
       if (error) throw error;
 
       setMessage('✅ Dane zapisane pomyślnie!');
-      // Zaktualizuj stan formData komponentu o pomyślne zmiany, w tym współrzędne geograficzne
       setFormData(finalUpdatePayload); 
-      setUserData(finalUpdatePayload); // Zaktualizuj również userData, jeśli jest używane gdzie indziej do wyświetlania
+      setUserData(finalUpdatePayload); 
+      // Po zapisie, jeśli koordynaty zostały zmienione, zaktualizuj też roadsideSelectedCoords
+      if (finalUpdatePayload.latitude !== roadsideSelectedCoords.latitude || finalUpdatePayload.longitude !== roadsideSelectedCoords.longitude) {
+        setRoadsideSelectedCoords({ latitude: finalUpdatePayload.latitude, longitude: finalUpdatePayload.longitude });
+      }
+
     } catch (error) {
       console.error('Błąd zapisu danych:', error.message);
       setMessage(`❌ Błąd zapisu danych: ${error.message}`);
@@ -319,8 +382,6 @@ export default function UserProfileDashboard() {
 
             {/* DODANY PRZYCISK ZAPISU DLA USTAWIEN WIDOCZNOSCI PROFILU PUBLICZNEGO */}
             <button
-                // Nie używamy type="submit" tutaj, aby nie wysyłać całego formularza.
-                // handleSave jest wywoływane bezpośrednio
                 onClick={handleSave} 
                 disabled={saving} 
                 className="form-button"
@@ -333,7 +394,6 @@ export default function UserProfileDashboard() {
                 onClick={() => window.open(`/profil/${formData?.id}`, '_blank')}
                 className="form-button"
                 style={{ backgroundColor: '#007bff', marginTop: '10px' }} 
-                // Przycisk "Przejdź do profilu publicznego" jest wyłączony, jeśli zgoda nie jest zaznaczona
                 disabled={!isPublicProfileAgreed} 
             >
                 Przejdź do profilu publicznego
@@ -343,8 +403,6 @@ export default function UserProfileDashboard() {
 
       case 'Pomoc drogowa':
         return (
-          // Przycisk submit dla całego formularza pomocy drogowej jest na dole,
-          // więc ten komponent jest otoczony tagami <form>
           <form onSubmit={handleSave} className="dashboard-form-section">
             <h3>Pomoc drogowa</h3>
 
@@ -375,9 +433,8 @@ export default function UserProfileDashboard() {
             )}
 
             {/* DODANY PRZYCISK ZAPISU DLA ZGÓD POMOCY DROGOWEJ */}
-            {/* Ten przycisk jest widoczny ZAWSZE w tej zakładce, pozwala zapisać same stany checkboxów. */}
             <button
-                onClick={handleSave} // Wywołanie handleSave, które zapisze oba stany checkboxów
+                onClick={handleSave} 
                 disabled={saving}
                 className="form-button"
                 style={{ backgroundColor: '#28a745', marginTop: '20px' }}
@@ -386,25 +443,69 @@ export default function UserProfileDashboard() {
             </button>
 
             {/* Pola formularza pomocy drogowej, które wyświetlają się, jeśli oba checkboxy są zaznaczone */}
-            {/* Ten blok jest otoczony tagami <> </> aby zgrupować elementy, gdy warunek jest prawdziwy. */}
             {(formData.is_pomoc_drogowa && isRoadsideAssistanceAgreed) && ( 
               <>
                 <label className="form-label">
                   Nazwa przyjazna (widoczna publicznie):
                   <input type="text" name="roadside_slug" value={formData.roadside_slug || ''} onChange={handleChange} className="form-input" />
                 </label>
+                
+                {/* ZASTĄPIONE STANDARDOWE INPUTY KOMPONENTAMI LocationAutocomplete */}
                 <label className="form-label">
                   Miasto:
-                  <input type="text" name="roadside_city" value={formData.roadside_city || ''} onChange={handleChange} className="form-input" />
+                  <LocationAutocomplete
+                    value={roadsideCityAutocompleteValue}
+                    onSelectLocation={(label, sug) => {
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        roadside_city: sug.text || '', // sug.text to nazwa miasta
+                        roadside_street: '', // Wyczyść ulicę, bo wybrano nowe miasto
+                        roadside_number: '' // Wyczyść numer
+                      }));
+                      setRoadsideCityAutocompleteValue(label); // Ustaw to, co wyświetla input
+                      setRoadsideStreetAutocompleteValue(''); // Wyczyść input ulicy dla ulicy
+                      // Zapisz koordynaty, które zostaną użyte w handleSave
+                      setRoadsideSelectedCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                    }}
+                    placeholder="Wpisz miasto działalności"
+                    className="form-input"
+                  />
                 </label>
+
                 <label className="form-label">
                   Ulica:
-                  <input type="text" name="roadside_street" value={formData.roadside_street || ''} onChange={handleChange} className="form-input" />
+                  <LocationAutocomplete
+                    value={roadsideStreetAutocompleteValue}
+                    onSelectLocation={(label, sug) => {
+                      // Mapbox zwraca 'text' (nazwa ulicy) i 'address' (numer jeśli to pełny adres)
+                      const streetName = sug.text || '';
+                      // Mapbox często zwraca numer budynku w sug.address dla typu "address"
+                      const houseNumber = sug.address || ''; 
+
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        roadside_street: streetName, 
+                        roadside_number: houseNumber 
+                      }));
+                      setRoadsideStreetAutocompleteValue(label); // Ustaw to, co wyświetla input
+                      // Zapisz precyzyjne koordynaty wybranego adresu
+                      setRoadsideSelectedCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                    }}
+                    placeholder="Wpisz ulicę i numer"
+                    className="form-input"
+                    // Możesz przekazać kontekst miasta, jeśli LocationAutocomplete to obsługuje lepiej dla Mapbox
+                    // np. context={{ city: formData.roadside_city }}
+                  />
                 </label>
+                
+                {/* Pole numeru budynku może zostać, jeśli LocationAutocomplete nie zawsze zwraca go w sugestii,
+                    albo można je usunąć, jeśli Mapbox zawsze umieszcza w sugestii ulicy.
+                    Dla uproszczenia pozostawiam i nadpisuję, jeśli autocomlete da wartość. */}
                 <label className="form-label">
-                  Numer:
+                  Numer budynku (ew. uzupełnij):
                   <input type="text" name="roadside_number" value={formData.roadside_number || ''} onChange={handleChange} className="form-input" />
                 </label>
+
                 <label className="form-label">
                   Numer telefonu:
                   <input type="text" name="roadside_phone" value={formData.roadside_phone || ''} onChange={handleChange} className="form-input" />
