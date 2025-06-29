@@ -1,9 +1,9 @@
 // src/pages/TransportNaJuz.jsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import LocationAutocomplete from '../components/LocationAutocomplete';
-import RequestDetails from '../components/RequestDetails';
+import Navbar from './components/Navbar';
+import LocationAutocomplete from './components/LocationAutocomplete';
+import RequestDetails from './components/RequestDetails';
 import './TransportNaJuz.css';
 import { supabase } from '../supabaseClient';
 import { useParams, useNavigate, useLocation } from 'react-router-dom'; // Dodano useLocation, useParams, useNavigate
