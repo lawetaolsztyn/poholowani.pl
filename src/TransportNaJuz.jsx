@@ -1,15 +1,21 @@
 // src/pages/TransportNaJuz.jsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import LocationAutocomplete from './components/LocationAutocomplete';
-import RequestDetails from './components/RequestDetails';
+import Navbar from '../components/Navbar';
+import LocationAutocomplete from '../components/LocationAutocomplete';
+import RequestDetails from '../components/RequestDetails';
 import './TransportNaJuz.css';
-import { supabase } from './supabaseClient';
+import { supabase } from '../supabaseClient';
+import { useParams, useNavigate, useLocation } from 'react-router-dom'; // Dodano useLocation, useParams, useNavigate
 
 export default function TransportNaJuz() {
+  const { requestId: urlRequestId } = useParams(); // Pobieramy requestId z URL
+  const navigate = useNavigate(); // Hook do nawigacji
+  const location = useLocation(); // Hook do informacji o bieżącej lokalizacji
+
   const [showForm, setShowForm] = useState(false);
-  const [activeRequestId, setActiveRequestId] = useState(null);
+  // activeRequestId będzie teraz pobierane z URL, ale stan lokalny do zarządzania formularzem
+  // const [activeRequestId, setActiveRequestId] = useState(null); // Usunięto, bo pobieramy z URL
   const formRef = useRef(null);
 
   // Stany dla pól formularza zgłoszenia
@@ -23,12 +29,13 @@ export default function TransportNaJuz() {
   const [agreeToSharePhone, setAgreeToSharePhone] = useState(false);
 
   // NOWE STANY DLA GEOLOKALIZACJI
-  const [gettingLocation, setGettingLocation] = useState(false); // Stan ładowania geolokalizacji
-  const [locationError, setLocationError] = useState(''); // Komunikat o błędzie geolokalizacji
+  const [gettingLocation, setGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
   const [urgentRequests, setUrgentRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
 
+  // Efekt do ładowania pilnych zgłoszeń z Supabase
   useEffect(() => {
     const fetchUrgentRequests = async () => {
       setLoadingRequests(true);
@@ -60,6 +67,18 @@ export default function TransportNaJuz() {
     return () => clearInterval(interval);
   }, []);
 
+  // Efekt do zarządzania widokiem (formularz / szczegóły / lista) na podstawie URL
+  useEffect(() => {
+    if (urlRequestId) {
+      // Jeśli ID zgłoszenia jest w URL, pokaż szczegóły
+      setShowForm(false);
+      // activeRequestId jest już dostępne przez useParams
+    } else {
+      // Jeśli ID zgłoszenia nie ma w URL, schowaj szczegóły i formularz (pokaż listę)
+      setShowForm(false);
+    }
+  }, [urlRequestId]); // Reaguj na zmiany w ID zgłoszenia w URL
+
   // NOWA FUNKCJA: Pobieranie lokalizacji z urządzenia
   const handleGetMyLocation = async () => {
     setGettingLocation(true);
@@ -77,7 +96,6 @@ export default function TransportNaJuz() {
             );
             const data = await response.json();
             if (data.features && data.features.length > 0) {
-              // Ustawiamy label na najbardziej czytelną nazwę miejsca z Mapbox
               const placeName = data.features[0].place_name;
               setLocationFromLabel(placeName);
               alert(`✅ Twoja lokalizacja: ${placeName}`);
@@ -114,7 +132,7 @@ export default function TransportNaJuz() {
           alert(`Błąd: ${errorMessage}`);
           console.error("Błąd geolokalizacji:", error);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Opcje Geolocation
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
       setGettingLocation(false);
@@ -125,21 +143,23 @@ export default function TransportNaJuz() {
 
   const handleReportUrgentNeedClick = () => {
     setShowForm(true); // Pokaż formularz zgłoszenia
-    setActiveRequestId(null); // Ukryj szczegóły, jeśli były aktywne
+    navigate('/transport-na-juz'); // Wyczyść ID zgłoszenia z URL, jeśli było
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   };
 
   const handleViewRequestDetails = (requestId) => {
-    setActiveRequestId(requestId); // Ustaw ID aktywnego zgłoszenia, aby wyświetlić szczegóły
-    setShowForm(false); // Ukryj formularz, jeśli był widoczny
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Przewiń na górę strony
+    // Nawiguj do URL z ID zgłoszenia
+    navigate(`/transport-na-juz/${requestId}`); 
+    // ShowForm zostanie ustawione na false przez useEffect reagujący na urlRequestId
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToList = () => {
-    setActiveRequestId(null); // Wróć do listy
-    setShowForm(false); // Upewnij się, że formularz jest ukryty
+    // Wróć do bazowego URL strony Transport Na Już!
+    navigate('/transport-na-juz');
+    // activeRequestId zostanie ustawione na null przez useEffect reagujący na urlRequestId
   };
 
   const handleSubmitUrgentRequest = async (e) => {
@@ -244,7 +264,6 @@ export default function TransportNaJuz() {
 
                   <label className="form-label">
                     Lokalizacja (Skąd potrzebujesz transportu?):
-                    {/* KLUCZOWA ZMIANA: DODANIE KLASY "location-input-group" */}
                     <div className="location-input-group"> 
                       <LocationAutocomplete
                         value={locationFromLabel}
@@ -259,14 +278,13 @@ export default function TransportNaJuz() {
                         }}
                         placeholder="Wpisz adres lub lokalizację"
                         className="form-input"
-                        searchType="all"
+                        searchType="all" // Szukaj wszystkiego (miast, adresów)
                       />
                       <button
-                        type="button"
+                        type="button" 
                         onClick={handleGetMyLocation}
                         disabled={gettingLocation}
                         className="btn-secondary small-btn"
-                        // Usunięto inline style, bo są już w CSS dla `location-input-group` i `small-btn`
                       >
                         {gettingLocation ? 'Pobieram...' : 'Użyj mojej lokalizacji'}
                       </button>
@@ -336,9 +354,9 @@ export default function TransportNaJuz() {
                   </button>
                 </form>
               </section>
-            ) : activeRequestId ? (
+            ) : urlRequestId ? ( // Tutaj używamy urlRequestId zamiast activeRequestId
               <RequestDetails 
-                requestId={activeRequestId} 
+                requestId={urlRequestId} // Przekazujemy ID z URL
                 onBackToList={handleBackToList} 
               />
             ) : (

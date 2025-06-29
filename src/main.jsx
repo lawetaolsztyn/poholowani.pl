@@ -28,7 +28,7 @@ import Footer from './components/Footer';
 import { Routes, Route } from 'react-router-dom';
 import CookieWall from './components/CookieWall';
 import MessengerHelp from './MessengerHelp';
-import TablicaOgloszen from './TablicaOgloszen'; // Jeśli plik jest bezpośrednio w src
+import TablicaOgloszen from './TablicaOgloszen';
 import TransportNaJuz from './TransportNaJuz'; // Jeśli plik jest bezpośrednio w src
 
 console.log("✅ MAIN.JSX ŁADUJE SIĘ")
@@ -57,9 +57,11 @@ function App() {
           <Route path="/profil/:id" element={<PublicProfile />} />
           <Route path="/panel/profil" element={<EdycjaProfilu />} />
           <Route path="/choose-role" element={<ChooseRoleAfterOAuth />} />
-	<Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
-	 <Route path="/tablica-ogloszen" element={<TablicaOgloszen />} />
-      <Route path="/transport-na-juz" element={<TransportNaJuz />} />
+	      <Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
+	      <Route path="/tablica-ogloszen" element={<TablicaOgloszen />} />
+          {/* Dwie trasy dla TransportNaJuz: jedna bazowa, druga ze szczegółami */}
+          <Route path="/transport-na-juz" element={<TransportNaJuz />} />
+          <Route path="/transport-na-juz/:requestId" element={<TransportNaJuz />} />
 
         </Routes>
         <Footer />
@@ -71,10 +73,10 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
- <SessionContextProvider supabaseClient={supabase}>
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
-</SessionContextProvider>
+    <SessionContextProvider supabaseClient={supabase}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </SessionContextProvider>
   </React.StrictMode>
 );
