@@ -395,3 +395,35 @@
     color: #bbb;
   }
 }
+
+.form-label .error-message {
+  color: #dc3545;
+  font-size: 0.85em;
+  margin-top: 5px;
+}
+
+/* Style dla małego przycisku */
+.btn-secondary.small-btn {
+  padding: 8px 15px;
+  font-size: 0.9em;
+  min-width: unset;
+}
+
+/* Style dla input-group (jeśli używasz) */
+.form-label > div {
+  display: flex;
+  gap: 10px; /* Odstęp między inputem a przyciskiem */
+  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
+}
+.form-label > div .form-input {
+    flex-grow: 1; /* Pozwól inputowi rozciągnąć się */
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+  /* ... (istniejące style dark mode) ... */
+
+  .form-label .error-message {
+    color: #ff8888;
+  }
+}

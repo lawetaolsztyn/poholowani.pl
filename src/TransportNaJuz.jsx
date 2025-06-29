@@ -3,13 +3,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import LocationAutocomplete from './components/LocationAutocomplete';
-import RequestDetails from './components/RequestDetails'; // Importujemy nowy komponent
+import RequestDetails from './components/RequestDetails';
 import './TransportNaJuz.css';
 import { supabase } from './supabaseClient';
 
 export default function TransportNaJuz() {
   const [showForm, setShowForm] = useState(false);
-  const [activeRequestId, setActiveRequestId] = useState(null); // ID aktywnego zgłoszenia (dla widoku szczegółów)
+  const [activeRequestId, setActiveRequestId] = useState(null);
   const formRef = useRef(null);
 
   // Stany dla pól formularza zgłoszenia
@@ -22,10 +22,13 @@ export default function TransportNaJuz() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [agreeToSharePhone, setAgreeToSharePhone] = useState(false);
 
+  // NOWE STANY DLA GEOLOKALIZACJI
+  const [gettingLocation, setGettingLocation] = useState(false); // Stan ładowania geolokalizacji
+  const [locationError, setLocationError] = useState(''); // Komunikat o błędzie geolokalizacji
+
   const [urgentRequests, setUrgentRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
 
-  // Efekt do ładowania pilnych zgłoszeń z Supabase
   useEffect(() => {
     const fetchUrgentRequests = async () => {
       setLoadingRequests(true);
@@ -53,9 +56,72 @@ export default function TransportNaJuz() {
 
     fetchUrgentRequests();
 
-    const interval = setInterval(fetchUrgentRequests, 60 * 1000); // Odświeżanie listy co minutę
+    const interval = setInterval(fetchUrgentRequests, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // NOWA FUNKCJA: Pobieranie lokalizacji z urządzenia
+  const handleGetMyLocation = async () => {
+    setGettingLocation(true);
+    setLocationError('');
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocationFromCoords({ latitude, longitude });
+
+          // Geokodowanie wsteczne (reverse geocoding) za pomocą Mapbox API
+          try {
+            const response = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}&language=pl&types=place,address,poi,postcode,locality`
+            );
+            const data = await response.json();
+            if (data.features && data.features.length > 0) {
+              // Ustawiamy label na najbardziej czytelną nazwę miejsca z Mapbox
+              const placeName = data.features[0].place_name;
+              setLocationFromLabel(placeName);
+              alert(`✅ Twoja lokalizacja: ${placeName}`);
+            } else {
+              setLocationFromLabel(`Lokalizacja GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+              alert(`✅ Znaleziono lokalizację GPS, ale nie udało się pobrać dokładnego adresu.`);
+            }
+          } catch (error) {
+            console.error("Błąd geokodowania wstecznego Mapbox:", error);
+            setLocationFromLabel(`Lokalizacja GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+            alert(`✅ Znaleziono lokalizację GPS, ale błąd pobierania adresu.`);
+          } finally {
+            setGettingLocation(false);
+          }
+        },
+        (error) => {
+          setGettingLocation(false);
+          let errorMessage = 'Błąd pobierania lokalizacji.';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Lokalizacja została zablokowana. Zezwól na dostęp w ustawieniach przeglądarki.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Informacje o lokalizacji są niedostępne.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Przekroczono czas oczekiwania na lokalizację.';
+              break;
+            default:
+              errorMessage = `Wystąpił nieznany błąd: ${error.message}`;
+              break;
+          }
+          setLocationError(`❌ ${errorMessage}`);
+          alert(`Błąd: ${errorMessage}`);
+          console.error("Błąd geolokalizacji:", error);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Opcje Geolocation
+      );
+    } else {
+      setGettingLocation(false);
+      setLocationError('❌ Twoja przeglądarka nie wspiera geolokalizacji.');
+      alert('Twoja przeglądarka nie wspiera geolokalizacji.');
+    }
+  };
 
   const handleReportUrgentNeedClick = () => {
     setShowForm(true); // Pokaż formularz zgłoszenia
@@ -68,7 +134,6 @@ export default function TransportNaJuz() {
   const handleViewRequestDetails = (requestId) => {
     setActiveRequestId(requestId); // Ustaw ID aktywnego zgłoszenia, aby wyświetlić szczegóły
     setShowForm(false); // Ukryj formularz, jeśli był widoczny
-    // Możesz przewinąć do góry prawej kolumny
     window.scrollTo({ top: 0, behavior: 'smooth' }); // Przewiń na górę strony
   };
 
@@ -81,7 +146,7 @@ export default function TransportNaJuz() {
     e.preventDefault();
     
     if (!locationFromCoords.latitude || !locationFromCoords.longitude) {
-      alert('❗Uzupełnij pole "Lokalizacja (Skąd)", wybierając z listy sugestii.');
+      alert('❗Lokalizacja (Skąd) jest wymagana. Użyj przycisku "Użyj mojej lokalizacji" lub wybierz adres z listy.');
       return;
     }
     if (!phoneNumber || phoneNumber.trim() === '') {
@@ -114,7 +179,7 @@ export default function TransportNaJuz() {
             agree_to_share_phone: agreeToSharePhone,
           },
         ])
-        .select(); // Dodaj .select(), aby otrzymać wstawiony rekord i odświeżyć listę
+        .select();
 
       if (error) throw error;
 
@@ -131,9 +196,9 @@ export default function TransportNaJuz() {
       setAgreeToSharePhone(false);
       setShowForm(false); // Ukryj formularz po wysłaniu
 
-      // Dodaj nowe zgłoszenie do listy od razu, zamiast pobierać całą listę ponownie
+      // Dodaj nowe zgłoszenie do listy od razu
       if (data && data.length > 0) {
-        setUrgentRequests(prevRequests => [data[0], ...prevRequests].slice(0, 100)); // Dodaj na początek listy
+        setUrgentRequests(prevRequests => [data[0], ...prevRequests].slice(0, 100));
       }
 
     } catch (error) {
@@ -179,21 +244,33 @@ export default function TransportNaJuz() {
 
                   <label className="form-label">
                     Lokalizacja (Skąd potrzebujesz transportu?):
-                    <LocationAutocomplete
-                      value={locationFromLabel}
-                      onSelectLocation={(label, sug) => {
-                        setLocationFromLabel(label);
-                        if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
-                          setLocationFromCoords({ latitude: sug.center[1], longitude: sug.center[0] });
-                        } else {
-                          console.warn("Brak koordynatów (sug.center) dla lokalizacji 'Skąd':", sug);
-                          setLocationFromCoords({ latitude: null, longitude: null });
-                        }
-                      }}
-                      placeholder="Wpisz adres lub lokalizację"
-                      className="form-input"
-                      searchType="all"
-                    />
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+                      <LocationAutocomplete
+                        value={locationFromLabel}
+                        onSelectLocation={(label, sug) => {
+                          setLocationFromLabel(label);
+                          if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
+                            setLocationFromCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                          } else {
+                            console.warn("Brak koordynatów (sug.center) dla lokalizacji 'Skąd':", sug);
+                            setLocationFromCoords({ latitude: null, longitude: null });
+                          }
+                        }}
+                        placeholder="Wpisz adres lub lokalizację"
+                        className="form-input"
+                        searchType="all" // Szukaj wszystkiego (miast, adresów)
+                      />
+                      <button
+                        type="button" // Ważne: typ "button", żeby nie wysyłać formularza
+                        onClick={handleGetMyLocation}
+                        disabled={gettingLocation}
+                        className="btn-secondary small-btn" // Dodaj styl dla małego przycisku
+                        style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                      >
+                        {gettingLocation ? 'Pobieram...' : 'Użyj mojej lokalizacji'}
+                      </button>
+                    </div>
+                    {locationError && <p className="error-message">{locationError}</p>}
                   </label>
 
                   <label className="form-label">
@@ -259,13 +336,11 @@ export default function TransportNaJuz() {
                 </form>
               </section>
             ) : activeRequestId ? (
-              // RENDEROWANIE KOMPONENTU SZCZEGÓŁÓW ZGŁOSZENIA
               <RequestDetails 
                 requestId={activeRequestId} 
                 onBackToList={handleBackToList} 
               />
             ) : (
-              // Lista pilnych zgłoszeń (domyślny widok prawej kolumny)
               <section className="current-requests-section">
                 <h2>Aktualne pilne zgłoszenia</h2>
                 {loadingRequests ? (
