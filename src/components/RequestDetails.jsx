@@ -1,33 +1,19 @@
 // src/components/RequestDetails.jsx
 
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import React, { useEffect, useState, useMemo } from 'react'; // Zmieniono z useRef na useMemo
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet'; 
 import { supabase } from '../supabaseClient';
-import './RequestDetails.css'; // Będziemy potrzebować stylów dla tego komponentu
+import './RequestDetails.css'; 
 
-// Ikona markera dla zgłoszenia
-const requestIcon = new L.Icon({
-  iconUrl: '/icons/request-marker.png', // Musisz mieć taką ikonę, np. czerwoną pinezkę
-  iconSize: [35, 35],
-  iconAnchor: [17, 35],
-  popupAnchor: [0, -35],
-});
 
-// Ikona markera dla pomocy drogowej (już masz ją z PomocDrogowaProfil.jsx)
-const towIcon = new L.Icon({
-  iconUrl: '/icons/pomoc-drogowa.png',
-  iconSize: [40, 60], // Zmniejszono rozmiar dla lepszego widoku na mapie
-  iconAnchor: [20, 60],
-  popupAnchor: [0, -60],
-});
 
 // Komponent do centrowania mapy na markerze
 function MapCenterUpdater({ center }) {
   const map = useMap();
   useEffect(() => {
     if (center && center[0] != null && center[1] != null) {
-      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 13); // Ustawia widok, zoom 13 jeśli mniejszy
+      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 13);
     }
   }, [center, map]);
   return null;
@@ -39,14 +25,38 @@ export default function RequestDetails({ requestId, onBackToList }) {
   const [loadingDetails, setLoadingDetails] = useState(true);
   const [loadingRoadside, setLoadingRoadside] = useState(false);
 
+  // KLUCZOWA ZMIANA: Inicjalizacja ikon za pomocą useMemo
+  // Gwarantuje, że ikony są tworzone tylko raz i są gotowe do użycia w renderze.
+  const requestIcon = useMemo(() => {
+    console.log("DEBUG: Tworzenie requestIcon...");
+    return new L.Icon({
+      iconUrl: '/icons/request-marker.png',
+      iconSize: [35, 35],
+      iconAnchor: [17, 35],
+      popupAnchor: [0, -35],
+    });
+  }, []); // Pusta tablica zależności - tworzy się raz
+
+  const towIcon = useMemo(() => {
+    console.log("DEBUG: Tworzenie towIcon...");
+    return new L.Icon({
+      iconUrl: '/icons/pomoc-drogowa.png',
+      iconSize: [40, 60],
+      iconAnchor: [20, 60],
+      popupAnchor: [0, -60],
+    });
+  }, []); // Pusta tablica zależności - tworzy się raz
+
+
   useEffect(() => {
+    // Nie ma potrzeby używania iconsLoaded w tym kontekście,
+    // ponieważ useMemo gwarantuje, że ikony są tworzone zaraz po pierwszym renderze.
     const fetchDetailsAndRoadside = async () => {
       setLoadingDetails(true);
-      setRequest(null); // Wyczyść poprzednie dane
-      setNearbyRoadsideAssistance([]); // Wyczyść poprzednie dane
+      setRequest(null); 
+      setNearbyRoadsideAssistance([]); 
 
       try {
-        // 1. Pobierz szczegóły zgłoszenia
         const { data: requestData, error: requestError } = await supabase
           .from('urgent_requests')
           .select('*')
@@ -56,15 +66,14 @@ export default function RequestDetails({ requestId, onBackToList }) {
         if (requestError) throw requestError;
         setRequest(requestData);
 
-        // 2. Wyszukaj okoliczne pomoce drogowe, jeśli zgłoszenie ma koordynaty
         if (requestData.location_from_lat && requestData.location_from_lng) {
           setLoadingRoadside(true);
           const { data: roadsideData, error: roadsideError } = await supabase
             .from('users_extended')
             .select('id, company_name, roadside_slug, roadside_city, roadside_street, roadside_number, roadside_phone, latitude, longitude')
             .eq('is_pomoc_drogowa', true)
-            .eq('is_roadside_assistance_agreed', true) // Tylko te, które wyraziły zgodę
-            .not('latitude', 'is', null) // Upewnij się, że mają koordynaty
+            .eq('is_roadside_assistance_agreed', true) 
+            .not('latitude', 'is', null) 
             .not('longitude', 'is', null);
 
           if (roadsideError) throw roadsideError;
@@ -94,12 +103,11 @@ export default function RequestDetails({ requestId, onBackToList }) {
       }
     };
 
-    if (requestId) { // Uruchom fetchData tylko jeśli requestId jest dostępne
+    if (requestId) { 
       fetchDetailsAndRoadside();
     }
-  }, [requestId]); // Zależność od requestId
+  }, [requestId]); // Zależność tylko od requestId
 
-  // Funkcja obliczająca odległość między dwoma punktami (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Promień Ziemi w kilometrach
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -113,7 +121,8 @@ export default function RequestDetails({ requestId, onBackToList }) {
     return distance; // Odległość w kilometrach
   };
 
-  if (loadingDetails) {
+  // Ładowanie szczegółów zgłoszenia / mapy
+  if (loadingDetails) { // Usunięto !iconsLoaded, bo useMemo gwarantuje tworzenie
     return <div className="request-details-loading">Ładowanie szczegółów zgłoszenia...</div>;
   }
 
@@ -146,44 +155,44 @@ export default function RequestDetails({ requestId, onBackToList }) {
             📞 Telefon: <a href={`tel:${request.phone_number}`} className="text-blue-600 hover:underline">{request.phone_number}</a>
           </p>
         )}
-        {/* TODO: Dodaj ikony WhatsApp/Messenger, jeśli zaimplementowano w zgłoszeniu */}
       </div>
 
-      {requestPosition ? (
+      {/* Renderuj mapę tylko wtedy, gdy requestPosition i ikony są zdefiniowane przez useMemo */}
+      {requestPosition && requestIcon && towIcon ? ( 
         <div className="map-container">
           <MapContainer center={requestPosition} zoom={13} className="request-map" gestureHandling={true}>
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution="&copy; OpenStreetMap contributors"
             />
-            <MapCenterUpdater center={requestPosition} /> {/* Upewnia się, że mapa jest wyśrodkowana */}
-            <Marker position={requestPosition} icon={requestIcon} >
-              <L.Popup>
+            <MapCenterUpdater center={requestPosition} />
+            <Marker position={requestPosition} icon={requestIcon} > 
+              <Popup>
                 <strong>Zgłoszenie:</strong> {request.vehicle_type} <br/> {request.location_from_label}
-              </L.Popup>
+              </Popup>
             </Marker>
 
             {loadingRoadside && <div className="map-loading-overlay">Ładowanie pomocy drogowej...</div>}
             {nearbyRoadsideAssistance.length > 0 ? (
               nearbyRoadsideAssistance.map(rs => (
                 rs.latitude && rs.longitude && (
-                  <Marker key={rs.id} position={[rs.latitude, rs.longitude]} icon={towIcon}>
-                    <L.Popup>
+                  <Marker key={rs.id} position={[rs.latitude, rs.longitude]} icon={towIcon}> 
+                    <Popup>
                       <strong>{rs.company_name || 'Pomoc Drogowa'}</strong><br/>
                       {rs.roadside_city}, {rs.roadside_street} {rs.roadside_number}<br/>
                       {rs.roadside_phone && <a href={`tel:${rs.roadside_phone}`}>{rs.roadside_phone}</a>}<br/>
-                      <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>
-                    </L.Popup>
+                      {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}
+                    </Popup>
                   </Marker>
                 )
               ))
             ) : (
-              !loadingRoadside && <div className="map-info-overlay">Brak pobliskich pomocy drogowej (do {requestPosition[0].toFixed(2)}, {requestPosition[1].toFixed(2)})</div>
+              !loadingRoadside && <div className="map-info-overlay">Brak pobliskich pomocy drogowej (do 30 km od zgłoszenia).</div>
             )}
           </MapContainer>
         </div>
       ) : (
-        <p className="no-coords-message">Brak koordynatów dla tego zgłoszenia, mapa niedostępna.</p>
+        <p className="no-coords-message">Brak koordynatów dla tego zgłoszenia, lub błąd ładowania mapy/ikon. Mapa niedostępna.</p>
       )}
 
       <button className="btn-secondary" onClick={onBackToList}>
