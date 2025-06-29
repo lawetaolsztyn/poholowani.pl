@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet'; 
 import { supabase } from '../supabaseClient';
 import './RequestDetails.css'; 
+import 'leaflet/dist/leaflet.css';
 
 
 
