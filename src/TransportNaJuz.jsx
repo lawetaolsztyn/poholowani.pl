@@ -1,21 +1,41 @@
 // src/pages/TransportNaJuz.jsx
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import LocationAutocomplete from './components/LocationAutocomplete';
 import RequestDetails from './components/RequestDetails';
 import './TransportNaJuz.css';
 import { supabase } from './supabaseClient';
-import { useParams, useNavigate, useLocation } from 'react-router-dom'; // Dodano useLocation, useParams, useNavigate
+import { useParams, useNavigate } from 'react-router-dom'; // Dodano useParams, useNavigate
+
+// Importy dla Mapy w formularzu
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+
+// Konfiguracja domyślnych ikon Leaflet (jeśli nadal występują błędy z ikonami, ten blok jest niezbędny)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+// Komponent do centrowania mapy (dla mapy w formularzu)
+function FormMapCenterUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center && center[0] != null && center[1] != null) {
+      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 12); // Lekko mniejszy zoom dla 50km
+    }
+  }, [center, map]);
+  return null;
+}
 
 export default function TransportNaJuz() {
-  const { requestId: urlRequestId } = useParams(); // Pobieramy requestId z URL
+  const { requestId: urlRequestId } = useParams(); // PRZYWRÓCONO: Pobieramy requestId z URL
   const navigate = useNavigate(); // Hook do nawigacji
-  const location = useLocation(); // Hook do informacji o bieżącej lokalizacji
 
   const [showForm, setShowForm] = useState(false);
-  // activeRequestId będzie teraz pobierane z URL, ale stan lokalny do zarządzania formularzem
-  // const [activeRequestId, setActiveRequestId] = useState(null); // Usunięto, bo pobieramy z URL
   const formRef = useRef(null);
 
   // Stany dla pól formularza zgłoszenia
@@ -28,14 +48,51 @@ export default function TransportNaJuz() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [agreeToSharePhone, setAgreeToSharePhone] = useState(false);
 
-  // NOWE STANY DLA GEOLOKALIZACJI
+  // Stany dla geolokalizacji
   const [gettingLocation, setGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
 
   const [urgentRequests, setUrgentRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
 
-  // Efekt do ładowania pilnych zgłoszeń z Supabase
+  // NOWE STANY I IKONY DLA MAPY W FORMULARZU
+  const [nearbyRoadsideAssistanceInForm, setNearbyRoadsideAssistanceInForm] = useState([]);
+  const [loadingRoadsideInForm, setLoadingRoadsideInForm] = useState(false);
+
+  // Ikony dla mapy w formularzu (tworzone z useMemo)
+  const userLocationIcon = useMemo(() => {
+    return new L.Icon({
+      iconUrl: '/icons/request-marker.png',
+      iconSize: [35, 35],
+      iconAnchor: [17, 35],
+      popupAnchor: [0, -35],
+    });
+  }, []);
+
+  const roadsideIcon = useMemo(() => {
+    return new L.Icon({
+      iconUrl: '/icons/pomoc-drogowa.png',
+      iconSize: [40, 60],
+      iconAnchor: [20, 60],
+      popupAnchor: [0, -60],
+    });
+  }, []);
+
+  // Funkcja obliczająca odległość (duplikacja z RequestDetails, jeśli nie ma globalnej utility)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Promień Ziemi w kilometrach
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return distance; // Odległość w kilometrach
+  };
+
+
   useEffect(() => {
     const fetchUrgentRequests = async () => {
       setLoadingRequests(true);
@@ -63,7 +120,7 @@ export default function TransportNaJuz() {
 
     fetchUrgentRequests();
 
-    const interval = setInterval(fetchUrgentRequests, 60 * 1000);
+    const interval = setInterval(fetchUrgentRequests, 60 * 1000); // Odświeżanie listy co minutę
     return () => clearInterval(interval);
   }, []);
 
@@ -72,14 +129,57 @@ export default function TransportNaJuz() {
     if (urlRequestId) {
       // Jeśli ID zgłoszenia jest w URL, pokaż szczegóły
       setShowForm(false);
-      // activeRequestId jest już dostępne przez useParams
     } else {
       // Jeśli ID zgłoszenia nie ma w URL, schowaj szczegóły i formularz (pokaż listę)
       setShowForm(false);
     }
   }, [urlRequestId]); // Reaguj na zmiany w ID zgłoszenia w URL
 
-  // NOWA FUNKCJA: Pobieranie lokalizacji z urządzenia
+  // NOWY EFFECT: Pobieranie pobliskich pomocy drogowych do formularza
+  useEffect(() => {
+    const findNearbyRoadsideAssistance = async () => {
+      if (!locationFromCoords.latitude || !locationFromCoords.longitude) {
+        setNearbyRoadsideAssistanceInForm([]); // Wyczyść, jeśli nie ma koordynat
+        return;
+      }
+
+      setLoadingRoadsideInForm(true);
+      try {
+        const { data: roadsideData, error: roadsideError } = await supabase
+          .from('users_extended')
+          .select('id, company_name, roadside_slug, roadside_city, roadside_street, roadside_number, roadside_phone, latitude, longitude')
+          .eq('is_pomoc_drogowa', true)
+          .eq('is_roadside_assistance_agreed', true) // Tylko te, które wyraziły zgodę
+          .not('latitude', 'is', null)
+          .not('longitude', 'is', null);
+
+        if (roadsideError) throw roadsideError;
+
+        const distanceThresholdKm = 50; // Zasięg 50 km
+        const nearby = roadsideData.filter(rs => {
+          if (rs.latitude && rs.longitude) {
+            const distance = calculateDistance(
+              locationFromCoords.latitude,
+              locationFromCoords.longitude,
+              rs.latitude,
+              rs.longitude
+            );
+            return distance <= distanceThresholdKm;
+          }
+          return false;
+        });
+        setNearbyRoadsideAssistanceInForm(nearby);
+      } catch (error) {
+        console.error("Błąd ładowania pobliskiej pomocy drogowej w formularzu:", error.message);
+        setNearbyRoadsideAssistanceInForm([]);
+      } finally {
+        setLoadingRoadsideInForm(false);
+      }
+    };
+
+    findNearbyRoadsideAssistance();
+  }, [locationFromCoords.latitude, locationFromCoords.longitude]); // Reaguj na zmiany lokalizacji 'Skąd'
+
   const handleGetMyLocation = async () => {
     setGettingLocation(true);
     setLocationError('');
@@ -89,10 +189,10 @@ export default function TransportNaJuz() {
           const { latitude, longitude } = position.coords;
           setLocationFromCoords({ latitude, longitude });
 
-          // Geokodowanie wsteczne (reverse geocoding) za pomocą Mapbox API
           try {
             const response = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}&language=pl&types=place,address,poi,postcode,locality`
+              // ZMIANA TUTAJ: Zmieniono VITE_MAPBOX_API_KEY na VITE_MAPBOX_TOKEN
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&types=place,address,poi,postcode,locality`
             );
             const data = await response.json();
             if (data.features && data.features.length > 0) {
@@ -142,24 +242,20 @@ export default function TransportNaJuz() {
   };
 
   const handleReportUrgentNeedClick = () => {
-    setShowForm(true); // Pokaż formularz zgłoszenia
-    navigate('/transport-na-juz'); // Wyczyść ID zgłoszenia z URL, jeśli było
+    setShowForm(true);
+    navigate('/transport-na-juz');
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   };
 
   const handleViewRequestDetails = (requestId) => {
-    // Nawiguj do URL z ID zgłoszenia
     navigate(`/transport-na-juz/${requestId}`); 
-    // ShowForm zostanie ustawione na false przez useEffect reagujący na urlRequestId
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToList = () => {
-    // Wróć do bazowego URL strony Transport Na Już!
     navigate('/transport-na-juz');
-    // activeRequestId zostanie ustawione na null przez useEffect reagujący na urlRequestId
   };
 
   const handleSubmitUrgentRequest = async (e) => {
@@ -205,7 +301,6 @@ export default function TransportNaJuz() {
 
       alert('✅ Twoje zgłoszenie zostało wysłane! Przewoźnicy zostaną o nim powiadomieni.');
       
-      // Resetuj formularz po wysłaniu
       setVehicleType('');
       setLocationFromLabel('');
       setLocationFromCoords({ latitude: null, longitude: null });
@@ -214,9 +309,8 @@ export default function TransportNaJuz() {
       setProblemDescription('');
       setPhoneNumber('');
       setAgreeToSharePhone(false);
-      setShowForm(false); // Ukryj formularz po wysłaniu
+      setShowForm(false); 
 
-      // Dodaj nowe zgłoszenie do listy od razu
       if (data && data.length > 0) {
         setUrgentRequests(prevRequests => [data[0], ...prevRequests].slice(0, 100));
       }
@@ -278,7 +372,7 @@ export default function TransportNaJuz() {
                         }}
                         placeholder="Wpisz adres lub lokalizację"
                         className="form-input"
-                        searchType="all" // Szukaj wszystkiego (miast, adresów)
+                        searchType="all" 
                       />
                       <button
                         type="button" 
@@ -353,6 +447,55 @@ export default function TransportNaJuz() {
                     Anuluj
                   </button>
                 </form>
+
+                {/* Sekcja Mapy w formularzu - POKAZUJE SIĘ, GDY LOKALIZACJA JEST DOSTĘPNA */}
+                {locationFromCoords.latitude && locationFromCoords.longitude && userLocationIcon && roadsideIcon ? (
+                  <div className="map-in-form-container"> {/* Nowa klasa do stylów */}
+                    <h3>Pomoc drogowa w pobliżu ({locationFromCoords.latitude.toFixed(4)}, {locationFromCoords.longitude.toFixed(4)})</h3>
+                    {loadingRoadsideInForm && <p>Ładowanie pobliskiej pomocy drogowej...</p>}
+                    
+                    <MapContainer center={[locationFromCoords.latitude, locationFromCoords.longitude]} zoom={12} className="form-map" gestureHandling={true}>
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution="&copy; OpenStreetMap contributors"
+                      />
+                      <FormMapCenterUpdater center={[locationFromCoords.latitude, locationFromCoords.longitude]} />
+                      
+                      {/* Marker dla lokalizacji użytkownika */}
+                      <Marker position={[locationFromCoords.latitude, locationFromCoords.longitude]} icon={userLocationIcon}>
+                        <Popup>
+                          <strong>Twoja Lokalizacja</strong><br/>
+                          {locationFromLabel || `Lat: ${locationFromCoords.latitude.toFixed(4)}, Lng: ${locationFromCoords.longitude.toFixed(4)}`}
+                        </Popup>
+                      </Marker>
+
+                      {/* Markery dla pobliskich pomocy drogowych */}
+                      {nearbyRoadsideAssistanceInForm.length > 0 ? (
+                        nearbyRoadsideAssistanceInForm.map(rs => (
+                          rs.latitude && rs.longitude && (
+                            <Marker key={rs.id} position={[rs.latitude, rs.longitude]} icon={roadsideIcon}>
+                              <Popup>
+                                <strong>{rs.company_name || 'Pomoc Drogowa'}</strong><br/>
+                                {rs.roadside_city}, {rs.roadside_street} {rs.roadside_number}<br/>
+                                {rs.roadside_phone && <a href={`tel:${rs.roadside_phone}`}>{rs.roadside_phone}</a>}<br/>
+                                {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}
+                              </Popup>
+                            </Marker>
+                          )
+                        ))
+                      ) : (
+                        !loadingRoadsideInForm && <div className="map-info-overlay-small">Brak pobliskich pomocy drogowej (do 50 km).</div>
+                      )}
+                    </MapContainer>
+                  </div>
+                ) : (
+                  // Komunikat, gdy lokalizacja nie jest jeszcze określona
+                  <div className="map-placeholder">
+                    {locationError ? <p className="error-message">{locationError}</p> : <p>Określ lokalizację "Skąd", aby zobaczyć pobliskie pomoce drogowe.</p>}
+                  </div>
+                )}
+
+
               </section>
             ) : urlRequestId ? ( // Tutaj używamy urlRequestId zamiast activeRequestId
               <RequestDetails 
@@ -368,9 +511,13 @@ export default function TransportNaJuz() {
                   <div className="requests-list">
                     {urgentRequests.map((request) => (
                       <div key={request.id} className="request-card" onClick={() => handleViewRequestDetails(request.id)}>
-                        <h3>{request.vehicle_type}</h3>
+                        <h3>
+                          {request.problem_description && request.problem_description.length > 100
+                            ? request.problem_description.substring(0, 100) + '...'
+                            : request.problem_description || 'Brak opisu'}
+                        </h3>
+                        <p>Rodzaj pojazdu: {request.vehicle_type}</p>
                         <p>Lokalizacja: {request.location_from_label}</p>
-                        <p>Opis: {request.problem_description}</p>
                         <small>Zgłoszono: {new Date(request.created_at).toLocaleString()}</small>
                       </div>
                     ))}

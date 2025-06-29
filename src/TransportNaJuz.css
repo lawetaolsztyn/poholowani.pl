@@ -147,12 +147,7 @@
   margin-top: 5px;
 }
 
-.transport-na-juz-container {
-  padding: 20px;
-  max-width: 1400px; /* Zwiększamy max-width, żeby zmieścić dwie kolumny */
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
-}
+
 
 .main-content-grid {
   display: grid;
