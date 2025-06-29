@@ -427,3 +427,27 @@
     color: #ff8888;
   }
 }
+
+.location-input-group { /* Nowa klasa do owinięcia pola i przycisku */
+  display: flex;
+  flex-wrap: wrap; /* Pozwól elementom zawijać się do następnej linii */
+  gap: 10px; /* Odstęp między elementami */
+  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
+}
+
+.location-input-group .form-input {
+    flex-grow: 1; /* Pozwól inputowi rozciągnąć się */
+    min-width: 200px; /* Zapewnij minimalną szerokość dla inputa na małych ekranach */
+}
+
+/* Na małych ekranach, ustaw elementy w kolumnie */
+@media (max-width: 600px) { /* Możesz dostosować breakpoint */
+  .location-input-group {
+    flex-direction: column; /* Ułóż elementy w kolumnie */
+    align-items: stretch; /* Rozciągnij elementy na całą szerokość */
+  }
+  .location-input-group .btn-secondary.small-btn {
+      width: 100%; /* Przycisk na całą szerokość */
+      margin-top: 5px; /* Dodatkowy odstęp od góry */
+  }
+}

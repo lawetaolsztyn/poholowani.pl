@@ -244,7 +244,8 @@ export default function TransportNaJuz() {
 
                   <label className="form-label">
                     Lokalizacja (Skąd potrzebujesz transportu?):
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+                    {/* KLUCZOWA ZMIANA: DODANIE KLASY "location-input-group" */}
+                    <div className="location-input-group"> 
                       <LocationAutocomplete
                         value={locationFromLabel}
                         onSelectLocation={(label, sug) => {
@@ -258,14 +259,14 @@ export default function TransportNaJuz() {
                         }}
                         placeholder="Wpisz adres lub lokalizację"
                         className="form-input"
-                        searchType="all" // Szukaj wszystkiego (miast, adresów)
+                        searchType="all"
                       />
                       <button
-                        type="button" // Ważne: typ "button", żeby nie wysyłać formularza
+                        type="button"
                         onClick={handleGetMyLocation}
                         disabled={gettingLocation}
-                        className="btn-secondary small-btn" // Dodaj styl dla małego przycisku
-                        style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                        className="btn-secondary small-btn"
+                        // Usunięto inline style, bo są już w CSS dla `location-input-group` i `small-btn`
                       >
                         {gettingLocation ? 'Pobieram...' : 'Użyj mojej lokalizacji'}
                       </button>
