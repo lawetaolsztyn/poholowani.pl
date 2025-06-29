@@ -446,3 +446,9 @@
       margin-top: 5px; /* Dodatkowy odstęp od góry */
   }
 }
+.form-map {
+  height: 400px; /* To jest najważniejsze - mapa potrzebuje wysokości */
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}

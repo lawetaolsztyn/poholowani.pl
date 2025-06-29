@@ -7,6 +7,7 @@ import RequestDetails from './components/RequestDetails';
 import './TransportNaJuz.css';
 import { supabase } from './supabaseClient';
 import { useParams, useNavigate } from 'react-router-dom'; // Dodano useParams, useNavigate
+import 'leaflet/dist/leaflet.css';
 
 // Importy dla Mapy w formularzu
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -25,7 +26,7 @@ function FormMapCenterUpdater({ center }) {
   const map = useMap();
   useEffect(() => {
     if (center && center[0] != null && center[1] != null) {
-      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 12); // Lekko mniejszy zoom dla 50km
+      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 10); // Lekko mniejszy zoom dla 50km
     }
   }, [center, map]);
   return null;
@@ -451,10 +452,10 @@ export default function TransportNaJuz() {
                 {/* Sekcja Mapy w formularzu - POKAZUJE SIĘ, GDY LOKALIZACJA JEST DOSTĘPNA */}
                 {locationFromCoords.latitude && locationFromCoords.longitude && userLocationIcon && roadsideIcon ? (
                   <div className="map-in-form-container"> {/* Nowa klasa do stylów */}
-                    <h3>Pomoc drogowa w pobliżu ({locationFromCoords.latitude.toFixed(4)}, {locationFromCoords.longitude.toFixed(4)})</h3>
+                        <h3>Pomoc drogowa w pobliżu ({locationFromCoords.latitude.toFixed(4)}, {locationFromCoords.longitude.toFixed(4)})</h3>
                     {loadingRoadsideInForm && <p>Ładowanie pobliskiej pomocy drogowej...</p>}
                     
-                    <MapContainer center={[locationFromCoords.latitude, locationFromCoords.longitude]} zoom={12} className="form-map" gestureHandling={true}>
+                    <MapContainer center={[locationFromCoords.latitude, locationFromCoords.longitude]} zoom={10} className="form-map" gestureHandling={true}>
                       <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution="&copy; OpenStreetMap contributors"
@@ -491,7 +492,9 @@ export default function TransportNaJuz() {
                 ) : (
                   // Komunikat, gdy lokalizacja nie jest jeszcze określona
                   <div className="map-placeholder">
-                    {locationError ? <p className="error-message">{locationError}</p> : <p>Określ lokalizację "Skąd", aby zobaczyć pobliskie pomoce drogowe.</p>}
+ {console.log("Mapa nie jest renderowana. Koordynaty:", locationFromCoords)} {/* DODAJ TO */}
+    {console.log("Błąd lokalizacji:", locationError)} {/* DODAJ TO */}
+                        {locationError ? <p className="error-message">{locationError}</p> : <p>Określ lokalizację "Skąd", aby zobaczyć pobliskie pomoce drogowe.</p>}
                   </div>
                 )}
 

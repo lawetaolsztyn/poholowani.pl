@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 
 
 
+
 // Komponent do centrowania mapy na markerze
 function MapCenterUpdater({ center }) {
   const map = useMap();
