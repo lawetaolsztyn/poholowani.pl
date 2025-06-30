@@ -888,39 +888,47 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
 
                             {mapMode === 'search' && <RoadsideMarkers />}
 
-                            {/* SEKCJA LEGENDY - DODAJ TEN KOD TUTAJ */}
+                            {/* SEKCJA LEGENDY - KLUCZOWA ZMIANA TUTAJ */}
                             {mapMode === 'grid' && ( // <-- TUTAJ DODAJ WARUNEK!
-                                <div className="map-legend-container" style={{ // <-- TUTAJ DODAJ KLASĘ CSS!
-                                    position: 'absolute',
-                                    bottom: '20px',
-                                    left: '20px',
-                                    zIndex: 1000, /* Upewnij się, że jest nad mapą */
-                                    backgroundColor: 'white',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                                    fontSize: '14px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '8px'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <img
-                                            src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" /* Ścieżka do niebieskiej pinezki */
-                                            alt="Początek trasy"
-                                            style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }} /* Zmniejsz rozmiar */
-                                        />
-                                        <span>Początek trasy</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <img
-                                            src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" /* Ścieżka do czerwonej pinezki */
-                                            alt="Koniec trasy"
-                                            style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }} /* Zmniejsz rozmiar */
-                                        />
-                                        <span>Koniec trasy</span>
-                                    </div>
-                                </div>
+                                <div className="map-legend-container" style={{
+        position: 'absolute',
+        bottom: '20px',
+        left: '20px',
+        zIndex: 1000,
+        backgroundColor: 'white',
+        padding: '10px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+        fontSize: '14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px'
+    }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img
+                src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png"
+                alt="Początek trasy"
+                style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }}
+            />
+            <span>Początek trasy</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img
+                src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png"
+                alt="Koniec trasy"
+                style={{ width: '25px', height: '41px', transform: 'scale(0.8)' }}
+            />
+            <span>Koniec trasy</span>
+        </div>
+        {/* Nowe elementy legendy */}
+        <div style={{ marginTop: '10px', fontWeight: 'bold' }}>Pola wyszukiwania:</div>
+        <div>
+            <span>Skąd, Dokąd - <span style={{ fontWeight: 'normal', color: 'green' }}>obowiązkowe</span></span>
+        </div>
+        <div>
+            <span>Typ pojazdu, Data - <span style={{ fontWeight: 'normal', color: 'orange' }}>opcjonalne</span></span>
+        </div>
+    </div>
                             )}
                             {/* KONIEC SEKCJI LEGENDY */}
 
