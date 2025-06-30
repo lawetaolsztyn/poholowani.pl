@@ -1,5 +1,6 @@
 /* src/components/RequestDetails.css */
 
+/* Ogólne style sekcji szczegółów zgłoszenia */
 .request-details-section {
   background-color: #ffffff;
   padding: 30px;
@@ -15,6 +16,7 @@
   text-align: center;
 }
 
+/* Karta z podstawowymi danymi zgłoszenia */
 .details-card {
   background-color: #f8f8f8;
   padding: 20px;
@@ -38,6 +40,7 @@
   font-weight: bold;
 }
 
+/* Kontener mapy */
 .map-container {
   width: 100%;
   height: 500px; /* Wysokość mapy */
@@ -53,13 +56,7 @@
   width: 100%;
 }
 
-.no-coords-message {
-  text-align: center;
-  color: #dc3545;
-  font-weight: bold;
-  margin-top: 20px;
-}
-
+/* Komunikaty ładowania/błędu dla całej sekcji */
 .request-details-loading,
 .request-details-error {
   text-align: center;
@@ -68,9 +65,16 @@
   color: #666;
 }
 
-/* Nakładki na mapie (np. ładowanie, brak info - jeśli jeszcze używane w JSX) */
-.map-loading-overlay, 
-.map-info-overlay { /* Usunięto .map-info-overlay, bo już nie zasłania mapy, ale zostawiłem dla loading */
+.no-coords-message { /* Styl dla komunikatu gdy brak koordynatów */
+  text-align: center;
+  color: #dc3545;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+
+/* Nakładka ładowania na mapie */
+.map-loading-overlay { 
   position: absolute;
   top: 0;
   left: 0;
@@ -85,11 +89,8 @@
   color: #333;
   border-radius: 8px; /* Aby pasował do mapy */
 }
-/* Jeśli .map-info-overlay ma być tylko tekstem POD mapą, to to powinno być usunięte */
-/* Zgodnie z naszą rozmową, komunikat o braku pomocy drogowej jest teraz .map-info-message */
 
-
-/* Styl dla komunikatu pod mapą (RequestDetails.jsx) */
+/* Styl dla komunikatu pod mapą (gdy brak pobliskich pomocy drogowej) */
 .map-info-message { 
   text-align: center;
   color: #666;
@@ -138,12 +139,18 @@
   background-color: #c82333; /* Ciemniejszy czerwony */
 }
 
-/* Dostosowanie dla trybu ciemnego */
+/* ========================================================= */
+/* DOSTOSOWANIE DLA TRYBU CIEMNEGO */
+/* ========================================================= */
 @media (prefers-color-scheme: dark) {
-  .request-details-section, .details-card {
+  .request-details-section, 
+  .details-card {
     background-color: #333;
     color: #e0e0e0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .request-details-section h2 { /* Kolor nagłówka w trybie ciemnym */
+    color: #f0f0f0; 
   }
   .details-card {
     background-color: #444;
@@ -155,11 +162,15 @@
   .details-card p strong {
     color: #f0f0f0;
   }
-  .map-loading-overlay { /* Usunięto .map-info-overlay */
+  .map-loading-overlay {
     background-color: rgba(51, 51, 51, 0.8);
     color: #eee;
   }
-  /* .map-info-overlay {  Jeśli używasz tego gdzieś, przenieś tutaj i dostosuj } */
+  .no-coords-message, /* Komunikat o braku koordynatów w trybie ciemnym */
+  .request-details-loading,
+  .request-details-error {
+    color: #aaa;
+  }
 
   .map-info-message {
     color: #aaa;
@@ -171,7 +182,7 @@
     background-color: #003d80;
   }
   .btn-navigate-main {
-    background-color: #b0232f; /* Ciemniejszy czerwony dla dark mode */
+    background-color: #b0232f;
   }
   .btn-navigate-main:hover {
     background-color: #9a1c26;
