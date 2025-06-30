@@ -263,7 +263,6 @@ if (mySelectedCitySuggestion?.context) {
   );
 }
 
-let extractedProvinceName = regionContext ? cleanProvinceName(regionContext.text) : '';
 
 // Fallback po nazwie województwa w place_name
 if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
