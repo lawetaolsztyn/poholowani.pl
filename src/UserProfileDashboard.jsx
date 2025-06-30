@@ -182,6 +182,7 @@ export default function UserProfileDashboard() {
                 updatedFormData = { ...updatedFormData, longitude: null, latitude: null };
             } else {
                 try {
+                    // Używamy VITE_MAPBOX_TOKEN dla spójności
                     const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fullAddressToGeocode)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL`);
                     const json = await response.json();
                     const coords = json?.features?.[0]?.center;
@@ -205,20 +206,18 @@ export default function UserProfileDashboard() {
     }
     
     // NOWA LOGIKA: Geokodowanie dla Miasta w "Moje dane" i ustalenie województwa
-    // Dzieje się tylko jeśli zakładka "Moje dane" jest aktywna i miasto zostało wybrane/wpisane
     if (activeTab === 'Moje dane' && myCityAutocompleteValue) { 
-        updatedFormData = { 
-            ...updatedFormData, 
-            city: myCityAutocompleteValue // Upewnij się, że miasto jest z autocomplete
-        };
-
-        // Jeśli są koordynaty z autocomplete, używamy ich
+        // Koordynaty i nazwa miasta są już ustawione z LocationAutocomplete
         if (mySelectedCityCoords.latitude != null && mySelectedCityCoords.longitude != null) {
-            updatedFormData.latitude = mySelectedCityCoords.latitude;
-            updatedFormData.longitude = mySelectedCityCoords.longitude;
+            updatedFormData = { 
+                ...updatedFormData, 
+                latitude: mySelectedCityCoords.latitude, 
+                longitude: mySelectedCityCoords.longitude,
+                city: myCityAutocompleteValue // Upewnij się, że miasto jest z autocomplete
+            };
             console.log('DEBUG: Użyto koordynatów z LocationAutocomplete (Moje dane):', mySelectedCityCoords);
         } else {
-             // Jeśli brak koordynatów z autocomplete, spróbuj geokodować samo miasto
+            // Jeśli brak koordynatów z autocomplete, spróbuj geokodować samo miasto
             try {
                 const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
                 const json = await response.json();
@@ -241,9 +240,8 @@ export default function UserProfileDashboard() {
 
         // Pobierz województwo z kontekstu Mapboxa dla wybranego miasta
         try {
-            // Używamy myCityAutocompleteValue, które jest etykietą z autocomplete.
-            // Mapbox w kontekście zwraca województwo (region/province).
-            const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
+            // Używamy myCityAutocompleteValue (czysta nazwa miasta) do zapytania o kontekst
+            const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue.split(',')[0].trim())}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
             const json = await response.json();
             const feature = json?.features?.[0];
             if (feature) {
@@ -389,6 +387,7 @@ export default function UserProfileDashboard() {
               <LocationAutocomplete
                 value={myCityAutocompleteValue}
                 onSelectLocation={(label, sug) => {
+                  // KLUCZOWA ZMIANA: Zapisujemy tylko nazwę miasta (sug.text) do formData.city
                   setMyCityAutocompleteValue(label); // Ustaw wartość wyświetlaną w input
                   setFormData(prev => ({
                     ...prev,
@@ -542,9 +541,11 @@ export default function UserProfileDashboard() {
                   <LocationAutocomplete
                     value={roadsideCityAutocompleteValue}
                     onSelectLocation={(label, sug) => {
+                      // KLUCZOWA ZMIANA: Zapisujemy tylko nazwę miasta (sug.text) do formData.roadside_city
+                      const cityText = sug.text || '';
                       setFormData(prev => ({ 
                         ...prev, 
-                        roadside_city: sug.text || '', // sug.text to nazwa miasta z Mapbox
+                        roadside_city: cityText, 
                         roadside_street: '', // Wyczyść ulicę, bo wybrano nowe miasto
                         roadside_number: '' // Wyczyść numer
                       }));
@@ -588,6 +589,7 @@ export default function UserProfileDashboard() {
                     placeholder="Wpisz ulicę"
                     className="form-input"
                     searchType="street"
+                    // KLUCZOWA ZMIANA: contextCity dla wyszukiwania ulicy to teraz tylko NAZWA MIASTA
                     contextCity={roadsideCityAutocompleteValue.split(',')[0].trim() || ''} 
                   />
                 </label>
