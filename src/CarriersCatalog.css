@@ -26,6 +26,15 @@
   align-items: flex-end; /* Wyrównaj elementy w dół */
 }
 
+/* Styl dla etykiet filtrów */
+.catalog-filters .filter-label { /* Dodano, aby objąć również label w dark mode */
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 5px; /* Odstęp od inputa */
+  flex-basis: 100%; /* Spraw, by label zawsze zajmował całą szerokość przed elementem */
+  text-align: left;
+}
+
 .catalog-filters .filter-input,
 .catalog-filters .filter-select {
   flex: 1 1 200px; /* Elastyczna szerokość, min 200px */
@@ -43,11 +52,7 @@
   box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
 }
 
-.catalog-filters label {
-  font-weight: bold;
-  color: #444;
-  margin-bottom: 5px; /* Odstęp od inputa */
-}
+/* Usunięto zduplikowane catalog-filters label */
 
 .catalog-filters .autocomplete-container { /* Styl dla LocationAutocomplete */
     width: auto; /* Domyślnie dopasowuje się do flex: 1 1 200px */
@@ -228,12 +233,22 @@
 
 /* Dostosowanie dla trybu ciemnego */
 @media (prefers-color-scheme: dark) {
+  /* Globalne tło dla całej aplikacji, jeśli nie ustawione w App.css/index.css */
+  body {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+  }
+
   .carriers-catalog-container h1 {
     color: #f0f0f0;
   }
   .catalog-filters {
     background-color: #333;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  /* Nowy styl dla etykiet filtrów w dark mode */
+  .catalog-filters .filter-label {
+    color: #ddd;
   }
   .catalog-filters .filter-input,
   .catalog-filters .filter-select,
@@ -252,7 +267,8 @@
     border-color: #ff6f00;
     box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.4);
   }
-  .catalog-filters label, .service-type-filters .checkbox-label {
+  /* Usunięto zduplikowane catalog-filters label, service-type-filters .checkbox-label */
+  .service-type-filters .checkbox-label {
     color: #ddd;
   }
   .catalog-filters .suggestions-list {
