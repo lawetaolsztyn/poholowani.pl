@@ -6,7 +6,7 @@ import LocationAutocomplete from './components/LocationAutocomplete';
 import RequestDetails from './components/RequestDetails';
 import './TransportNaJuz.css';
 import { supabase } from './supabaseClient';
-import { useParams, useNavigate } from 'react-router-dom'; // Dodano useParams, useNavigate
+import { useParams, useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 
 // Importy dla Mapy w formularzu
@@ -26,15 +26,15 @@ function FormMapCenterUpdater({ center }) {
   const map = useMap();
   useEffect(() => {
     if (center && center[0] != null && center[1] != null) {
-      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 10); // Lekko mniejszy zoom dla 50km
+      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 10);
     }
   }, [center, map]);
   return null;
 }
 
 export default function TransportNaJuz() {
-  const { requestId: urlRequestId } = useParams(); // PRZYWRÓCONO: Pobieramy requestId z URL
-  const navigate = useNavigate(); // Hook do nawigacji
+  const { requestId: urlRequestId } = useParams();
+  const navigate = useNavigate();
 
   const [showForm, setShowForm] = useState(false);
   const formRef = useRef(null);
@@ -93,6 +93,23 @@ export default function TransportNaJuz() {
     return distance; // Odległość w kilometrach
   };
 
+  // NOWA FUNKCJA: Generowanie linku nawigacyjnego
+  const generateNavigationLink = (lat, lng) => {
+    // Sprawdzenie, czy urządzenie jest mobilne (bardzo uproszczone)
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Dla urządzeń mobilnych preferujemy schemat URL 'geo:' lub 'maps:'
+      // Lepsze wsparcie dla iOS i Android
+      // lub bezpośrednio link do Google Maps z intencją nawigacji
+      return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      // Alternatywnie: `geo:${lat},${lng}?q=${lat},${lng}`
+    } else {
+      // Dla desktopów otwieramy w Google Maps
+      return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    }
+  };
+
 
   useEffect(() => {
     const fetchUrgentRequests = async () => {
@@ -121,20 +138,18 @@ export default function TransportNaJuz() {
 
     fetchUrgentRequests();
 
-    const interval = setInterval(fetchUrgentRequests, 60 * 1000); // Odświeżanie listy co minutę
+    const interval = setInterval(fetchUrgentRequests, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   // Efekt do zarządzania widokiem (formularz / szczegóły / lista) na podstawie URL
   useEffect(() => {
     if (urlRequestId) {
-      // Jeśli ID zgłoszenia jest w URL, pokaż szczegóły
       setShowForm(false);
     } else {
-      // Jeśli ID zgłoszenia nie ma w URL, schowaj szczegóły i formularz (pokaż listę)
       setShowForm(false);
     }
-  }, [urlRequestId]); // Reaguj na zmiany w ID zgłoszenia w URL
+  }, [urlRequestId]);
 
   // NOWY EFFECT: Pobieranie pobliskich pomocy drogowych do formularza
   useEffect(() => {
@@ -179,7 +194,7 @@ export default function TransportNaJuz() {
     };
 
     findNearbyRoadsideAssistance();
-  }, [locationFromCoords.latitude, locationFromCoords.longitude]); // Reaguj na zmiany lokalizacji 'Skąd'
+  }, [locationFromCoords.latitude, locationFromCoords.longitude]);
 
   const handleGetMyLocation = async () => {
     setGettingLocation(true);
@@ -192,7 +207,6 @@ export default function TransportNaJuz() {
 
           try {
             const response = await fetch(
-              // ZMIANA TUTAJ: Zmieniono VITE_MAPBOX_API_KEY na VITE_MAPBOX_TOKEN
               `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&types=place,address,poi,postcode,locality`
             );
             const data = await response.json();
@@ -452,7 +466,7 @@ export default function TransportNaJuz() {
                 {/* Sekcja Mapy w formularzu - POKAZUJE SIĘ, GDY LOKALIZACJA JEST DOSTĘPNA */}
                 {locationFromCoords.latitude && locationFromCoords.longitude && userLocationIcon && roadsideIcon ? (
                   <div className="map-in-form-container"> {/* Nowa klasa do stylów */}
-                        <h3>Pomoc drogowa w pobliżu ({locationFromCoords.latitude.toFixed(4)}, {locationFromCoords.longitude.toFixed(4)})</h3>
+                    <h3>Pomoc drogowa w pobliżu ({locationFromCoords.latitude.toFixed(4)}, {locationFromCoords.longitude.toFixed(4)})</h3>
                     {loadingRoadsideInForm && <p>Ładowanie pobliskiej pomocy drogowej...</p>}
                     
                     <MapContainer center={[locationFromCoords.latitude, locationFromCoords.longitude]} zoom={10} className="form-map" gestureHandling={true}>
@@ -479,22 +493,40 @@ export default function TransportNaJuz() {
                                 <strong>{rs.company_name || 'Pomoc Drogowa'}</strong><br/>
                                 {rs.roadside_city}, {rs.roadside_street} {rs.roadside_number}<br/>
                                 {rs.roadside_phone && <a href={`tel:${rs.roadside_phone}`}>{rs.roadside_phone}</a>}<br/>
-                                {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}
+                                {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}<br/>
+                                {/* NOWY PRZYCISK: Prowadź do lokalizacji */}
+                                {request && request.location_from_lat && request.location_from_lng && ( // Upewnij się, że lokalizacja zgłoszenia jest znana
+                                  <a 
+                                    href={generateNavigationLink(rs.latitude, rs.longitude, locationFromCoords.latitude, locationFromCoords.longitude)}
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="btn-navigate" // Dodamy styl dla tego przycisku
+                                    style={{marginTop: '10px', display: 'block', backgroundColor: '#007bff', color: 'white', padding: '5px 10px', borderRadius: '4px', textDecoration: 'none', textAlign: 'center'}}
+                                  >
+                                    Prowadź do tej lokalizacji
+                                  </a>
+                                )}
                               </Popup>
                             </Marker>
                           )
                         ))
                       ) : (
-                        !loadingRoadsideInForm && <div className="map-info-overlay-small">Brak pobliskich pomocy drogowej (do 50 km).</div>
+                        // USUNIĘTO: Nakładkę zasłaniającą mapę, gdy brak pomocy drogowej
+                        // Zamiast tego komunikat będzie poniżej mapy lub w innym miejscu, jeśli wolisz.
+                        null
                       )}
                     </MapContainer>
+                     {/* Komunikat o braku pomocy drogowej pod mapą */}
+                    {!loadingRoadsideInForm && nearbyRoadsideAssistanceInForm.length === 0 && (
+                        <p className="map-info-message">Brak pobliskich pomocy drogowej (do 50 km).</p>
+                    )}
                   </div>
                 ) : (
                   // Komunikat, gdy lokalizacja nie jest jeszcze określona
                   <div className="map-placeholder">
- {console.log("Mapa nie jest renderowana. Koordynaty:", locationFromCoords)} {/* DODAJ TO */}
-    {console.log("Błąd lokalizacji:", locationError)} {/* DODAJ TO */}
-                        {locationError ? <p className="error-message">{locationError}</p> : <p>Określ lokalizację "Skąd", aby zobaczyć pobliskie pomoce drogowe.</p>}
+                    {console.log("Mapa nie jest renderowana. Koordynaty:", locationFromCoords)} 
+                    {console.log("Błąd lokalizacji:", locationError)} 
+                    {locationError ? <p className="error-message">{locationError}</p> : <p>Określ lokalizację "Skąd", aby zobaczyć pobliskie pomoce drogowe.</p>}
                   </div>
                 )}
 
