@@ -35,8 +35,6 @@ export default function CarriersCatalog() {
 
   // Stany dla filtrów (usunięto searchName)
   const [selectedProvince, setSelectedProvince] = useState('Cała Polska');
-  const [selectedCityLabel, setSelectedCityLabel] = useState('');
-  const [selectedCityCoords, setSelectedCityCoords] = useState(null); 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState([]);
 
 
