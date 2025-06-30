@@ -8,12 +8,15 @@ import './RequestDetails.css';
 import 'leaflet/dist/leaflet.css'; 
 
 // Konfiguracja domyślnych ikon Leaflet
+// To jest ważne, aby Leaflet prawidłowo inicjalizował obrazy ikon.
+// Usuwa domyślny sposób, w jaki Leaflet próbuje znaleźć swoje ikony.
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
+
 
 // Komponent do centrowania mapy na markerze
 function MapCenterUpdater({ center }) {
@@ -26,7 +29,7 @@ function MapCenterUpdater({ center }) {
   return null;
 }
 
-// NOWA FUNKCJA: Generowanie linku nawigacyjnego (do celu)
+// Funkcja: Generowanie linku nawigacyjnego
 const generateNavigationLink = (destLat, destLng, currentLat = null, currentLng = null) => {
   // Dla najlepszej kompatybilności na różnych urządzeniach (telefony i desktop)
   // Standardowy format dla Google Maps, dobrze obsługiwany przez większość urządzeń mobilnych
@@ -46,6 +49,11 @@ export default function RequestDetails({ requestId, onBackToList }) {
   const [loadingDetails, setLoadingDetails] = useState(true);
   const [loadingRoadside, setLoadingRoadside] = useState(false);
 
+  // ZMIENIONO: Przeniesienie deklaracji stanu currentLocation na początek komponentu,
+  // aby zapewnić stałą kolejność wywołań hooków.
+  const [currentLocation, setCurrentLocation] = useState(null); 
+
+  // UseMemo dla ikon - zawsze na najwyższym poziomie komponentu
   const requestIcon = useMemo(() => {
     console.log("DEBUG: Tworzenie requestIcon...");
     return new L.Icon({
@@ -66,8 +74,36 @@ export default function RequestDetails({ requestId, onBackToList }) {
     });
   }, []);
 
-
+  // UseEffect do pobierania bieżącej lokalizacji użytkownika, również na początku
   useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.warn("Błąd pobierania bieżącej lokalizacji dla nawigacji:", error.message);
+          setCurrentLocation(null);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    } else {
+      console.warn("Przeglądarka nie wspiera geolokalizacji. Nawigacja 'od siebie' może być ograniczona.");
+      setCurrentLocation(null);
+    }
+  }, []); // Pusta tablica zależności, uruchamiana raz
+
+  // Główny useEffect do pobierania danych zgłoszenia i pomocy drogowej
+  useEffect(() => {
+    // Sprawdzamy, czy requestIcon i towIcon są zainicjalizowane.
+    // Chociaż useMemo je tworzy, użycie ich w renderze MapContainera
+    // i Markerów gwarantuje, że są gotowe. Tutaj używamy ich po prostu jako markery.
+    if (!requestIcon || !towIcon) {
+      // Możesz dodać logowanie, jeśli to jest problemem
+      // console.log("Czekam na inicjalizację ikon dla fetchDetailsAndRoadside.");
+      return; 
+    }
+
     const fetchDetailsAndRoadside = async () => {
       setLoadingDetails(true);
       setRequest(null); 
@@ -123,7 +159,8 @@ export default function RequestDetails({ requestId, onBackToList }) {
     if (requestId) { 
       fetchDetailsAndRoadside();
     }
-  }, [requestId]);
+  }, [requestId, requestIcon, towIcon]); // Dodano requestIcon i towIcon do zależności, aby upewnić się, że fetchDetailsAndRoadside uruchomi się, gdy ikony są gotowe.
+
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Promień Ziemi w kilometrach
@@ -157,24 +194,6 @@ export default function RequestDetails({ requestId, onBackToList }) {
     ? [request.location_from_lat, request.location_from_lng]
     : null;
 
-  // Pobierz bieżącą lokalizację użytkownika (jeśli dostępna, dla nawigacji 'od siebie')
-  const [currentLocation, setCurrentLocation] = useState(null);
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation([position.coords.latitude, position.coords.longitude]);
-        },
-        (error) => {
-          console.warn("Błąd pobierania bieżącej lokalizacji dla nawigacji:", error.message);
-          setCurrentLocation(null);
-        },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-      );
-    }
-  }, []);
-
-
   return (
     <div className="request-details-section">
       <h2>Szczegóły zgłoszenia</h2>
@@ -191,6 +210,7 @@ export default function RequestDetails({ requestId, onBackToList }) {
         )}
       </div>
 
+      {/* Renderuj mapę tylko wtedy, gdy requestPosition i ikony są zdefiniowane przez useMemo */}
       {requestPosition && requestIcon && towIcon ? ( 
         <div className="map-container">
           <MapContainer center={requestPosition} zoom={13} className="request-map" gestureHandling={true}>
@@ -215,14 +235,13 @@ export default function RequestDetails({ requestId, onBackToList }) {
                       {rs.roadside_city}, {rs.roadside_street} {rs.roadside_number}<br/>
                       {rs.roadside_phone && <a href={`tel:${rs.roadside_phone}`}>{rs.roadside_phone}</a>}<br/>
                       {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}<br/>
-                      {/* Link do nawigacji w Pop-upie (opcjonalny, jeśli chcesz dać dwie opcje nawigacji) */}
+                      {/* Link do nawigacji w Pop-upie (dla konkretnej Pomocy Drogowej) */}
                       {rs.latitude && rs.longitude && (
                         <a 
                           href={generateNavigationLink(rs.latitude, rs.longitude, currentLocation?.[0], currentLocation?.[1])}
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="btn-navigate-popup" // Inna klasa dla linku w popupie
-                          style={{marginTop: '10px', display: 'block', backgroundColor: '#6c757d', color: 'white', padding: '5px 10px', borderRadius: '4px', textDecoration: 'none', textAlign: 'center', fontSize: '0.85em'}}
+                          className="btn-navigate-popup" 
                         >
                           Nawiguj do tej Pomocy
                         </a>
@@ -243,11 +262,11 @@ export default function RequestDetails({ requestId, onBackToList }) {
         <p className="no-coords-message">Brak koordynatów dla tego zgłoszenia, lub błąd ładowania mapy/ikon. Mapa niedostępna.</p>
       )}
 
-      {/* KLUCZOWA ZMIANA: DUŻY CZERWONY PRZYCISK NAWIGACJI POD MAPĄ */}
+      {/* DUŻY CZERWONY PRZYCISK NAWIGACJI DO MIEJSCA ZGŁOSZENIA */}
       {requestPosition && (
         <button 
           onClick={() => window.open(generateNavigationLink(requestPosition[0], requestPosition[1], currentLocation?.[0], currentLocation?.[1]), '_blank')}
-          className="btn-navigate-main" // Nowa klasa do stylizacji
+          className="btn-navigate-main" 
         >
           NAWIGUJ DO MIEJSCA ZGŁOSZENIA
         </button>
