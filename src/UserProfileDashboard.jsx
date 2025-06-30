@@ -255,25 +255,30 @@ export default function UserProfileDashboard() {
         if (mySelectedCitySuggestion && mySelectedCitySuggestion.context) {
             // Szukamy elementu contextu, który jest typu 'region' lub 'province' (Mapbox może używać obu)
             let regionContext = null;
-let extractedProvinceName = ''; // ✅ deklaracja wcześniej
+let extractedProvinceName = '';
 
 if (mySelectedCitySuggestion?.context) {
   regionContext = mySelectedCitySuggestion.context.find(c =>
     (c.id?.startsWith('region.') || c.id?.startsWith('province.')) ||
     (c.place_type && (c.place_type.includes('region') || c.place_type.includes('province')))
   );
-  extractedProvinceName = regionContext ? cleanProvinceName(regionContext.text) : '';
+
+  if (regionContext?.text) {
+    extractedProvinceName = cleanProvinceName(regionContext.text);
+  }
 }
 
-// Fallback po nazwie województwa w place_name
+// Fallback: jeśli nadal nie ustalono województwa, spróbuj po `place_name`
 if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
   for (const province of provinces) {
     if (mySelectedCitySuggestion.place_name.toLowerCase().includes(province.toLowerCase())) {
       extractedProvinceName = province;
+      console.log('DEBUG: Fallback wykrył województwo z place_name:', extractedProvinceName);
       break;
     }
   }
 }
+
 
             
             if (extractedProvinceName && provinces.includes(extractedProvinceName)) { // Sprawdź czy to woj. z naszej listy
