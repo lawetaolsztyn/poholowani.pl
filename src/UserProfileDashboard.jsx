@@ -255,14 +255,15 @@ export default function UserProfileDashboard() {
         if (mySelectedCitySuggestion && mySelectedCitySuggestion.context) {
             // Szukamy elementu contextu, który jest typu 'region' lub 'province' (Mapbox może używać obu)
             let regionContext = null;
+let extractedProvinceName = ''; // ✅ deklaracja wcześniej
 
 if (mySelectedCitySuggestion?.context) {
   regionContext = mySelectedCitySuggestion.context.find(c =>
     (c.id?.startsWith('region.') || c.id?.startsWith('province.')) ||
     (c.place_type && (c.place_type.includes('region') || c.place_type.includes('province')))
   );
+  extractedProvinceName = regionContext ? cleanProvinceName(regionContext.text) : '';
 }
-
 
 // Fallback po nazwie województwa w place_name
 if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
