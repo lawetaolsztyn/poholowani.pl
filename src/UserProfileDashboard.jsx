@@ -12,15 +12,6 @@ const provinces = [
   'Wielkopolskie', 'Zachodniopomorskie'
 ];
 
-// NOWA FUNKCJA POMOCNICZA: Czyści nazwę województwa
-const cleanProvinceName = (name) => {
-    if (!name) return '';
-    return name
-        .replace(/województwo /i, '') // Usuń "województwo " (case-insensitive)
-        .replace(/voivodeship/i, '') // Usuń "voivodeship" (case-insensitive)
-        .trim();
-};
-
 export default function UserProfileDashboard() {
   const [activeTab, setActiveTab] = useState('Moje dane');
   const [userData, setUserData] = useState(null);
@@ -113,9 +104,8 @@ export default function UserProfileDashboard() {
             setMySelectedCityCoords(null);
           }
 
-          // Nie możemy inicjalizować mySelectedCitySuggestion z fetchedData,
-          // bo fetchedData nie zawiera pełnego obiektu sugestii Mapbox.
-          // Zostawiamy go na null, zostanie ustawiony przy wyborze z autocomplete.
+          // mySelectedCitySuggestion nie będzie inicjalizowany z bazy,
+          // zostanie ustawiony, gdy użytkownik wybierze miasto z autocomplete.
 
           setIsPublicProfileAgreed(initialFormData.is_public_profile_agreed);
           setIsRoadsideAssistanceAgreed(initialFormData.is_roadside_assistance_agreed);
@@ -170,6 +160,15 @@ export default function UserProfileDashboard() {
         setSaving(false);
         return;
     }
+    
+    // Walidacja województwa (jeśli jest to zakładka "Moje dane")
+    if (activeTab === 'Moje dane' && !formData.province) {
+        setMessage("❗Województwo jest wymagane.");
+        setSaving(false);
+        setTimeout(() => setMessage(''), 3000);
+        return;
+    }
+
 
     let updatedFormData = { ...formData }; 
 
@@ -195,7 +194,6 @@ export default function UserProfileDashboard() {
                 updatedFormData = { ...updatedFormData, longitude: null, latitude: null };
             } else {
                 try {
-                    // Używamy VITE_MAPBOX_TOKEN dla spójności
                     const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fullAddressToGeocode)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL`);
                     const json = await response.json();
                     const coords = json?.features?.[0]?.center;
@@ -218,7 +216,7 @@ export default function UserProfileDashboard() {
         }
     }
     
-    // NOWA LOGIKA: Geokodowanie dla Miasta w "Moje dane" i ustalenie województwa
+    // NOWA LOGIKA: Geokodowanie dla Miasta w "Moje dane" (tylko koordynaty, województwo jest wyborem)
     if (activeTab === 'Moje dane' && myCityAutocompleteValue) { 
         // Koordynaty i nazwa miasta są już ustawione z LocationAutocomplete
         if (mySelectedCityCoords.latitude != null && mySelectedCityCoords.longitude != null) {
@@ -250,68 +248,9 @@ export default function UserProfileDashboard() {
                 updatedFormData.longitude = null;
             }
         }
-
-        // KLUCZOWA ZMIANA: Pobierz województwo z zapisanego obiektu sugestii mySelectedCitySuggestion
-        if (mySelectedCitySuggestion && mySelectedCitySuggestion.context) {
-            // Szukamy elementu contextu, który jest typu 'region' lub 'province' (Mapbox może używać obu)
-            let regionContext = null;
-let extractedProvinceName = '';
-
-if (mySelectedCitySuggestion?.context) {
-  regionContext = mySelectedCitySuggestion.context.find(c =>
-    (c.id?.startsWith('region.') || c.id?.startsWith('province.')) ||
-    (c.place_type && (c.place_type.includes('region') || c.place_type.includes('province')))
-  );
-
-  if (regionContext?.text) {
-    extractedProvinceName = cleanProvinceName(regionContext.text);
-  }
-}
-
-// Fallback: jeśli nadal nie ustalono województwa, spróbuj po `place_name`
-if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
-  for (const province of provinces) {
-    if (mySelectedCitySuggestion.place_name.toLowerCase().includes(province.toLowerCase())) {
-      extractedProvinceName = province;
-      console.log('DEBUG: Fallback wykrył województwo z place_name:', extractedProvinceName);
-      break;
-    }
-  }
-}
-
-
-            
-            if (extractedProvinceName && provinces.includes(extractedProvinceName)) { // Sprawdź czy to woj. z naszej listy
-                updatedFormData.province = extractedProvinceName;
-                console.log('DEBUG: Ustalono województwo dla miasta głównego z sugestii:', extractedProvinceName);
-            } else {
-                updatedFormData.province = ''; 
-                console.warn('DEBUG: Nie udało się ustalić województwa z sugestii Mapbox:', mySelectedCitySuggestion);
-            }
-        } else {
-            // Fallback: jeśli mySelectedCitySuggestion jest null (np. przy ładowaniu strony), spróbuj pobrać po nazwie
-            try {
-                const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue.split(',')[0].trim())}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
-                const json = await response.json();
-                const feature = json?.features?.[0];
-                if (feature) {
-                    const contextProvince = feature.context?.find(c => c.place_type && (c.place_type.includes('region') || c.place_type.includes('province')) )?.text; // Używamy place_type 'region'
-                    let cleanedFallbackProvince = contextProvince ? cleanProvinceName(contextProvince) : '';
-                    if (cleanedFallbackProvince && provinces.includes(cleanedFallbackProvince)) { 
-                        updatedFormData.province = cleanedFallbackProvince;
-                        console.log('DEBUG: Ustalono województwo dla miasta głównego (fallback):', cleanedFallbackProvince);
-                    } else {
-                        updatedFormData.province = '';
-                        console.warn('DEBUG: Nie udało się ustalić województwa dla miasta głównego (fallback):', myCityAutocompleteValue);
-                    }
-                } else {
-                    updatedFormData.province = '';
-                }
-            } catch (err) {
-                console.error('Błąd pobierania województwa dla miasta głównego (fallback):', err.message);
-                updatedFormData.province = '';
-            }
-        }
+        // Województwo jest teraz wybierane przez użytkownika, więc nie pobieramy go z Mapboxa w handleSave
+        // myCityAutocompleteValue zawiera już czystą nazwę miasta
+        // updatedFormData.province jest aktualizowane przez handleChange z selecta
     }
 
 
@@ -438,7 +377,6 @@ if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
               <LocationAutocomplete
                 value={myCityAutocompleteValue}
                 onSelectLocation={(label, sug) => {
-                  // KLUCZOWA ZMIANA: Zapisujemy cały obiekt sugestii, aby mieć dostęp do kontekstu
                   setMyCityAutocompleteValue(label); // Ustaw wartość wyświetlaną w input
                   setMySelectedCitySuggestion(sug); // ZAPISUJEMY CAŁĄ SUGESJĘ
                   setFormData(prev => ({
@@ -456,6 +394,22 @@ if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
                 className="form-input"
                 searchType="city" // Szukaj tylko miast
               />
+            </label>
+            {/* DODANE POLE WYBORU WOJEWÓDZTWA */}
+            <label className="form-label">
+              Województwo:
+              <select
+                name="province"
+                value={formData.province || ''}
+                onChange={handleChange}
+                required // Uczynienie pola obowiązkowym
+                className="form-select"
+              >
+                <option value="">-- Wybierz województwo --</option>
+                {provinces.map(prov => (
+                  <option key={prov} value={prov}>{prov}</option>
+                ))}
+              </select>
             </label>
             {/* Pole Kod pocztowy pozostało jako zwykły input, jeśli nie jest częścią autocomplete */}
             <label className="form-label">
