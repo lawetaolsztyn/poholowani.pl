@@ -30,7 +30,8 @@ import { Routes, Route } from 'react-router-dom';
 import CookieWall from './components/CookieWall';
 import MessengerHelp from './MessengerHelp';
 import TablicaOgloszen from './TablicaOgloszen';
-import TransportNaJuz from './TransportNaJuz'; // Jeśli plik jest bezpośrednio w src
+import TransportNaJuz from './TransportNaJuz'; 
+import CarriersCatalog from './CarriersCatalog';
 
 console.log("✅ MAIN.JSX ŁADUJE SIĘ")
 
@@ -63,6 +64,8 @@ function App() {
           {/* Dwie trasy dla TransportNaJuz: jedna bazowa, druga ze szczegółami */}
           <Route path="/transport-na-juz" element={<TransportNaJuz />} />
           <Route path="/transport-na-juz/:requestId" element={<TransportNaJuz />} />
+          <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
+
 
         </Routes>
         <Footer />

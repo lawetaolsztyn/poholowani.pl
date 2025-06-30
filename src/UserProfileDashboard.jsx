@@ -5,6 +5,12 @@ import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
 import './UserProfileDashboard.css';
 import LocationAutocomplete from './components/LocationAutocomplete';
+const provinces = [
+  'Dolnośląskie', 'Kujawsko-Pomorskie', 'Lubelskie', 'Lubuskie',
+  'Łódzkie', 'Małopolskie', 'Mazowieckie', 'Opolskie', 'Podkarpackie',
+  'Podlaskie', 'Pomorskie', 'Śląskie', 'Świętokrzyskie', 'Warmińsko-Mazurskie',
+  'Wielkopolskie', 'Zachodniopomorskie'
+];
 
 export default function UserProfileDashboard() {
   const [activeTab, setActiveTab] = useState('Moje dane');
@@ -193,6 +199,37 @@ export default function UserProfileDashboard() {
         }
     }
 
+ if (activeTab === 'Moje dane' && mySelectedCityCoords.latitude != null && mySelectedCityCoords.longitude != null) {
+        updatedFormData = { 
+            ...updatedFormData, 
+            latitude: mySelectedCityCoords.latitude, 
+            longitude: mySelectedCityCoords.longitude,
+            city: myCityAutocompleteValue // Upewnij się, że miasto jest z autocomplete
+        };
+        // Pobierz województwo z kontekstu Mapboxa, jeśli zostało wybrane
+        // To wymagałoby, aby LocationAutocomplete zwracał cały obiekt `sug` przy onSelectLocation,
+        // a my wyodrębnilibyśmy `sug.context`
+        // Na razie zakładam, że `myCityAutocompleteValue` zawiera tylko miasto,
+        // a województwo spróbujemy pobrać z Mapboxa na podstawie tego miasta podczas zapisu
+        try {
+            const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue)}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}&language=pl&country=PL&types=place,locality`);
+            const json = await response.json();
+            const feature = json?.features?.[0];
+            if (feature) {
+                const contextProvince = feature.context?.find(c => c.id.startsWith('region.') || c.id.startsWith('province.'))?.text;
+                if (contextProvince && provinces.includes(contextProvince)) {
+                    updatedFormData.province = contextProvince;
+                    console.log('DEBUG: Ustalono województwo dla miasta głównego:', contextProvince);
+                } else {
+                    updatedFormData.province = ''; // Wyczyść, jeśli nie znaleziono
+                    console.warn('DEBUG: Nie udało się ustalić województwa dla miasta głównego:', myCityAutocompleteValue);
+                }
+            }
+        } catch (err) {
+            console.error('Błąd pobierania województwa dla miasta głównego:', err.message);
+            updatedFormData.province = '';
+        }
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();

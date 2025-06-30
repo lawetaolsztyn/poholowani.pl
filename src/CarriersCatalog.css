@@ -1,0 +1,303 @@
+/* src/CarriersCatalog.css */
+
+.carriers-catalog-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.carriers-catalog-container h1 {
+  font-size: 2.5em;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.catalog-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+  align-items: flex-end; /* Wyrównaj elementy w dół */
+}
+
+.catalog-filters .filter-input,
+.catalog-filters .filter-select {
+  flex: 1 1 200px; /* Elastyczna szerokość, min 200px */
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.catalog-filters .filter-input:focus,
+.catalog-filters .filter-select:focus {
+  border-color: #ff6f00;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
+}
+
+.catalog-filters label {
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 5px; /* Odstęp od inputa */
+}
+
+.catalog-filters .autocomplete-container { /* Styl dla LocationAutocomplete */
+    width: auto; /* Domyślnie dopasowuje się do flex: 1 1 200px */
+    flex: 1 1 200px;
+    margin-bottom: 0; /* Usuń margines dolny z domyślnego form-label */
+}
+
+.catalog-filters .autocomplete-input { /* Styl dla inputa w LocationAutocomplete */
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.catalog-filters .suggestions-list { /* Styl dla listy sugestii w autocompleterze */
+    position: absolute; /* Musi być absolute, aby nakładać się na inne elementy */
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: calc(100% - 2px); /* Szerokość inputa minus border */
+    z-index: 1000;
+    list-style: none;
+    padding: 0;
+    margin-top: 5px; /* Odstęp od inputa */
+}
+.catalog-filters .suggestions-list li {
+    padding: 10px 12px;
+    cursor: pointer;
+}
+.catalog-filters .suggestions-list li:hover {
+    background-color: #f0f0f0;
+}
+
+
+.service-type-filters {
+  flex-basis: 100%; /* Zajmuje całą szerokość na małych ekranach */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px; /* Odstęp od innych filtrów */
+}
+
+.service-type-filters .checkbox-label {
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+  color: #555;
+  cursor: pointer;
+  white-space: nowrap; /* Zapobiega zawijaniu etykiety */
+}
+
+.service-type-filters .checkbox-label input[type="checkbox"] {
+  margin-right: 8px;
+  transform: scale(1.1);
+}
+
+.catalog-results {
+  margin-top: 30px;
+}
+
+.carriers-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsywna siatka kart */
+  gap: 20px;
+}
+
+.carrier-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Rozciągnij zawartość, aby akcje były na dole */
+  min-height: 200px; /* Minimalna wysokość karty */
+  transition: all 0.2s ease-in-out;
+}
+
+.carrier-card:hover {
+  border-color: #ff6f00;
+  box-shadow: 0 4px 8px rgba(255, 111, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.carrier-card h3 {
+  font-size: 1.4em;
+  color: #333;
+  margin-bottom: 10px;
+  word-break: break-word; /* Złam długie nazwy */
+}
+
+.carrier-card p {
+  font-size: 0.95em;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.carrier-card .carrier-services span {
+    display: inline-block;
+    background-color: #e9ecef;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.carrier-contact {
+    margin-top: 10px;
+    font-size: 1em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.carrier-contact .phone-link {
+    text-decoration: none;
+    color: inherit;
+}
+.carrier-contact .phone-link:hover {
+    text-decoration: underline;
+}
+
+
+.carrier-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-around; /* Rozłóż przyciski równomiernie */
+  gap: 10px;
+}
+
+.btn-view-profile {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  flex: 1; /* Pozwól przyciskom się rozciągnąć */
+  text-align: center;
+}
+
+.btn-view-profile:hover {
+  background-color: #0056b3;
+}
+
+.loading-message, .error-message, .no-results-message {
+  text-align: center;
+  font-size: 1.2em;
+  color: #666;
+  padding: 50px;
+}
+
+.error-message {
+  color: #dc3545;
+}
+
+/* Responsywność dla filtrów na mniejszych ekranach */
+@media (max-width: 768px) {
+  .catalog-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .catalog-filters .filter-input,
+  .catalog-filters .filter-select,
+  .catalog-filters .autocomplete-container {
+    flex: 1 1 100%; /* Pełna szerokość */
+  }
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+  .carriers-catalog-container h1 {
+    color: #f0f0f0;
+  }
+  .catalog-filters {
+    background-color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .catalog-filters .filter-input,
+  .catalog-filters .filter-select,
+  .catalog-filters .autocomplete-input {
+    background-color: #444;
+    color: #eee;
+    border-color: #555;
+  }
+  .catalog-filters .filter-input::placeholder,
+  .catalog-filters .autocomplete-input::placeholder {
+    color: #bbb;
+  }
+  .catalog-filters .filter-input:focus,
+  .catalog-filters .filter-select:focus,
+  .catalog-filters .autocomplete-input:focus {
+    border-color: #ff6f00;
+    box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.4);
+  }
+  .catalog-filters label, .service-type-filters .checkbox-label {
+    color: #ddd;
+  }
+  .catalog-filters .suggestions-list {
+      background-color: #333;
+      border-color: #555;
+  }
+  .catalog-filters .suggestions-list li {
+      color: #eee;
+  }
+  .catalog-filters .suggestions-list li:hover {
+      background-color: #4a4a4a;
+  }
+
+  .carrier-card {
+    background-color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border-color: #555;
+  }
+  .carrier-card:hover {
+    border-color: #ff6f00;
+    box-shadow: 0 4px 8px rgba(255, 111, 0, 0.3);
+  }
+  .carrier-card h3 {
+    color: #f0f0f0;
+  }
+  .carrier-card p {
+    color: #ccc;
+  }
+  .carrier-card .carrier-services span {
+    background-color: #4a4a4a;
+    color: #eee;
+  }
+  .carrier-contact {
+    color: #88bbff;
+  }
+  .btn-view-profile {
+    background-color: #0056b3;
+  }
+  .btn-view-profile:hover {
+    background-color: #003d80;
+  }
+  .loading-message, .error-message, .no-results-message {
+    color: #ccc;
+  }
+  .error-message {
+    color: #ff8888;
+  }
+}

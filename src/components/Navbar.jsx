@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react'; // Dodajemy useState
+import { useEffect, useState } from 'react';
 import './Navbar.css';
 import { supabase } from '../supabaseClient';
 
@@ -8,8 +8,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [role, setRole] = useState(null);
   const [email, setEmail] = useState(null);
-  // NOWY STAN: do kontrolowania, czy menu mobilne jest otwarte
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); //
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
@@ -62,38 +61,45 @@ export default function Navbar() {
     }
   };
 
-  // NOWA FUNKCJA: Przełączanie stanu menu mobilnego
-  const toggleMobileMenu = () => { //
-    setIsMobileMenuOpen(!isMobileMenuOpen); //
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  // Funkcja do zamykania menu mobilnego po kliknięciu linku
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
 
   return (
     <nav className="navbar">
       {/* NOWY ELEMENT: Ikona hamburgera */}
-      <div className="hamburger-menu" onClick={toggleMobileMenu}> {/* */}
-        <div className="bar"></div> {/* */}
-        <div className="bar"></div> {/* */}
-        <div className="bar"></div> {/* */}
+      <div className="hamburger-menu" onClick={toggleMobileMenu}>
+        <div className="bar"></div>
+        <div className="bar"></div>
+        <div className="bar"></div>
       </div>
 
       {/* ZMIANA: Dodajemy klasę 'open' jeśli menu jest otwarte */}
-      <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}> {/* */}
+      <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="nav-left">
-          <Link to="/" className={isActive('/')} onClick={() => setIsMobileMenuOpen(false)}>Strona Główna</Link>
-          <Link to="/szukam" className={isActive('/szukam')} onClick={() => setIsMobileMenuOpen(false)}>Szukam Transportu</Link>
-          <Link to="/oferuje" className={isActive('/oferuje')} onClick={() => setIsMobileMenuOpen(false)}>Oferuję Transport</Link>
-<Link to="/tablica-ogloszen" className={isActive('/tablica-ogloszen')} onClick={() => setIsMobileMenuOpen(false)}>Tablica Ogłoszeń</Link>
-<Link to="/transport-na-juz" className={`${isActive('/transport-na-juz')} transport-na-juz-link`} // Dodana klasa
-          onClick={() => setIsMobileMenuOpen(false)}
-      >
-          Transport na Już!
-      </Link>               <Link to="/kontakt" className={isActive('/kontakt')} onClick={() => setIsMobileMenuOpen(false)}>Kontakt</Link>
+          <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>Strona Główna</Link>
+          <Link to="/szukam" className={isActive('/szukam')} onClick={closeMobileMenu}>Szukam Transportu</Link>
+          <Link to="/oferuje" className={isActive('/oferuje')} onClick={closeMobileMenu}>Oferuję Transport</Link>
+          <Link to="/tablica-ogloszen" className={isActive('/tablica-ogloszen')} onClick={closeMobileMenu}>Tablica Ogłoszeń</Link>
+          <Link to="/transport-na-juz" className={`${isActive('/transport-na-juz')} transport-na-juz-link`} onClick={closeMobileMenu}>
+            Transport na Już!
+          </Link>
+          {/* NOWA POZYCJA MENU: KATALOG PRZEWOŹNIKÓW */}
+          <Link to="/katalog-przewoznikow" className={isActive('/katalog-przewoznikow')} onClick={closeMobileMenu}>Katalog Przewoźników</Link>
+          {/* KONIEC NOWEJ POZYCJI MENU */}
+          <Link to="/kontakt" className={isActive('/kontakt')} onClick={closeMobileMenu}>Kontakt</Link>
 
           {email && (
             <>
-              <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={() => setIsMobileMenuOpen(false)}>Moje trasy</Link>
+              <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje trasy</Link>
               {email === 'lawetaolsztyn@gmail.com' && (
-                <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={() => setIsMobileMenuOpen(false)}>Admin</Link>
+                <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
               )}
             </>
           )}
@@ -102,8 +108,8 @@ export default function Navbar() {
         <div className="nav-right">
           {!email ? (
             <>
-              <Link to="/login" className={isActive('/login')} onClick={() => setIsMobileMenuOpen(false)}>Zaloguj</Link>
-              <Link to="/register" className={isActive('/register')} onClick={() => setIsMobileMenuOpen(false)}>Zarejestruj</Link>
+              <Link to="/login" className={isActive('/login')} onClick={closeMobileMenu}>Zaloguj</Link>
+              <Link to="/register" className={isActive('/register')} onClick={closeMobileMenu}>Zarejestruj</Link>
             </>
           ) : (
             <>
@@ -115,14 +121,14 @@ export default function Navbar() {
                   cursor: 'pointer',
                   textDecoration: 'underline'
                 }}
-                onClick={() => { navigate('/profil'); setIsMobileMenuOpen(false); }}
+                onClick={() => { navigate('/profil'); closeMobileMenu(); }} // Added closeMobileMenu
               >
                 🔒 {role === 'klient' ? 'Klient' :
        role === 'firma' ? 'Firma' :
        'Użytkownik'} ({email})
               </span>
               <button
-                onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                onClick={() => { handleLogout(); closeMobileMenu(); }} // Added closeMobileMenu
                 style={{
                   backgroundColor: '#dc3545',
                   color: 'white',
