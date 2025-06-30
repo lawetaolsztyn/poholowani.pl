@@ -52,7 +52,7 @@ export default function CarriersCatalog() {
             company_name,
             full_name,
             city,
-            province,           // DODANO: pobieranie kolumny province
+            province,           
             street,
             building_number,
             phone,
