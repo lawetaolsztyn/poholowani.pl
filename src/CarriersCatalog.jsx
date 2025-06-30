@@ -5,7 +5,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { supabase } from './supabaseClient';
 import './CarriersCatalog.css';
-import LocationAutocomplete from './components/LocationAutocomplete'; 
+// LocationAutocomplete jest już niepotrzebny, bo nie filtrujemy po mieście jako osobnym input
+// import LocationAutocomplete from './components/LocationAutocomplete'; 
 
 // Opcje typów pojazdów/usług dla filtrowania (możesz dostosować)
 const serviceTypeOptions = [
@@ -33,7 +34,7 @@ export default function CarriersCatalog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Stany dla filtrów (usunięto searchName)
+  // Stany dla filtrów (bez searchName i cityAutocomplete)
   const [selectedProvince, setSelectedProvince] = useState('Cała Polska');
   const [selectedServiceTypes, setSelectedServiceTypes] = useState([]);
 
@@ -71,57 +72,27 @@ export default function CarriersCatalog() {
           .in('role', ['firma', 'klient'])
           .or('is_public_profile_agreed.eq.true,is_roadside_assistance_agreed.eq.true'); 
 
-        // Filtrowanie po województwie (TERAZ Z KOLUMNY 'province')
+        // Filtrowanie po województwie
         if (selectedProvince && selectedProvince !== 'Cała Polska') {
             query = query.eq('province', selectedProvince);
         }
         
-        // Filtrowanie po mieście
-        if (selectedCityLabel) {
-            query = query.ilike('city', `%${selectedCityLabel}%`); // Używamy ilike dla elastyczności
-            // Można też dodać: .ilike('roadside_city', `%${selectedCityLabel}%`)
-        }
-
-        // Filtrowanie po typach usług
-        if (selectedServiceTypes.length > 0) {
-            const serviceFilters = selectedServiceTypes.map(type => {
-                if (type === 'pomoc_drogowa') {
-                    return `(is_pomoc_drogowa.eq.true,is_roadside_assistance_agreed.eq.true)`;
-                }
-                // Jeśli fleet_flags to array w bazie, możesz użyć operatora 'contains' (@>).
-                // Np. `fleet_flags.cs.{${type}}` - to wymaga, aby kolumna fleet_flags była typu text[]
-                return null; 
-            }).filter(Boolean);
-            
-            if (serviceFilters.length > 0) {
-                // Skomponuj warunek OR dla wielu typów usług
-                const orConditions = serviceFilters.join(',');
-                query = query.or(orConditions);
-                
-                // UWAGA: Filtrowanie fleet_flags przez API jest bardziej złożone. 
-                // Jeśli fleet_flags jest JSON stringiem lub text[], to trzeba użyć odpowiedniego operatora Supabase.
-                // Na razie, jeśli fleet_flags to text[], dla innych typów niż pomoc_drogowa,
-                // musiałbyś dopisać logikę dla każdego typu (np. .contains('fleet_flags', [type]))
-                // Bardziej elastyczne byłoby filtrowanie po stronie klienta dla fleet_flags, 
-                // lub dedykowane kolumny dla każdego typu pojazdu, albo bardziej zaawansowany filtr.
-            }
-        }
+        // Usunięto filtrowanie po nazwie tekstowej i po mieście jako input (teraz tylko province)
 
 
         const { data, error: fetchError } = await query.order('company_name', { ascending: true });
 
         if (fetchError) throw fetchError;
 
-        // FILTROWANIE PO STRONIE KLIENTA DLA FLEET_FLAGS (tymczasowo lub dla złożonych zapytań)
+        // FILTROWANIE PO STRONIE KLIENTA DLA FLEET_FLAGS
         const finalCarriers = data.filter(carrier => {
-            if (selectedServiceTypes.length === 0) return true; // Jeśli brak wybranych typów, pokaż wszystkich
+            if (selectedServiceTypes.length === 0) return true; // Jeśli brak wybranych typów usług, pokaż wszystkich
 
-            // Sprawdź, czy którykolwiek z wybranych typów pasuje
             return selectedServiceTypes.some(selectedType => {
                 if (selectedType === 'pomoc_drogowa') {
                     return carrier.is_pomoc_drogowa && carrier.is_roadside_assistance_agreed;
                 }
-                // Jeśli fleet_flags to string JSON, parsowanie
+                // Parsowanie fleet_flags (jeśli to string JSON) i sprawdzenie, czy zawiera wybrany typ
                 let carrierFleetFlags = carrier.fleet_flags;
                 if (typeof carrierFleetFlags === 'string') {
                     try { carrierFleetFlags = JSON.parse(carrierFleetFlags); } catch { carrierFleetFlags = []; }
@@ -129,7 +100,6 @@ export default function CarriersCatalog() {
                 if (!Array.isArray(carrierFleetFlags)) {
                     carrierFleetFlags = [];
                 }
-                // Sprawdź, czy wybrany typ jest w fleet_flags przewoźnika
                 return carrierFleetFlags.includes(selectedType);
             });
         });
@@ -145,11 +115,11 @@ export default function CarriersCatalog() {
 
     const timeoutId = setTimeout(() => {
         fetchCarriers();
-    }, 300);
+    }, 300); // Debounce, aby nie wysyłać zapytań przy każdej zmianie
 
     return () => clearTimeout(timeoutId);
 
-  }, [selectedProvince, selectedCityLabel, selectedServiceTypes]); // Zależności dla useEffect
+  }, [selectedProvince, selectedServiceTypes]); // Zależności dla useEffect (już bez searchName, selectedCityLabel/Coords)
 
   const handleServiceTypeChange = (e) => {
     const { value, checked } = e.target;
@@ -158,12 +128,10 @@ export default function CarriersCatalog() {
     );
   };
 
-// Funkcja pomocnicza do pobierania ikony pojazdu/usługi
-const getServiceIcon = (type) => {
-  // Zwracamy pusty string, aby nie wyświetlać żadnej ikony.
-  // Wcześniejsze emoji zostały usunięte.
-  return ''; 
-};
+  // Funkcja pomocnicza do pobierania ikony pojazdu/usługi (zwraca pusty string)
+  const getServiceIcon = (type) => {
+    return ''; // Usuwamy ikony, zwracamy pusty string
+  };
 
 
   return (
@@ -174,15 +142,14 @@ const getServiceIcon = (type) => {
 
         {/* Sekcja Filtrów */}
         <div className="catalog-filters">
-          {/* Usunięto pole wyszukiwania tekstowego */}
-          {/* Usunięto pole "Wpisz miasto" (jako osobny input) */}
+          {/* USUNIĘTO: Pole "Szukaj po nazwie firmy/przewoźnika" */}
+          {/* USUNIĘTO: Pole "Filtruj po mieście" (LocationAutocomplete) */}
 
+          <label className="filter-label">Województwo:</label>
           <select
             value={selectedProvince}
             onChange={(e) => {
               setSelectedProvince(e.target.value);
-              setSelectedCityLabel(''); // Wyczyść miasto, gdy zmieniasz województwo
-              setSelectedCityCoords(null);
             }}
             className="filter-select"
           >
@@ -191,9 +158,8 @@ const getServiceIcon = (type) => {
             ))}
           </select>
 
-          
-
           <div className="service-type-filters">
+            <label className="filter-label full-width">Typy usług:</label>
             {serviceTypeOptions.map(option => (
               <label key={option.value} className="checkbox-label">
                 <input
@@ -206,6 +172,8 @@ const getServiceIcon = (type) => {
               </label>
             ))}
           </div>
+
+          {/* Na razie brak przycisków "Szukaj" i "Wyczyść", bo filtry są debounce'owane */}
         </div>
 
         {/* Sekcja Wyników */}
@@ -220,23 +188,25 @@ const getServiceIcon = (type) => {
                 <div key={carrier.id} className="carrier-card">
                   <h3>{carrier.company_name || carrier.full_name || 'Brak nazwy'}</h3>
                   <p>
-                    <strong>Lokalizacja:</strong> {carrier.city} {carrier.street && `, ${carrier.street} ${carrier.building_number}`}
+                    <strong>Lokalizacja:</strong> {carrier.city}
+                    {carrier.street && `, ${carrier.street} ${carrier.building_number}`}
                     {carrier.roadside_city && carrier.roadside_city !== carrier.city && (
                         <span> (Pomoc Drogowa: {carrier.roadside_city})</span>
                     )}
                     {carrier.province && ` (${carrier.province})`} {/* WYŚWIETLANIE WOJEWÓDZTWA */}
                   </p>
                   <p className="carrier-services">
+                    {/* getServiceIcon() teraz zwraca pusty string, więc wyświetla się tylko tekst */}
                     {carrier.is_pomoc_drogowa && carrier.is_roadside_assistance_agreed && (
-                        <span>{getServiceIcon('pomoc_drogowa')} Pomoc Drogowa </span>
+                        <span>{getServiceIcon('pomoc_drogowa')}Pomoc Drogowa </span>
                     )}
-                    {carrier.fleet_flags && typeof carrier.fleet_flags === 'string' ? ( // Sprawdź, czy fleet_flags to string JSON
+                    {carrier.fleet_flags && typeof carrier.fleet_flags === 'string' ? ( 
                         JSON.parse(carrier.fleet_flags).map((flag, index) => (
-                            <span key={index}>{getServiceIcon(flag)} {flag} </span>
+                            <span key={index}>{getServiceIcon(flag)}{flag} </span> 
                         ))
                     ) : (
-                        Array.isArray(carrier.fleet_flags) && carrier.fleet_flags.map((flag, index) => ( // Jeśli to już array
-                            <span key={index}>{getServiceIcon(flag)} {flag} </span>
+                        Array.isArray(carrier.fleet_flags) && carrier.fleet_flags.map((flag, index) => (
+                            <span key={index}>{getServiceIcon(flag)}{flag} </span>
                         ))
                     )}
                   </p>
