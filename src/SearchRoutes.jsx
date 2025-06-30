@@ -923,10 +923,10 @@ const workerUrl = `https://map-api-proxy.lawetaolsztyn.workers.dev/api/routes?${
         {/* Nowe elementy legendy */}
         <div style={{ marginTop: '10px', fontWeight: 'bold' }}>Pola wyszukiwania:</div>
         <div>
-            <span>Skąd, Dokąd - <span style={{ fontWeight: 'normal', color: 'green' }}>obowiązkowe</span></span>
+            <span>Skąd,Dokąd - <span style={{ fontWeight: 'normal', color: 'green' }}>obowiązkowe</span></span>
         </div>
         <div>
-            <span>Typ pojazdu, Data - <span style={{ fontWeight: 'normal', color: 'orange' }}>opcjonalne</span></span>
+            <span>Typ pojazdu,Data - <span style={{ fontWeight: 'normal', color: 'orange' }}>opcja</span></span>
         </div>
     </div>
                             )}
