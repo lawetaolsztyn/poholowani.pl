@@ -48,7 +48,7 @@ export default function LocationAutocomplete({
   let typesParam = '';
   let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
     sanitizedText
-  )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en&country=PL`;
+  )}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=5&language=pl,en`;
 
   if (searchType === 'city') {
     typesParam = 'place,postcode';
