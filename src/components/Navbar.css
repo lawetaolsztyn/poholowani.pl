@@ -2,23 +2,23 @@
   display: flex;
   justify-content: space-between;
   background-color: #1a2a40; /* Ciemny granat */
-  color: white;
+  color: white; /* Tekst nawigacji domyślnie biały */
   padding: 1rem 2rem;
   position: sticky;
   top: 0;
   z-index: 2000;
-  align-items: center; /* Dodane, aby zawartość była wyśrodkowana pionowo */
+  align-items: center;
 }
 
 .navbar a {
-  color: white;
+  color: white; /* Upewnij się, że linki są białe */
   margin-right: 1.5rem;
   text-decoration: none;
   font-weight: 500;
   padding: 0.5rem 1rem;
   border-radius: 5px;
   transition: background-color 0.3s;
-  white-space: nowrap; /* Zapobiega łamaniu się linków na dwie linie */
+  white-space: nowrap;
 }
 
 .navbar a:hover {
@@ -30,34 +30,32 @@
   color: white;
 }
   
-/* NAPRAWIONO: Przywrócono pierwotne zachowanie dla dużych ekranów */
 .nav-links {
-  display: flex; /* Pozostał flex */
-  flex-grow: 1; /* Pozwoli na rozciąganie */
-  justify-content: space-between; /* To spowoduje, że nav-left będzie po lewej, nav-right po prawej */
-  align-items: center; /* Wyśrodkowanie pionowe */
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-between;
+  align-items: center;
   transition: all 0.3s ease-in-out;
 }
 
 .nav-left {
-  display: flex; /* Ustawiamy z powrotem flex */
+  display: flex;
   align-items: center;
 }
 
 .nav-right {
-  display: flex; /* Ustawiamy z powrotem flex */
+  display: flex;
   align-items: center;
 }
 
-/* NOWE STYLE DLA MENU HAMBURGEROWEGO (pozostały bez zmian) */
 .hamburger-menu {
-  display: none; /* Domyślnie ukryty na dużych ekranach */
+  display: none;
   flex-direction: column;
   justify-content: space-around;
-  width: 30px; /* Szerokość ikony */
-  height: 25px; /* Wysokość ikony */
+  width: 30px;
+  height: 25px;
   cursor: pointer;
-  z-index: 2001; /* Upewnij się, że jest nad menu */
+  z-index: 2001;
 }
 
 .hamburger-menu .bar {
@@ -65,75 +63,72 @@
   height: 3px;
   background-color: white;
   border-radius: 5px;
-  transition: all 0.3s ease; /* Animacja dla kresek */
+  transition: all 0.3s ease;
 }
 
 
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: row; /* Zmieniamy z powrotem na row, aby ikona hamburgera była obok loga/tytułu */
-    justify-content: space-between; /* Hamburger po jednej stronie, może logo po drugiej */
-    align-items: center; /* Wyśrodkowanie pionowe */
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     padding: 1rem;
   }
 
   .hamburger-menu {
-    display: flex; /* Pokaż ikonę hamburgera na małych ekranach */
-    order: 2; /* Ustaw kolejność, np. po prawej stronie */
+    display: flex;
+    order: 2;
   }
 
-  /* Ukryj normalne linki nawigacyjne i ustaw je w kolumnie */
   .nav-links {
-    position: absolute; /* Pozycjonowanie absolutne, aby wysuwało się z góry */
-    top: 100%; /* Rozpoczyna się tuż pod navbar'em */
+    position: absolute;
+    top: 100%;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, #43cea2, #185a9d); /* Ten sam kolor tła */
-    flex-direction: column; /* Ułóż linki jeden pod drugim */
-    height: 0; /* Domyślna wysokość 0 - ukryte */
-    overflow: hidden; /* Ukryj zawartość, która wychodzi poza wysokość */
-    opacity: 0; /* Niewidoczne */
-    padding: 0; /* Resetuj padding */
-    pointer-events: none; /* Linki nie są klikalne, gdy menu jest ukryte */
+    /* Tło dla rozwijanego menu mobilnego */
+    background: linear-gradient(135deg, #1a2a40, #0a1a2a); /* Ciemniejszy gradient dla spójności z navbar */
+    flex-direction: column;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0;
+    pointer-events: none;
   }
 
-  /* Kiedy menu jest otwarte */
   .nav-links.open {
-    height: auto; /* Pozwól na rozciągnięcie się na całą zawartość */
-    max-height: 500px; /* Maksymalna wysokość, aby nie było problemów z 'height: auto' */
-    opacity: 1; /* W pełni widoczne */
-    padding: 1rem 0; /* Dodaj padding po otwarciu */
-    pointer-events: auto; /* Linki stają się klikalne */
+    height: auto;
+    max-height: 500px; 
+    opacity: 1;
+    padding: 1rem 0;
+    pointer-events: auto;
   }
 
   .nav-left,
   .nav-right {
-    flex-direction: column; /* Linki w kolumnie */
-    align-items: center; /* Wyśrodkuj linki */
-    width: 100%; /* Zajmij całą szerokość */
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
   }
 
   .navbar a {
-    margin: 0.5rem 0; /* Odstępy pionowe między linkami */
-    width: calc(100% - 2rem); /* Pełna szerokość z paddingiem */
-    text-align: center; /* Wyśrodkuj tekst linków */
-    margin-right: 0; /* Usuń marginesy prawe */
+    margin: 0.5rem 0;
+    width: calc(100% - 2rem);
+    text-align: center;
+    margin-right: 0;
   }
 
   .nav-right {
-    margin-top: 1rem; /* Odstęp między sekcjami lewą i prawą */
-    border-top: 1px solid rgba(255,255,255,0.2); /* Separator */
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
     padding-top: 1rem;
   }
 
-  /* Specyficzne dla przycisku wylogowania */
   .nav-right button {
-    width: 90%; /* Zmniejsz szerokość */
+    width: 90%;
     margin-left: 0;
     margin-top: 0.5rem;
   }
 
-  /* Dopasowanie dla tekstu użytkownika */
   .nav-right span {
     margin-right: 0;
     margin-bottom: 0.5rem;
@@ -142,69 +137,78 @@
   }
 }
 
-/* NOWE STYLE DLA LINKU "TRANSPORT NA JUŻ!" - POPRAWIONE */
 .transport-na-juz-link {
-    /* Kolor tekstu dla stanu normalnego (nieaktywnego i nie-hoverowanego) */
-    /* Użyj jasnego, jaskrawego pomarańczowego, który dobrze kontrastuje z granatowym tłem */
-    color: #FFA500 !important; /* Czysty, jasny pomarańczowy */
-
+    color: #FFA500 !important;
     font-weight: bold;
-
-    /* Wyraźny cień tekstu dla lepszej czytelności i efektu "glow" */
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.9), /* Ciemny cień */
-                 0 0 10px rgba(255, 255, 255, 0.7); /* Jasna, mocna poświata */
-
-
-    /* Tło i ramka dla stanu normalnego (lekko widoczne, ale nie dominujące) */
-    background-color: rgba(255, 255, 255, 0.05) !important; /* Bardzo subtelne, przezroczyste białe tło */
-    border: 1px solid #FFA500 !important; /* Ramka w kolorze tekstu */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.9),
+                 0 0 10px rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid #FFA500 !important;
     padding: 0.5rem 1rem !important;
     border-radius: 5px !important;
     transition: all 0.3s ease;
 }
 
-/* Stan HOVER dla linku "Transport Na Już!" */
 .transport-na-juz-link:hover {
-    /* PRZYWRÓCENIE STYLI AKTYWNYCH/HOVEROWYCH NAVBARR'a */
-    background-color: rgba(255, 255, 255, 0.1) !important; /* Dopasuj do .navbar a:hover */
-    color: white !important; /* Tekst biały */
-    text-shadow: none !important; /* Usuń cień tekstu przy najechaniu */
-    border-color: transparent !important; /* Usuń ramkę przy najechaniu */
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    text-shadow: none !important;
+    border-color: transparent !important;
 }
 
-/* Stan ACTIVE dla linku "Transport Na Już!" */
 .navbar a.active.transport-na-juz-link {
-    /* PRZYWRÓCENIE STYLI AKTYWNYCH NAVBARR'a */
-    background-color: #ff6600 !important; /* Pomarańczowe tło jak dla innych aktywnych linków */
-    color: white !important; /* Tekst biały */
-    text-shadow: none !important; /* Usuń cień tekstu */
-    border-color: transparent !important; /* Usuń ramkę */
+    background-color: #ff6600 !important;
+    color: white !important;
+    text-shadow: none !important;
+    border-color: transparent !important;
 }
 
-/* Opcjonalnie: Style dla trybu ciemnego */
+/* Tryb ciemny dla Navbar */
 @media (prefers-color-scheme: dark) {
-    /* Upewnij się, że gradient na nav-links.open jest widoczny w trybie ciemnym */
+    .navbar {
+        background-color: #000; /* Jeszcze ciemniejszy navbar dla dark mode */
+        color: #f0f0f0;
+    }
+    .navbar a {
+        color: #f0f0f0; /* Linki w nawigacji powinny być jasne w dark mode */
+    }
+    .navbar a:hover {
+        background-color: rgba(255, 255, 255, 0.15); /* Subtelniejszy hover */
+    }
+    .navbar a.active {
+        background-color: #e65100; /* Akcentowany pomarańczowy */
+    }
+
+    .hamburger-menu .bar {
+        background-color: #f0f0f0; /* Kreski hamburgera jasne */
+    }
+
     .nav-links.open {
-      background: linear-gradient(135deg, #185a9d, #43cea2) !important; /* Odwrócony gradient dla lepszego wyglądu */
+      background: linear-gradient(135deg, #1a1a1a, #000) !important; /* Ciemniejszy gradient dla menu mobilnego */
+      border: none;
+    }
+    
+    .nav-right span {
+        color: #fff; /* Kolor tekstu użytkownika powinien pozostać biały */
     }
 
     .transport-na-juz-link {
-        color: #FFBB33 !important; /* Jaśniejszy, bardziej "złoty" pomarańcz dla trybu ciemnego */
+        color: #FFBB33 !important; /* Jaśniejszy pomarańcz dla dark mode */
         border-color: #FFBB33 !important;
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        text-shadow: 0 0 5px rgba(0, 0, 0, 0.9),
-                     0 0 10px rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 255, 255, 0.08) !important; /* Lekko widoczne tło */
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.7),
+                     0 0 10px rgba(255, 255, 255, 0.3);
     }
 
     .transport-na-juz-link:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
+        background-color: rgba(255, 255, 255, 0.15) !important;
         color: #fff !important;
         text-shadow: none !important;
         border-color: transparent !important;
     }
 
     .navbar a.active.transport-na-juz-link {
-        background-color: #E65100 !important; /* Ciemniejszy pomarańcz aktywny w trybie ciemnym */
+        background-color: #E65100 !important;
         color: white !important;
         text-shadow: none !important;
         border-color: transparent !important;

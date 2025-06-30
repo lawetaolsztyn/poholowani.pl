@@ -14,13 +14,22 @@
   display: flex;
   flex-direction: column;
   width: 100%; /* Zapewnia, że główna zawartość zajmuje całą szerokość */
-  background-color: #f7fafc; /* Domyślny kolor tła dla treści */
+  background-color: #f7fafc; /* Domyślny kolor tła dla treści (light mode) */
+  color: #333; /* Domyślny kolor tekstu dla treści (light mode) */
 }
 
-/* Tryb ciemny dla całej aplikacji (body) */
+/* Tryb ciemny dla całej aplikacji (body i .main-content) */
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #1a1a1a; /* Ciemne tło dla trybu ciemnego */
     color: #e0e0e0; /* Jasny tekst */
+  }
+  .app {
+    background-color: #1a1a1a; /* Upewnij się, że główny kontener aplikacji też jest ciemny */
+    color: #f0f0f0;
+  }
+  .main-content {
+    background-color: #1a1a1a; /* KLUCZOWA ZMIANA: Tło dla głównej zawartości w dark mode */
+    color: #f0f0f0; /* Kolor tekstu dla głównej zawartości w dark mode */
   }
 }
