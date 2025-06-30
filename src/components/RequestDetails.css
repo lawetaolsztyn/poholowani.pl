@@ -114,3 +114,43 @@
     color: #aaa;
   }
 }
+
+.map-info-message { /* Styl dla komunikatu pod mapą (RequestDetails.jsx) */
+  text-align: center;
+  color: #666;
+  font-size: 0.9em;
+  margin-top: 15px;
+}
+
+/* Styl dla przycisku nawigacji w Pop-upach mapy */
+.btn-navigate {
+  display: block; /* Upewnij się, że zajmuje całą szerokość Popup */
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+  font-size: 0.9em;
+  transition: background-color 0.2s ease;
+  white-space: nowrap; /* Zapobiega zawijaniu tekstu */
+}
+
+.btn-navigate:hover {
+  background-color: #0056b3;
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+  /* ... (istniejące style dark mode) ... */
+
+  .map-info-message {
+    color: #aaa;
+  }
+  .btn-navigate {
+    background-color: #0056b3;
+  }
+  .btn-navigate:hover {
+    background-color: #003d80;
+  }
+}

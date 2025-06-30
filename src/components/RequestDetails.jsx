@@ -1,13 +1,11 @@
 // src/components/RequestDetails.jsx
 
-import React, { useEffect, useState, useMemo } from 'react'; // Zmieniono z useRef na useMemo
+import React, { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet'; 
 import { supabase } from '../supabaseClient';
 import './RequestDetails.css'; 
-import 'leaflet/dist/leaflet.css';
-
-
+import 'leaflet/dist/leaflet.css'; // Ten import powinien być na samej górze pliku JS lub w globalnym CSS
 
 
 // Komponent do centrowania mapy na markerze
@@ -21,14 +19,25 @@ function MapCenterUpdater({ center }) {
   return null;
 }
 
+// NOWA FUNKCJA: Generowanie linku nawigacyjnego
+const generateNavigationLink = (destLat, destLng, currentLat = null, currentLng = null) => {
+  // Dla najlepszej kompatybilności na różnych urządzeniach
+  const baseUrl = "https://www.google.com/maps/dir/";
+  let url = `${baseUrl}${destLat},${destLng}`; // Nawigacja do celu
+  
+  if (currentLat != null && currentLng != null) {
+    url = `${baseUrl}${currentLat},${currentLng}/${destLat},${destLng}`; // Nawigacja od punktu do celu
+  }
+  return url;
+};
+
+
 export default function RequestDetails({ requestId, onBackToList }) {
   const [request, setRequest] = useState(null);
   const [nearbyRoadsideAssistance, setNearbyRoadsideAssistance] = useState([]);
   const [loadingDetails, setLoadingDetails] = useState(true);
   const [loadingRoadside, setLoadingRoadside] = useState(false);
 
-  // KLUCZOWA ZMIANA: Inicjalizacja ikon za pomocą useMemo
-  // Gwarantuje, że ikony są tworzone tylko raz i są gotowe do użycia w renderze.
   const requestIcon = useMemo(() => {
     console.log("DEBUG: Tworzenie requestIcon...");
     return new L.Icon({
@@ -37,7 +46,7 @@ export default function RequestDetails({ requestId, onBackToList }) {
       iconAnchor: [17, 35],
       popupAnchor: [0, -35],
     });
-  }, []); // Pusta tablica zależności - tworzy się raz
+  }, []);
 
   const towIcon = useMemo(() => {
     console.log("DEBUG: Tworzenie towIcon...");
@@ -47,12 +56,10 @@ export default function RequestDetails({ requestId, onBackToList }) {
       iconAnchor: [20, 60],
       popupAnchor: [0, -60],
     });
-  }, []); // Pusta tablica zależności - tworzy się raz
+  }, []);
 
 
   useEffect(() => {
-    // Nie ma potrzeby używania iconsLoaded w tym kontekście,
-    // ponieważ useMemo gwarantuje, że ikony są tworzone zaraz po pierwszym renderze.
     const fetchDetailsAndRoadside = async () => {
       setLoadingDetails(true);
       setRequest(null); 
@@ -108,7 +115,7 @@ export default function RequestDetails({ requestId, onBackToList }) {
     if (requestId) { 
       fetchDetailsAndRoadside();
     }
-  }, [requestId]); // Zależność tylko od requestId
+  }, [requestId]);
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Promień Ziemi w kilometrach
@@ -124,7 +131,7 @@ export default function RequestDetails({ requestId, onBackToList }) {
   };
 
   // Ładowanie szczegółów zgłoszenia / mapy
-  if (loadingDetails) { // Usunięto !iconsLoaded, bo useMemo gwarantuje tworzenie
+  if (loadingDetails) {
     return <div className="request-details-loading">Ładowanie szczegółów zgłoszenia...</div>;
   }
 
@@ -183,15 +190,30 @@ export default function RequestDetails({ requestId, onBackToList }) {
                       <strong>{rs.company_name || 'Pomoc Drogowa'}</strong><br/>
                       {rs.roadside_city}, {rs.roadside_street} {rs.roadside_number}<br/>
                       {rs.roadside_phone && <a href={`tel:${rs.roadside_phone}`}>{rs.roadside_phone}</a>}<br/>
-                      {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}
+                      {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}<br/>
+                      {/* NOWY PRZYCISK: Prowadź do lokalizacji */}
+                      {rs.latitude && rs.longitude && requestPosition && ( // Upewnij się, że masz obie lokalizacje
+                        <a 
+                          href={generateNavigationLink(rs.latitude, rs.longitude, requestPosition[0], requestPosition[1])}
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="btn-navigate" 
+                        >
+                          Prowadź do tej lokalizacji
+                        </a>
+                      )}
                     </Popup>
                   </Marker>
                 )
               ))
             ) : (
-              !loadingRoadside && <div className="map-info-overlay">Brak pobliskich pomocy drogowej (do 30 km od zgłoszenia).</div>
+              null // Usunięto nakładkę. Mapa będzie zawsze widoczna.
             )}
           </MapContainer>
+          {/* Komunikat o braku pomocy drogowej (pod mapą) */}
+          {!loadingRoadside && nearbyRoadsideAssistance.length === 0 && (
+              <p className="map-info-message">Brak pobliskich pomocy drogowej (do 30 km od zgłoszenia).</p>
+          )}
         </div>
       ) : (
         <p className="no-coords-message">Brak koordynatów dla tego zgłoszenia, lub błąd ładowania mapy/ikon. Mapa niedostępna.</p>
