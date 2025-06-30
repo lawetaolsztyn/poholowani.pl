@@ -274,7 +274,6 @@ if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
   }
 }
 
-            let extractedProvinceName = regionContext ? cleanProvinceName(regionContext.text) : ''; // Użyj funkcji czyszczącej
             
             if (extractedProvinceName && provinces.includes(extractedProvinceName)) { // Sprawdź czy to woj. z naszej listy
                 updatedFormData.province = extractedProvinceName;
