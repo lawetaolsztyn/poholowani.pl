@@ -193,25 +193,7 @@ const getServiceIcon = (type) => {
             ))}
           </select>
 
-          <LocationAutocomplete
-            value={selectedCityLabel}
-            onSelectLocation={(label, sug) => {
-              setSelectedCityLabel(sug.text || label); // Użyj czystego tekstu miasta
-              // Spróbuj pobrać województwo z sugestii Mapbox i zaktualizować selectedProvince
-              const contextProvince = sug.context?.find(c => c.id.startsWith('region.') || c.id.startsWith('province.'))?.text;
-              if (contextProvince && provinces.includes(contextProvince)) { // Sprawdź czy to woj. z naszej listy
-                  setSelectedProvince(contextProvince);
-              }
-              if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
-                setSelectedCityCoords({ latitude: sug.center[1], longitude: sug.center[0] });
-              } else {
-                setSelectedCityCoords(null);
-              }
-            }}
-            placeholder="Filtruj po mieście"
-            className="filter-input"
-            searchType="city" // Szukaj tylko miast
-          />
+          
 
           <div className="service-type-filters">
             {serviceTypeOptions.map(option => (
