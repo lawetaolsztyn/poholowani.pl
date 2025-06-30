@@ -154,3 +154,73 @@
     background-color: #003d80;
   }
 }
+
+/* NOWY STYL: Duży czerwony przycisk nawigacji pod mapą */
+.btn-navigate-main {
+  display: block; /* Zajmuje całą szerokość rodzica */
+  width: 100%;
+  background-color: #dc3545; /* Czerwony kolor */
+  color: white;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none; /* Jeśli byłby to <a> */
+  margin-top: 20px; /* Odstęp od mapy */
+  transition: background-color 0.2s ease;
+}
+
+.btn-navigate-main:hover {
+  background-color: #c82333; /* Ciemniejszy czerwony */
+}
+
+/* Styl dla komunikatu pod mapą (RequestDetails.jsx) */
+.map-info-message {
+  text-align: center;
+  color: #666;
+  font-size: 0.9em;
+  margin-top: 15px;
+}
+
+/* Styl dla przycisku nawigacji W POPUPACH (btn-navigate-popup) */
+.btn-navigate-popup { /* Zmieniono nazwę klasy, aby odróżnić od głównego przycisku */
+  display: block;
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+  font-size: 0.9em;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  margin-top: 10px;
+}
+
+.btn-navigate-popup:hover {
+  background-color: #0056b3;
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+  /* ... (istniejące style dark mode) ... */
+
+  .btn-navigate-main {
+    background-color: #b0232f; /* Ciemniejszy czerwony dla dark mode */
+  }
+  .btn-navigate-main:hover {
+    background-color: #9a1c26;
+  }
+  .map-info-message {
+    color: #aaa;
+  }
+  .btn-navigate-popup {
+    background-color: #0056b3;
+  }
+  .btn-navigate-popup:hover {
+    background-color: #003d80;
+  }
+}

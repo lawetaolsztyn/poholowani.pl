@@ -5,8 +5,15 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet'; 
 import { supabase } from '../supabaseClient';
 import './RequestDetails.css'; 
-import 'leaflet/dist/leaflet.css'; // Ten import powinien być na samej górze pliku JS lub w globalnym CSS
+import 'leaflet/dist/leaflet.css'; 
 
+// Konfiguracja domyślnych ikon Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
 
 // Komponent do centrowania mapy na markerze
 function MapCenterUpdater({ center }) {
@@ -19,14 +26,15 @@ function MapCenterUpdater({ center }) {
   return null;
 }
 
-// NOWA FUNKCJA: Generowanie linku nawigacyjnego
+// NOWA FUNKCJA: Generowanie linku nawigacyjnego (do celu)
 const generateNavigationLink = (destLat, destLng, currentLat = null, currentLng = null) => {
-  // Dla najlepszej kompatybilności na różnych urządzeniach
-  const baseUrl = "https://www.google.com/maps/dir/";
-  let url = `${baseUrl}${destLat},${destLng}`; // Nawigacja do celu
-  
+  // Dla najlepszej kompatybilności na różnych urządzeniach (telefony i desktop)
+  // Standardowy format dla Google Maps, dobrze obsługiwany przez większość urządzeń mobilnych
+  let url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`; 
+
   if (currentLat != null && currentLng != null) {
-    url = `${baseUrl}${currentLat},${currentLng}/${destLat},${destLng}`; // Nawigacja od punktu do celu
+    // Dodajemy punkt początkowy (jeśli dostępny), np. dla przewoźnika, który chce nawigować od siebie
+    url += `&origin=${currentLat},${currentLng}`;
   }
   return url;
 };
@@ -130,7 +138,6 @@ export default function RequestDetails({ requestId, onBackToList }) {
     return distance; // Odległość w kilometrach
   };
 
-  // Ładowanie szczegółów zgłoszenia / mapy
   if (loadingDetails) {
     return <div className="request-details-loading">Ładowanie szczegółów zgłoszenia...</div>;
   }
@@ -150,6 +157,24 @@ export default function RequestDetails({ requestId, onBackToList }) {
     ? [request.location_from_lat, request.location_from_lng]
     : null;
 
+  // Pobierz bieżącą lokalizację użytkownika (jeśli dostępna, dla nawigacji 'od siebie')
+  const [currentLocation, setCurrentLocation] = useState(null);
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.warn("Błąd pobierania bieżącej lokalizacji dla nawigacji:", error.message);
+          setCurrentLocation(null);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    }
+  }, []);
+
+
   return (
     <div className="request-details-section">
       <h2>Szczegóły zgłoszenia</h2>
@@ -166,13 +191,12 @@ export default function RequestDetails({ requestId, onBackToList }) {
         )}
       </div>
 
-      {/* Renderuj mapę tylko wtedy, gdy requestPosition i ikony są zdefiniowane przez useMemo */}
       {requestPosition && requestIcon && towIcon ? ( 
         <div className="map-container">
           <MapContainer center={requestPosition} zoom={13} className="request-map" gestureHandling={true}>
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
+              attribution="© OpenStreetMap contributors"
             />
             <MapCenterUpdater center={requestPosition} />
             <Marker position={requestPosition} icon={requestIcon} > 
@@ -191,15 +215,16 @@ export default function RequestDetails({ requestId, onBackToList }) {
                       {rs.roadside_city}, {rs.roadside_street} {rs.roadside_number}<br/>
                       {rs.roadside_phone && <a href={`tel:${rs.roadside_phone}`}>{rs.roadside_phone}</a>}<br/>
                       {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}<br/>
-                      {/* NOWY PRZYCISK: Prowadź do lokalizacji */}
-                      {rs.latitude && rs.longitude && requestPosition && ( // Upewnij się, że masz obie lokalizacje
+                      {/* Link do nawigacji w Pop-upie (opcjonalny, jeśli chcesz dać dwie opcje nawigacji) */}
+                      {rs.latitude && rs.longitude && (
                         <a 
-                          href={generateNavigationLink(rs.latitude, rs.longitude, requestPosition[0], requestPosition[1])}
+                          href={generateNavigationLink(rs.latitude, rs.longitude, currentLocation?.[0], currentLocation?.[1])}
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="btn-navigate" 
+                          className="btn-navigate-popup" // Inna klasa dla linku w popupie
+                          style={{marginTop: '10px', display: 'block', backgroundColor: '#6c757d', color: 'white', padding: '5px 10px', borderRadius: '4px', textDecoration: 'none', textAlign: 'center', fontSize: '0.85em'}}
                         >
-                          Prowadź do tej lokalizacji
+                          Nawiguj do tej Pomocy
                         </a>
                       )}
                     </Popup>
@@ -207,10 +232,9 @@ export default function RequestDetails({ requestId, onBackToList }) {
                 )
               ))
             ) : (
-              null // Usunięto nakładkę. Mapa będzie zawsze widoczna.
+              null 
             )}
           </MapContainer>
-          {/* Komunikat o braku pomocy drogowej (pod mapą) */}
           {!loadingRoadside && nearbyRoadsideAssistance.length === 0 && (
               <p className="map-info-message">Brak pobliskich pomocy drogowej (do 30 km od zgłoszenia).</p>
           )}
@@ -219,6 +243,16 @@ export default function RequestDetails({ requestId, onBackToList }) {
         <p className="no-coords-message">Brak koordynatów dla tego zgłoszenia, lub błąd ładowania mapy/ikon. Mapa niedostępna.</p>
       )}
 
+      {/* KLUCZOWA ZMIANA: DUŻY CZERWONY PRZYCISK NAWIGACJI POD MAPĄ */}
+      {requestPosition && (
+        <button 
+          onClick={() => window.open(generateNavigationLink(requestPosition[0], requestPosition[1], currentLocation?.[0], currentLocation?.[1]), '_blank')}
+          className="btn-navigate-main" // Nowa klasa do stylizacji
+        >
+          NAWIGUJ DO MIEJSCA ZGŁOSZENIA
+        </button>
+      )}
+      
       <button className="btn-secondary" onClick={onBackToList}>
         Powrót do listy
       </button>
