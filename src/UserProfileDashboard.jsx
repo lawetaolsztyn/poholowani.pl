@@ -12,6 +12,15 @@ const provinces = [
   'Wielkopolskie', 'Zachodniopomorskie'
 ];
 
+// NOWA FUNKCJA POMOCNICZA: Czyści nazwę województwa
+const cleanProvinceName = (name) => {
+    if (!name) return '';
+    return name
+        .replace(/województwo /i, '') // Usuń "województwo " (case-insensitive)
+        .replace(/voivodeship/i, '') // Usuń "voivodeship" (case-insensitive)
+        .trim();
+};
+
 export default function UserProfileDashboard() {
   const [activeTab, setActiveTab] = useState('Moje dane');
   const [userData, setUserData] = useState(null);
@@ -186,6 +195,7 @@ export default function UserProfileDashboard() {
                 updatedFormData = { ...updatedFormData, longitude: null, latitude: null };
             } else {
                 try {
+                    // Używamy VITE_MAPBOX_TOKEN dla spójności
                     const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fullAddressToGeocode)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL`);
                     const json = await response.json();
                     const coords = json?.features?.[0]?.center;
@@ -242,30 +252,32 @@ export default function UserProfileDashboard() {
         }
 
         // KLUCZOWA ZMIANA: Pobierz województwo z zapisanego obiektu sugestii mySelectedCitySuggestion
-        // To jest najbardziej niezawodny sposób, bo context jest już sparsowany przez Mapbox
         if (mySelectedCitySuggestion && mySelectedCitySuggestion.context) {
-            // Szukamy elementu contextu, który jest typu 'region'
-            const regionContext = mySelectedCitySuggestion.context.find(c => c.place_type && c.place_type.includes('region'));
-            if (regionContext && provinces.includes(regionContext.text)) { // Sprawdź czy to woj. z naszej listy
-                updatedFormData.province = regionContext.text;
-                console.log('DEBUG: Ustalono województwo dla miasta głównego z sugestii:', regionContext.text);
+            // Szukamy elementu contextu, który jest typu 'region' lub 'province' (Mapbox może używać obu)
+            const regionContext = mySelectedCitySuggestion.context.find(c => 
+                c.place_type && (c.place_type.includes('region') || c.place_type.includes('province'))
+            );
+            let extractedProvinceName = regionContext ? cleanProvinceName(regionContext.text) : ''; // Użyj funkcji czyszczącej
+            
+            if (extractedProvinceName && provinces.includes(extractedProvinceName)) { // Sprawdź czy to woj. z naszej listy
+                updatedFormData.province = extractedProvinceName;
+                console.log('DEBUG: Ustalono województwo dla miasta głównego z sugestii:', extractedProvinceName);
             } else {
                 updatedFormData.province = ''; 
                 console.warn('DEBUG: Nie udało się ustalić województwa z sugestii Mapbox:', mySelectedCitySuggestion);
             }
         } else {
             // Fallback: jeśli mySelectedCitySuggestion jest null (np. przy ładowaniu strony), spróbuj pobrać po nazwie
-            // (ten kod już był i jest mniej niezawodny, ale pozostawiony jako fallback)
             try {
-                // Używamy myCityAutocompleteValue (czysta nazwa miasta) do zapytania o kontekst
                 const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue.split(',')[0].trim())}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
                 const json = await response.json();
                 const feature = json?.features?.[0];
                 if (feature) {
-                    const contextProvince = feature.context?.find(c => c.place_type && c.place_type.includes('region'))?.text; // Używamy place_type 'region'
-                    if (contextProvince && provinces.includes(contextProvince)) { 
-                        updatedFormData.province = contextProvince;
-                        console.log('DEBUG: Ustalono województwo dla miasta głównego (fallback):', contextProvince);
+                    const contextProvince = feature.context?.find(c => c.place_type && (c.place_type.includes('region') || c.place_type.includes('province')) )?.text; // Używamy place_type 'region'
+                    let cleanedFallbackProvince = contextProvince ? cleanProvinceName(contextProvince) : '';
+                    if (cleanedFallbackProvince && provinces.includes(cleanedFallbackProvince)) { 
+                        updatedFormData.province = cleanedFallbackProvince;
+                        console.log('DEBUG: Ustalono województwo dla miasta głównego (fallback):', cleanedFallbackProvince);
                     } else {
                         updatedFormData.province = '';
                         console.warn('DEBUG: Nie udało się ustalić województwa dla miasta głównego (fallback):', myCityAutocompleteValue);
