@@ -186,7 +186,7 @@ export default function CarriersCatalog() {
             <div className="carriers-list">
               {carriers.map(carrier => (
                 <div key={carrier.id} className="carrier-card">
-                  <h3>{carrier.company_name || carrier.full_name || 'Brak nazwy'}</h3>
+<h3><strong>{carrier.company_name || carrier.full_name || 'Brak nazwy'}</strong></h3>
                   <p>
                     <strong>Lokalizacja:</strong> {carrier.city}
                     {carrier.street && `, ${carrier.street} ${carrier.building_number}`}
