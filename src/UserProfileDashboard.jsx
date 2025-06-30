@@ -35,8 +35,7 @@ export default function UserProfileDashboard() {
   // Stany dla autouzupełniania MIASTA GŁÓWNEGO PROFILU (w "Moje dane")
   const [myCityAutocompleteValue, setMyCityAutocompleteValue] = useState('');
   const [mySelectedCityCoords, setMySelectedCityCoords] = useState({ latitude: null, longitude: null }); // Koordynaty z autocomplete dla miasta głównego
-  // NOWY STAN: do przechowywania całego obiektu sugestii dla głównego miasta
-  const [mySelectedCitySuggestion, setMySelectedCitySuggestion] = useState(null);
+  const [mySelectedCitySuggestion, setMySelectedCitySuggestion] = useState(null); // Cały obiekt sugestii dla głównego miasta
 
 
   useEffect(() => {
@@ -101,13 +100,13 @@ export default function UserProfileDashboard() {
           setMyCityAutocompleteValue(initialFormData.city); 
           if (initialFormData.latitude != null && initialFormData.longitude != null) {
             setMySelectedCityCoords({ latitude: initialFormData.latitude, longitude: initialFormData.longitude });
-            // Tutaj nie mamy pełnej sugestii z bazy, więc mySelectedCitySuggestion pozostanie null,
-            // chyba że przeładujemy ją (co jest zbyt skomplikowane na tym etapie).
-            // Oznacza to, że województwo będzie pobierane z Mapboxa podczas zapisu, jeśli mySelectedCitySuggestion jest null.
           } else {
             setMySelectedCityCoords(null);
           }
 
+          // Nie możemy inicjalizować mySelectedCitySuggestion z fetchedData,
+          // bo fetchedData nie zawiera pełnego obiektu sugestii Mapbox.
+          // Zostawiamy go na null, zostanie ustawiony przy wyborze z autocomplete.
 
           setIsPublicProfileAgreed(initialFormData.is_public_profile_agreed);
           setIsRoadsideAssistanceAgreed(initialFormData.is_roadside_assistance_agreed);
@@ -243,12 +242,13 @@ export default function UserProfileDashboard() {
         }
 
         // KLUCZOWA ZMIANA: Pobierz województwo z zapisanego obiektu sugestii mySelectedCitySuggestion
-        // To jest najbardziej niezawodny sposób, bo context jest już parsowany przez Mapbox
+        // To jest najbardziej niezawodny sposób, bo context jest już sparsowany przez Mapbox
         if (mySelectedCitySuggestion && mySelectedCitySuggestion.context) {
-            const contextProvince = mySelectedCitySuggestion.context.find(c => c.id.startsWith('region.') || c.id.startsWith('province.'))?.text;
-            if (contextProvince && provinces.includes(contextProvince)) {
-                updatedFormData.province = contextProvince;
-                console.log('DEBUG: Ustalono województwo dla miasta głównego z sugestii:', contextProvince);
+            // Szukamy elementu contextu, który jest typu 'region'
+            const regionContext = mySelectedCitySuggestion.context.find(c => c.place_type && c.place_type.includes('region'));
+            if (regionContext && provinces.includes(regionContext.text)) { // Sprawdź czy to woj. z naszej listy
+                updatedFormData.province = regionContext.text;
+                console.log('DEBUG: Ustalono województwo dla miasta głównego z sugestii:', regionContext.text);
             } else {
                 updatedFormData.province = ''; 
                 console.warn('DEBUG: Nie udało się ustalić województwa z sugestii Mapbox:', mySelectedCitySuggestion);
@@ -257,11 +257,12 @@ export default function UserProfileDashboard() {
             // Fallback: jeśli mySelectedCitySuggestion jest null (np. przy ładowaniu strony), spróbuj pobrać po nazwie
             // (ten kod już był i jest mniej niezawodny, ale pozostawiony jako fallback)
             try {
+                // Używamy myCityAutocompleteValue (czysta nazwa miasta) do zapytania o kontekst
                 const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue.split(',')[0].trim())}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
                 const json = await response.json();
                 const feature = json?.features?.[0];
                 if (feature) {
-                    const contextProvince = feature.context?.find(c => c.id.startsWith('region.') || c.id.startsWith('province.'))?.text;
+                    const contextProvince = feature.context?.find(c => c.place_type && c.place_type.includes('region'))?.text; // Używamy place_type 'region'
                     if (contextProvince && provinces.includes(contextProvince)) { 
                         updatedFormData.province = contextProvince;
                         console.log('DEBUG: Ustalono województwo dla miasta głównego (fallback):', contextProvince);
@@ -300,9 +301,11 @@ export default function UserProfileDashboard() {
       setMessage('✅ Dane zapisane pomyślnie!');
       setFormData(finalUpdatePayload); 
       setUserData(finalUpdatePayload); 
+      // Zaktualizuj stan koordynatów dla miasta głównego po zapisie
       if (finalUpdatePayload.latitude !== mySelectedCityCoords.latitude || finalUpdatePayload.longitude !== mySelectedCityCoords.longitude) {
         setMySelectedCityCoords({ latitude: finalUpdatePayload.latitude, longitude: finalUpdatePayload.longitude });
       }
+      // Zaktualizuj stan koordynatów dla pomocy drogowej po zapisie
       if (finalUpdatePayload.latitude !== roadsideSelectedCoords.latitude || finalUpdatePayload.longitude !== roadsideSelectedCoords.longitude) {
         setRoadsideSelectedCoords({ latitude: finalUpdatePayload.latitude, longitude: finalUpdatePayload.longitude });
       }
