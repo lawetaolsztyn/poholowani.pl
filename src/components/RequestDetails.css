@@ -149,6 +149,9 @@
     color: #e0e0e0; /* Jasny kolor tekstu (domyślny dla paragrafów itp.) */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
+.current-requests-section h2 {
+        color: #f0f0f0 !important; /* Ustawienie jasnego koloru dla nagłówka w trybie ciemnym */
+    }
   .request-details-section h2 { 
     /* KLUCZOWA ZMIANA: Zwiększona specyficzność i !important */
     color: #f0f0f0 !important; 
