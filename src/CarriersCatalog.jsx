@@ -160,20 +160,12 @@ export default function CarriersCatalog() {
     );
   };
 
-  // Funkcja pomocnicza do pobierania ikony pojazdu/usługi
-  const getServiceIcon = (type) => {
-    switch (type) {
-      case 'osobowy': return '🚗';
-      case 'bus': return '🚌';
-      case 'ciezarowy': return '🚚'; // Przydałoby się odróżnić od autolawety
-      case 'autolaweta': return '🛻';
-      case 'pomoc_drogowa': return '🆘';
-      case 'przyczepa_towarowa': return '🚛';
-      case 'przyczepa_laweta': return '🚜';
-      case 'przyczepa_laweta_podwojna': return '🚚'; // Może inna ikona
-      default: return '❓';
-    }
-  };
+// Funkcja pomocnicza do pobierania ikony pojazdu/usługi
+const getServiceIcon = (type) => {
+  // Zwracamy pusty string, aby nie wyświetlać żadnej ikony.
+  // Wcześniejsze emoji zostały usunięte.
+  return ''; 
+};
 
 
   return (
