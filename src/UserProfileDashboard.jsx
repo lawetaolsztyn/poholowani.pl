@@ -254,9 +254,27 @@ export default function UserProfileDashboard() {
         // KLUCZOWA ZMIANA: Pobierz województwo z zapisanego obiektu sugestii mySelectedCitySuggestion
         if (mySelectedCitySuggestion && mySelectedCitySuggestion.context) {
             // Szukamy elementu contextu, który jest typu 'region' lub 'province' (Mapbox może używać obu)
-            const regionContext = mySelectedCitySuggestion.context.find(c => 
-                c.place_type && (c.place_type.includes('region') || c.place_type.includes('province'))
-            );
+            let regionContext = null;
+
+if (mySelectedCitySuggestion?.context) {
+  regionContext = mySelectedCitySuggestion.context.find(c =>
+    (c.id?.startsWith('region.') || c.id?.startsWith('province.')) ||
+    (c.place_type && (c.place_type.includes('region') || c.place_type.includes('province')))
+  );
+}
+
+let extractedProvinceName = regionContext ? cleanProvinceName(regionContext.text) : '';
+
+// Fallback po nazwie województwa w place_name
+if (!extractedProvinceName && mySelectedCitySuggestion?.place_name) {
+  for (const province of provinces) {
+    if (mySelectedCitySuggestion.place_name.toLowerCase().includes(province.toLowerCase())) {
+      extractedProvinceName = province;
+      break;
+    }
+  }
+}
+
             let extractedProvinceName = regionContext ? cleanProvinceName(regionContext.text) : ''; // Użyj funkcji czyszczącej
             
             if (extractedProvinceName && provinces.includes(extractedProvinceName)) { // Sprawdź czy to woj. z naszej listy
