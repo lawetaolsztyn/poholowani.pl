@@ -5,8 +5,6 @@ import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
 import './UserProfileDashboard.css';
 import LocationAutocomplete from './components/LocationAutocomplete';
-
-// Lista województw (do walidacji kontekstu z Mapbox)
 const provinces = [
   'Dolnośląskie', 'Kujawsko-Pomorskie', 'Lubelskie', 'Lubuskie',
   'Łódzkie', 'Małopolskie', 'Mazowieckie', 'Opolskie', 'Podkarpackie',
@@ -87,7 +85,6 @@ export default function UserProfileDashboard() {
           };
           setFormData(initialFormData); 
 
-          // Inicjalizacja wartości dla komponentów LocationAutocomplete dla Pomocy Drogowej
           setRoadsideCityAutocompleteValue(initialFormData.roadside_city); 
           const fullRoadsideStreetValue = initialFormData.roadside_street + (initialFormData.roadside_number ? ' ' + initialFormData.roadside_number : '');
           setRoadsideStreetAutocompleteValue(fullRoadsideStreetValue.trim());
@@ -100,7 +97,6 @@ export default function UserProfileDashboard() {
 
           // Inicjalizacja dla MIASTA GŁÓWNEGO PROFILU ("Moje dane")
           setMyCityAutocompleteValue(initialFormData.city); 
-          // Koordynaty dla miasta głównego profilu (zakładamy, że latitude/longitude w bazie dotyczy gł. miasta)
           if (initialFormData.latitude != null && initialFormData.longitude != null) {
             setMySelectedCityCoords({ latitude: initialFormData.latitude, longitude: initialFormData.longitude });
           } else {
@@ -167,7 +163,6 @@ export default function UserProfileDashboard() {
     // Geokodowanie dla Pomocy Drogowej (jeśli zakładka jest aktywna i zgody są)
     if (activeTab === 'Pomoc drogowa' && updatedFormData.is_pomoc_drogowa && isRoadsideAssistanceAgreed) {
         if (roadsideSelectedCoords.latitude != null && roadsideSelectedCoords.longitude != null) {
-            // Jeśli koordynaty zostały wybrane z autocomplete, używamy ich bezpośrednio
             updatedFormData = { 
                 ...updatedFormData, 
                 latitude: roadsideSelectedCoords.latitude, 
@@ -175,7 +170,6 @@ export default function UserProfileDashboard() {
             };
             console.log('DEBUG: Użyto koordynatów z LocationAutocomplete (Pomoc Drogowa):', roadsideSelectedCoords);
         } else {
-            // Jeśli koordynaty z autocomplete nie są dostępne (np. użytkownik wpisał ręcznie i nie wybrał sugestii)
             const cityPart = roadsideCityAutocompleteValue.split(',')[0].trim();
             const streetPart = roadsideStreetAutocompleteValue; 
             const fullAddressToGeocode = `${streetPart || ''} ${updatedFormData.roadside_number || ''}, ${cityPart || ''}, Polska`;
@@ -188,7 +182,6 @@ export default function UserProfileDashboard() {
                 updatedFormData = { ...updatedFormData, longitude: null, latitude: null };
             } else {
                 try {
-                    // Używamy VITE_MAPBOX_TOKEN dla spójności
                     const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fullAddressToGeocode)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL`);
                     const json = await response.json();
                     const coords = json?.features?.[0]?.center;
@@ -213,7 +206,7 @@ export default function UserProfileDashboard() {
     
     // NOWA LOGIKA: Geokodowanie dla Miasta w "Moje dane" i ustalenie województwa
     // Dzieje się tylko jeśli zakładka "Moje dane" jest aktywna i miasto zostało wybrane/wpisane
-    if (activeTab === 'Moje dane' && myCityAutocompleteValue) { // Warunek: miasto jest wpisane
+    if (activeTab === 'Moje dane' && myCityAutocompleteValue) { 
         updatedFormData = { 
             ...updatedFormData, 
             city: myCityAutocompleteValue // Upewnij się, że miasto jest z autocomplete
@@ -248,10 +241,13 @@ export default function UserProfileDashboard() {
 
         // Pobierz województwo z kontekstu Mapboxa dla wybranego miasta
         try {
+            // Używamy myCityAutocompleteValue, które jest etykietą z autocomplete.
+            // Mapbox w kontekście zwraca województwo (region/province).
             const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
             const json = await response.json();
             const feature = json?.features?.[0];
             if (feature) {
+                // Szukamy kontekstu, którego id zaczyna się od 'region.' lub 'province.'
                 const contextProvince = feature.context?.find(c => c.id.startsWith('region.') || c.id.startsWith('province.'))?.text;
                 if (contextProvince && provinces.includes(contextProvince)) { // Sprawdź czy to woj. z naszej listy
                     updatedFormData.province = contextProvince;
