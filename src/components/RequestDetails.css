@@ -11,7 +11,7 @@
 
 .request-details-section h2 {
   font-size: 2em;
-  color: #333;
+  color: #333; /* Domyślny kolor dla trybu jasnego */
   margin-bottom: 20px;
   text-align: center;
 }
@@ -145,28 +145,28 @@
 @media (prefers-color-scheme: dark) {
   .request-details-section, 
   .details-card {
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: #333; /* Ciemne tło sekcji */
+    color: #e0e0e0; /* Jasny kolor tekstu (domyślny dla paragrafów itp.) */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
-  .request-details-section h2 { /* Kolor nagłówka w trybie ciemnym */
-    color: #f0f0f0; 
+  .request-details-section h2 { /* KOLOR NAGŁÓWKA W TRYBIE CIEMNYM */
+    color: #f0f0f0; /* Bardzo jasny kolor, prawie biały */
   }
   .details-card {
-    background-color: #444;
-    border-color: #555;
+    background-color: #444; /* Nieco jaśniejsze tło dla karty szczegółów */
+    border-color: #555; /* Ciemniejsza ramka */
   }
   .details-card p {
-    color: #ccc;
+    color: #ccc; /* Jaśniejszy kolor dla tekstu w paragrafach */
   }
   .details-card p strong {
-    color: #f0f0f0;
+    color: #f0f0f0; /* Jaśniejszy kolor dla pogrubionego tekstu */
   }
   .map-loading-overlay {
     background-color: rgba(51, 51, 51, 0.8);
     color: #eee;
   }
-  .no-coords-message, /* Komunikat o braku koordynatów w trybie ciemnym */
+  .no-coords-message, 
   .request-details-loading,
   .request-details-error {
     color: #aaa;
