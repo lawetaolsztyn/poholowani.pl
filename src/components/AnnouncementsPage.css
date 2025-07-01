@@ -1,0 +1,358 @@
+/* src/pages/AnnouncementsPage.css */
+
+.announcements-page-container {
+  display: flex;
+  gap: 30px; /* Odstęp między kolumnami */
+  padding: 30px;
+  max-width: 1200px; /* Maksymalna szerokość kontenera */
+  margin: 0 auto; /* Wyśrodkowanie */
+}
+
+.left-panel {
+  flex: 0 0 30%; /* 30% szerokości, bez kurczenia się */
+  /* Dodaj style dla panelu, np. tło, cień */
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.main-content-area {
+  flex: 1; /* Zajmuje resztę dostępnego miejsca */
+  /* Dodaj style dla obszaru z ogłoszeniami */
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.main-content-area h2 {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+  .left-panel,
+  .main-content-area {
+    background-color: #333;
+    color: #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .main-content-area h2 {
+    color: #f0f0f0;
+  }
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 992px) {
+  .announcements-page-container {
+    flex-direction: column; /* Ułożenie kolumn jedna pod drugą */
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .left-panel,
+  .main-content-area {
+    flex: none; /* Usuń flex-grow/shrink */
+    width: 100%; /* Pełna szerokość */
+  }
+}
+/* src/components/AnnouncementsPage.css */
+
+/* Istniejące style dla .announcements-page-container, .left-panel, .main-content-area */
+.announcements-page-container {
+  display: flex;
+  gap: 30px;
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.left-panel {
+  flex: 0 0 30%;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Przeniesiony nagłówek z AnnouncementsForm do AnnouncementsPage */
+.left-panel h3 {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+
+.main-content-area {
+  flex: 1;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.main-content-area h2 {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* === NOWE STYLE DLA LISTY OGŁOSZEŃ === */
+.announcements-grid {
+  display: grid; /* Używamy grida, aby ułatwić zarządzanie układem kart */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsywne kolumny */
+  gap: 25px; /* Odstęp między kartami */
+  margin-top: 20px;
+}
+
+.announcement-card {
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out;
+}
+
+.announcement-card:hover {
+  transform: translateY(-5px); /* Lekki efekt uniesienia na hover */
+}
+
+.announcement-card h3 {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.announcement-card p {
+  font-size: 1em;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.announcement-card p strong {
+  color: #333;
+}
+
+.announcement-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  object-fit: cover; /* Upewnij się, że obrazek wypełnia przestrzeń bez zniekształceń */
+  max-height: 200px; /* Ogranicz wysokość zdjęć, aby karty były podobne */
+}
+
+.contact-info {
+  margin-top: 15px;
+  border-top: 1px dashed #ddd;
+  padding-top: 15px;
+  display: flex;
+  flex-wrap: wrap; /* Pozwól przyciskom zawijać się */
+  gap: 10px; /* Odstęp między przyciskami */
+  align-items: center;
+}
+
+.contact-info p {
+  margin-bottom: 0; /* Usuń margines dolny z paragrafu "Kontakt:" */
+  width: 100%; /* Zajmij całą szerokość dla nagłówka "Kontakt:" */
+}
+
+.contact-button {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 0.9em;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.phone-button {
+  background-color: #28a745;
+  color: white;
+}
+.phone-button:hover {
+  background-color: #218838;
+}
+
+.whatsapp-button {
+  background-color: #25d366;
+  color: white;
+}
+.whatsapp-button:hover {
+  background-color: #1DA851;
+}
+
+.messenger-button {
+  background-color: #007bff;
+  color: white;
+}
+.messenger-button:hover {
+  background-color: #0056b3;
+}
+
+.posted-at {
+  font-size: 0.85em;
+  color: #999;
+  text-align: right;
+  margin-top: auto; /* Pcha element na dół karty */
+  padding-top: 10px;
+  border-top: 1px dotted #eee;
+  margin-bottom: 0;
+}
+
+.open-chat-button {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  background-color: #ff6600; /* Pomarańczowy akcent */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: background-color 0.2s ease;
+}
+
+.open-chat-button:hover {
+  background-color: #e65100; /* Ciemniejszy pomarańcz */
+}
+
+.loading-message, .error-message-list, .no-announcements-message {
+  text-align: center;
+  font-size: 1.1em;
+  color: #666;
+  padding: 20px;
+}
+
+.error-message-list {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.no-route-info {
+  font-style: italic;
+  color: #888;
+  font-size: 0.9em;
+  margin-top: -5px; /* Przybliż do poprzedniego akapitu */
+}
+
+
+/* === TRYB CIEMNY DLA LISTY OGŁOSZEŃ === */
+@media (prefers-color-scheme: dark) {
+  /* Istniejące style dla .announcements-page-container, .left-panel, .main-content-area */
+  .left-panel,
+  .main-content-area {
+    background-color: #333;
+    color: #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .left-panel h3,
+  .main-content-area h2 {
+    color: #f0f0f0;
+  }
+
+  .announcement-card {
+    background-color: #444;
+    border-color: #555;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .announcement-card h3 {
+    color: #f0f0f0;
+  }
+
+  .announcement-card p {
+    color: #ccc;
+  }
+
+  .announcement-card p strong {
+    color: #f0f0f0;
+  }
+
+  .contact-info {
+    border-color: #666;
+  }
+
+  .phone-button {
+    background-color: #1e7e34;
+  }
+  .phone-button:hover {
+    background-color: #176a2c;
+  }
+
+  .whatsapp-button {
+    background-color: #1f9e4f;
+  }
+  .whatsapp-button:hover {
+    background-color: #177a3d;
+  }
+
+  .messenger-button {
+    background-color: #0056b3;
+  }
+  .messenger-button:hover {
+    background-color: #003d80;
+  }
+
+  .posted-at {
+    color: #aaa;
+    border-color: #555;
+  }
+
+  .open-chat-button {
+    background-color: #e65100;
+  }
+
+  .open-chat-button:hover {
+    background-color: #c84400;
+  }
+
+  .loading-message, .error-message-list, .no-announcements-message {
+    color: #aaa;
+  }
+
+  .error-message-list {
+    color: #ff6b6b;
+  }
+
+  .no-route-info {
+    color: #aaa;
+  }
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 992px) {
+  .announcements-page-container {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .left-panel,
+  .main-content-area {
+    flex: none;
+    width: 100%;
+  }
+
+  .announcements-grid {
+    grid-template-columns: 1fr; /* Jedna kolumna na mniejszych ekranach */
+  }
+}

@@ -1,0 +1,175 @@
+/* src/components/AnnouncementForm.css lub Twój główny plik stylów */
+
+.announcement-form-container {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  max-width: 600px; /* Ogranicz szerokość formularza */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.announcement-form-container h3 {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.announcement-form .form-group {
+  margin-bottom: 15px;
+}
+
+.announcement-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+}
+
+.announcement-form input[type="text"],
+.announcement-form input[type="number"],
+.announcement-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box; /* Ważne, aby padding nie zwiększał szerokości */
+}
+
+.announcement-form textarea {
+  resize: vertical; /* Pozwól użytkownikowi zmieniać wysokość */
+}
+
+.announcement-form input[type="file"] {
+  padding-top: 5px;
+}
+
+.announcement-form .file-info {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 5px;
+}
+
+.announcement-form .form-group-optional,
+.announcement-form .form-group-contact {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+.announcement-form .form-group-optional h4,
+.announcement-form .form-group-contact h4 {
+  font-size: 1.3em;
+  color: #444;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.announcement-form .grid-2-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.announcement-form button {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.announcement-form button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.announcement-form button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #dc3545;
+  text-align: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.success-message {
+  color: #28a745;
+  text-align: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+  .announcement-form-container {
+    background-color: #333;
+    color: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .announcement-form-container h3 {
+    color: #f0f0f0;
+  }
+
+  .announcement-form label {
+    color: #ccc;
+  }
+
+  .announcement-form input[type="text"],
+  .announcement-form input[type="number"],
+  .announcement-form textarea {
+    background-color: #444;
+    border-color: #555;
+    color: #e0e0e0;
+  }
+
+  .announcement-form input[type="text"]::placeholder,
+  .announcement-form input[type="number"]::placeholder,
+  .announcement-form textarea::placeholder {
+    color: #999;
+  }
+
+  .announcement-form .form-group-optional,
+  .announcement-form .form-group-contact {
+    background-color: #444;
+    border-color: #555;
+  }
+
+  .announcement-form .form-group-optional h4,
+  .announcement-form .form-group-contact h4 {
+    color: #f0f0f0;
+  }
+
+  .announcement-form button {
+    background-color: #0056b3;
+  }
+  .announcement-form button:hover:not(:disabled) {
+    background-color: #003d80;
+  }
+
+  .error-message {
+    color: #ff6b6b;
+  }
+
+  .success-message {
+    color: #4CAF50;
+  }
+}

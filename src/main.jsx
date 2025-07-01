@@ -29,11 +29,11 @@ import Footer from './components/Footer';
 import { Routes, Route } from 'react-router-dom';
 import CookieWall from './components/CookieWall';
 import MessengerHelp from './MessengerHelp';
-import TablicaOgloszen from './TablicaOgloszen';
 import TransportNaJuz from './TransportNaJuz'; 
 import CarriersCatalog from './CarriersCatalog';
+import AnnouncementsPage from './components/AnnouncementsPage'; // Import nowej strony
 
-console.log("✅ MAIN.JSX ŁADUJE SIĘ")
+
 
 function App() {
   return (
@@ -60,11 +60,11 @@ function App() {
           <Route path="/panel/profil" element={<EdycjaProfilu />} />
           <Route path="/choose-role" element={<ChooseRoleAfterOAuth />} />
 	      <Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
-	      <Route path="/tablica-ogloszen" element={<TablicaOgloszen />} />
           {/* Dwie trasy dla TransportNaJuz: jedna bazowa, druga ze szczegółami */}
           <Route path="/transport-na-juz" element={<TransportNaJuz />} />
           <Route path="/transport-na-juz/:requestId" element={<TransportNaJuz />} />
           <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
+        <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
 
 
         </Routes>
