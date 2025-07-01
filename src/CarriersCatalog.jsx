@@ -237,7 +237,7 @@ export default function CarriersCatalog() {
           )}
         </div>
       </div>
-      <Footer />
+     
     </>
   );
 }
