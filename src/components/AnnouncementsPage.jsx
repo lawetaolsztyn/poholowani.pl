@@ -40,21 +40,14 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     fetchAnnouncements();
 
-    const checkUserSession = async () => {
+    // Sprawdzamy stan użytkownika tylko raz przy montowaniu dla ogólnej wiedzy
+    const getInitialUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-
-      // Sprawdzamy, czy użytkownik właśnie wrócił po zalogowaniu z zamierzonym powrotem na formularz ogłoszeń
-      const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
-      if (user && redirectToAnnounceForm === 'true') {
-        localStorage.removeItem('redirect_to_announce_form'); // Usuń flagę
-        setShowForm(true); // Otwórz formularz dodawania ogłoszeń
-        // Dodatkowo, jeśli chcesz przewinąć do góry formularza:
-        // window.scrollTo(0, 0); // Albo do konkretnego elementu
-      }
     };
-    checkUserSession();
+    getInitialUser();
 
+    // Słuchacz na zmiany stanu autentykacji (SIGNED_IN, SIGNED_OUT)
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
     });
@@ -62,7 +55,35 @@ export default function AnnouncementsPage() {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Ten useEffect uruchamia się tylko raz przy montowaniu
+
+  // NOWY useEffect - reaguje na zmianę stanu 'user'
+  useEffect(() => {
+    if (user) { // Tylko jeśli użytkownik jest zalogowany (user !== null)
+      const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
+      const redirectToAnnounceDetailsId = localStorage.getItem('redirect_to_announce_details_id');
+
+      if (redirectToAnnounceForm === 'true') {
+        localStorage.removeItem('redirect_to_announce_form'); // Usuń flagę
+        setShowForm(true); // OTWÓRZ FORMULARZ
+        setSelectedAnnouncement(null); // Upewnij się, że nie wyświetlasz detali
+        // Opcjonalnie: przewiń do góry strony, aby formularz był widoczny
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (redirectToAnnounceDetailsId) {
+        // Logika dla szczegółów ogłoszenia (na później, ale tu jest miejsce)
+        localStorage.removeItem('redirect_to_announce_details_id');
+        // Tutaj docelowo trzeba by pobrać ogłoszenie o tym ID i ustawić setSelectedAnnouncement
+        // Na razie po prostu wracamy do listy lub otwieramy formularz, jeśli taka jest logika fallbacku
+        // setShowForm(false); // Jeśli chcesz wrócić do listy
+        // setSelectedAnnouncement(null); // Jeśli chcesz wrócić do listy
+        // Możesz też dodać logikę pobierania konkretnego ogłoszenia i wyświetlenia go
+      }
+    } else {
+      // Jeśli użytkownik jest wylogowany, upewnij się, że formularz jest zamknięty
+      setShowForm(false);
+      setSelectedAnnouncement(null);
+    }
+  }, [user]); // Ten useEffect reaguje na zmiany obiektu 'user'
 
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
@@ -73,8 +94,7 @@ export default function AnnouncementsPage() {
   const handleOpenForm = () => {
     if (!user) {
       alert('Musisz być zalogowany, aby dodać ogłoszenie. Zostaniesz przekierowany do strony logowania.');
-      // ZAPISUJEMY INFORMACJĘ O ZAMIARZE POWROTU NA FORMULARZ
-      localStorage.setItem('redirect_to_announce_form', 'true');
+      localStorage.setItem('redirect_to_announce_form', 'true'); // Ustawiamy flagę
       navigate('/login');
       return;
     }
@@ -94,7 +114,6 @@ export default function AnnouncementsPage() {
   const handleAskQuestion = () => {
     if (!user) {
       alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
-      // ZAPISUJEMY INFORMACJĘ O ZAMIARZE POWROTU NA FORMULARZ WIDOKU SZCZEGÓŁÓW (opcjonalnie, można doprecyzować)
       localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
       navigate('/login');
       return;
