@@ -80,6 +80,20 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
+  // NOWA FUNKCJA do obsługi kliknięcia "Zadaj pytanie"
+  const handleAskQuestion = () => {
+    if (!user) {
+      alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
+      navigate('/login');
+      return;
+    }
+    // DOCELOWO: Tutaj będzie logika otwierania chatu
+    console.log(`Zadano pytanie do ogłoszenia: ${selectedAnnouncement.title} (ID: ${selectedAnnouncement.id})`);
+    alert('Funkcja "Zadaj pytanie" zostanie uruchomiona w przyszłości!'); // Tymczasowy alert
+    // navigate do chatu, otwarcie modala chatu itp.
+  };
+
+
   return (
     <React.Fragment>
       <Navbar />
@@ -130,7 +144,7 @@ export default function AnnouncementsPage() {
           {selectedAnnouncement ? (
             // === WIDOK SZCZEGÓŁÓW JEDNEGO OGŁOSZENIA (w prawej kolumnie) ===
             <div className="full-announcement-details-card">
-          {/*    <h3>Szczegóły Ogłoszenia</h3> */}
+              <h3>Szczegóły Ogłoszenia</h3>
               <h4>{selectedAnnouncement.title}</h4>
               {selectedAnnouncement.image_url && (
                 <img src={selectedAnnouncement.image_url} alt={selectedAnnouncement.title} className="announcement-details-image-full" />
@@ -162,11 +176,25 @@ export default function AnnouncementsPage() {
                   </a>
                 )}
               </div>
-              {/* Przycisk "Rozpocznij rozmowę" - dla przyszłego chatu */}
-              <button className="open-chat-button-details">Rozpocznij rozmowę</button>
               
-              {/* === USUNIĘTE PRZYCISKI AKCJI Z PRAWEJ KOLUMNY, GDY WIDOK SZCZEGÓŁÓW === */}
-              {/* Tutaj był poprzednio div.detail-page-action-buttons */}
+              {/* NOWY BLOK Z PRZYCISKAMI DO WHATSAPP I MESSENGER ORAZ ZADAJ PYTANIE */}
+              <div className="chat-and-direct-contact-buttons">
+                {selectedAnnouncement.contact_whatsapp && (
+                  <a href={`https://wa.me/${selectedAnnouncement.contact_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="action-button whatsapp-action-button">
+                    <i className="fab fa-whatsapp"></i> Otwórz WhatsApp
+                  </a>
+                )}
+                {selectedAnnouncement.contact_messenger && (
+                  <a href={selectedAnnouncement.contact_messenger} target="_blank" rel="noopener noreferrer" className="action-button messenger-action-button">
+                    <i className="fab fa-facebook-messenger"></i> Otwórz Messenger
+                  </a>
+                )}
+                {/* PRZYCISK ZADAJ PYTANIE */}
+                <button className="action-button ask-question-button" onClick={handleAskQuestion}>
+                  <i className="fas fa-question-circle"></i> Zadaj pytanie
+                </button>
+              </div>
+
             </div>
           ) : (
             // === WIDOK LISTY OGŁOSZEŃ ===
@@ -203,7 +231,6 @@ export default function AnnouncementsPage() {
                       {announcement.budget_pln && <span><strong>Budżet:</strong> {announcement.budget_pln} PLN</span>}
                     </div>
                     
-                    {/* PRZYCISK ZOBACZ SZCZEGÓŁY - TERAZ ZE STYLEM */}
                     <button className="view-details-button" onClick={() => handleViewDetails(announcement)}>
                       Zobacz szczegóły
                     </button>

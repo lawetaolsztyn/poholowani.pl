@@ -1,17 +1,16 @@
 /* src/components/AnnouncementsPage.css */
 
-/* Ogólny kontener strony tablicy ogłoszeń */
+/* --- Ogólne style dla strony --- */
 .announcements-page-container {
   display: flex;
-  gap: 30px; /* Odstęp między kolumnami */
+  gap: 30px;
   padding: 30px;
-  max-width: 1200px; /* Maksymalna szerokość kontenera */
-  margin: 0 auto; /* Wyśrodkowanie */
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* Lewa kolumna: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-  flex: 0 0 30%; /* 30% szerokości, bez kurczenia się */
+  flex: 0 0 30%;
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
@@ -20,7 +19,6 @@
   flex-direction: column;
 }
 
-/* Nagłówek dla formularza dodawania ogłoszenia */
 .left-panel .form-header {
   font-size: 1.8em;
   color: #333;
@@ -28,17 +26,14 @@
   text-align: center;
 }
 
-
-/* Prawa kolumna: lista ogłoszeń */
 .main-content-area {
-  flex: 1; /* Zajmuje resztę dostępnego miejsca */
+  flex: 1;
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
 .main-content-area h2 {
   font-size: 2em;
   color: #333;
@@ -46,12 +41,12 @@
   text-align: center;
 }
 
-/* === NOWE STYLE DLA PRZYCISKU "DODAJ NOWE OGŁOSZENIE" (początkowy) === */
+/* --- Style dla przycisków akcji w lewej kolumnie --- */
 .add-announcement-button {
   display: block;
   width: 100%;
   padding: 15px 20px;
-  background-color: #007bff; /* Niebieski kolor */
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 8px;
@@ -60,19 +55,18 @@
   cursor: pointer;
   text-align: center;
   transition: background-color 0.2s ease;
-  margin-bottom: 25px; /* Odstęp od sekcji filtra */
+  margin-bottom: 25px;
 }
 
 .add-announcement-button:hover {
   background-color: #0056b3;
 }
 
-/* === NOWE STYLE DLA PRZYCISKÓW W LEWEJ KOLUMNIE, GDY WIDOK SZCZEGÓŁÓW JEST AKTYWNY === */
 .announcement-detail-buttons {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  margin-top: 25px; /* Odstęp od góry */
+  margin-top: 25px;
   padding: 20px;
   background-color: #f8f8f8;
   border: 1px solid #eee;
@@ -89,12 +83,11 @@
   font-size: 1em;
   font-weight: bold;
   cursor: pointer;
-  text-align: center;
   transition: background-color 0.2s ease;
 }
 
 .add-announcement-button-side {
-  background-color: #28a745; /* Zielony do dodawania */
+  background-color: #28a745;
   color: white;
 }
 .add-announcement-button-side:hover {
@@ -102,15 +95,14 @@
 }
 
 .back-button-side {
-  background-color: #6c757d; /* Szary do powrotu */
+  background-color: #6c757d;
   color: white;
 }
 .back-button-side:hover {
   background-color: #5a6268;
 }
 
-
-/* === STYLE DLA SEKCJI FILTRA === */
+/* --- Sekcja filtra --- */
 .search-filter-section {
   background-color: #f8f8f8;
   padding: 20px;
@@ -125,15 +117,15 @@
   text-align: center;
 }
 
-/* === NOWE STYLE DLA LISTY OGŁOSZEŃ (Jeden na wiersz, szersze) === */
+/* --- Lista ogłoszeń (jeden na wiersz) --- */
 .announcements-list-single-column {
   display: flex;
-  flex-direction: column; /* Układaj karty jedna pod drugą */
+  flex-direction: column;
   gap: 25px;
   margin-top: 20px;
 }
 
-.announcement-card-wide { /* NOWA KLASA */
+.announcement-card-wide {
   background-color: #f8f8f8;
   border: 1px solid #eee;
   border-radius: 8px;
@@ -142,14 +134,13 @@
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease-in-out;
-  width: 100%; /* Karta zajmuje całą szerokość kolumny */
+  width: 100%;
 }
 
 .announcement-card-wide:hover {
   transform: translateY(-5px);
 }
 
-/* Nagłówek i data w karcie listy */
 .announcement-card-wide .card-header {
   display: flex;
   justify-content: space-between;
@@ -160,27 +151,27 @@
 .announcement-card-wide h3 {
   font-size: 1.5em;
   color: #333;
-  margin: 0; /* Usuń domyślny margines h3 */
+  margin: 0;
 }
 
 .announcement-card-wide .posted-at {
   font-size: 0.85em;
   color: #999;
   text-align: right;
-  white-space: nowrap; /* Zapobiegaj zawijaniu daty */
+  white-space: nowrap;
   margin-top: 0;
   padding-top: 0;
   border-top: none;
   margin-bottom: 0;
 }
 
-.announcement-image-preview { /* Zdjęcie w podglądzie listy */
+.announcement-image-preview {
   max-width: 100%;
   height: auto;
   border-radius: 6px;
   margin-bottom: 15px;
   object-fit: cover;
-  max-height: 150px; /* Nieco mniejsza wysokość podglądu */
+  max-height: 150px;
 }
 
 .announcement-card-wide p {
@@ -194,11 +185,17 @@
   color: #333;
 }
 
-/* Metadane w karcie listy (co, waga, budżet) */
+.no-route-info {
+  font-style: italic;
+  color: #888;
+  font-size: 0.9em;
+  margin-top: -5px;
+}
+
 .announcement-card-wide .card-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px; /* Odstęp między elementami meta */
+  gap: 15px;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dotted #eee;
@@ -209,7 +206,7 @@
   color: #333;
 }
 
-/* === PRZYCISK "ZOBACZ SZCZEGÓŁY" NA KARTACH OGŁOSZEŃ (WIDOCZNY I STYLIZOWANY) === */
+/* Przycisk "Zobacz szczegóły" na kartach ogłoszeń */
 .view-details-button {
   display: block;
   width: 100%;
@@ -223,8 +220,8 @@
   font-weight: bold;
   margin-top: 15px;
   transition: background-color 0.2s ease;
-  text-align: center; /* Dodane, aby tekst był wyśrodkowany */
-  text-decoration: none; /* Upewnij się, że nie ma podkreślenia, jeśli kiedyś będzie to link */
+  text-align: center;
+  text-decoration: none;
 }
 
 .view-details-button:hover {
@@ -232,8 +229,8 @@
 }
 
 
-/* === STYLE DLA DUŻEGO WIDOKU SZCZEGÓŁÓW (w prawej kolumnie) === */
-.full-announcement-details-card { /* NOWA KLASA */
+/* --- Duży widok szczegółów ogłoszenia w prawej kolumnie --- */
+.full-announcement-details-card {
   background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 10px;
@@ -241,7 +238,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  height: 100%; /* Rozciągnij na całą wysokość prawej kolumny */
+  height: 100%;
 }
 
 .full-announcement-details-card h3 {
@@ -258,7 +255,7 @@
   text-align: center;
 }
 
-.announcement-details-image-full { /* Zdjęcie w widoku szczegółów */
+.announcement-details-image-full {
   max-width: 80%;
   height: auto;
   border-radius: 8px;
@@ -280,7 +277,7 @@
   color: #222;
 }
 
-/* Dane kontaktowe w widoku szczegółów */
+/* Dane kontaktowe (tel, whatsapp, messenger) w widoku szczegółów */
 .contact-info-details {
   margin-top: 25px;
   border-top: 1px dashed #bbb;
@@ -299,7 +296,6 @@
   color: #333;
 }
 
-/* Przyciski kontaktowe (telefon, whatsapp, messenger) */
 .contact-button {
   display: inline-block;
   padding: 8px 12px;
@@ -335,26 +331,61 @@
   background-color: #0056b3;
 }
 
-/* Przycisk "Rozpocznij rozmowę" w widoku szczegółów */
-.open-chat-button-details {
-  display: block;
-  width: 90%;
-  max-width: 350px;
-  margin: 25px auto 15px auto;
-  padding: 15px 25px;
-  background-color: #ff6600;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.1em;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
+/* === NOWE STYLE DLA PRZYCISKÓW AKCJI (WhatsApp, Messenger, Zadaj pytanie) W WIDOKU SZCZEGÓŁÓW === */
+.chat-and-direct-contact-buttons {
+  display: flex;
+  flex-direction: column; /* Ułożenie przycisków jeden pod drugim */
+  gap: 15px;
+  margin-top: 30px; /* Większy odstęp od sekcji kontaktowej */
+  padding-top: 20px;
+  border-top: 1px solid #eee; /* Separator */
 }
 
-.open-chat-button-details:hover {
-  background-color: #e65100;
+.action-button {
+  display: flex; /* Pozwala na wyrównanie ikony i tekstu */
+  align-items: center;
+  justify-content: center; /* Wyśrodkowanie zawartości */
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none; /* Dla linków */
+  color: white;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
+
+.action-button i { /* Ikony w przyciskach */
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+.whatsapp-action-button {
+  background-color: #25d366;
+}
+.whatsapp-action-button:hover {
+  background-color: #1DA851;
+  transform: translateY(-2px);
+}
+
+.messenger-action-button {
+  background-color: #007bff;
+}
+.messenger-action-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.ask-question-button {
+  background-color: #ff6600; /* Pomarańczowy, jak akcent w Navbarze */
+  color: white;
+}
+.ask-question-button:hover {
+  background-color: #e65100;
+  transform: translateY(-2px);
+}
+
 
 /* Komunikaty ładowania, błędów, braku ogłoszeń */
 .loading-message, .error-message-list, .no-announcements-message {
@@ -372,8 +403,6 @@
 
 /* === TRYB CIEMNY === */
 @media (prefers-color-scheme: dark) {
-  /* Istniejące style trybu ciemnego */
-
   .left-panel,
   .main-content-area {
     background-color: #333;
@@ -472,22 +501,34 @@
   .contact-info-details p {
     color: #f0f0f0;
   }
-  .open-chat-button-details {
+  .contact-button {
+    /* Style dla poszczególnych przycisków już są */
+  }
+
+  /* === NOWE STYLE AKCJI W WIDOKU SZCZEGÓŁÓW W TRYBIE CIEMNYM === */
+  .chat-and-direct-contact-buttons {
+    border-color: #555;
+  }
+  .whatsapp-action-button {
+    background-color: #1f9e4f;
+  }
+  .whatsapp-action-button:hover {
+    background-color: #177a3d;
+  }
+  .messenger-action-button {
+    background-color: #0056b3;
+  }
+  .messenger-action-button:hover {
+    background-color: #003d80;
+  }
+  .ask-question-button {
     background-color: #e65100;
   }
-  .open-chat-button-details:hover {
+  .ask-question-button:hover {
     background-color: #c84400;
   }
 
-  /* === STYLIZACJA PRZYCISKU ZOBACZ SZCZEGÓŁY W TRYBIE CIEMNYM === */
-  .view-details-button {
-    background-color: #117a8b;
-  }
-  .view-details-button:hover {
-    background-color: #0e6774;
-  }
-
-
+  /* --- Inne komunikaty i style --- */
   .loading-message, .error-message-list, .no-announcements-message {
     color: #aaa;
   }
@@ -502,7 +543,7 @@
 }
 
 
-/* Responsywność dla mniejszych ekranów */
+/* --- Responsywność dla mniejszych ekranów --- */
 @media (max-width: 992px) {
   .announcements-page-container {
     flex-direction: column;
@@ -516,10 +557,24 @@
     width: 100%;
   }
 
-  .announcements-grid,
   .announcements-list-single-column {
     grid-template-columns: 1fr;
     display: flex;
     flex-direction: column;
+  }
+  
+  .full-announcement-details-card .announcement-details-image-full {
+    max-width: 100%; /* Na małych ekranach może być 100% */
+  }
+  .chat-and-direct-contact-buttons {
+    width: 100%; /* Przycisk akcji zajmuje całą szerokość */
+  }
+  .action-button {
+    padding: 10px 15px; /* Mniejszy padding dla przycisków akcji na mobilnych */
+    font-size: 1em;
+  }
+  .action-button i {
+    font-size: 1em;
+    margin-right: 5px;
   }
 }

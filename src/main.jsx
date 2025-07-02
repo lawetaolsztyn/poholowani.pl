@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 import './index.css';
 import './App.css';
@@ -32,6 +33,7 @@ import MessengerHelp from './MessengerHelp';
 import TransportNaJuz from './TransportNaJuz'; 
 import CarriersCatalog from './CarriersCatalog';
 import AnnouncementsPage from './components/AnnouncementsPage'; // Import nowej strony
+
 
 
 
