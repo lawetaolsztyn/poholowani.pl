@@ -1,4 +1,4 @@
-/* src/components/AnnouncementForm.css lub Twój główny plik stylów */
+/* src/components/AnnouncementForm.css */
 
 .announcement-form-container {
   background-color: #ffffff;
@@ -6,7 +6,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
-  max-width: 600px; /* Ogranicz szerokość formularza */
+  max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -31,17 +31,18 @@
 
 .announcement-form input[type="text"],
 .announcement-form input[type="number"],
+.announcement-form input[type="url"], /* Dodane dla Messengera */
 .announcement-form textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 1em;
-  box-sizing: border-box; /* Ważne, aby padding nie zwiększał szerokości */
+  box-sizing: border-box;
 }
 
 .announcement-form textarea {
-  resize: vertical; /* Pozwól użytkownikowi zmieniać wysokość */
+  resize: vertical;
 }
 
 .announcement-form input[type="file"] {
@@ -78,7 +79,53 @@
   gap: 20px;
 }
 
-.announcement-form button {
+/* NOWE STYLE DLA CHECKBOXÓW I POLA ZGODY */
+.announcement-form .form-group-checkbox {
+  display: flex;
+  align-items: center; /* Wyśrodkuj checkbox i tekst pionowo */
+}
+
+.announcement-form .form-group-checkbox label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0; /* Usuń margines dolny z labela */
+  font-weight: normal; /* Normalna waga dla tekstu przy checkboxie */
+  color: #333; /* Domyślny kolor dla tekstu */
+}
+
+.announcement-form .form-group-checkbox input[type="checkbox"] {
+  width: auto; /* Checkbox nie powinien zajmować 100% */
+  margin-right: 10px; /* Odstęp od tekstu */
+  transform: scale(1.2); /* Lekko powiększ checkbox */
+}
+
+.announcement-form .consent-checkbox-group {
+  flex-direction: column; /* Tekst zgody i mały tekst pod spodem */
+  align-items: flex-start; /* Dopasuj do lewej */
+}
+
+.announcement-form .help-text {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 5px;
+  display: block; /* Upewnij się, że tekst jest w nowej linii */
+}
+
+.announcement-form .help-text a {
+  color: #007bff;
+  text-decoration: none;
+}
+.announcement-form .help-text a:hover {
+  text-decoration: underline;
+}
+
+/* Styl dla LocationAutocomplete input */
+.autocomplete-field {
+  /* Możesz dodać style specyficzne dla pól z LocationAutocomplete */
+}
+
+
+.announcement-form button[type="submit"] {
   display: block;
   width: 100%;
   padding: 12px 20px;
@@ -92,11 +139,11 @@
   transition: background-color 0.2s ease;
 }
 
-.announcement-form button:hover:not(:disabled) {
+.announcement-form button[type="submit"]:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
-.announcement-form button:disabled {
+.announcement-form button[type="submit"]:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
@@ -132,9 +179,15 @@
   .announcement-form label {
     color: #ccc;
   }
+  
+  .announcement-form .form-group-checkbox label {
+    color: #e0e0e0; /* Kolor tekstu checkboxa w dark mode */
+  }
+
 
   .announcement-form input[type="text"],
   .announcement-form input[type="number"],
+  .announcement-form input[type="url"],
   .announcement-form textarea {
     background-color: #444;
     border-color: #555;
@@ -143,6 +196,7 @@
 
   .announcement-form input[type="text"]::placeholder,
   .announcement-form input[type="number"]::placeholder,
+  .announcement-form input[type="url"]::placeholder,
   .announcement-form textarea::placeholder {
     color: #999;
   }
@@ -158,10 +212,17 @@
     color: #f0f0f0;
   }
 
-  .announcement-form button {
+  .announcement-form .help-text {
+    color: #aaa;
+  }
+  .announcement-form .help-text a {
+    color: #6bb3ff; /* Jaśniejszy niebieski dla linku w dark mode */
+  }
+
+  .announcement-form button[type="submit"] {
     background-color: #0056b3;
   }
-  .announcement-form button:hover:not(:disabled) {
+  .announcement-form button[type="submit"]:hover:not(:disabled) {
     background-color: #003d80;
   }
 
