@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import AnnouncementForm from './AnnouncementForm';
 import './AnnouncementsPage.css';
 import Navbar from './Navbar';
+import LocationAutocomplete from './LocationAutocomplete'; // Importuj LocationAutocomplete do filtra
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
@@ -16,14 +17,49 @@ export default function AnnouncementsPage() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  // NOWE STANY DLA FILTROWANIA
+  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
+  const [filterTo, setFilterTo] = useState({ label: '', coords: null });
+  const [filterItem, setFilterItem] = useState('');
+  const [filterBudgetMin, setFilterBudgetMin] = useState('');
+  const [filterBudgetMax, setFilterBudgetMax] = useState('');
+  const [filterWeightMin, setFilterWeightMin] = useState('');
+  const [filterWeightMax, setFilterWeightMax] = useState('');
+
   const fetchAnnouncements = async () => {
     setLoadingAnnouncements(true);
     setErrorAnnouncements(null);
+
+    let query = supabase.from('announcements').select('*');
+
+    // DODAJ LOGIKĘ FILTROWANIA DO ZAPYTANIA SUPABASE
+    if (filterFrom.label) {
+      // Filtracja po tekście, np. 'contains' lub 'ilike' (case-insensitive LIKE)
+      query = query.ilike('location_from_text', `%${filterFrom.label}%`);
+    }
+    if (filterTo.label) {
+      query = query.ilike('location_to_text', `%${filterTo.label}%`);
+    }
+    if (filterItem) {
+      query = query.ilike('item_to_transport', `%${filterItem}%`);
+    }
+    if (filterBudgetMin) {
+      query = query.gte('budget_pln', parseFloat(filterBudgetMin));
+    }
+    if (filterBudgetMax) {
+      query = query.lte('budget_pln', parseFloat(filterBudgetMax));
+    }
+    if (filterWeightMin) {
+      query = query.gte('weight_kg', parseFloat(filterWeightMin));
+    }
+    if (filterWeightMax) {
+      query = query.lte('weight_kg', parseFloat(filterWeightMax));
+    }
+
+    query = query.order('created_at', { ascending: false });
+
     try {
-      const { data, error } = await supabase
-        .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await query; // Wykonaj zapytanie z filtrami
 
       if (error) {
         throw error;
@@ -37,23 +73,18 @@ export default function AnnouncementsPage() {
     }
   };
 
+  // Uruchom ładowanie ogłoszeń przy pierwszym renderowaniu i ZMIANIE FILTRÓW
   useEffect(() => {
     fetchAnnouncements();
+  }, [filterFrom, filterTo, filterItem, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax]); // Zależności dla filtra
 
-    const checkUserSession = async () => {
+  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu
+  useEffect(() => {
+    const getInitialUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-
-      // Sprawdzamy, czy użytkownik właśnie wrócił po zalogowaniu z zamierzonym powrotem na formularz ogłoszeń
-      const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
-      if (user && redirectToAnnounceForm === 'true') {
-        localStorage.removeItem('redirect_to_announce_form'); // Usuń flagę
-        setShowForm(true); // Otwórz formularz dodawania ogłoszeń
-        // Dodatkowo, jeśli chcesz przewinąć do góry formularza:
-        // window.scrollTo(0, 0); // Albo do konkretnego elementu
-      }
     };
-    checkUserSession();
+    getInitialUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
@@ -64,6 +95,26 @@ export default function AnnouncementsPage() {
     };
   }, []);
 
+  // Efekt do obsługi przekierowania po zalogowaniu (pozostaje bez zmian)
+  useEffect(() => {
+    if (user) {
+      const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
+      const redirectToAnnounceDetailsId = localStorage.getItem('redirect_to_announce_details_id');
+
+      if (redirectToAnnounceForm === 'true') {
+        localStorage.removeItem('redirect_to_announce_form');
+        setShowForm(true);
+        setSelectedAnnouncement(null);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (redirectToAnnounceDetailsId) {
+        localStorage.removeItem('redirect_to_announce_details_id');
+      }
+    } else {
+      setShowForm(false);
+      setSelectedAnnouncement(null);
+    }
+  }, [user]);
+
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
     fetchAnnouncements();
@@ -73,7 +124,6 @@ export default function AnnouncementsPage() {
   const handleOpenForm = () => {
     if (!user) {
       alert('Musisz być zalogowany, aby dodać ogłoszenie. Zostaniesz przekierowany do strony logowania.');
-      // ZAPISUJEMY INFORMACJĘ O ZAMIARZE POWROTU NA FORMULARZ
       localStorage.setItem('redirect_to_announce_form', 'true');
       navigate('/login');
       return;
@@ -94,13 +144,23 @@ export default function AnnouncementsPage() {
   const handleAskQuestion = () => {
     if (!user) {
       alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
-      // ZAPISUJEMY INFORMACJĘ O ZAMIARZE POWROTU NA FORMULARZ WIDOKU SZCZEGÓŁÓW (opcjonalnie, można doprecyzować)
       localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
       navigate('/login');
       return;
     }
     console.log(`Zadano pytanie do ogłoszenia: ${selectedAnnouncement.title} (ID: ${selectedAnnouncement.id})`);
     alert('Funkcja "Zadaj pytanie" zostanie uruchomiona w przyszłości!');
+  };
+
+  const handleClearFilters = () => {
+    setFilterFrom({ label: '', coords: null });
+    setFilterTo({ label: '', coords: null });
+    setFilterItem('');
+    setFilterBudgetMin('');
+    setFilterBudgetMax('');
+    setFilterWeightMin('');
+    setFilterWeightMax('');
+    // Po wyczyszczeniu filtrów, useEffect ponownie uruchomi fetchAnnouncements
   };
 
 
@@ -127,11 +187,79 @@ export default function AnnouncementsPage() {
             </>
           )}
 
-          {/* Filtry wyszukiwania */}
+          {/* MIEJSCE NA FILTRY WYSZUKIWANIA - widoczne, gdy nie wyświetlasz formularza ani szczegółów */}
           {!showForm && !selectedAnnouncement && (
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
-                <p>(Tutaj pojawią się pola filtra)</p>
+                <div className="filter-group">
+                    <label htmlFor="filterFrom">Skąd:</label>
+                    <LocationAutocomplete
+                        value={filterFrom.label}
+                        onSelectLocation={(label, sug) => setFilterFrom({ label, coords: sug.geometry.coordinates })}
+                        placeholder="Miasto początkowe"
+                        className="filter-input"
+                        searchType="city"
+                    />
+                </div>
+                <div className="filter-group">
+                    <label htmlFor="filterTo">Dokąd:</label>
+                    <LocationAutocomplete
+                        value={filterTo.label}
+                        onSelectLocation={(label, sug) => setFilterTo({ label, coords: sug.geometry.coordinates })}
+                        placeholder="Miasto docelowe"
+                        className="filter-input"
+                        searchType="city"
+                    />
+                </div>
+                <div className="filter-group">
+                    <label htmlFor="filterItem">Co do przewiezienia:</label>
+                    <input
+                        type="text"
+                        id="filterItem"
+                        value={filterItem}
+                        onChange={(e) => setFilterItem(e.target.value)}
+                        placeholder="Np. auto, meble"
+                        className="filter-input"
+                    />
+                </div>
+                <div className="filter-group-range">
+                    <label>Budżet (PLN):</label>
+                    <input
+                        type="number"
+                        value={filterBudgetMin}
+                        onChange={(e) => setFilterBudgetMin(e.target.value)}
+                        placeholder="Min."
+                        className="filter-input-range"
+                    />
+                    <span>-</span>
+                    <input
+                        type="number"
+                        value={filterBudgetMax}
+                        onChange={(e) => setFilterBudgetMax(e.target.value)}
+                        placeholder="Max."
+                        className="filter-input-range"
+                    />
+                </div>
+                <div className="filter-group-range">
+                    <label>Waga (kg):</label>
+                    <input
+                        type="number"
+                        value={filterWeightMin}
+                        onChange={(e) => setFilterWeightMin(e.target.value)}
+                        placeholder="Min."
+                        className="filter-input-range"
+                    />
+                    <span>-</span>
+                    <input
+                        type="number"
+                        value={filterWeightMax}
+                        onChange={(e) => setFilterWeightMax(e.target.value)}
+                        placeholder="Max."
+                        className="filter-input-range"
+                    />
+                </div>
+                <button onClick={fetchAnnouncements} className="filter-button">Szukaj</button>
+                <button onClick={handleClearFilters} className="clear-filter-button">Wyczyść filtry</button>
               </div>
           )}
 

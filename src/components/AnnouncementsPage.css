@@ -578,3 +578,131 @@
     margin-right: 5px;
   }
 }
+
+/* === STYLE DLA SEKCJI FILTRA === */
+.search-filter-section {
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  margin-top: 25px; /* Odstęp od przycisku Dodaj Nowe Ogłoszenie */
+}
+
+.search-filter-section h3 {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.filter-group {
+  margin-bottom: 15px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.filter-group-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filter-group-range label {
+  flex-shrink: 0; /* Nie kurcz się */
+  margin-bottom: 0; /* Resetuj margines dla label */
+}
+
+.filter-input-range {
+  flex-grow: 1; /* Wypełnij dostępną przestrzeń */
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.filter-group-range span {
+  font-weight: bold;
+  color: #555;
+}
+
+.filter-button, .clear-filter-button {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+}
+
+.filter-button {
+  background-color: #007bff;
+  color: white;
+}
+.filter-button:hover {
+  background-color: #0056b3;
+}
+
+.clear-filter-button {
+  background-color: #6c757d;
+  color: white;
+}
+.clear-filter-button:hover {
+  background-color: #5a6268;
+}
+
+
+/* === TRYB CIEMNY DLA FILTRÓW === */
+@media (prefers-color-scheme: dark) {
+  .search-filter-section {
+    background-color: #444;
+    border-color: #555;
+  }
+  .search-filter-section h3 {
+    color: #f0f0f0;
+  }
+  .filter-group label {
+    color: #ccc;
+  }
+  .filter-input, .filter-input-range {
+    background-color: #555;
+    border-color: #666;
+    color: #e0e0e0;
+  }
+  .filter-input::placeholder, .filter-input-range::placeholder {
+    color: #999;
+  }
+  .filter-group-range span {
+    color: #ccc;
+  }
+  .filter-button {
+    background-color: #0056b3;
+  }
+  .filter-button:hover {
+    background-color: #003d80;
+  }
+  .clear-filter-button {
+    background-color: #5a6268;
+  }
+  .clear-filter-button:hover {
+    background-color: #495057;
+  }
