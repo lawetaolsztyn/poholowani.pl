@@ -11,9 +11,7 @@
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-  flex: 0 0 30%; /* ZMIANA: Powrót do 30% z elastycznością, aby prawa kolumna miała więcej miejsca */
-  max-width: 350px; /* NOWOŚĆ: Maksymalna szerokość dla lewego panelu, aby się nie rozpychał za bardzo */
-  min-width: 280px; /* NOWOŚĆ: Minimalna szerokość, aby był czytelny */
+  flex: 0 0 320px; /* Stała szerokość lewej kolumny */
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
@@ -137,32 +135,8 @@
   color: #555;
 }
 
-/* ZMIANA: Styl dla inputów w filtrze (LocationAutocomplete też powinien to złapać) */
-.search-filter-section .filter-input,
-.search-filter-section .autocomplete-container .autocomplete-input /* Doprecyzowanie dla LocationAutocomplete */
-{
-  width: 100%; /* Upewnij się, że input zajmuje całą dostępną szerokość */
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1em;
-  box-sizing: border-box; /* Kluczowe: padding i border wewnątrz szerokości */
-}
-
-.filter-group-range {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.filter-group-range label {
-  flex-shrink: 0;
-  margin-bottom: 0;
-}
-
-.filter-input-range {
-  flex-grow: 1;
+.filter-input {
+  width: 100%;
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -170,9 +144,38 @@
   box-sizing: border-box;
 }
 
-.filter-group-range span {
+/* ZMIANA TUTAJ: Zamiast flex, zmieniamy na uklad blokowy dla pól zakresu */
+.filter-group-range {
+  display: block; /* Zmienione z flex na block */
+  margin-bottom: 15px;
+}
+
+.filter-group-range label {
+  display: block; /* Label na osobną linię */
+  margin-bottom: 8px;
   font-weight: bold;
   color: #555;
+}
+
+.filter-group-range .range-inputs { /* NOWA KLASA WRAPPER */
+  display: flex; /* Teraz te inputy będą obok siebie */
+  gap: 10px; /* Odstęp między nimi */
+  align-items: center;
+}
+
+.filter-input-range {
+  flex-grow: 1; /* Wypełnij dostępną przestrzeń */
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.filter-group-range span { /* Separator "-" */
+  font-weight: bold;
+  color: #555;
+  flex-shrink: 0; /* Zapobiegaj kurczeniu się "-" */
 }
 
 .filter-button, .clear-filter-button {
