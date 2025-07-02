@@ -9,15 +9,15 @@
   margin: 0 auto; /* Wyśrodkowanie */
 }
 
-/* Lewa kolumna: formularz, filtry, szczegóły ogłoszenia */
+/* Lewa kolumna: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
   flex: 0 0 30%; /* 30% szerokości, bez kurczenia się */
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  display: flex; /* Dodane dla lepszej kontroli nad układem wewnętrznym */
-  flex-direction: column; /* Elementy w kolumnie jeden pod drugim */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Nagłówek dla formularza dodawania ogłoszenia */
@@ -46,7 +46,7 @@
   text-align: center;
 }
 
-/* === NOWE STYLE DLA PRZYCISKU "DODAJ NOWE OGŁOSZENIE" === */
+/* === NOWE STYLE DLA PRZYCISKU "DODAJ NOWE OGŁOSZENIE" (początkowy) === */
 .add-announcement-button {
   display: block;
   width: 100%;
@@ -67,13 +67,55 @@
   background-color: #0056b3;
 }
 
-/* === NOWE STYLE DLA SEKCJI FILTRA === */
+/* === NOWE STYLE DLA PRZYCISKÓW W LEWEJ KOLUMNIE, GDY WIDOK SZCZEGÓŁÓW JEST AKTYWNY === */
+.announcement-detail-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px; /* Odstęp od góry */
+  padding: 20px;
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.add-announcement-button-side,
+.back-button-side {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.add-announcement-button-side {
+  background-color: #28a745; /* Zielony do dodawania */
+  color: white;
+}
+.add-announcement-button-side:hover {
+  background-color: #218838;
+}
+
+.back-button-side {
+  background-color: #6c757d; /* Szary do powrotu */
+  color: white;
+}
+.back-button-side:hover {
+  background-color: #5a6268;
+}
+
+
+/* === STYLE DLA SEKCJI FILTRA === */
 .search-filter-section {
-  background-color: #f8f8f8; /* Jasne tło dla sekcji filtra */
+  background-color: #f8f8f8;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid #eee;
-  /* margin-top: 25px; - usunięte, bo add-announcement-button ma już margin-bottom */
 }
 
 .search-filter-section h3 {
@@ -83,15 +125,15 @@
   text-align: center;
 }
 
-/* === STYLE DLA LISTY OGŁOSZEŃ === */
-.announcements-grid {
-  display: grid; /* Używamy grida, aby ułatwić zarządzanie układem kart */
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsywne kolumny */
-  gap: 25px; /* Odstęp między kartami */
+/* === NOWE STYLE DLA LISTY OGŁOSZEŃ (Jeden na wiersz, szersze) === */
+.announcements-list-single-column {
+  display: flex;
+  flex-direction: column; /* Układaj karty jedna pod drugą */
+  gap: 25px;
   margin-top: 20px;
 }
 
-.announcement-card {
+.announcement-card-wide { /* NOWA KLASA */
   background-color: #f8f8f8;
   border: 1px solid #eee;
   border-radius: 8px;
@@ -100,121 +142,160 @@
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease-in-out;
+  width: 100%; /* Karta zajmuje całą szerokość kolumny */
 }
 
-.announcement-card:hover {
-  transform: translateY(-5px); /* Lekki efekt uniesienia na hover */
+.announcement-card-wide:hover {
+  transform: translateY(-5px);
 }
 
-.announcement-card h3 {
+/* Nagłówek i data w karcie listy */
+.announcement-card-wide .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.announcement-card-wide h3 {
   font-size: 1.5em;
   color: #333;
-  margin-bottom: 10px;
-  text-align: center;
+  margin: 0; /* Usuń domyślny margines h3 */
 }
 
-.announcement-card p {
+.announcement-card-wide .posted-at {
+  font-size: 0.85em;
+  color: #999;
+  text-align: right;
+  white-space: nowrap; /* Zapobiegaj zawijaniu daty */
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  margin-bottom: 0;
+}
+
+.announcement-image-preview { /* Zdjęcie w podglądzie listy */
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  object-fit: cover;
+  max-height: 150px; /* Nieco mniejsza wysokość podglądu */
+}
+
+.announcement-card-wide p {
   font-size: 1em;
   line-height: 1.5;
   margin-bottom: 8px;
   color: #555;
 }
 
-.announcement-card p strong {
+.announcement-card-wide p strong {
   color: #333;
 }
 
-.announcement-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  object-fit: cover; /* Upewnij się, że obrazek wypełnia przestrzeń bez zniekształceń */
-  max-height: 200px; /* Ogranicz wysokość zdjęć, aby karty były podobne */
-}
-
-/* Informacje o braku trasy, jeśli nie podano */
-.no-route-info {
-  font-style: italic;
-  color: #888;
-  font-size: 0.9em;
-  margin-top: -5px; /* Przybliż do poprzedniego akapitu */
-}
-
-/* Data dodania ogłoszenia */
-.posted-at {
-  font-size: 0.85em;
-  color: #999;
-  text-align: right;
-  margin-top: auto; /* Pcha element na dół karty */
+/* Metadane w karcie listy (co, waga, budżet) */
+.announcement-card-wide .card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px; /* Odstęp między elementami meta */
+  margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dotted #eee;
-  margin-bottom: 0;
+  font-size: 0.95em;
+  color: #666;
+}
+.announcement-card-wide .card-meta span strong {
+  color: #333;
 }
 
-/* === NOWE STYLE DLA WIDOKU SZCZEGÓŁÓW OGŁOSZENIA (gdy selectedAnnouncement jest aktywne) === */
-.announcement-details-view {
-  background-color: #f8f8f8;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+/* === PRZYCISK "ZOBACZ SZCZEGÓŁY" NA KARTACH OGŁOSZEŃ (WIDOCZNY I STYLIZOWANY) === */
+.view-details-button {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  background-color: #17a2b8; /* Turkusowy kolor */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: background-color 0.2s ease;
+  text-align: center; /* Dodane, aby tekst był wyśrodkowany */
+  text-decoration: none; /* Upewnij się, że nie ma podkreślenia, jeśli kiedyś będzie to link */
+}
+
+.view-details-button:hover {
+  background-color: #138496;
+}
+
+
+/* === STYLE DLA DUŻEGO WIDOKU SZCZEGÓŁÓW (w prawej kolumnie) === */
+.full-announcement-details-card { /* NOWA KLASA */
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* Pozwól temu widokowi rosnąć i wypełniać dostępną przestrzeń */
+  height: 100%; /* Rozciągnij na całą wysokość prawej kolumny */
 }
 
-.announcement-details-view h3 {
+.full-announcement-details-card h3 {
+  font-size: 2.2em;
+  color: #007bff;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.full-announcement-details-card h4 {
   font-size: 1.8em;
   color: #333;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
-.announcement-details-view h4 {
-  font-size: 1.4em;
-  color: #007bff; /* Akcentowany kolor dla tytułu szczegółów */
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.announcement-details-view p {
-  font-size: 1.1em;
-  line-height: 1.6;
-  margin-bottom: 8px;
-  color: #555;
-}
-
-.announcement-details-view p strong {
-  color: #333;
-}
-
-.announcement-details-image {
-  max-width: 100%;
+.announcement-details-image-full { /* Zdjęcie w widoku szczegółów */
+  max-width: 80%;
   height: auto;
-  border-radius: 6px;
-  margin: 15px auto; /* Wyśrodkowanie i margines */
-  display: block; /* Upewnij się, że img jest blokiem do auto margin */
-  max-height: 300px;
-  object-fit: contain; /* Upewnij się, że całe zdjęcie jest widoczne */
+  border-radius: 8px;
+  margin: 20px auto;
+  display: block;
+  object-fit: contain;
+  max-height: 400px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.full-announcement-details-card p {
+  font-size: 1.15em;
+  line-height: 1.7;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.full-announcement-details-card p strong {
+  color: #222;
 }
 
 /* Dane kontaktowe w widoku szczegółów */
 .contact-info-details {
-  margin-top: 20px;
-  border-top: 1px dashed #ccc;
-  padding-top: 20px;
+  margin-top: 25px;
+  border-top: 1px dashed #bbb;
+  padding-top: 25px;
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
-  justify-content: center; /* Wyśrodkowanie przycisków */
+  justify-content: center;
 }
 
 .contact-info-details p {
   width: 100%;
   text-align: center;
   font-weight: bold;
-  font-size: 1.1em;
+  font-size: 1.2em;
   color: #333;
 }
 
@@ -258,10 +339,10 @@
 .open-chat-button-details {
   display: block;
   width: 90%;
-  max-width: 300px; /* Ogranicz szerokość przycisku chat */
-  margin: 20px auto 10px auto; /* Wyśrodkowanie i margines */
-  padding: 12px 20px;
-  background-color: #ff6600; /* Pomarańczowy akcent */
+  max-width: 350px;
+  margin: 25px auto 15px auto;
+  padding: 15px 25px;
+  background-color: #ff6600;
   color: white;
   border: none;
   border-radius: 8px;
@@ -273,46 +354,6 @@
 
 .open-chat-button-details:hover {
   background-color: #e65100;
-}
-
-/* Przycisk "Zobacz szczegóły" na kartach ogłoszeń */
-.view-details-button {
-  display: block;
-  width: 100%;
-  padding: 10px 15px;
-  background-color: #17a2b8; /* Turkusowy kolor */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  font-weight: bold;
-  margin-top: 15px;
-  transition: background-color 0.2s ease;
-}
-
-.view-details-button:hover {
-  background-color: #138496;
-}
-
-/* Przycisk "Wróć" (z formularza lub szczegółów) */
-.back-button {
-  display: block;
-  width: 100%;
-  padding: 10px 15px;
-  background-color: #6c757d; /* Szary kolor */
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  font-weight: bold;
-  margin-top: 15px;
-  transition: background-color 0.2s ease;
-}
-
-.back-button:hover {
-  background-color: #5a6268;
 }
 
 /* Komunikaty ładowania, błędów, braku ogłoszeń */
@@ -331,9 +372,7 @@
 
 /* === TRYB CIEMNY === */
 @media (prefers-color-scheme: dark) {
-  .announcements-page-container {
-    /* Tutaj nie ma potrzeby zmieniać display/gap/padding w dark mode */
-  }
+  /* Istniejące style trybu ciemnego */
 
   .left-panel,
   .main-content-area {
@@ -354,6 +393,23 @@
     background-color: #003d80;
   }
 
+  .announcement-detail-buttons {
+    background-color: #444;
+    border-color: #555;
+  }
+  .add-announcement-button-side {
+    background-color: #1e7e34;
+  }
+  .add-announcement-button-side:hover {
+    background-color: #176a2c;
+  }
+  .back-button-side {
+    background-color: #5a6268;
+  }
+  .back-button-side:hover {
+    background-color: #495057;
+  }
+
   .search-filter-section {
     background-color: #444;
     border-color: #555;
@@ -362,66 +418,68 @@
     color: #f0f0f0;
   }
 
-  .announcement-card {
+  .announcement-list-single-column {
+    /* brak specyficznych zmian dla dark mode tutaj, dziedziczą po .main-content-area */
+  }
+
+  .announcement-card-wide {
     background-color: #444;
     border-color: #555;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
-
-  .announcement-card h3 {
+  .announcement-card-wide h3 {
     color: #f0f0f0;
   }
-
-  .announcement-card p {
+  .announcement-card-wide p {
     color: #ccc;
   }
-
-  .announcement-card p strong {
+  .announcement-card-wide p strong {
+    color: #f0f0f0;
+  }
+  .announcement-card-wide .posted-at {
+    color: #aaa;
+  }
+  .announcement-card-wide .card-meta {
+    border-color: #555;
+    color: #ccc;
+  }
+  .announcement-card-wide .card-meta span strong {
     color: #f0f0f0;
   }
 
+  /* === WIDOK SZCZEGÓŁÓW W TRYBIE CIEMNYM === */
+  .full-announcement-details-card {
+    background-color: #444;
+    border: 1px solid #555;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+  .full-announcement-details-card h3,
+  .full-announcement-details-card h4 {
+    color: #f0f0f0;
+  }
+  .full-announcement-details-card p {
+    color: #ccc;
+  }
+  .full-announcement-details-card p strong {
+    color: #f0f0f0;
+  }
+  .announcement-details-image-full {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  }
   .contact-info-details {
     border-color: #666;
   }
-
   .contact-info-details p {
     color: #f0f0f0;
   }
-
-  .phone-button {
-    background-color: #1e7e34;
-  }
-  .phone-button:hover {
-    background-color: #176a2c;
-  }
-
-  .whatsapp-button {
-    background-color: #1f9e4f;
-  }
-  .whatsapp-button:hover {
-    background-color: #177a3d;
-  }
-
-  .messenger-button {
-    background-color: #0056b3;
-  }
-  .messenger-button:hover {
-    background-color: #003d80;
-  }
-
-  .posted-at {
-    color: #aaa;
-    border-color: #555;
-  }
-
   .open-chat-button-details {
     background-color: #e65100;
   }
-
   .open-chat-button-details:hover {
     background-color: #c84400;
   }
 
+  /* === STYLIZACJA PRZYCISKU ZOBACZ SZCZEGÓŁY W TRYBIE CIEMNYM === */
   .view-details-button {
     background-color: #117a8b;
   }
@@ -429,12 +487,6 @@
     background-color: #0e6774;
   }
 
-  .back-button {
-    background-color: #5a6268;
-  }
-  .back-button:hover {
-    background-color: #495057;
-  }
 
   .loading-message, .error-message-list, .no-announcements-message {
     color: #aaa;
@@ -453,18 +505,21 @@
 /* Responsywność dla mniejszych ekranów */
 @media (max-width: 992px) {
   .announcements-page-container {
-    flex-direction: column; /* Ułożenie kolumn jedna pod drugą */
+    flex-direction: column;
     gap: 20px;
     padding: 20px;
   }
 
   .left-panel,
   .main-content-area {
-    flex: none; /* Usuń flex-grow/shrink */
-    width: 100%; /* Pełna szerokość */
+    flex: none;
+    width: 100%;
   }
 
-  .announcements-grid {
-    grid-template-columns: 1fr; /* Jedna kolumna na mniejszych ekranach */
+  .announcements-grid,
+  .announcements-list-single-column {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
   }
 }
