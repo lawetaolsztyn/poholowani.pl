@@ -1,16 +1,17 @@
 /* src/components/AnnouncementsPage.css */
 
-/* --- Ogólne style dla strony --- */
+/* Ogólny kontener strony tablicy ogłoszeń */
 .announcements-page-container {
   display: flex;
-  gap: 30px;
+  gap: 30px; /* Odstęp między kolumnami */
   padding: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1200px; /* Maksymalna szerokość kontenera */
+  margin: 0 auto; /* Wyśrodkowanie */
 }
 
+/* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-  flex: 0 0 30%;
+  flex: 0 0 320px; /* ZMIANA TUTAJ: Stała szerokość lewej kolumny (np. 320px) */
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
@@ -19,6 +20,7 @@
   flex-direction: column;
 }
 
+/* Nagłówek dla formularza dodawania ogłoszenia */
 .left-panel .form-header {
   font-size: 1.8em;
   color: #333;
@@ -26,14 +28,17 @@
   text-align: center;
 }
 
+
+/* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
-  flex: 1;
+  flex: 1; /* Zajmuje resztę dostępnego miejsca */
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
 .main-content-area h2 {
   font-size: 2em;
   color: #333;
@@ -102,12 +107,14 @@
   background-color: #5a6268;
 }
 
-/* --- Sekcja filtra --- */
+
+/* === STYLE DLA SEKCJI FILTRA === */
 .search-filter-section {
   background-color: #f8f8f8;
   padding: 20px;
   border-radius: 8px;
   border: 1px solid #eee;
+  margin-top: 25px;
 }
 
 .search-filter-section h3 {
@@ -116,6 +123,82 @@
   margin-bottom: 15px;
   text-align: center;
 }
+
+.filter-group {
+  margin-bottom: 15px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.filter-group-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filter-group-range label {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.filter-input-range {
+  flex-grow: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.filter-group-range span {
+  font-weight: bold;
+  color: #555;
+}
+
+.filter-button, .clear-filter-button {
+  display: block;
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+}
+
+.filter-button {
+  background-color: #007bff;
+  color: white;
+}
+.filter-button:hover {
+  background-color: #0056b3;
+}
+
+.clear-filter-button {
+  background-color: #6c757d;
+  color: white;
+}
+.clear-filter-button:hover {
+  background-color: #5a6268;
+}
+
 
 /* --- Lista ogłoszeń (jeden na wiersz) --- */
 .announcements-list-single-column {
@@ -141,6 +224,7 @@
   transform: translateY(-5px);
 }
 
+/* Nagłówek i data w karcie listy */
 .announcement-card-wide .card-header {
   display: flex;
   justify-content: space-between;
@@ -211,7 +295,7 @@
   display: block;
   width: 100%;
   padding: 10px 15px;
-  background-color: #17a2b8; /* Turkusowy kolor */
+  background-color: #17a2b8;
   color: white;
   border: none;
   border-radius: 5px;
@@ -277,7 +361,7 @@
   color: #222;
 }
 
-/* Dane kontaktowe (tel, whatsapp, messenger) w widoku szczegółów */
+/* Dane kontaktowe w widoku szczegółów */
 .contact-info-details {
   margin-top: 25px;
   border-top: 1px dashed #bbb;
@@ -331,32 +415,32 @@
   background-color: #0056b3;
 }
 
-/* === NOWE STYLE DLA PRZYCISKÓW AKCJI (WhatsApp, Messenger, Zadaj pytanie) W WIDOKU SZCZEGÓŁÓW === */
+/* NOWE STYLE DLA PRZYCISKÓW AKCJI (WhatsApp, Messenger, Zadaj pytanie) W WIDOKU SZCZEGÓŁÓW */
 .chat-and-direct-contact-buttons {
   display: flex;
-  flex-direction: column; /* Ułożenie przycisków jeden pod drugim */
+  flex-direction: column;
   gap: 15px;
-  margin-top: 30px; /* Większy odstęp od sekcji kontaktowej */
+  margin-top: 30px;
   padding-top: 20px;
-  border-top: 1px solid #eee; /* Separator */
+  border-top: 1px solid #eee;
 }
 
 .action-button {
-  display: flex; /* Pozwala na wyrównanie ikony i tekstu */
+  display: flex;
   align-items: center;
-  justify-content: center; /* Wyśrodkowanie zawartości */
+  justify-content: center;
   padding: 12px 20px;
   border: none;
   border-radius: 8px;
   font-size: 1.1em;
   font-weight: bold;
   cursor: pointer;
-  text-decoration: none; /* Dla linków */
+  text-decoration: none;
   color: white;
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.action-button i { /* Ikony w przyciskach */
+.action-button i {
   margin-right: 10px;
   font-size: 1.2em;
 }
@@ -378,7 +462,7 @@
 }
 
 .ask-question-button {
-  background-color: #ff6600; /* Pomarańczowy, jak akcent w Navbarze */
+  background-color: #ff6600;
   color: white;
 }
 .ask-question-button:hover {
@@ -446,6 +530,33 @@
   .search-filter-section h3 {
     color: #f0f0f0;
   }
+  .filter-group label {
+    color: #ccc;
+  }
+  .filter-input, .filter-input-range {
+    background-color: #555;
+    border-color: #666;
+    color: #e0e0e0;
+  }
+  .filter-input::placeholder, .filter-input-range::placeholder {
+    color: #999;
+  }
+  .filter-group-range span {
+    color: #ccc;
+  }
+  .filter-button {
+    background-color: #0056b3;
+  }
+  .filter-button:hover {
+    background-color: #003d80;
+  }
+  .clear-filter-button {
+    background-color: #5a6268;
+  }
+  .clear-filter-button:hover {
+    background-color: #495057;
+  }
+
 
   .announcement-list-single-column {
     /* brak specyficznych zmian dla dark mode tutaj, dziedziczą po .main-content-area */
@@ -474,6 +585,13 @@
   }
   .announcement-card-wide .card-meta span strong {
     color: #f0f0f0;
+  }
+
+  .view-details-button {
+    background-color: #117a8b;
+  }
+  .view-details-button:hover {
+    background-color: #0e6774;
   }
 
   /* === WIDOK SZCZEGÓŁÓW W TRYBIE CIEMNYM === */
@@ -505,7 +623,7 @@
     /* Style dla poszczególnych przycisków już są */
   }
 
-  /* === NOWE STYLE AKCJI W WIDOKU SZCZEGÓŁÓW W TRYBIE CIEMNYM === */
+  /* NOWE STYLE AKCJI W WIDOKU SZCZEGÓŁÓW W TRYBIE CIEMNYM */
   .chat-and-direct-contact-buttons {
     border-color: #555;
   }
@@ -528,7 +646,7 @@
     background-color: #c84400;
   }
 
-  /* --- Inne komunikaty i style --- */
+
   .loading-message, .error-message-list, .no-announcements-message {
     color: #aaa;
   }
@@ -543,7 +661,7 @@
 }
 
 
-/* --- Responsywność dla mniejszych ekranów --- */
+/* Responsywność dla mniejszych ekranów */
 @media (max-width: 992px) {
   .announcements-page-container {
     flex-direction: column;
@@ -564,146 +682,17 @@
   }
   
   .full-announcement-details-card .announcement-details-image-full {
-    max-width: 100%; /* Na małych ekranach może być 100% */
+    max-width: 100%;
   }
   .chat-and-direct-contact-buttons {
-    width: 100%; /* Przycisk akcji zajmuje całą szerokość */
+    width: 100%;
   }
   .action-button {
-    padding: 10px 15px; /* Mniejszy padding dla przycisków akcji na mobilnych */
+    padding: 10px 15px;
     font-size: 1em;
   }
   .action-button i {
     font-size: 1em;
     margin-right: 5px;
-  }
-}
-
-/* === STYLE DLA SEKCJI FILTRA === */
-.search-filter-section {
-  background-color: #f8f8f8;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #eee;
-  margin-top: 25px; /* Odstęp od przycisku Dodaj Nowe Ogłoszenie */
-}
-
-.search-filter-section h3 {
-  font-size: 1.5em;
-  color: #333;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-.filter-group {
-  margin-bottom: 15px;
-}
-
-.filter-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: #555;
-}
-
-.filter-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1em;
-  box-sizing: border-box;
-}
-
-.filter-group-range {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.filter-group-range label {
-  flex-shrink: 0; /* Nie kurcz się */
-  margin-bottom: 0; /* Resetuj margines dla label */
-}
-
-.filter-input-range {
-  flex-grow: 1; /* Wypełnij dostępną przestrzeń */
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1em;
-  box-sizing: border-box;
-}
-
-.filter-group-range span {
-  font-weight: bold;
-  color: #555;
-}
-
-.filter-button, .clear-filter-button {
-  display: block;
-  width: 100%;
-  padding: 12px 15px;
-  border: none;
-  border-radius: 5px;
-  font-size: 1em;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  margin-top: 10px;
-}
-
-.filter-button {
-  background-color: #007bff;
-  color: white;
-}
-.filter-button:hover {
-  background-color: #0056b3;
-}
-
-.clear-filter-button {
-  background-color: #6c757d;
-  color: white;
-}
-.clear-filter-button:hover {
-  background-color: #5a6268;
-}
-
-
-/* === TRYB CIEMNY DLA FILTRÓW === */
-@media (prefers-color-scheme: dark) {
-  .search-filter-section {
-    background-color: #444;
-    border-color: #555;
-  }
-  .search-filter-section h3 {
-    color: #f0f0f0;
-  }
-  .filter-group label {
-    color: #ccc;
-  }
-  .filter-input, .filter-input-range {
-    background-color: #555;
-    border-color: #666;
-    color: #e0e0e0;
-  }
-  .filter-input::placeholder, .filter-input-range::placeholder {
-    color: #999;
-  }
-  .filter-group-range span {
-    color: #ccc;
-  }
-  .filter-button {
-    background-color: #0056b3;
-  }
-  .filter-button:hover {
-    background-color: #003d80;
-  }
-  .clear-filter-button {
-    background-color: #5a6268;
-  }
-  .clear-filter-button:hover {
-    background-color: #495057;
   }
 }
