@@ -5,8 +5,9 @@ import { supabase } from './supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
-import './LandingPage.css'; // Ten CSS jest specyficzny dla LandingPage, upewnij się, że pasuje do Login.jsx
+import './LandingPage.css';
 import { getRecaptchaToken } from './utils/getRecaptchaToken';
+
 
 
 export default function Login() {
@@ -21,10 +22,9 @@ export default function Login() {
   useEffect(() => {
     const handleAuthRedirect = async (user) => {
       if (!user) {
-        console.log("handleAuthRedirect: Brak użytkownika. Użytkownik nie jest zalogowany.");
-        // Nie przekierowuj do /login, jeśli użytkownik nie jest zalogowany i już na stronie logowania
-        // Ta funkcja jest wywoływana również przez onAuthStateChange, więc jeśli jesteśmy na /login
-        // i użytkownik się wylogował, po prostu zostajemy.
+        // Użytkownik wylogowany, lub sesja wygasła
+        console.log("handleAuthRedirect: Brak użytkownika. Przekierowuję do logowania.");
+        navigate('/login'); // Zapewnij, że zawsze jesteśmy na /login, jeśli wylogowani
         return;
       }
 
@@ -35,48 +35,29 @@ export default function Login() {
         .from('users_extended')
         .select('role') // Pobieramy tylko rolę, aby było szybciej
         .eq('id', user.id)
-        .maybeSingle(); // maybeSingle zwróci null, jeśli rekord nie istnieje, bez błędu
+        .maybeSingle();
 
-      if (profileError && profileError.code !== 'PGRST116') { // PGRST116 to "no rows found", co oznacza brak profilu
-        console.error('❌ handleAuthRedirect: Błąd pobierania profilu:', profileError.message);
-        // Jeśli jest to inny błąd niż brak profilu, możesz zareagować inaczej
-      }
-      
-      // Sprawdzamy rolę
-      console.log('DEBUG: profile.role z bazy danych w Login.jsx:', profile?.role);
-      const userRole = profile?.role?.toLowerCase();
-
-      // === LOGIKA PRZEKIEROWANIA PO ZALOGOWANIU ===
-      const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
-      const redirectToAnnounceDetailsId = localStorage.getItem('redirect_to_announce_details_id');
-
-      if (redirectToAnnounceForm === 'true') {
-        localStorage.removeItem('redirect_to_announce_form'); // Usuń flagę
-        console.log('✅ Przekierowuję na /tablica-ogloszen (otworzy formularz po powrocie).');
-        navigate('/tablica-ogloszen');
+      if (profileError) {
+        // Jeśli profil nie istnieje (PGRST116) lub inny błąd,
+        // kieruj do wyboru roli. Trigger powinien go stworzyć.
+        console.error('❌ handleAuthRedirect: Błąd pobierania profilu lub brak profilu:', profileError.message);
+        navigate('/choose-role'); // Nadal kierujemy na choose-role, jeśli błąd, aby to obsłużyć.
         return;
       }
 
-      if (redirectToAnnounceDetailsId) {
-        localStorage.removeItem('redirect_to_announce_details_id'); // Usuń ID
-        console.log(`✅ Przekierowuję na /tablica-ogloszen z ID szczegółów: ${redirectToAnnounceDetailsId}.`);
-        // Idealnie tutaj przekierowałbyś na adres z parametrem, np. /tablica-ogloszen?id=${redirectToAnnounceDetailsId}
-        // Ale na razie, żeby było prosto i działało z obecną strukturą, wracamy na ogólną stronę ogłoszeń.
-        // Jeśli będziesz chciał, aby ogłoszenie otwierało się automatycznie, będziesz musiał zmodyfikować AnnouncementsPage.jsx
-        // aby czytało ten parametr z URL i odpowiednio ustawiało selectedAnnouncement.
-        navigate('/tablica-ogloszen'); 
-        return;
-      }
-      
-      // Standardowe przekierowania, jeśli nie ma specjalnych flag
-      if (!profile || userRole === 'nieprzypisana') {
-        console.log('handleAuthRedirect: Brak profilu lub rola nieprzypisana. Przekierowuję do wyboru roli.');
+      // Sprawdzamy rolę (konwertując na małe litery dla spójności)
+      // DODAJ TE LOGI, ABY ZOBACZYĆ DOKŁADNIE, CO JEST W profile.role
+      console.log('DEBUG: profile.role z bazy danych w Login.jsx:', profile.role);
+      console.log('DEBUG: profile.role po toLowerCase() w Login.jsx:', profile.role?.toLowerCase());
+
+      if (profile.role?.toLowerCase() === 'nieprzypisana') {
+        console.log('handleAuthRedirect: Rola użytkownika to "nieprzypisana". Przekierowuję do wyboru roli.');
         navigate('/choose-role');
         return;
       }
-      
-      // Jeśli użytkownik jest zalogowany i ma przypisaną rolę
-      console.log('handleAuthRedirect: Użytkownik zalogowany i ma rolę. Przekierowuję do profilu.');
+
+      // Jeśli rola jest już ustawiona (np. 'klient' lub 'firma')
+      console.log('handleAuthRedirect: Rola użytkownika już ustawiona na:', profile.role, '. Przekierowuję do profilu.');
       navigate('/profil');
     };
 
@@ -86,18 +67,13 @@ export default function Login() {
       if (event === 'SIGNED_IN') {
         handleAuthRedirect(session?.user);
       } else if (event === 'SIGNED_OUT') {
-        // Jeśli wylogowany, upewnij się, że nie ma żadnych specjalnych flag
-        localStorage.removeItem('redirect_to_announce_form');
-        localStorage.removeItem('redirect_to_announce_details_id');
-        // Jeśli jesteśmy na innej stronie niż /login, przekieruj
-        if (window.location.pathname !== '/login') {
-            navigate('/login');
-        }
+        navigate('/login');
       }
     });
 
     // POZA słuchaczem, sprawdzaj sesję tylko raz przy załadowaniu komponentu,
     // aby obsłużyć przypadek, gdy użytkownik jest już zalogowany przy wejściu na stronę /login
+    // i odświeża ją.
     const checkInitialAuth = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         handleAuthRedirect(user);
@@ -111,61 +87,53 @@ export default function Login() {
   }, [navigate]); // navigate jako zależność
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    setShowResendEmailButton(false);
+  e.preventDefault();
+  setMessage('');
+  setShowResendEmailButton(false);
 
-    const token = await getRecaptchaToken('login');
-    if (!token) {
-      setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
+  const token = await getRecaptchaToken('login');
+  if (!token) {
+    setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
+    return;
+  }
+console.log("URL edge function:", import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL);
+  try {
+    const response = await fetch(import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password, recaptchaToken: token }),
+});
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setMessage(`❌ Błąd logowania: ${data.error || 'Nieznany błąd'}`);
       return;
     }
-    console.log("URL edge function:", import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL);
-    try {
-      const response = await fetch(import.meta.env.env.VITE_SUPABASE_EDGE_FUNCTION_URL, { // Upewnij się, że .env jest poprawnie używane
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, recaptchaToken: token }),
-      });
 
-      const data = await response.json();
+    // Ustaw sesję ręcznie
+    await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
 
-      if (!response.ok) {
-        setMessage(`❌ Błąd logowania: ${data.error || 'Nieznany błąd'}`);
-        return;
-      }
-
-      // Ustaw sesję ręcznie (to jest ważne dla Supabase Auth Helper)
-      await supabase.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-      });
-
-      setMessage('✅ Zalogowano pomyślnie');
-      // Przekierowanie zostanie obsłużone przez useEffect, gdy session się zaktualizuje
-      // Nie wywołuj navigate('/profil') bezpośrednio tutaj, pozwól useEffect to zrobić
-      // aby poprawnie obsłużyć flagi przekierowania.
-    } catch (err) {
-      setMessage('❌ Błąd logowania');
-      console.error(err);
-    }
-  };
+    setMessage('✅ Zalogowano pomyślnie');
+    navigate('/profil');
+  } catch (err) {
+    setMessage('❌ Błąd logowania');
+    console.error(err);
+  }
+};
 
 
   const handleOAuthLogin = async (provider) => {
-    setMessage(''); // Wyczyść wiadomość przed logowaniem OAuth
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: 'https://poholowani.pl/choose-role' // Tutaj też możesz dodać logikę powrotu
-                                                       // np. dynamicznie ustawiać redirectTo na `/choose-role?returnTo=/tablica-ogloszen`
-                                                       // i obsłużyć to w ChooseRoleAfterOAuth
+        redirectTo: 'https://poholowani.pl/choose-role'
       }
     });
-    if (error) {
-      console.error('OAuth error:', error.message);
-      setMessage(`❌ Błąd logowania OAuth: ${error.message}`);
-    }
+    if (error) console.error('OAuth error:', error.message);
   };
 
   const handleResetPassword = async (e) => {
@@ -204,9 +172,9 @@ export default function Login() {
   return (
     <>
       <Navbar />
-      <div className="overlay-header">
-        <Header title="Zaloguj się do swojego konta" subtitle="Zarządzaj zleceniami i trasami w jednym miejscu" />
-      </div>
+<div className="overlay-header">
+      <Header title="Zaloguj się do swojego konta" subtitle="Zarządzaj zleceniami i trasami w jednym miejscu" />
+</div>
       <div className="landing-container">
         <div style={wrapper}>
           <h2 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem', color: '#333' }}>
@@ -231,7 +199,7 @@ export default function Login() {
           <hr style={{ margin: '20px 0' }} />
 
           <button onClick={() => handleOAuthLogin('google')} style={{ ...btnStyle, backgroundColor: '#db4437' }}>Zaloguj przez Google</button>
-          <button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
+<button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
           {message && <p style={{ marginTop: '20px' }}>{message}</p>}
 
           {showResendEmailButton && (
@@ -292,3 +260,4 @@ const linkStyle = {
   textAlign: 'center',
   textDecoration: 'none'
 };
+// test
