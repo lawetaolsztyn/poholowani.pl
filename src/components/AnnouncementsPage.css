@@ -1,5 +1,6 @@
-/* src/pages/AnnouncementsPage.css */
+/* src/components/AnnouncementsPage.css */
 
+/* Ogólny kontener strony tablicy ogłoszeń */
 .announcements-page-container {
   display: flex;
   gap: 30px; /* Odstęp między kolumnami */
@@ -8,81 +9,19 @@
   margin: 0 auto; /* Wyśrodkowanie */
 }
 
+/* Lewa kolumna: formularz, filtry, szczegóły ogłoszenia */
 .left-panel {
   flex: 0 0 30%; /* 30% szerokości, bez kurczenia się */
-  /* Dodaj style dla panelu, np. tło, cień */
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex; /* Dodane dla lepszej kontroli nad układem wewnętrznym */
+  flex-direction: column; /* Elementy w kolumnie jeden pod drugim */
 }
 
-.main-content-area {
-  flex: 1; /* Zajmuje resztę dostępnego miejsca */
-  /* Dodaj style dla obszaru z ogłoszeniami */
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.main-content-area h2 {
-  font-size: 2em;
-  color: #333;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-
-/* Dostosowanie dla trybu ciemnego */
-@media (prefers-color-scheme: dark) {
-  .left-panel,
-  .main-content-area {
-    background-color: #333;
-    color: #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .main-content-area h2 {
-    color: #f0f0f0;
-  }
-}
-
-/* Responsywność dla mniejszych ekranów */
-@media (max-width: 992px) {
-  .announcements-page-container {
-    flex-direction: column; /* Ułożenie kolumn jedna pod drugą */
-    gap: 20px;
-    padding: 20px;
-  }
-
-  .left-panel,
-  .main-content-area {
-    flex: none; /* Usuń flex-grow/shrink */
-    width: 100%; /* Pełna szerokość */
-  }
-}
-/* src/components/AnnouncementsPage.css */
-
-/* Istniejące style dla .announcements-page-container, .left-panel, .main-content-area */
-.announcements-page-container {
-  display: flex;
-  gap: 30px;
-  padding: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.left-panel {
-  flex: 0 0 30%;
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* Przeniesiony nagłówek z AnnouncementsForm do AnnouncementsPage */
-.left-panel h3 {
+/* Nagłówek dla formularza dodawania ogłoszenia */
+.left-panel .form-header {
   font-size: 1.8em;
   color: #333;
   margin-bottom: 25px;
@@ -90,14 +29,16 @@
 }
 
 
+/* Prawa kolumna: lista ogłoszeń */
 .main-content-area {
-  flex: 1;
+  flex: 1; /* Zajmuje resztę dostępnego miejsca */
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
 .main-content-area h2 {
   font-size: 2em;
   color: #333;
@@ -105,7 +46,44 @@
   text-align: center;
 }
 
-/* === NOWE STYLE DLA LISTY OGŁOSZEŃ === */
+/* === NOWE STYLE DLA PRZYCISKU "DODAJ NOWE OGŁOSZENIE" === */
+.add-announcement-button {
+  display: block;
+  width: 100%;
+  padding: 15px 20px;
+  background-color: #007bff; /* Niebieski kolor */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s ease;
+  margin-bottom: 25px; /* Odstęp od sekcji filtra */
+}
+
+.add-announcement-button:hover {
+  background-color: #0056b3;
+}
+
+/* === NOWE STYLE DLA SEKCJI FILTRA === */
+.search-filter-section {
+  background-color: #f8f8f8; /* Jasne tło dla sekcji filtra */
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  /* margin-top: 25px; - usunięte, bo add-announcement-button ma już margin-bottom */
+}
+
+.search-filter-section h3 {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* === STYLE DLA LISTY OGŁOSZEŃ === */
 .announcements-grid {
   display: grid; /* Używamy grida, aby ułatwić zarządzanie układem kart */
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsywne kolumny */
@@ -155,21 +133,92 @@
   max-height: 200px; /* Ogranicz wysokość zdjęć, aby karty były podobne */
 }
 
-.contact-info {
-  margin-top: 15px;
-  border-top: 1px dashed #ddd;
-  padding-top: 15px;
+/* Informacje o braku trasy, jeśli nie podano */
+.no-route-info {
+  font-style: italic;
+  color: #888;
+  font-size: 0.9em;
+  margin-top: -5px; /* Przybliż do poprzedniego akapitu */
+}
+
+/* Data dodania ogłoszenia */
+.posted-at {
+  font-size: 0.85em;
+  color: #999;
+  text-align: right;
+  margin-top: auto; /* Pcha element na dół karty */
+  padding-top: 10px;
+  border-top: 1px dotted #eee;
+  margin-bottom: 0;
+}
+
+/* === NOWE STYLE DLA WIDOKU SZCZEGÓŁÓW OGŁOSZENIA (gdy selectedAnnouncement jest aktywne) === */
+.announcement-details-view {
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   display: flex;
-  flex-wrap: wrap; /* Pozwól przyciskom zawijać się */
-  gap: 10px; /* Odstęp między przyciskami */
-  align-items: center;
+  flex-direction: column;
+  flex-grow: 1; /* Pozwól temu widokowi rosnąć i wypełniać dostępną przestrzeń */
 }
 
-.contact-info p {
-  margin-bottom: 0; /* Usuń margines dolny z paragrafu "Kontakt:" */
-  width: 100%; /* Zajmij całą szerokość dla nagłówka "Kontakt:" */
+.announcement-details-view h3 {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 15px;
+  text-align: center;
 }
 
+.announcement-details-view h4 {
+  font-size: 1.4em;
+  color: #007bff; /* Akcentowany kolor dla tytułu szczegółów */
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.announcement-details-view p {
+  font-size: 1.1em;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.announcement-details-view p strong {
+  color: #333;
+}
+
+.announcement-details-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 15px auto; /* Wyśrodkowanie i margines */
+  display: block; /* Upewnij się, że img jest blokiem do auto margin */
+  max-height: 300px;
+  object-fit: contain; /* Upewnij się, że całe zdjęcie jest widoczne */
+}
+
+/* Dane kontaktowe w widoku szczegółów */
+.contact-info-details {
+  margin-top: 20px;
+  border-top: 1px dashed #ccc;
+  padding-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center; /* Wyśrodkowanie przycisków */
+}
+
+.contact-info-details p {
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #333;
+}
+
+/* Przyciski kontaktowe (telefon, whatsapp, messenger) */
 .contact-button {
   display: inline-block;
   padding: 8px 12px;
@@ -205,21 +254,33 @@
   background-color: #0056b3;
 }
 
-.posted-at {
-  font-size: 0.85em;
-  color: #999;
-  text-align: right;
-  margin-top: auto; /* Pcha element na dół karty */
-  padding-top: 10px;
-  border-top: 1px dotted #eee;
-  margin-bottom: 0;
+/* Przycisk "Rozpocznij rozmowę" w widoku szczegółów */
+.open-chat-button-details {
+  display: block;
+  width: 90%;
+  max-width: 300px; /* Ogranicz szerokość przycisku chat */
+  margin: 20px auto 10px auto; /* Wyśrodkowanie i margines */
+  padding: 12px 20px;
+  background-color: #ff6600; /* Pomarańczowy akcent */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
 }
 
-.open-chat-button {
+.open-chat-button-details:hover {
+  background-color: #e65100;
+}
+
+/* Przycisk "Zobacz szczegóły" na kartach ogłoszeń */
+.view-details-button {
   display: block;
   width: 100%;
   padding: 10px 15px;
-  background-color: #ff6600; /* Pomarańczowy akcent */
+  background-color: #17a2b8; /* Turkusowy kolor */
   color: white;
   border: none;
   border-radius: 5px;
@@ -230,10 +291,31 @@
   transition: background-color 0.2s ease;
 }
 
-.open-chat-button:hover {
-  background-color: #e65100; /* Ciemniejszy pomarańcz */
+.view-details-button:hover {
+  background-color: #138496;
 }
 
+/* Przycisk "Wróć" (z formularza lub szczegółów) */
+.back-button {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  background-color: #6c757d; /* Szary kolor */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+}
+
+/* Komunikaty ładowania, błędów, braku ogłoszeń */
 .loading-message, .error-message-list, .no-announcements-message {
   text-align: center;
   font-size: 1.1em;
@@ -246,17 +328,13 @@
     font-weight: bold;
 }
 
-.no-route-info {
-  font-style: italic;
-  color: #888;
-  font-size: 0.9em;
-  margin-top: -5px; /* Przybliż do poprzedniego akapitu */
-}
 
-
-/* === TRYB CIEMNY DLA LISTY OGŁOSZEŃ === */
+/* === TRYB CIEMNY === */
 @media (prefers-color-scheme: dark) {
-  /* Istniejące style dla .announcements-page-container, .left-panel, .main-content-area */
+  .announcements-page-container {
+    /* Tutaj nie ma potrzeby zmieniać display/gap/padding w dark mode */
+  }
+
   .left-panel,
   .main-content-area {
     background-color: #333;
@@ -264,8 +342,23 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
-  .left-panel h3,
+  .left-panel .form-header,
   .main-content-area h2 {
+    color: #f0f0f0;
+  }
+
+  .add-announcement-button {
+    background-color: #0056b3;
+  }
+  .add-announcement-button:hover {
+    background-color: #003d80;
+  }
+
+  .search-filter-section {
+    background-color: #444;
+    border-color: #555;
+  }
+  .search-filter-section h3 {
     color: #f0f0f0;
   }
 
@@ -287,8 +380,12 @@
     color: #f0f0f0;
   }
 
-  .contact-info {
+  .contact-info-details {
     border-color: #666;
+  }
+
+  .contact-info-details p {
+    color: #f0f0f0;
   }
 
   .phone-button {
@@ -317,12 +414,26 @@
     border-color: #555;
   }
 
-  .open-chat-button {
+  .open-chat-button-details {
     background-color: #e65100;
   }
 
-  .open-chat-button:hover {
+  .open-chat-button-details:hover {
     background-color: #c84400;
+  }
+
+  .view-details-button {
+    background-color: #117a8b;
+  }
+  .view-details-button:hover {
+    background-color: #0e6774;
+  }
+
+  .back-button {
+    background-color: #5a6268;
+  }
+  .back-button:hover {
+    background-color: #495057;
   }
 
   .loading-message, .error-message-list, .no-announcements-message {
@@ -338,18 +449,19 @@
   }
 }
 
+
 /* Responsywność dla mniejszych ekranów */
 @media (max-width: 992px) {
   .announcements-page-container {
-    flex-direction: column;
+    flex-direction: column; /* Ułożenie kolumn jedna pod drugą */
     gap: 20px;
     padding: 20px;
   }
 
   .left-panel,
   .main-content-area {
-    flex: none;
-    width: 100%;
+    flex: none; /* Usuń flex-grow/shrink */
+    width: 100%; /* Pełna szerokość */
   }
 
   .announcements-grid {
