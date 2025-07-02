@@ -2,23 +2,20 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import './AnnouncementForm.css';
-import LocationAutocomplete from './LocationAutocomplete'; // <-- IMPORTUJEMY LocationAutocomplete
+import LocationAutocomplete from './LocationAutocomplete';
 
 export default function AnnouncementForm({ onSuccess }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // Zmieniamy stany na obiekty z label i coords dla LocationAutocomplete
   const [locationFrom, setLocationFrom] = useState({ label: '', coords: null });
   const [locationTo, setLocationTo] = useState({ label: '', coords: null });
   const [itemToTransport, setItemToTransport] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [budgetPln, setBudgetPln] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  // NOWE STANY DLA WHATSAPP I MESSENGERA (zgodnie z AddRouteForm)
-  const [contactWhatsapp, setContactWhatsapp] = useState('');
+  // USUNIĘTO: [contactWhatsapp, setContactWhatsapp] - nie będzie już osobnego pola
   const [usesWhatsapp, setUsesWhatsapp] = useState(false); // Checkbox WhatsApp
   const [contactMessenger, setContactMessenger] = useState('');
-  // Nowy stan zgody na udostępnianie telefonu
   const [consentPhoneShare, setConsentPhoneShare] = useState(false);
 
   const [imageFile, setImageFile] = useState(null);
@@ -35,12 +32,11 @@ export default function AnnouncementForm({ onSuccess }) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      setError('Musisz być zalogowany, aby dodać ogłoszenie.'); // To już jest obsługiwane wcześniej w AnnouncementsPage
+      setError('Musisz być zalogowany, aby dodać ogłoszenie.');
       setLoading(false);
       return;
     }
 
-    // Walidacja dla numeru telefonu i zgody
     if (contactPhone.trim() !== '' && !consentPhoneShare) {
         setError('Musisz wyrazić zgodę na udostępnienie numeru telefonu publicznie.');
         setLoading(false);
@@ -72,20 +68,14 @@ export default function AnnouncementForm({ onSuccess }) {
           user_id: user.id,
           title,
           description,
-          // Używamy label z LocationAutocomplete, a coords możemy zapisać osobno, jeśli potrzebne
           location_from_text: locationFrom.label || null,
           location_to_text: locationTo.label || null,
-          // Dodatkowo, jeśli chcesz zapisać współrzędne:
-          // location_from_lat: locationFrom.coords ? locationFrom.coords[1] : null,
-          // location_from_lng: locationFrom.coords ? locationFrom.coords[0] : null,
-          // location_to_lat: locationTo.coords ? locationTo.coords[1] : null,
-          // location_to_lng: locationTo.coords ? locationTo.coords[0] : null,
-
           item_to_transport: itemToTransport || null,
-          weight_kg: weightKg ? parseFloat(weightKg) : null, // Upewnij się, że to liczba
-          budget_pln: budgetPln ? parseFloat(budgetPln) : null, // Upewnij się, że to liczba
-          contact_phone: consentPhoneShare ? contactPhone : null, // Zapisujemy tylko jeśli zgoda jest
-          contact_whatsapp: usesWhatsapp ? contactWhatsapp : null, // Zapisujemy tylko jeśli usesWhatsapp jest true
+          weight_kg: weightKg ? parseFloat(weightKg) : null,
+          budget_pln: budgetPln ? parseFloat(budgetPln) : null,
+          contact_phone: consentPhoneShare ? contactPhone : null,
+          // ZMIANA: contact_whatsapp teraz używa contact_phone, jeśli usesWhatsapp jest true
+          contact_whatsapp: usesWhatsapp && consentPhoneShare ? contactPhone : null,
           contact_messenger: contactMessenger || null,
           image_url: imageUrl || null,
         });
@@ -104,10 +94,9 @@ export default function AnnouncementForm({ onSuccess }) {
       setWeightKg('');
       setBudgetPln('');
       setContactPhone('');
-      setContactWhatsapp('');
-      setUsesWhatsapp(false);
+      setUsesWhatsapp(false); // Resetuj checkbox
       setContactMessenger('');
-      setConsentPhoneShare(false); // Resetuj zgodę
+      setConsentPhoneShare(false);
       setImageFile(null);
       if (onSuccess) {
         onSuccess();
@@ -153,22 +142,22 @@ export default function AnnouncementForm({ onSuccess }) {
           <div className="grid-2-cols">
             <div className="form-group">
               <label htmlFor="locationFrom">Skąd:</label>
-              <LocationAutocomplete // Używamy LocationAutocomplete
+              <LocationAutocomplete
                 value={locationFrom.label}
                 onSelectLocation={(label, sug) => setLocationFrom({ label, coords: sug.geometry.coordinates })}
                 placeholder="Np. Berlin, Niemcy"
                 className="autocomplete-field"
-                searchType="city" // Szukamy miast
+                searchType="city"
               />
             </div>
             <div className="form-group">
               <label htmlFor="locationTo">Dokąd:</label>
-              <LocationAutocomplete // Używamy LocationAutocomplete
+              <LocationAutocomplete
                 value={locationTo.label}
                 onSelectLocation={(label, sug) => setLocationTo({ label, coords: sug.geometry.coordinates })}
                 placeholder="Np. Warszawa, Polska"
                 className="autocomplete-field"
-                searchType="city" // Szukamy miast
+                searchType="city"
               />
             </div>
           </div>
@@ -229,12 +218,11 @@ export default function AnnouncementForm({ onSuccess }) {
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
               placeholder="Np. +48 123 456 789"
-              // phoneInput jest opcjonalne, więc nie required tutaj
-              disabled={!consentPhoneShare} // Wyłączamy, jeśli nie ma zgody
+              disabled={!consentPhoneShare}
             />
           </div>
           
-          {/* KONTAKT WHATSAPP - CHECKBOX I POLE */}
+          {/* KONTAKT WHATSAPP - TYLKO CHECKBOX, BEZ DODATKOWEGO POLA */}
           <div className="form-group form-group-checkbox">
             <label htmlFor="usesWhatsapp">
               <input
@@ -243,27 +231,15 @@ export default function AnnouncementForm({ onSuccess }) {
                 checked={usesWhatsapp}
                 onChange={(e) => setUsesWhatsapp(e.target.checked)}
               />
-              Kontakt WhatsApp
+              Ten numer ma WhatsApp (jeśli podano telefon)
             </label>
           </div>
-          {usesWhatsapp && ( // Pokaż pole tylko, jeśli checkbox zaznaczony
-            <div className="form-group">
-              <label htmlFor="contactWhatsapp">Numer WhatsApp (taki jak telefon lub inny):</label>
-              <input
-                type="text"
-                id="contactWhatsapp"
-                value={contactWhatsapp}
-                onChange={(e) => setContactWhatsapp(e.target.value)}
-                placeholder="Np. +48 123 456 789"
-              />
-            </div>
-          )}
-
+          
           {/* KONTAKT MESSENGER - POLE I LINK PODPOWIEDZI */}
           <div className="form-group">
             <label htmlFor="contactMessenger">Messenger: (link)</label>
             <input
-              type="url" // typ url dla linku
+              type="url"
               id="contactMessenger"
               value={contactMessenger}
               onChange={(e) => setContactMessenger(e.target.value)}
@@ -285,9 +261,9 @@ export default function AnnouncementForm({ onSuccess }) {
                 checked={consentPhoneShare}
                 onChange={(e) => {
                   setConsentPhoneShare(e.target.checked);
-                  // Jeśli odznaczono zgodę, wyczyść numer telefonu
                   if (!e.target.checked) {
                     setContactPhone('');
+                    setUsesWhatsapp(false); // Wyłącz WhatsApp jeśli zgoda na telefon cofnięta
                   }
                 }}
               />

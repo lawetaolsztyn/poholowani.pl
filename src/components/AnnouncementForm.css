@@ -31,7 +31,7 @@
 
 .announcement-form input[type="text"],
 .announcement-form input[type="number"],
-.announcement-form input[type="url"], /* Dodane dla Messengera */
+.announcement-form input[type="url"],
 .announcement-form textarea {
   width: 100%;
   padding: 10px 12px;
@@ -79,36 +79,35 @@
   gap: 20px;
 }
 
-/* NOWE STYLE DLA CHECKBOXÓW I POLA ZGODY */
 .announcement-form .form-group-checkbox {
   display: flex;
-  align-items: center; /* Wyśrodkuj checkbox i tekst pionowo */
+  align-items: center;
 }
 
 .announcement-form .form-group-checkbox label {
   display: flex;
   align-items: center;
-  margin-bottom: 0; /* Usuń margines dolny z labela */
-  font-weight: normal; /* Normalna waga dla tekstu przy checkboxie */
-  color: #333; /* Domyślny kolor dla tekstu */
+  margin-bottom: 0;
+  font-weight: normal;
+  color: #333;
 }
 
 .announcement-form .form-group-checkbox input[type="checkbox"] {
-  width: auto; /* Checkbox nie powinien zajmować 100% */
-  margin-right: 10px; /* Odstęp od tekstu */
-  transform: scale(1.2); /* Lekko powiększ checkbox */
+  width: auto;
+  margin-right: 10px;
+  transform: scale(1.2);
 }
 
 .announcement-form .consent-checkbox-group {
-  flex-direction: column; /* Tekst zgody i mały tekst pod spodem */
-  align-items: flex-start; /* Dopasuj do lewej */
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .announcement-form .help-text {
   font-size: 0.85em;
   color: #666;
   margin-top: 5px;
-  display: block; /* Upewnij się, że tekst jest w nowej linii */
+  display: block;
 }
 
 .announcement-form .help-text a {
@@ -119,11 +118,9 @@
   text-decoration: underline;
 }
 
-/* Styl dla LocationAutocomplete input */
 .autocomplete-field {
-  /* Możesz dodać style specyficzne dla pól z LocationAutocomplete */
+  /* Możesz dodać style specyficzne dla pól z LocationAutocomplete, jeśli potrzebne */
 }
-
 
 .announcement-form button[type="submit"] {
   display: block;
@@ -181,9 +178,8 @@
   }
   
   .announcement-form .form-group-checkbox label {
-    color: #e0e0e0; /* Kolor tekstu checkboxa w dark mode */
+    color: #e0e0e0;
   }
-
 
   .announcement-form input[type="text"],
   .announcement-form input[type="number"],
@@ -216,7 +212,7 @@
     color: #aaa;
   }
   .announcement-form .help-text a {
-    color: #6bb3ff; /* Jaśniejszy niebieski dla linku w dark mode */
+    color: #6bb3ff;
   }
 
   .announcement-form button[type="submit"] {
