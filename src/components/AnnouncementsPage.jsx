@@ -43,6 +43,15 @@ export default function AnnouncementsPage() {
     const checkUserSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+
+      // Sprawdzamy, czy użytkownik właśnie wrócił po zalogowaniu z zamierzonym powrotem na formularz ogłoszeń
+      const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
+      if (user && redirectToAnnounceForm === 'true') {
+        localStorage.removeItem('redirect_to_announce_form'); // Usuń flagę
+        setShowForm(true); // Otwórz formularz dodawania ogłoszeń
+        // Dodatkowo, jeśli chcesz przewinąć do góry formularza:
+        // window.scrollTo(0, 0); // Albo do konkretnego elementu
+      }
     };
     checkUserSession();
 
@@ -64,6 +73,8 @@ export default function AnnouncementsPage() {
   const handleOpenForm = () => {
     if (!user) {
       alert('Musisz być zalogowany, aby dodać ogłoszenie. Zostaniesz przekierowany do strony logowania.');
+      // ZAPISUJEMY INFORMACJĘ O ZAMIARZE POWROTU NA FORMULARZ
+      localStorage.setItem('redirect_to_announce_form', 'true');
       navigate('/login');
       return;
     }
@@ -80,17 +91,16 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
-  // NOWA FUNKCJA do obsługi kliknięcia "Zadaj pytanie"
   const handleAskQuestion = () => {
     if (!user) {
       alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
+      // ZAPISUJEMY INFORMACJĘ O ZAMIARZE POWROTU NA FORMULARZ WIDOKU SZCZEGÓŁÓW (opcjonalnie, można doprecyzować)
+      localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
       navigate('/login');
       return;
     }
-    // DOCELOWO: Tutaj będzie logika otwierania chatu
     console.log(`Zadano pytanie do ogłoszenia: ${selectedAnnouncement.title} (ID: ${selectedAnnouncement.id})`);
-    alert('Funkcja "Zadaj pytanie" zostanie uruchomiona w przyszłości!'); // Tymczasowy alert
-    // navigate do chatu, otwarcie modala chatu itp.
+    alert('Funkcja "Zadaj pytanie" zostanie uruchomiona w przyszłości!');
   };
 
 
@@ -98,9 +108,9 @@ export default function AnnouncementsPage() {
     <React.Fragment>
       <Navbar />
       <div className="announcements-page-container">
-        {/* LEWA KOLUMNA: PRZYCISK DODAJ / FORMULARZ / FILTRY / PRZYCISKI AKCJI W TRYBIE SZCZEGÓŁÓW */}
+        {/* LEWA KOLUMNA */}
         <div className="left-panel">
-          {/* Przycisk "Dodaj Nowe Ogłoszenie" - zawsze widoczny na początku lewej kolumny */}
+          {/* Przycisk "Dodaj Nowe Ogłoszenie" */}
           {!showForm && !selectedAnnouncement && (
             <button className="add-announcement-button" onClick={handleOpenForm}>
               Dodaj Nowe Ogłoszenie
@@ -117,7 +127,7 @@ export default function AnnouncementsPage() {
             </>
           )}
 
-          {/* MIEJSCE NA FILTRY WYSZUKIWANIA - widoczne, gdy nie wyświetlasz formularza ani szczegółów */}
+          {/* Filtry wyszukiwania */}
           {!showForm && !selectedAnnouncement && (
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
@@ -125,7 +135,7 @@ export default function AnnouncementsPage() {
               </div>
           )}
 
-          {/* PRZYCISKI W LEWEJ KOLUMNIE, GDY WIDOK SZCZEGÓŁÓW JEST AKTYWNY */}
+          {/* Przyciski w lewej kolumnie, gdy widok szczegółów jest aktywny */}
           {selectedAnnouncement && (
             <div className="announcement-detail-buttons">
               <button className="add-announcement-button-side" onClick={handleOpenForm}>
@@ -138,11 +148,10 @@ export default function AnnouncementsPage() {
           )}
         </div>
 
-        {/* PRAWA KOLUMNA: LISTA OGŁOSZEŃ LUB SZCZEGÓŁY OGŁOSZENIA */}
+        {/* PRAWA KOLUMNA */}
         <div className="main-content-area">
-          {/* Warunkowe renderowanie: albo lista, albo szczegóły */}
           {selectedAnnouncement ? (
-            // === WIDOK SZCZEGÓŁÓW JEDNEGO OGŁOSZENIA (w prawej kolumnie) ===
+            // WIDOK SZCZEGÓŁÓW JEDNEGO OGŁOSZENIA
             <div className="full-announcement-details-card">
               <h3>Szczegóły Ogłoszenia</h3>
               <h4>{selectedAnnouncement.title}</h4>
@@ -161,7 +170,6 @@ export default function AnnouncementsPage() {
               {selectedAnnouncement.budget_pln && <p><strong>Budżet:</strong> {selectedAnnouncement.budget_pln} PLN</p>}
               <p className="posted-at">Dodano: {new Date(selectedAnnouncement.created_at).toLocaleString()}</p>
 
-              {/* DANE KONTAKTOWE I PRZYCISKI - TYLKO TUTAJ W DETALACH */}
               <div className="contact-info-details">
                 <p><strong>Kontakt:</strong></p>
                 <a href={`tel:${selectedAnnouncement.contact_phone}`} className="contact-button phone-button">📞 {selectedAnnouncement.contact_phone}</a>
@@ -177,7 +185,6 @@ export default function AnnouncementsPage() {
                 )}
               </div>
               
-              {/* NOWY BLOK Z PRZYCISKAMI DO WHATSAPP I MESSENGER ORAZ ZADAJ PYTANIE */}
               <div className="chat-and-direct-contact-buttons">
                 {selectedAnnouncement.contact_whatsapp && (
                   <a href={`https://wa.me/${selectedAnnouncement.contact_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="action-button whatsapp-action-button">
@@ -189,7 +196,6 @@ export default function AnnouncementsPage() {
                     <i className="fab fa-facebook-messenger"></i> Otwórz Messenger
                   </a>
                 )}
-                {/* PRZYCISK ZADAJ PYTANIE */}
                 <button className="action-button ask-question-button" onClick={handleAskQuestion}>
                   <i className="fas fa-question-circle"></i> Zadaj pytanie
                 </button>
@@ -197,7 +203,7 @@ export default function AnnouncementsPage() {
 
             </div>
           ) : (
-            // === WIDOK LISTY OGŁOSZEŃ ===
+            // WIDOK LISTY OGŁOSZEŃ
             <>
               <h2>Aktualne Ogłoszenia</h2>
 
