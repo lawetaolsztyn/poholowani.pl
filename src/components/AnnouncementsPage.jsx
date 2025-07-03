@@ -34,7 +34,10 @@ export default function AnnouncementsPage() {
     let data, error;
 
     // Logika filtrowania po promieniu (PRIORYTETOWA)
-    if (filterFrom.coords && filterRadiusKm > 0) {
+    // Zmienna 'isRadiusFilterActive' do sprawdzenia, czy mamy koordynaty i promień > 0
+    const isRadiusFilterActive = filterFrom.coords && filterRadiusKm > 0;
+
+    if (isRadiusFilterActive) {
       const fromLng = filterFrom.coords[0];
       const fromLat = filterFrom.coords[1];
 
@@ -125,17 +128,16 @@ export default function AnnouncementsPage() {
 
   // Uruchom ładowanie ogłoszeń przy pierwszym renderowaniu i ZMIANIE FILTRÓW
   useEffect(() => {
-    // Dodano debounce, aby nie wywoływać fetchAnnouncements zbyt często podczas pisania
     const handler = setTimeout(() => {
       fetchAnnouncements();
-    }, 500); // Opóźnienie 500ms
+    }, 500);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm]); // Zależności dla filtra
+  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm]);
 
-  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu
+  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu (bez zmian)
   useEffect(() => {
     const getInitialUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -152,7 +154,7 @@ export default function AnnouncementsPage() {
     };
   }, []);
 
-  // Efekt do obsługi przekierowania po zalogowaniu
+  // Efekt do obsługi przekierowania po zalogowaniu (bez zmian)
   useEffect(() => {
     if (user) {
       const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
@@ -249,7 +251,7 @@ export default function AnnouncementsPage() {
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
                 <div className="filter-group">
-                    <label htmlFor="filterFrom">Skąd (dla promienia):</label>
+                    <label htmlFor="filterFrom">Skąd:</label> {/* ZMIANA ETYKIETY */}
                     <LocationAutocomplete
                         value={filterFrom.label}
                         onSelectLocation={(label, sug) => setFilterFrom({ label, coords: sug.geometry.coordinates })}
@@ -258,23 +260,22 @@ export default function AnnouncementsPage() {
                         searchType="city"
                     />
                 </div>
-                {filterFrom.coords && ( // Pokaż suwak tylko, jeśli wybrano miasto początkowe
-                    <div className="filter-group">
-                        <label htmlFor="filterRadius">Promień od "Skąd": {filterRadiusKm} km</label>
-                        <input
-                            type="range"
-                            id="filterRadius"
-                            min="5"
-                            max="500" // Maksymalny promień 500 km
-                            step="5"
-                            value={filterRadiusKm}
-                            onChange={(e) => setFilterRadiusKm(parseInt(e.target.value))}
-                            className="filter-slider"
-                        />
-                    </div>
-                )}
+                {/* SUWAK PROMIENIA - ZAWSZE WIDOCZNY */}
                 <div className="filter-group">
-                    <label htmlFor="filterTo">Dokąd (tylko tekstowo):</label>
+                    <label htmlFor="filterRadius">Promień: {filterRadiusKm} km</label> {/* ZMIANA ETYKIETY */}
+                    <input
+                        type="range"
+                        id="filterRadius"
+                        min="5"
+                        max="500"
+                        step="5"
+                        value={filterRadiusKm}
+                        onChange={(e) => setFilterRadiusKm(parseInt(e.target.value))}
+                        className="filter-slider"
+                    />
+                </div>
+                <div className="filter-group">
+                    <label htmlFor="filterTo">Dokąd:</label> {/* ZMIANA ETYKIETY */}
                     <LocationAutocomplete
                         value={filterTo.label}
                         onSelectLocation={(label, sug) => setFilterTo({ label, coords: sug.geometry.coordinates })}
