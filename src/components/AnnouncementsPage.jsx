@@ -337,7 +337,6 @@ export default function AnnouncementsPage() {
                         />
                     </div>
                 </div>
-                <button onClick={fetchAnnouncements} className="filter-button">Szukaj</button>
                 <button onClick={handleClearFilters} className="clear-filter-button">Wyczyść filtry</button>
               </div>
           )}
