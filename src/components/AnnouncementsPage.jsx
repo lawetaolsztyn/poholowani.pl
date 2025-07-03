@@ -7,20 +7,21 @@ import AnnouncementForm from './AnnouncementForm';
 import './AnnouncementsPage.css';
 import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
+import Modal from './Modal'; // <-- IMPORTUJEMY KOMPONENT MODAL
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false); // Ten stan będzie teraz kontrolował widoczność modala
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   // STANY DLA FILTROWANIA
-  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null }); // coords: [lng, lat]
-  const [filterTo, setFilterTo] = useState({ label: '', coords: null });     // coords: [lng, lat]
-  const [filterRadiusKm, setFilterRadiusKm] = useState(50); // Domyślny promień 50km
+  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
+  const [filterTo, setFilterTo] = useState({ label: '', coords: null });
+  const [filterRadiusKm, setFilterRadiusKm] = useState(50);
   const [filterKeyword, setFilterKeyword] = useState('');
   const [filterBudgetMin, setFilterBudgetMin] = useState('');
   const [filterBudgetMax, setFilterBudgetMax] = useState('');
@@ -32,20 +33,17 @@ export default function AnnouncementsPage() {
     setErrorAnnouncements(null);
 
     let data, error;
-
-    // Logika filtrowania po promieniu (PRIORYTETOWA)
-    // Zmienna 'isRadiusFilterActive' do sprawdzenia, czy mamy koordynaty i promień > 0
+    
     const isRadiusFilterActive = filterFrom.coords && filterRadiusKm > 0;
 
     if (isRadiusFilterActive) {
       const fromLng = filterFrom.coords[0];
       const fromLat = filterFrom.coords[1];
-
-      // Wywołanie funkcji PostGIS (RPC) do filtrowania po promieniu od location_from_geog
+      
       ({ data, error } = await supabase.rpc('get_announcements_in_radius', {
         center_lat: fromLat,
         center_lng: fromLng,
-        radius_meters: filterRadiusKm * 1000 // Promień w metrach
+        radius_meters: filterRadiusKm * 1000
       }));
 
       if (error) {
@@ -55,7 +53,6 @@ export default function AnnouncementsPage() {
         return;
       }
 
-      // Po otrzymaniu danych z RPC, filtrujemy je dalej po pozostałych kryteriach JS
       let filteredData = data;
 
       if (filterTo.label) {
@@ -83,13 +80,11 @@ export default function AnnouncementsPage() {
         filteredData = filteredData.filter(ann => ann.weight_kg && ann.weight_kg <= parseFloat(filterWeightMax));
       }
       
-      // Sortowanie po dacie (bo RPC nie sortuje)
       filteredData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       setAnnouncements(filteredData);
 
     } else {
-      // STANDARDOWE ZAPYTANIE (BEZ FILTROWANIA PO PROMIENIU)
       let query = supabase.from('announcements').select('*');
 
       if (filterTo.label) {
@@ -126,7 +121,6 @@ export default function AnnouncementsPage() {
     setLoadingAnnouncements(false);
   };
 
-  // Uruchom ładowanie ogłoszeń przy pierwszym renderowaniu i ZMIANIE FILTRÓW
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchAnnouncements();
@@ -137,7 +131,6 @@ export default function AnnouncementsPage() {
     };
   }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm]);
 
-  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu (bez zmian)
   useEffect(() => {
     const getInitialUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -154,7 +147,6 @@ export default function AnnouncementsPage() {
     };
   }, []);
 
-  // Efekt do obsługi przekierowania po zalogowaniu (bez zmian)
   useEffect(() => {
     if (user) {
       const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
@@ -162,7 +154,7 @@ export default function AnnouncementsPage() {
 
       if (redirectToAnnounceForm === 'true') {
         localStorage.removeItem('redirect_to_announce_form');
-        setShowForm(true);
+        setShowForm(true); // Otwórz modal
         setSelectedAnnouncement(null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
@@ -177,7 +169,7 @@ export default function AnnouncementsPage() {
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
     fetchAnnouncements();
-    setShowForm(false);
+    setShowForm(false); // Zamknij modal po sukcesie
   };
 
   const handleOpenForm = () => {
@@ -187,7 +179,7 @@ export default function AnnouncementsPage() {
       navigate('/login');
       return;
     }
-    setShowForm(true);
+    setShowForm(true); // Otwórz modal
     setSelectedAnnouncement(null);
   };
 
@@ -214,7 +206,7 @@ export default function AnnouncementsPage() {
   const handleClearFilters = () => {
     setFilterFrom({ label: '', coords: null });
     setFilterTo({ label: '', coords: null });
-    setFilterRadiusKm(50); // Resetuj promień
+    setFilterRadiusKm(50);
     setFilterKeyword('');
     setFilterBudgetMin('');
     setFilterBudgetMax('');
@@ -236,22 +228,12 @@ export default function AnnouncementsPage() {
             </button>
           )}
 
-          {showForm && (
-            <>
-              <h3 className="form-header">Dodaj Nowe Ogłoszenie</h3>
-              <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
-              <button className="back-button" onClick={() => setShowForm(false)}>
-                ← Wróć
-              </button>
-            </>
-          )}
-
           {/* MIEJSCE NA FILTRY WYSZUKIWANIA */}
           {!showForm && !selectedAnnouncement && (
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
                 <div className="filter-group">
-                    <label htmlFor="filterFrom">Skąd:</label> {/* ZMIANA ETYKIETY */}
+                    <label htmlFor="filterFrom">Skąd:</label>
                     <LocationAutocomplete
                         value={filterFrom.label}
                         onSelectLocation={(label, sug) => setFilterFrom({ label, coords: sug.geometry.coordinates })}
@@ -262,7 +244,7 @@ export default function AnnouncementsPage() {
                 </div>
                 {/* SUWAK PROMIENIA - ZAWSZE WIDOCZNY */}
                 <div className="filter-group">
-                    <label htmlFor="filterRadius">Promień: {filterRadiusKm} km</label> {/* ZMIANA ETYKIETY */}
+                    <label htmlFor="filterRadius">Promień: {filterRadiusKm} km</label>
                     <input
                         type="range"
                         id="filterRadius"
@@ -275,7 +257,7 @@ export default function AnnouncementsPage() {
                     />
                 </div>
                 <div className="filter-group">
-                    <label htmlFor="filterTo">Dokąd:</label> {/* ZMIANA ETYKIETY */}
+                    <label htmlFor="filterTo">Dokąd:</label>
                     <LocationAutocomplete
                         value={filterTo.label}
                         onSelectLocation={(label, sug) => setFilterTo({ label, coords: sug.geometry.coordinates })}
@@ -337,6 +319,7 @@ export default function AnnouncementsPage() {
                         />
                     </div>
                 </div>
+                <button onClick={fetchAnnouncements} className="filter-button">Szukaj</button>
                 <button onClick={handleClearFilters} className="clear-filter-button">Wyczyść filtry</button>
               </div>
           )}
@@ -453,6 +436,14 @@ export default function AnnouncementsPage() {
           )}
         </div>
       </div>
+      {/* ===== TUTAJ BĘDZIE MODAL ===== */}
+      <Modal 
+        isOpen={showForm} 
+        onClose={() => setShowForm(false)} 
+        title="Dodaj Nowe Ogłoszenie"
+      >
+        <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
+      </Modal>
     </React.Fragment>
   );
 }

@@ -1,0 +1,113 @@
+/* src/components/Modal.css */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Przyciemnione tło */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000; /* Upewnij się, że modal jest nad wszystkim innym */
+  backdrop-filter: blur(5px); /* Lekkie rozmycie tła */
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%; /* Szerokość modala na mobilnych */
+  max-width: 600px; /* Maksymalna szerokość na desktopie */
+  max-height: 90vh; /* Maksymalna wysokość modala */
+  overflow-y: auto; /* Włącz scrollowanie, jeśli zawartość jest za duża */
+  position: relative; /* Dla przycisku zamykania */
+  animation: fadeIn 0.3s ease-out; /* Animacja pojawienia się */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+  font-size: 2em;
+  color: #333;
+  margin: 0;
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  font-size: 2.5em;
+  color: #666;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.modal-close-button:hover {
+  color: #333;
+}
+
+.modal-body {
+  /* Dodatkowe style dla zawartości, jeśli potrzebne */
+}
+
+/* Animacje */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tryb ciemny dla modala */
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background-color: #444;
+    color: #e0e0e0;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    border-bottom-color: #666;
+  }
+
+  .modal-title {
+    color: #f0f0f0;
+  }
+
+  .modal-close-button {
+    color: #aaa;
+  }
+
+  .modal-close-button:hover {
+    color: #eee;
+  }
+}
+
+/* Responsywność dla bardzo małych ekranów, gdzie modal może zająć prawie cały ekran */
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+  .modal-title {
+    font-size: 1.5em;
+  }
+  .modal-close-button {
+    font-size: 2em;
+  }
+}
