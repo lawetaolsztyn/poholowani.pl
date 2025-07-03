@@ -743,3 +743,74 @@
     margin-right: 5px;
   }
 }
+
+/* src/components/AnnouncementsPage.css */
+
+/* ... (istniejące style z poprzednich kroków) ... */
+
+/* === NOWE STYLE DLA KONTROLEK PAGINACJI === */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.pagination-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.pagination-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pagination-button.active {
+  background-color: #ff6600; /* Aktywna strona ma inny kolor */
+  transform: scale(1.1);
+}
+
+.pagination-button.active:hover {
+  background-color: #e65100;
+}
+
+
+/* === TRYB CIEMNY DLA PAGINACJI === */
+@media (prefers-color-scheme: dark) {
+  .pagination-controls {
+    border-top: 1px solid #555;
+  }
+  .pagination-button {
+    background-color: #0056b3;
+  }
+  .pagination-button:hover:not(:disabled) {
+    background-color: #003d80;
+  }
+  .pagination-button:disabled {
+    background-color: #666;
+  }
+  .pagination-button.active {
+    background-color: #e65100;
+  }
+  .pagination-button.active:hover {
+    background-color: #c84400;
+  }
+}
+
+/* ... (reszta stylów dark mode i responsywności) ... */

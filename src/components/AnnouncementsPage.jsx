@@ -7,21 +7,26 @@ import AnnouncementForm from './AnnouncementForm';
 import './AnnouncementsPage.css';
 import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
-import Modal from './Modal'; // <-- IMPORTUJEMY KOMPONENT MODAL
+import Modal from './Modal';
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
-  const [showForm, setShowForm] = useState(false); // Ten stan będzie teraz kontrolował widoczność modala
+  const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  // NOWE STANY DLA PAGINACJI
+  const [currentPage, setCurrentPage] = useState(1);
+  const [announcementsPerPage] = useState(20); // Stała liczba ogłoszeń na stronę
+  const [totalAnnouncementsCount, setTotalAnnouncementsCount] = useState(0); // Całkowita liczba ogłoszeń
+
   // STANY DLA FILTROWANIA
-  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
-  const [filterTo, setFilterTo] = useState({ label: '', coords: null });
-  const [filterRadiusKm, setFilterRadiusKm] = useState(50);
+  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null }); // coords: [lng, lat]
+  const [filterTo, setFilterTo] = useState({ label: '', coords: null });     // coords: [lng, lat]
+  const [filterRadiusKm, setFilterRadiusKm] = useState(50); // Domyślny promień 50km
   const [filterKeyword, setFilterKeyword] = useState('');
   const [filterBudgetMin, setFilterBudgetMin] = useState('');
   const [filterBudgetMax, setFilterBudgetMax] = useState('');
@@ -32,14 +37,26 @@ export default function AnnouncementsPage() {
     setLoadingAnnouncements(true);
     setErrorAnnouncements(null);
 
-    let data, error;
+    let data, error, count;
     
+    // Oblicz zakres dla paginacji
+    const startIndex = (currentPage - 1) * announcementsPerPage;
+    const endIndex = startIndex + announcementsPerPage - 1;
+
+    // Logika filtrowania po promieniu (PRIORYTETOWA)
     const isRadiusFilterActive = filterFrom.coords && filterRadiusKm > 0;
 
     if (isRadiusFilterActive) {
       const fromLng = filterFrom.coords[0];
       const fromLat = filterFrom.coords[1];
       
+      // Wywołanie funkcji PostGIS (RPC) do filtrowania po promieniu od location_from_geog
+      // UWAGA: Funkcje RPC nie obsługują bezpośrednio `.range()` ani `.count()`
+      // Trzeba by zmodyfikować funkcję SQL 'get_announcements_in_radius', aby przyjmowała offset/limit
+      // LUB pobrać wszystkie pasujące w promieniu i filtrować paginację w JS (mniej wydajne dla dużych zbiorów)
+      // NA POCZĄTEK: będziemy pobierać wszystkie pasujące w promieniu i paginować w JS.
+      // DLA DOCELOWEJ WYDAJNOŚCI: funkcja RPC musiałaby być rozbudowana o LIMIT/OFFSET i COUNT.
+
       ({ data, error } = await supabase.rpc('get_announcements_in_radius', {
         center_lat: fromLat,
         center_lng: fromLng,
@@ -55,6 +72,7 @@ export default function AnnouncementsPage() {
 
       let filteredData = data;
 
+      // Pozostałe filtry aplikowane po stronie klienta (na danych zwróconych przez RPC)
       if (filterTo.label) {
         filteredData = filteredData.filter(ann => 
           ann.location_to_text && ann.location_to_text.toLowerCase().includes(filterTo.label.toLowerCase())
@@ -82,10 +100,13 @@ export default function AnnouncementsPage() {
       
       filteredData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-      setAnnouncements(filteredData);
+      setTotalAnnouncementsCount(filteredData.length); // Ustawiamy całkowitą liczbę ogłoszeń
+      setAnnouncements(filteredData.slice(startIndex, endIndex + 1)); // Paginacja na froncie
 
     } else {
-      let query = supabase.from('announcements').select('*');
+      // STANDARDOWE ZAPYTANIE (BEZ FILTROWANIA PO PROMIENIU) - Z PAGINACJĄ W SUPABASE
+      let query = supabase.from('announcements')
+                           .select('*', { count: 'exact' }); // Pobierz również count
 
       if (filterTo.label) {
         query = query.ilike('location_to_text', `%${filterTo.label}%`);
@@ -106,8 +127,10 @@ export default function AnnouncementsPage() {
         query = query.lte('weight_kg', parseFloat(filterWeightMax));
       }
 
-      query = query.order('created_at', { ascending: false });
-      ({ data, error } = await query);
+      query = query.order('created_at', { ascending: false })
+                   .range(startIndex, endIndex); // Dodaj zakres paginacji
+
+      ({ data, error, count } = await query);
 
       if (error) {
         console.error('Błąd ładowania ogłoszeń:', error);
@@ -116,11 +139,13 @@ export default function AnnouncementsPage() {
         return;
       }
       setAnnouncements(data);
+      setTotalAnnouncementsCount(count); // Ustawiamy całkowitą liczbę ogłoszeń z Supabase
     }
 
     setLoadingAnnouncements(false);
   };
 
+  // Uruchom ładowanie ogłoszeń przy pierwszym renderowaniu i ZMIANIE FILTRÓW ORAZ BIEŻĄCEJ STRONY
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchAnnouncements();
@@ -129,8 +154,9 @@ export default function AnnouncementsPage() {
     return () => {
       clearTimeout(handler);
     };
-  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm]);
+  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage]); // DODANO currentPage do zależności
 
+  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu
   useEffect(() => {
     const getInitialUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -147,6 +173,7 @@ export default function AnnouncementsPage() {
     };
   }, []);
 
+  // Efekt do obsługi przekierowania po zalogowaniu
   useEffect(() => {
     if (user) {
       const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
@@ -154,7 +181,7 @@ export default function AnnouncementsPage() {
 
       if (redirectToAnnounceForm === 'true') {
         localStorage.removeItem('redirect_to_announce_form');
-        setShowForm(true); // Otwórz modal
+        setShowForm(true);
         setSelectedAnnouncement(null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
@@ -169,7 +196,7 @@ export default function AnnouncementsPage() {
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
     fetchAnnouncements();
-    setShowForm(false); // Zamknij modal po sukcesie
+    setShowForm(false);
   };
 
   const handleOpenForm = () => {
@@ -179,7 +206,7 @@ export default function AnnouncementsPage() {
       navigate('/login');
       return;
     }
-    setShowForm(true); // Otwórz modal
+    setShowForm(true);
     setSelectedAnnouncement(null);
   };
 
@@ -212,7 +239,45 @@ export default function AnnouncementsPage() {
     setFilterBudgetMax('');
     setFilterWeightMin('');
     setFilterWeightMax('');
+    setCurrentPage(1); // Resetuj stronę do pierwszej po wyczyszczeniu filtrów
   };
+
+  // === NOWA LOGIKA PAGINACJI ===
+  const totalPages = Math.ceil(totalAnnouncementsCount / announcementsPerPage);
+
+  const goToPage = (pageNumber) => {
+    if (pageNumber < 1 || pageNumber > totalPages) {
+      return; // Zapobiegaj przechodzeniu poza zakres stron
+    }
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Przewiń do góry po zmianie strony
+  };
+
+  const getPaginationButtons = () => {
+    const buttons = [];
+    const maxButtons = 5; // Maksymalna liczba widocznych przycisków numerycznych
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+    // Dostosuj, jeśli jesteśmy blisko końca
+    if (endPage - startPage + 1 < maxButtons) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => goToPage(i)}
+          className={`pagination-button ${currentPage === i ? 'active' : ''}`}
+        >
+          {i}
+        </button>
+      );
+    }
+    return buttons;
+  };
+  // === KONIEC NOWEJ LOGIKI PAGINACJI ===
 
 
   return (
@@ -226,6 +291,16 @@ export default function AnnouncementsPage() {
             <button className="add-announcement-button" onClick={handleOpenForm}>
               Dodaj Nowe Ogłoszenie
             </button>
+          )}
+
+          {showForm && (
+            <>
+              <h3 className="form-header">Dodaj Nowe Ogłoszenie</h3>
+              <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
+              <button className="back-button" onClick={() => setShowForm(false)}>
+                ← Wróć
+              </button>
+            </>
           )}
 
           {/* MIEJSCE NA FILTRY WYSZUKIWANIA */}
@@ -319,7 +394,7 @@ export default function AnnouncementsPage() {
                         />
                     </div>
                 </div>
-                <button onClick={fetchAnnouncements} className="filter-button">Szukaj</button>
+                {/* Usunięto przycisk Szukaj - filtrowanie na bieżąco */}
                 <button onClick={handleClearFilters} className="clear-filter-button">Wyczyść filtry</button>
               </div>
           )}
@@ -432,14 +507,37 @@ export default function AnnouncementsPage() {
                   </div>
                 ))}
               </div>
+
+              {/* === NOWA SEKCJA PAGINACJI === */}
+              {totalPages > 1 && (
+                <div className="pagination-controls">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="pagination-button"
+                  >
+                    Poprzednia
+                  </button>
+                  {getPaginationButtons()}
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="pagination-button"
+                  >
+                    Następna
+                  </button>
+                </div>
+              )}
+              {/* === KONIEC SEKCJI PAGINACJI === */}
+
             </>
           )}
         </div>
       </div>
-      {/* ===== TUTAJ BĘDZIE MODAL ===== */}
-      <Modal 
-        isOpen={showForm} 
-        onClose={() => setShowForm(false)} 
+      {/* ===== MODAL ===== */}
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
         title="Dodaj Nowe Ogłoszenie"
       >
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
