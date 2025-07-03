@@ -7,14 +7,14 @@ import LocationAutocomplete from './LocationAutocomplete';
 export default function AnnouncementForm({ onSuccess }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [locationFrom, setLocationFrom] = useState({ label: '', coords: null });
-  const [locationTo, setLocationTo] = useState({ label: '', coords: null });
+  // Zmieniamy stany na obiekty z label, coords, lat i lng dla LocationAutocomplete
+  const [locationFrom, setLocationFrom] = useState({ label: '', coords: null, lat: null, lng: null });
+  const [locationTo, setLocationTo] = useState({ label: '', coords: null, lat: null, lng: null });
   const [itemToTransport, setItemToTransport] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [budgetPln, setBudgetPln] = useState('');
   const [contactPhone, setContactPhone] = useState('');
-  // USUNIĘTO: [contactWhatsapp, setContactWhatsapp] - nie będzie już osobnego pola
-  const [usesWhatsapp, setUsesWhatsapp] = useState(false); // Checkbox WhatsApp
+  const [usesWhatsapp, setUsesWhatsapp] = useState(false);
   const [contactMessenger, setContactMessenger] = useState('');
   const [consentPhoneShare, setConsentPhoneShare] = useState(false);
 
@@ -70,11 +70,19 @@ export default function AnnouncementForm({ onSuccess }) {
           description,
           location_from_text: locationFrom.label || null,
           location_to_text: locationTo.label || null,
+          // NOWE POLA NA WSPÓŁRZĘDNE I GEOGRAPHY
+          location_from_lat: locationFrom.coords ? locationFrom.coords[1] : null,
+          location_from_lng: locationFrom.coords ? locationFrom.coords[0] : null,
+          location_to_lat: locationTo.coords ? locationTo.coords[1] : null,
+          location_to_lng: locationTo.coords ? locationTo.coords[0] : null,
+          // TWÓRZ OBIEKTY GEOGRAPHY DLA BAZY (GEOGRAPHY(Point, 4326))
+          location_from_geog: locationFrom.coords ? `POINT(${locationFrom.coords[0]} ${locationFrom.coords[1]})` : null,
+          location_to_geog: locationTo.coords ? `POINT(${locationTo.coords[0]} ${locationTo.coords[1]})` : null,
+
           item_to_transport: itemToTransport || null,
           weight_kg: weightKg ? parseFloat(weightKg) : null,
           budget_pln: budgetPln ? parseFloat(budgetPln) : null,
           contact_phone: consentPhoneShare ? contactPhone : null,
-          // ZMIANA: contact_whatsapp teraz używa contact_phone, jeśli usesWhatsapp jest true
           contact_whatsapp: usesWhatsapp && consentPhoneShare ? contactPhone : null,
           contact_messenger: contactMessenger || null,
           image_url: imageUrl || null,
@@ -88,13 +96,13 @@ export default function AnnouncementForm({ onSuccess }) {
       // Resetowanie formularza po sukcesie
       setTitle('');
       setDescription('');
-      setLocationFrom({ label: '', coords: null });
-      setLocationTo({ label: '', coords: null });
+      setLocationFrom({ label: '', coords: null, lat: null, lng: null }); // Reset z nowymi polami
+      setLocationTo({ label: '', coords: null, lat: null, lng: null });   // Reset z nowymi polami
       setItemToTransport('');
       setWeightKg('');
       setBudgetPln('');
       setContactPhone('');
-      setUsesWhatsapp(false); // Resetuj checkbox
+      setUsesWhatsapp(false);
       setContactMessenger('');
       setConsentPhoneShare(false);
       setImageFile(null);
@@ -144,7 +152,12 @@ export default function AnnouncementForm({ onSuccess }) {
               <label htmlFor="locationFrom">Skąd:</label>
               <LocationAutocomplete
                 value={locationFrom.label}
-                onSelectLocation={(label, sug) => setLocationFrom({ label, coords: sug.geometry.coordinates })}
+                onSelectLocation={(label, sug) => setLocationFrom({
+                  label,
+                  coords: sug.geometry.coordinates,
+                  lat: sug.geometry.coordinates ? sug.geometry.coordinates[1] : null,
+                  lng: sug.geometry.coordinates ? sug.geometry.coordinates[0] : null
+                })}
                 placeholder="Np. Berlin, Niemcy"
                 className="autocomplete-field"
                 searchType="city"
@@ -154,7 +167,12 @@ export default function AnnouncementForm({ onSuccess }) {
               <label htmlFor="locationTo">Dokąd:</label>
               <LocationAutocomplete
                 value={locationTo.label}
-                onSelectLocation={(label, sug) => setLocationTo({ label, coords: sug.geometry.coordinates })}
+                onSelectLocation={(label, sug) => setLocationTo({
+                  label,
+                  coords: sug.geometry.coordinates,
+                  lat: sug.geometry.coordinates ? sug.geometry.coordinates[1] : null,
+                  lng: sug.geometry.coordinates ? sug.geometry.coordinates[0] : null
+                })}
                 placeholder="Np. Warszawa, Polska"
                 className="autocomplete-field"
                 searchType="city"
@@ -222,7 +240,6 @@ export default function AnnouncementForm({ onSuccess }) {
             />
           </div>
           
-          {/* KONTAKT WHATSAPP - TYLKO CHECKBOX, BEZ DODATKOWEGO POLA */}
           <div className="form-group form-group-checkbox">
             <label htmlFor="usesWhatsapp">
               <input
@@ -235,7 +252,6 @@ export default function AnnouncementForm({ onSuccess }) {
             </label>
           </div>
           
-          {/* KONTAKT MESSENGER - POLE I LINK PODPOWIEDZI */}
           <div className="form-group">
             <label htmlFor="contactMessenger">Messenger: (link)</label>
             <input
@@ -252,7 +268,6 @@ export default function AnnouncementForm({ onSuccess }) {
             </small>
           </div>
 
-          {/* ZGODA NA UDOSTĘPNIENIE NUMERU TELEFONU */}
           <div className="form-group form-group-checkbox consent-checkbox-group">
             <label htmlFor="consentPhoneShare">
               <input
@@ -263,7 +278,7 @@ export default function AnnouncementForm({ onSuccess }) {
                   setConsentPhoneShare(e.target.checked);
                   if (!e.target.checked) {
                     setContactPhone('');
-                    setUsesWhatsapp(false); // Wyłącz WhatsApp jeśli zgoda na telefon cofnięta
+                    setUsesWhatsapp(false);
                   }
                 }}
               />

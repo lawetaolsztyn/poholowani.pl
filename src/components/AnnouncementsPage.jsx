@@ -18,9 +18,10 @@ export default function AnnouncementsPage() {
   const navigate = useNavigate();
 
   // STANY DLA FILTROWANIA
-  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
-  const [filterTo, setFilterTo] = useState({ label: '', coords: null });
-  const [filterKeyword, setFilterKeyword] = useState(''); // ZMIENIONA NAZWA STANU NA 'filterKeyword'
+  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null }); // coords: [lng, lat]
+  const [filterTo, setFilterTo] = useState({ label: '', coords: null });     // coords: [lng, lat]
+  const [filterRadiusKm, setFilterRadiusKm] = useState(50); // Domyślny promień 50km
+  const [filterKeyword, setFilterKeyword] = useState('');
   const [filterBudgetMin, setFilterBudgetMin] = useState('');
   const [filterBudgetMax, setFilterBudgetMax] = useState('');
   const [filterWeightMin, setFilterWeightMin] = useState('');
@@ -30,55 +31,111 @@ export default function AnnouncementsPage() {
     setLoadingAnnouncements(true);
     setErrorAnnouncements(null);
 
-    let query = supabase.from('announcements').select('*');
+    let data, error;
 
-    // DODAJ LOGIKĘ FILTROWANIA DO ZAPYTANIA SUPABASE
-    if (filterFrom.label) {
-      query = query.ilike('location_from_text', `%${filterFrom.label}%`);
-    }
-    if (filterTo.label) {
-      query = query.ilike('location_to_text', `%${filterTo.label}%`);
-    }
-    if (filterKeyword) { // ZMIENIONA LOGIKA FILTROWANIA PO SŁOWIE KLUCZOWYM
-      // Wyszukujemy słowo kluczowe zarówno w tytule, jak i w opisie.
-      // Używamy .or() do łączenia warunków LUB
-      query = query.or(`title.ilike.%${filterKeyword}%,description.ilike.%${filterKeyword}%`);
-    }
-    if (filterBudgetMin) {
-      query = query.gte('budget_pln', parseFloat(filterBudgetMin));
-    }
-    if (filterBudgetMax) {
-      query = query.lte('budget_pln', parseFloat(filterBudgetMax));
-    }
-    if (filterWeightMin) {
-      query = query.gte('weight_kg', parseFloat(filterWeightMin));
-    }
-    if (filterWeightMax) {
-      query = query.lte('weight_kg', parseFloat(filterWeightMax));
-    }
+    // Logika filtrowania po promieniu (PRIORYTETOWA)
+    if (filterFrom.coords && filterRadiusKm > 0) {
+      const fromLng = filterFrom.coords[0];
+      const fromLat = filterFrom.coords[1];
 
-    query = query.order('created_at', { ascending: false });
+      // Wywołanie funkcji PostGIS (RPC) do filtrowania po promieniu od location_from_geog
+      ({ data, error } = await supabase.rpc('get_announcements_in_radius', {
+        center_lat: fromLat,
+        center_lng: fromLng,
+        radius_meters: filterRadiusKm * 1000 // Promień w metrach
+      }));
 
-    try {
-      const { data, error } = await query;
       if (error) {
-        throw error;
+        console.error('Błąd wywołania funkcji RPC get_announcements_in_radius:', error);
+        setErrorAnnouncements('Błąd filtrowania po promieniu: ' + error.message);
+        setLoadingAnnouncements(false);
+        return;
+      }
+
+      // Po otrzymaniu danych z RPC, filtrujemy je dalej po pozostałych kryteriach JS
+      let filteredData = data;
+
+      if (filterTo.label) {
+        filteredData = filteredData.filter(ann => 
+          ann.location_to_text && ann.location_to_text.toLowerCase().includes(filterTo.label.toLowerCase())
+        );
+      }
+      if (filterKeyword) {
+        const keywordLower = filterKeyword.toLowerCase();
+        filteredData = filteredData.filter(ann => 
+          (ann.title && ann.title.toLowerCase().includes(keywordLower)) ||
+          (ann.description && ann.description.toLowerCase().includes(keywordLower))
+        );
+      }
+      if (filterBudgetMin) {
+        filteredData = filteredData.filter(ann => ann.budget_pln && ann.budget_pln >= parseFloat(filterBudgetMin));
+      }
+      if (filterBudgetMax) {
+        filteredData = filteredData.filter(ann => ann.budget_pln && ann.budget_pln <= parseFloat(filterBudgetMax));
+      }
+      if (filterWeightMin) {
+        filteredData = filteredData.filter(ann => ann.weight_kg && ann.weight_kg >= parseFloat(filterWeightMin));
+      }
+      if (filterWeightMax) {
+        filteredData = filteredData.filter(ann => ann.weight_kg && ann.weight_kg <= parseFloat(filterWeightMax));
+      }
+      
+      // Sortowanie po dacie (bo RPC nie sortuje)
+      filteredData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setAnnouncements(filteredData);
+
+    } else {
+      // STANDARDOWE ZAPYTANIE (BEZ FILTROWANIA PO PROMIENIU)
+      let query = supabase.from('announcements').select('*');
+
+      if (filterTo.label) {
+        query = query.ilike('location_to_text', `%${filterTo.label}%`);
+      }
+      if (filterKeyword) {
+        query = query.or(`title.ilike.%${filterKeyword}%,description.ilike.%${filterKeyword}%`);
+      }
+      if (filterBudgetMin) {
+        query = query.gte('budget_pln', parseFloat(filterBudgetMin));
+      }
+      if (filterBudgetMax) {
+        query = query.lte('budget_pln', parseFloat(filterBudgetMax));
+      }
+      if (filterWeightMin) {
+        query = query.gte('weight_kg', parseFloat(filterWeightMin));
+      }
+      if (filterWeightMax) {
+        query = query.lte('weight_kg', parseFloat(filterWeightMax));
+      }
+
+      query = query.order('created_at', { ascending: false });
+      ({ data, error } = await query);
+
+      if (error) {
+        console.error('Błąd ładowania ogłoszeń:', error);
+        setErrorAnnouncements('Nie udało się załadować ogłoszeń: ' + error.message);
+        setLoadingAnnouncements(false);
+        return;
       }
       setAnnouncements(data);
-    } catch (err) {
-      console.error('Błąd ładowania ogłoszeń:', err);
-      setErrorAnnouncements('Nie udało się załadować ogłoszeń: ' + err.message);
-    } finally {
-      setLoadingAnnouncements(false);
     }
+
+    setLoadingAnnouncements(false);
   };
 
-  // Zależności dla filtra (aktualizacja, by uwzględnić nową nazwę stanu)
+  // Uruchom ładowanie ogłoszeń przy pierwszym renderowaniu i ZMIANIE FILTRÓW
   useEffect(() => {
-    fetchAnnouncements();
-  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax]); 
+    // Dodano debounce, aby nie wywoływać fetchAnnouncements zbyt często podczas pisania
+    const handler = setTimeout(() => {
+      fetchAnnouncements();
+    }, 500); // Opóźnienie 500ms
 
-  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu (bez zmian)
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm]); // Zależności dla filtra
+
+  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu
   useEffect(() => {
     const getInitialUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -95,7 +152,7 @@ export default function AnnouncementsPage() {
     };
   }, []);
 
-  // Efekt do obsługi przekierowania po zalogowaniu (bez zmian)
+  // Efekt do obsługi przekierowania po zalogowaniu
   useEffect(() => {
     if (user) {
       const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
@@ -155,7 +212,8 @@ export default function AnnouncementsPage() {
   const handleClearFilters = () => {
     setFilterFrom({ label: '', coords: null });
     setFilterTo({ label: '', coords: null });
-    setFilterKeyword(''); // ZMIENIONE: Wyczyść nowe pole filtra
+    setFilterRadiusKm(50); // Resetuj promień
+    setFilterKeyword('');
     setFilterBudgetMin('');
     setFilterBudgetMax('');
     setFilterWeightMin('');
@@ -191,7 +249,7 @@ export default function AnnouncementsPage() {
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
                 <div className="filter-group">
-                    <label htmlFor="filterFrom">Skąd:</label>
+                    <label htmlFor="filterFrom">Skąd (dla promienia):</label>
                     <LocationAutocomplete
                         value={filterFrom.label}
                         onSelectLocation={(label, sug) => setFilterFrom({ label, coords: sug.geometry.coordinates })}
@@ -200,8 +258,23 @@ export default function AnnouncementsPage() {
                         searchType="city"
                     />
                 </div>
+                {filterFrom.coords && ( // Pokaż suwak tylko, jeśli wybrano miasto początkowe
+                    <div className="filter-group">
+                        <label htmlFor="filterRadius">Promień od "Skąd": {filterRadiusKm} km</label>
+                        <input
+                            type="range"
+                            id="filterRadius"
+                            min="5"
+                            max="500" // Maksymalny promień 500 km
+                            step="5"
+                            value={filterRadiusKm}
+                            onChange={(e) => setFilterRadiusKm(parseInt(e.target.value))}
+                            className="filter-slider"
+                        />
+                    </div>
+                )}
                 <div className="filter-group">
-                    <label htmlFor="filterTo">Dokąd:</label>
+                    <label htmlFor="filterTo">Dokąd (tylko tekstowo):</label>
                     <LocationAutocomplete
                         value={filterTo.label}
                         onSelectLocation={(label, sug) => setFilterTo({ label, coords: sug.geometry.coordinates })}
@@ -211,51 +284,57 @@ export default function AnnouncementsPage() {
                     />
                 </div>
                 <div className="filter-group">
-                    <label htmlFor="filterKeyword">Słowo kluczowe / Opis:</label> {/* ZMIENIONA LABELKA */}
+                    <label htmlFor="filterKeyword">Słowo kluczowe / Opis:</label>
                     <input
                         type="text"
-                        id="filterKeyword" // ZMIENIONE ID
+                        id="filterKeyword"
                         value={filterKeyword}
                         onChange={(e) => setFilterKeyword(e.target.value)}
                         placeholder="Np. auto, meble, pilne"
                         className="filter-input"
                     />
                 </div>
-                <div className="filter-group-range">
+                {/* POLA ZAKRESU - BUDŻET */}
+                <div className="filter-group">
                     <label>Budżet (PLN):</label>
-                    <input
-                        type="number"
-                        value={filterBudgetMin}
-                        onChange={(e) => setFilterBudgetMin(e.target.value)}
-                        placeholder="Min."
-                        className="filter-input-range"
-                    />
-                    <span>-</span>
-                    <input
-                        type="number"
-                        value={filterBudgetMax}
-                        onChange={(e) => setFilterBudgetMax(e.target.value)}
-                        placeholder="Max."
-                        className="filter-input-range"
-                    />
+                    <div className="range-inputs">
+                        <input
+                            type="number"
+                            value={filterBudgetMin}
+                            onChange={(e) => setFilterBudgetMin(e.target.value)}
+                            placeholder="Min."
+                            className="filter-input-range"
+                        />
+                        <span>-</span>
+                        <input
+                            type="number"
+                            value={filterBudgetMax}
+                            onChange={(e) => setFilterBudgetMax(e.target.value)}
+                            placeholder="Max."
+                            className="filter-input-range"
+                        />
+                    </div>
                 </div>
-                <div className="filter-group-range">
+                {/* POLA ZAKRESU - WAGA */}
+                <div className="filter-group">
                     <label>Waga (kg):</label>
-                    <input
-                        type="number"
-                        value={filterWeightMin}
-                        onChange={(e) => setFilterWeightMin(e.target.value)}
-                        placeholder="Min."
-                        className="filter-input-range"
-                    />
-                    <span>-</span>
-                    <input
-                        type="number"
-                        value={filterWeightMax}
-                        onChange={(e) => setFilterWeightMax(e.target.value)}
-                        placeholder="Max."
-                        className="filter-input-range"
-                    />
+                    <div className="range-inputs">
+                        <input
+                            type="number"
+                            value={filterWeightMin}
+                            onChange={(e) => setFilterWeightMin(e.target.value)}
+                            placeholder="Min."
+                            className="filter-input-range"
+                        />
+                        <span>-</span>
+                        <input
+                            type="number"
+                            value={filterWeightMax}
+                            onChange={(e) => setFilterWeightMax(e.target.value)}
+                            placeholder="Max."
+                            className="filter-input-range"
+                        />
+                    </div>
                 </div>
                 <button onClick={fetchAnnouncements} className="filter-button">Szukaj</button>
                 <button onClick={handleClearFilters} className="clear-filter-button">Wyczyść filtry</button>

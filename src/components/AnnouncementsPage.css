@@ -11,7 +11,7 @@
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-  flex: 0 0 320px; /* Stała szerokość lewej kolumny */
+  flex: 0 0 320px; /* ZMIANA TUTAJ: Stała szerokość lewej kolumny (np. 320px) */
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
@@ -144,23 +144,26 @@
   box-sizing: border-box;
 }
 
-/* ZMIANA TUTAJ: Zamiast flex, zmieniamy na uklad blokowy dla pól zakresu */
+/* ZMIANA TUTAJ: Styl dla pól zakresu - jedno pod drugim w pionie */
 .filter-group-range {
-  display: block; /* Zmienione z flex na block */
+  display: flex; /* Zmieniamy z block na flex, aby kontrolować ułożenie */
+  flex-direction: column; /* Ułożenie elementów w kolumnie */
+  gap: 8px; /* Odstęp między elementami */
   margin-bottom: 15px;
 }
 
 .filter-group-range label {
   display: block; /* Label na osobną linię */
-  margin-bottom: 8px;
+  margin-bottom: 0; /* Usuwamy margines, bo gap to ogarnia */
   font-weight: bold;
   color: #555;
 }
 
-.filter-group-range .range-inputs { /* NOWA KLASA WRAPPER */
-  display: flex; /* Teraz te inputy będą obok siebie */
+.filter-group-range .range-inputs { /* Dodana klasa wrapper w JSX! */
+  display: flex; /* Te inputy będą obok siebie */
   gap: 10px; /* Odstęp między nimi */
   align-items: center;
+  width: 100%; /* Rozciągnij na całą szerokość */
 }
 
 .filter-input-range {
@@ -177,6 +180,42 @@
   color: #555;
   flex-shrink: 0; /* Zapobiegaj kurczeniu się "-" */
 }
+
+/* NOWY STYL DLA SUWAKA */
+.filter-slider {
+  width: 100%;
+  margin-top: 5px; /* Odstęp od labelki */
+  -webkit-appearance: none; /* Ukryj domyślny wygląd */
+  height: 8px;
+  border-radius: 5px;
+  background: #ddd;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity .2s;
+}
+
+.filter-slider:hover {
+  opacity: 1;
+}
+
+.filter-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+}
+
+.filter-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+}
+
 
 .filter-button, .clear-filter-button {
   display: block;
