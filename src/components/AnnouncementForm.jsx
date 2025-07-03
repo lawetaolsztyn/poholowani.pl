@@ -7,7 +7,6 @@ import LocationAutocomplete from './LocationAutocomplete';
 export default function AnnouncementForm({ onSuccess }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // Zmieniamy stany na obiekty z label, coords, lat i lng dla LocationAutocomplete
   const [locationFrom, setLocationFrom] = useState({ label: '', coords: null, lat: null, lng: null });
   const [locationTo, setLocationTo] = useState({ label: '', coords: null, lat: null, lng: null });
   const [itemToTransport, setItemToTransport] = useState('');
@@ -18,7 +17,7 @@ export default function AnnouncementForm({ onSuccess }) {
   const [contactMessenger, setContactMessenger] = useState('');
   const [consentPhoneShare, setConsentPhoneShare] = useState(false);
 
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile] = useState(null); // Do przechowywania wybranego pliku
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -45,20 +44,35 @@ export default function AnnouncementForm({ onSuccess }) {
 
     let imageUrl = null;
     if (imageFile) {
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `announcement_images/${user.id}/${fileName}`;
+        // Logika uploadu zdjęcia na home.pl, tak jak w PublicProfile.jsx
+        if (imageFile.size > 5 * 1024 * 1024) { // 5MB limit
+            setError(`Plik ${imageFile.name} jest za duży (max 5MB).`);
+            setLoading(false);
+            return;
+        }
 
-      const { error: uploadError } = await supabase.storage
-        .from('public_files')
-        .upload(filePath, imageFile, { cacheControl: '3600', upsert: false });
+        try {
+            const formData = new FormData();
+            formData.append('userId', user.id); // Możesz dodać userId, jeśli Twój upload.php go potrzebuje
+            formData.append('file', imageFile);
 
-      if (uploadError) {
-        setError('Błąd podczas przesyłania zdjęcia: ' + uploadError.message);
-        setLoading(false);
-        return;
-      }
-      imageUrl = supabase.storage.from('public_files').getPublicUrl(filePath).data.publicUrl;
+            const response = await fetch('https://serwer2595576.home.pl/upload.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                imageUrl = result.url; // URL zwrócony z serwera home.pl
+            } else {
+                throw new Error(result.error || 'Upload error');
+            }
+        } catch (uploadErr) {
+            console.error('Błąd przesyłania zdjęcia na home.pl:', uploadErr.message);
+            setError(`Błąd podczas przesyłania zdjęcia: ${uploadErr.message}`);
+            setLoading(false);
+            return;
+        }
     }
 
     try {
@@ -70,22 +84,19 @@ export default function AnnouncementForm({ onSuccess }) {
           description,
           location_from_text: locationFrom.label || null,
           location_to_text: locationTo.label || null,
-          // NOWE POLA NA WSPÓŁRZĘDNE I GEOGRAPHY
           location_from_lat: locationFrom.coords ? locationFrom.coords[1] : null,
           location_from_lng: locationFrom.coords ? locationFrom.coords[0] : null,
           location_to_lat: locationTo.coords ? locationTo.coords[1] : null,
           location_to_lng: locationTo.coords ? locationTo.coords[0] : null,
-          // TWÓRZ OBIEKTY GEOGRAPHY DLA BAZY (GEOGRAPHY(Point, 4326))
           location_from_geog: locationFrom.coords ? `POINT(${locationFrom.coords[0]} ${locationFrom.coords[1]})` : null,
           location_to_geog: locationTo.coords ? `POINT(${locationTo.coords[0]} ${locationTo.coords[1]})` : null,
-
           item_to_transport: itemToTransport || null,
           weight_kg: weightKg ? parseFloat(weightKg) : null,
           budget_pln: budgetPln ? parseFloat(budgetPln) : null,
           contact_phone: consentPhoneShare ? contactPhone : null,
           contact_whatsapp: usesWhatsapp && consentPhoneShare ? contactPhone : null,
           contact_messenger: contactMessenger || null,
-          image_url: imageUrl || null,
+          image_url: imageUrl || null, // Używamy URL z home.pl
         });
 
       if (insertError) {
@@ -96,8 +107,8 @@ export default function AnnouncementForm({ onSuccess }) {
       // Resetowanie formularza po sukcesie
       setTitle('');
       setDescription('');
-      setLocationFrom({ label: '', coords: null, lat: null, lng: null }); // Reset z nowymi polami
-      setLocationTo({ label: '', coords: null, lat: null, lng: null });   // Reset z nowymi polami
+      setLocationFrom({ label: '', coords: null, lat: null, lng: null });
+      setLocationTo({ label: '', coords: null, lat: null, lng: null });
       setItemToTransport('');
       setWeightKg('');
       setBudgetPln('');
@@ -105,7 +116,7 @@ export default function AnnouncementForm({ onSuccess }) {
       setUsesWhatsapp(false);
       setContactMessenger('');
       setConsentPhoneShare(false);
-      setImageFile(null);
+      setImageFile(null); // Zresetuj wybrany plik
       if (onSuccess) {
         onSuccess();
       }
