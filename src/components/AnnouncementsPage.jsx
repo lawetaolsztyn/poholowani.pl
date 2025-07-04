@@ -1,4 +1,5 @@
-// src/components/AnnouncementsPage.jsx
+// src/components/AnnouncementsPage.jsx (CAŁY PLIK)
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -8,30 +9,35 @@ import './AnnouncementsPage.css';
 import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
+import ChatWindow from './ChatWindow'; // <-- IMPORTUJEMY NOWY KOMPONENT CHATWINDOW
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false); // Kontroluje widoczność modala formularza
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // NOWE STANY DLA PAGINACJI
-  const [currentPage, setCurrentPage] = useState(1);
-  const [announcementsPerPage] = useState(20); // Stała liczba ogłoszeń na stronę
-  const [totalAnnouncementsCount, setTotalAnnouncementsCount] = useState(0); // Całkowita liczba ogłoszeń
+  // NOWE STANY DLA CHATU
+  const [showChatModal, setShowChatModal] = useState(false); // Kontroluje widoczność modala chatu
+  const [activeConversationId, setActiveConversationId] = useState(null); // ID konwersacji do otwarcia
 
   // STANY DLA FILTROWANIA
-  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null }); // coords: [lng, lat]
-  const [filterTo, setFilterTo] = useState({ label: '', coords: null });     // coords: [lng, lat]
-  const [filterRadiusKm, setFilterRadiusKm] = useState(50); // Domyślny promień 50km
+  const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
+  const [filterTo, setFilterTo] = useState({ label: '', coords: null });
+  const [filterRadiusKm, setFilterRadiusKm] = useState(50);
   const [filterKeyword, setFilterKeyword] = useState('');
   const [filterBudgetMin, setFilterBudgetMin] = useState('');
   const [filterBudgetMax, setFilterBudgetMax] = useState('');
   const [filterWeightMin, setFilterWeightMin] = useState('');
   const [filterWeightMax, setFilterWeightMax] = useState('');
+
+  // STANY DLA PAGINACJI
+  const [currentPage, setCurrentPage] = useState(1);
+  const [announcementsPerPage] = useState(20);
+  const [totalAnnouncementsCount, setTotalAnnouncementsCount] = useState(0);
 
   const fetchAnnouncements = async () => {
     setLoadingAnnouncements(true);
@@ -39,23 +45,14 @@ export default function AnnouncementsPage() {
 
     let data, error, count;
     
-    // Oblicz zakres dla paginacji
     const startIndex = (currentPage - 1) * announcementsPerPage;
     const endIndex = startIndex + announcementsPerPage - 1;
 
-    // Logika filtrowania po promieniu (PRIORYTETOWA)
     const isRadiusFilterActive = filterFrom.coords && filterRadiusKm > 0;
 
     if (isRadiusFilterActive) {
       const fromLng = filterFrom.coords[0];
       const fromLat = filterFrom.coords[1];
-      
-      // Wywołanie funkcji PostGIS (RPC) do filtrowania po promieniu od location_from_geog
-      // UWAGA: Funkcje RPC nie obsługują bezpośrednio `.range()` ani `.count()`
-      // Trzeba by zmodyfikować funkcję SQL 'get_announcements_in_radius', aby przyjmowała offset/limit
-      // LUB pobrać wszystkie pasujące w promieniu i filtrować paginację w JS (mniej wydajne dla dużych zbiorów)
-      // NA POCZĄTEK: będziemy pobierać wszystkie pasujące w promieniu i paginować w JS.
-      // DLA DOCELOWEJ WYDAJNOŚCI: funkcja RPC musiałaby być rozbudowana o LIMIT/OFFSET i COUNT.
 
       ({ data, error } = await supabase.rpc('get_announcements_in_radius', {
         center_lat: fromLat,
@@ -64,7 +61,7 @@ export default function AnnouncementsPage() {
       }));
 
       if (error) {
-        console.error('Błąd wywołania funkcji RPC get_announcements_in_radius:', error);
+        console.error('Błąd wywołania funkcji RPC get_announcements_in_radius:', error.message);
         setErrorAnnouncements('Błąd filtrowania po promieniu: ' + error.message);
         setLoadingAnnouncements(false);
         return;
@@ -72,7 +69,6 @@ export default function AnnouncementsPage() {
 
       let filteredData = data;
 
-      // Pozostałe filtry aplikowane po stronie klienta (na danych zwróconych przez RPC)
       if (filterTo.label) {
         filteredData = filteredData.filter(ann => 
           ann.location_to_text && ann.location_to_text.toLowerCase().includes(filterTo.label.toLowerCase())
@@ -100,13 +96,12 @@ export default function AnnouncementsPage() {
       
       filteredData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-      setTotalAnnouncementsCount(filteredData.length); // Ustawiamy całkowitą liczbę ogłoszeń
-      setAnnouncements(filteredData.slice(startIndex, endIndex + 1)); // Paginacja na froncie
+      setTotalAnnouncementsCount(filteredData.length);
+      setAnnouncements(filteredData.slice(startIndex, endIndex + 1));
 
     } else {
-      // STANDARDOWE ZAPYTANIE (BEZ FILTROWANIA PO PROMIENIU) - Z PAGINACJĄ W SUPABASE
       let query = supabase.from('announcements')
-                           .select('*', { count: 'exact' }); // Pobierz również count
+                           .select('*', { count: 'exact' });
 
       if (filterTo.label) {
         query = query.ilike('location_to_text', `%${filterTo.label}%`);
@@ -128,24 +123,23 @@ export default function AnnouncementsPage() {
       }
 
       query = query.order('created_at', { ascending: false })
-                   .range(startIndex, endIndex); // Dodaj zakres paginacji
+                   .range(startIndex, endIndex);
 
       ({ data, error, count } = await query);
 
       if (error) {
-        console.error('Błąd ładowania ogłoszeń:', error);
+        console.error('Błąd ładowania ogłoszeń:', error.message);
         setErrorAnnouncements('Nie udało się załadować ogłoszeń: ' + error.message);
         setLoadingAnnouncements(false);
         return;
       }
       setAnnouncements(data);
-      setTotalAnnouncementsCount(count); // Ustawiamy całkowitą liczbę ogłoszeń z Supabase
+      setTotalAnnouncementsCount(count);
     }
 
     setLoadingAnnouncements(false);
   };
 
-  // Uruchom ładowanie ogłoszeń przy pierwszym renderowaniu i ZMIANIE FILTRÓW ORAZ BIEŻĄCEJ STRONY
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchAnnouncements();
@@ -154,9 +148,8 @@ export default function AnnouncementsPage() {
     return () => {
       clearTimeout(handler);
     };
-  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage]); // DODANO currentPage do zależności
+  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage]);
 
-  // Efekty do zarządzania stanem użytkownika po zalogowaniu/wylogowaniu
   useEffect(() => {
     const getInitialUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -173,7 +166,6 @@ export default function AnnouncementsPage() {
     };
   }, []);
 
-  // Efekt do obsługi przekierowania po zalogowaniu
   useEffect(() => {
     if (user) {
       const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
@@ -181,7 +173,7 @@ export default function AnnouncementsPage() {
 
       if (redirectToAnnounceForm === 'true') {
         localStorage.removeItem('redirect_to_announce_form');
-        setShowForm(true);
+        setShowForm(true); // Otwórz modal formularza
         setSelectedAnnouncement(null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
@@ -196,7 +188,7 @@ export default function AnnouncementsPage() {
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
     fetchAnnouncements();
-    setShowForm(false);
+    setShowForm(false); // Zamknij modal formularza po sukcesie
   };
 
   const handleOpenForm = () => {
@@ -206,7 +198,7 @@ export default function AnnouncementsPage() {
       navigate('/login');
       return;
     }
-    setShowForm(true);
+    setShowForm(true); // Otwórz modal formularza
     setSelectedAnnouncement(null);
   };
 
@@ -219,16 +211,78 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
-  const handleAskQuestion = () => {
+  // ZMIENIONA FUNKCJA: handleAskQuestion - inicjuje chat i otwiera modal chatu
+  const handleAskQuestion = async () => {
     if (!user) {
       alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
       localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
       navigate('/login');
       return;
     }
-    console.log(`Zadano pytanie do ogłoszenia: ${selectedAnnouncement.title} (ID: ${selectedAnnouncement.id})`);
-    alert('Funkcja "Zadaj pytanie" zostanie uruchomiona w przyszłości!');
+
+    if (!selectedAnnouncement) {
+      alert('Błąd: Nie wybrano ogłoszenia, do którego chcesz zadać pytanie.');
+      return;
+    }
+
+    const clientUserId = selectedAnnouncement.user_id;
+    const currentUserId = user.id; 
+
+    if (clientUserId === currentUserId) {
+      alert('Nie możesz zadać pytania do własnego ogłoszenia.');
+      return;
+    }
+
+    try {
+      // Sprawdź, czy konwersacja już istnieje
+      const { data: existingConversation, error: convError } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('announcement_id', selectedAnnouncement.id)
+        .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${currentUserId}),and(client_id.eq.${currentUserId},carrier_id.eq.${clientUserId})`) // Szukamy konwersacji między tą parą, niezależnie od roli client/carrier
+        .single();
+
+      let conversationId;
+
+      if (convError && convError.code !== 'PGRST116') { // PGRST116 oznacza "nie znaleziono rekordu" (OK, tworzymy nową)
+        throw convError;
+      }
+
+      if (existingConversation) {
+        conversationId = existingConversation.id;
+        console.log(`✅ Konwersacja już istnieje (ID: ${conversationId}).`);
+      } else {
+        console.log('Tworzę nową konwersację...');
+        const { data: newConversation, error: newConvError } = await supabase
+          .from('conversations')
+          .insert({
+            announcement_id: selectedAnnouncement.id,
+            client_id: clientUserId,
+            carrier_id: currentUserId,
+            last_message_at: new Date().toISOString(),
+            last_message_content: ''
+          })
+          .select('id')
+          .single();
+
+        if (newConvError) {
+          throw newConvError;
+        }
+        conversationId = newConversation.id;
+        console.log(`✅ Nowa konwersacja utworzona (ID: ${conversationId}).`);
+      }
+
+      // OTWÓRZ MODAL Z CHATEM
+      setActiveConversationId(conversationId); // Ustaw ID konwersacji, którą otworzyć
+      setShowChatModal(true); // Pokaż modal chatu
+      setSelectedAnnouncement(null); // Ukryj widok szczegółów ogłoszenia, jeśli był otwarty
+
+    } catch (error) {
+      console.error('Błąd podczas inicjowania chatu:', error.message);
+      alert(`❌ Wystąpił błąd podczas inicjowania chatu: ${error.message}`);
+    }
   };
+
 
   const handleClearFilters = () => {
     setFilterFrom({ label: '', coords: null });
@@ -239,27 +293,25 @@ export default function AnnouncementsPage() {
     setFilterBudgetMax('');
     setFilterWeightMin('');
     setFilterWeightMax('');
-    setCurrentPage(1); // Resetuj stronę do pierwszej po wyczyszczeniu filtrów
+    setCurrentPage(1);
   };
 
-  // === NOWA LOGIKA PAGINACJI ===
   const totalPages = Math.ceil(totalAnnouncementsCount / announcementsPerPage);
 
   const goToPage = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) {
-      return; // Zapobiegaj przechodzeniu poza zakres stron
+      return;
     }
     setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Przewiń do góry po zmianie strony
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const getPaginationButtons = () => {
     const buttons = [];
-    const maxButtons = 5; // Maksymalna liczba widocznych przycisków numerycznych
+    const maxButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxButtons - 1);
 
-    // Dostosuj, jeśli jesteśmy blisko końca
     if (endPage - startPage + 1 < maxButtons) {
         startPage = Math.max(1, endPage - maxButtons + 1);
     }
@@ -277,7 +329,6 @@ export default function AnnouncementsPage() {
     }
     return buttons;
   };
-  // === KONIEC NOWEJ LOGIKI PAGINACJI ===
 
 
   return (
@@ -291,16 +342,6 @@ export default function AnnouncementsPage() {
             <button className="add-announcement-button" onClick={handleOpenForm}>
               Dodaj Nowe Ogłoszenie
             </button>
-          )}
-
-          {showForm && (
-            <>
-              <h3 className="form-header">Dodaj Nowe Ogłoszenie</h3>
-              <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
-              <button className="back-button" onClick={() => setShowForm(false)}>
-                ← Wróć
-              </button>
-            </>
           )}
 
           {/* MIEJSCE NA FILTRY WYSZUKIWANIA */}
@@ -394,7 +435,7 @@ export default function AnnouncementsPage() {
                         />
                     </div>
                 </div>
-                {/* Usunięto przycisk Szukaj - filtrowanie na bieżąco */}
+                <button onClick={fetchAnnouncements} className="filter-button">Szukaj</button>
                 <button onClick={handleClearFilters} className="clear-filter-button">Wyczyść filtry</button>
               </div>
           )}
@@ -508,7 +549,6 @@ export default function AnnouncementsPage() {
                 ))}
               </div>
 
-              {/* === NOWA SEKCJA PAGINACJI === */}
               {totalPages > 1 && (
                 <div className="pagination-controls">
                   <button
@@ -528,19 +568,32 @@ export default function AnnouncementsPage() {
                   </button>
                 </div>
               )}
-              {/* === KONIEC SEKCJI PAGINACJI === */}
-
             </>
           )}
         </div>
       </div>
-      {/* ===== MODAL ===== */}
-      <Modal
-        isOpen={showForm}
-        onClose={() => setShowForm(false)}
+      {/* MODAL FORMULARZA OGŁOSZEŃ */}
+      <Modal 
+        isOpen={showForm} 
+        onClose={() => setShowForm(false)} 
         title="Dodaj Nowe Ogłoszenie"
       >
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
+      </Modal>
+
+      {/* NOWY MODAL DLA CHATU */}
+      <Modal
+        isOpen={showChatModal}
+        onClose={() => setShowChatModal(false)}
+        title="Rozmowa"
+      >
+        {activeConversationId && (
+          <ChatWindow 
+            conversationId={activeConversationId} 
+            currentUserId={user?.id} 
+            onClose={() => setShowChatModal(false)} 
+          />
+        )}
       </Modal>
     </React.Fragment>
   );
