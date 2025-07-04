@@ -4,10 +4,6 @@
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid #eee;
-  background-color: #ffffff; /* Dodatkowe tło dla całej sekcji chatu */
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  padding: 20px;
 }
 
 .chat-section-container h3 {
@@ -102,15 +98,9 @@
   gap: 15px;
 }
 .no-active-chat-container .action-button.ask-question-button {
-    margin-top: 0;
-    width: auto;
+    margin-top: 0; /* Usuń domyślny margines */
+    width: auto; /* Pozwól przyciskowi dopasować szerokość do zawartości */
     min-width: 200px;
-}
-
-/* Styl dla aktywnej karty konwersacji (opcjonalnie) */
-.conversation-card.active {
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
 }
 
 
@@ -118,8 +108,6 @@
 @media (prefers-color-scheme: dark) {
   .chat-section-container {
     border-top-color: #555;
-    background-color: #444;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
   .chat-section-container h3 {
     color: #f0f0f0;
@@ -130,12 +118,12 @@
     border-color: #666;
   }
   .conversation-card {
-    background-color: #555;
-    border-color: #666;
+    background-color: #444;
+    border-color: #555;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
   .conversation-card:hover {
-    background-color: #666;
+    background-color: #555;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   }
   .conversation-header h4 {
