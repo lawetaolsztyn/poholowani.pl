@@ -15,7 +15,7 @@ const provinces = [
 export default function UserProfileDashboard() {
   const [activeTab, setActiveTab] = useState('Moje dane');
   const [userData, setUserData] = useState(null);
-  const [formData, setFormData] = useState(null); // Będzie przechowywać rozszerzone dane profilu użytkownika
+  const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -30,15 +30,15 @@ export default function UserProfileDashboard() {
   // Stany dla auto-uzupełniania adresów POMOCY DROGOWEJ
   const [roadsideCityAutocompleteValue, setRoadsideCityAutocompleteValue] = useState('');
   const [roadsideStreetAutocompleteValue, setRoadsideStreetAutocompleteValue] = useState('');
-  const [roadsideSelectedCoords, setRoadsideSelectedCoords] = useState({ latitude: null, longitude: null }); // Koordynaty z autocomplete dla pomocy drogowej
+  const [roadsideSelectedCoords, setRoadsideSelectedCoords] = useState({ latitude: null, longitude: null });
 
   // Stany dla autouzupełniania MIASTA GŁÓWNEGO PROFILU (w "Moje dane")
   const [myCityAutocompleteValue, setMyCityAutocompleteValue] = useState('');
-  const [mySelectedCityCoords, setMySelectedCityCoords] = useState({ latitude: null, longitude: null }); // Koordynaty z autocomplete dla miasta głównego
-  const [mySelectedCitySuggestion, setMySelectedCitySuggestion] = useState(null); // Cały obiekt sugestii dla głównego miasta
+  const [mySelectedCityCoords, setMySelectedCityCoords] = useState({ latitude: null, longitude: null });
+  const [mySelectedCitySuggestion, setMySelectedCitySuggestion] = useState(null);
 
-  // --- WŁAŚCIWE STANY DLA PÓL KONTAKTOWYCH PROFILU (nowe/zmodyfikowane) ---
-  const [profilePhone, setProfilePhone] = useState(''); // Ten stan będzie mapowany na kolumnę 'phone'
+  // --- WŁAŚCIWE STANY DLA PÓL KONTAKTOWYCH PROFILU (do auto-podstawiania) ---
+  const [profileContactPhone, setProfileContactPhone] = useState(''); // ZMIANA: Nowy stan
   const [profileUsesWhatsapp, setProfileUsesWhatsapp] = useState(false);
   const [profileMessengerLink, setProfileMessengerLink] = useState('');
   const [profileConsentPhoneShare, setProfileConsentPhoneShare] = useState(false);
@@ -56,7 +56,7 @@ export default function UserProfileDashboard() {
           setIsPublicProfileAgreed(false);
           setIsRoadsideAssistanceAgreed(false);
           // Zresetuj stany nowych pól
-          setProfilePhone('');
+          setProfileContactPhone(''); // ZMIANA: Reset nowego stanu
           setProfileUsesWhatsapp(false);
           setProfileMessengerLink('');
           setProfileConsentPhoneShare(false);
@@ -66,7 +66,7 @@ export default function UserProfileDashboard() {
 
         const { data, error } = await supabase
           .from('users_extended')
-          .select('*') // 'select(*)' pobierze wszystkie kolumny, w tym nowe
+          .select('*') // 'select(*)' pobierze wszystkie kolumny, w tym nową profile_contact_phone
           .eq('id', user.id)
           .single();
 
@@ -78,14 +78,13 @@ export default function UserProfileDashboard() {
           setIsPublicProfileAgreed(false);
           setIsRoadsideAssistanceAgreed(false);
           // Zresetuj stany nowych pól
-          setProfilePhone('');
+          setProfileContactPhone(''); // ZMIANA: Reset nowego stanu
           setProfileUsesWhatsapp(false);
           setProfileMessengerLink('');
           setProfileConsentPhoneShare(false);
         } else {
           const fetchedData = data || {}; 
           
-          // Inicjalizacja formData - upewnienie się, że wszystkie pola są stringami/booleanami
           const initialFormData = {
             ...fetchedData,
             roadside_street: fetchedData.roadside_street || '',
@@ -99,16 +98,11 @@ export default function UserProfileDashboard() {
             is_roadside_assistance_agreed: fetchedData.is_roadside_assistance_agreed || false,
             province: fetchedData.province || '',
             city: fetchedData.city || '',
-            // Inicjalizacja DANYCH KONTAKTOWYCH PROFILU (przeniesione z osobnych setXState do initialFormData)
-            // Kolumna 'phone' jest już w fetchedData.phone
-            profile_uses_whatsapp: fetchedData.profile_uses_whatsapp || false,
-            profile_messenger_link: fetchedData.profile_messenger_link || '',
-            profile_consent_phone_share: fetchedData.profile_consent_phone_share || false,
           };
           setFormData(initialFormData); 
 
-          // WAŻNE: Stan `profilePhone` jest odrębny, aby kontrolka input działała poprawnie.
-          setProfilePhone(fetchedData.phone || ''); 
+          // Inicjalizacja stanów dla pól kontaktowych profilu (z nowych kolumn)
+          setProfileContactPhone(fetchedData.profile_contact_phone || ''); // ZMIANA: Inicjalizacja z nowej kolumny
           setProfileUsesWhatsapp(fetchedData.profile_uses_whatsapp || false);
           setProfileMessengerLink(fetchedData.profile_messenger_link || '');
           setProfileConsentPhoneShare(fetchedData.profile_consent_phone_share || false);
@@ -142,7 +136,7 @@ export default function UserProfileDashboard() {
         setIsPublicProfileAgreed(false);
         setIsRoadsideAssistanceAgreed(false);
         // Reset nowych stanów
-        setProfilePhone('');
+        setProfileContactPhone(''); // ZMIANA: Reset nowego stanu
         setProfileUsesWhatsapp(false);
         setProfileMessengerLink('');
         setProfileConsentPhoneShare(false);
@@ -245,7 +239,6 @@ export default function UserProfileDashboard() {
     
     // Geokodowanie dla Miasta w "Moje dane"
     if (activeTab === 'Moje dane' && myCityAutocompleteValue) { 
-        // Koordynaty i nazwa miasta są już ustawione z LocationAutocomplete
         if (mySelectedCityCoords.latitude != null && mySelectedCityCoords.longitude != null) {
             updatedFormData = { 
                 ...updatedFormData, 
@@ -255,7 +248,6 @@ export default function UserProfileDashboard() {
             };
             console.log('DEBUG: Użyto koordynatów z LocationAutocomplete (Moje dane):', mySelectedCityCoords);
         } else {
-             // Jeśli brak koordynatów z autocomplete, spróbuj geokodować samo miasto
             try {
                 const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(myCityAutocompleteValue)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&country=PL&types=place,locality`);
                 const json = await response.json();
@@ -281,7 +273,9 @@ export default function UserProfileDashboard() {
     if (activeTab === 'Moje dane') {
         updatedFormData = {
             ...updatedFormData,
-            phone: profileConsentPhoneShare ? profilePhone : null, // Zapisz 'phone' z pola profilePhone tylko ze zgodą
+            // ZMIANA TUTAJ: 'phone' (firmowy) i 'profile_contact_phone' (do autopodstawiania) to teraz osobne pola
+            // formData.phone (firmowy) jest już aktualizowany przez handleChange
+            profile_contact_phone: profileConsentPhoneShare ? profileContactPhone : null, // ZMIANA: Zapis do nowej kolumny
             profile_uses_whatsapp: profileUsesWhatsapp,
             profile_messenger_link: profileMessengerLink || null,
             profile_consent_phone_share: profileConsentPhoneShare,
@@ -311,6 +305,7 @@ export default function UserProfileDashboard() {
       if (error) throw error;
 
       setMessage('✅ Dane zapisane pomyślnie!');
+      // WAŻNE: Aktualizuj formData i userData po zapisie, aby odzwierciedlały nowe wartości
       setFormData(finalUpdatePayload); 
       setUserData(finalUpdatePayload); 
       // Zaktualizuj stan koordynatów dla miasta głównego po zapisie
@@ -391,7 +386,7 @@ export default function UserProfileDashboard() {
                   <input type="text" name="company_name" value={formData.company_name || ''} onChange={handleChange} className="form-input" />
                 </label>
                 <label className="form-label">
-                  Telefon (firmowy):
+                  Telefon (firmowy): {/* TO JEST ISTNIEJĄCY NUMER FIRMOWY */}
                   <input type="text" name="phone" value={formData.phone || ''} onChange={handleChange} className="form-input" />
                 </label>
                 <label className="form-label">
@@ -460,15 +455,15 @@ export default function UserProfileDashboard() {
               <input type="text" name="building_number" value={formData.building_number || ''} onChange={handleChange} className="form-input" />
             </label>
 
-            {/* === NOWE POLA DANYCH KONTAKTOWYCH PROFILU === */}
+            {/* === NOWE POLA DANYCH KONTAKTOWYCH PROFILU (do auto-podstawiania) === */}
             <h4 style={{marginTop: '30px', marginBottom: '15px', textAlign: 'center', color: '#333'}}>Preferowane dane kontaktowe do formularzy</h4>
             <label className="form-label">
               Numer telefonu (do auto-podstawiania):
               <input
                 type="text"
-                name="phone_for_forms" // ZMIANA: unikalna nazwa dla inputa, aby nie kolidowała z 'phone' w formData (które jest dla tel. firmowego)
-                value={profilePhone || ''}
-                onChange={(e) => setProfilePhone(e.target.value)}
+                name="profile_contact_phone" // ZMIANA: NOWA NAZWA DLA TEGO INPUTA
+                value={profileContactPhone || ''} // ZMIANA: Mapowanie na nowy stan
+                onChange={(e) => setProfileContactPhone(e.target.value)} // ZMIANA: Aktualizacja nowego stanu
                 className="form-input"
                 placeholder="Np. +48 123 456 789"
                 disabled={!profileConsentPhoneShare}
@@ -513,7 +508,7 @@ export default function UserProfileDashboard() {
                   onChange={(e) => {
                     setProfileConsentPhoneShare(e.target.checked);
                     if (!e.target.checked) {
-                      setProfilePhone('');
+                      setProfileContactPhone(''); // ZMIANA: Wyczyść profileContactPhone
                       setProfileUsesWhatsapp(false);
                     }
                   }}

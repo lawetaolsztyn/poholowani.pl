@@ -34,8 +34,8 @@ function AddRouteForm({ onRouteCreated }) {
     loadCapacity: '',
     maxDetour: '50',
     passengerCount: '',
-    phone: '', // Będzie podstawiane z profilu
-    // countryCode: '+48', // USUNIĘTO: Ten stan nie jest już potrzebny
+    phone: '', // Będzie podstawiane z profilu (profile_contact_phone)
+    countryCode: '+48', // To pole nadal istnieje w stanie, ale nie będzie używane w JSX i p_phone
     messenger: '', // Będzie podstawiane z profilu (profile_messenger_link)
     usesWhatsapp: false, // Będzie podstawiane z profilu (profile_uses_whatsapp)
     consentPhoneShare: false, // Będzie podstawiane z profilu (profile_consent_phone_share)
@@ -51,7 +51,7 @@ function AddRouteForm({ onRouteCreated }) {
       if (user) {
         const { data: profile, error } = await supabase
           .from('users_extended')
-          .select('phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // Pobieramy odpowiednie kolumny
+          .select('profile_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // ZMIANA: Pobieramy nową kolumnę
           .eq('id', user.id)
           .single();
 
@@ -61,7 +61,7 @@ function AddRouteForm({ onRouteCreated }) {
           // Autopodstawianie danych z profilu do stanów formularza
           setForm(prevForm => ({
             ...prevForm,
-            phone: profile.phone || '', // Używamy 'phone'
+            phone: profile.profile_contact_phone || '', // ZMIANA: Używamy nowej kolumny
             usesWhatsapp: profile.profile_uses_whatsapp || false,
             messenger: profile.profile_messenger_link || '',
             consentPhoneShare: profile.profile_consent_phone_share || false,
@@ -214,7 +214,7 @@ function AddRouteForm({ onRouteCreated }) {
             p_load_capacity: form.loadCapacity || null,
             p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
             p_max_detour_km: parseInt(form.maxDetour),
-            p_phone: form.phone && form.consentPhoneShare ? form.phone : null, // ZMIANA: Teraz używa tylko form.phone
+            p_phone: form.phone && form.consentPhoneShare ? form.phone : null, // ZMIANA: Używa tylko form.phone (które będzie z nowej kolumny profilu)
             p_messenger_link: form.messenger || null,
             p_geojson: routeData,
             p_browser_token: browserToken || null,
@@ -225,7 +225,7 @@ function AddRouteForm({ onRouteCreated }) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-User-ID': userId || 'anon', // Dodaj User ID do nagłówka dla Rate Limiting
+                'X-User-ID': userId || 'anon',
             },
             body: JSON.stringify(routePayload),
         });
@@ -339,15 +339,15 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Numer telefonu:</label>
             <div className="phone-input-group">
-              {/* USUNIĘTO: select dla countryCode */}
+              {/* ZMIANA TUTAJ: Usunięto selektor countryCode */}
               <input
                 type="tel"
                 name="phone"
-                value={form.phone} // Ten input ma teraz wartość ze stanu form.phone, inicjalizowanego z profilu
+                value={form.phone} // Będzie automatycznie podstawiane z profile.profile_contact_phone
                 onChange={handleChange}
                 className="uinput"
                 placeholder="np. +48 123 456 789" // Zmieniono placeholder
-                disabled={!form.consentPhoneShare} // Wyłącz, jeśli brak zgody na udostępnianie telefonu
+                disabled={!form.consentPhoneShare}
               />
             </div>
           </div>
@@ -382,7 +382,6 @@ function AddRouteForm({ onRouteCreated }) {
             </small>
           </div>
 
-          {/* PRZENIESIONE POLE: Zgoda na udostępnienie numeru telefonu */}
           <div className="form-field form-field-consent">
             <label htmlFor="consentPhoneShare">
               <input

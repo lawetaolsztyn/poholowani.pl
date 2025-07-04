@@ -13,10 +13,10 @@ export default function AnnouncementForm({ onSuccess }) {
   const [itemToTransport, setItemToTransport] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [budgetPln, setBudgetPln] = useState('');
-  const [contactPhone, setContactPhone] = useState(''); // Ten stan będzie pobierał z profile.phone
-  const [usesWhatsapp, setUsesWhatsapp] = useState(false); // Ten stan będzie pobierał z profile.profile_uses_whatsapp
-  const [contactMessenger, setContactMessenger] = useState(''); // Ten stan będzie pobierał z profile.profile_messenger_link
-  const [consentPhoneShare, setConsentPhoneShare] = useState(false); // Ten stan będzie pobierał z profile.profile_consent_phone_share
+  const [contactPhone, setContactPhone] = useState(''); // Ten stan będzie pobierał z profile.profile_contact_phone
+  const [usesWhatsapp, setUsesWhatsapp] = useState(false);
+  const [contactMessenger, setContactMessenger] = useState('');
+  const [consentPhoneShare, setConsentPhoneShare] = useState(false);
 
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ export default function AnnouncementForm({ onSuccess }) {
       if (user) {
         const { data: profile, error } = await supabase
           .from('users_extended')
-          .select('phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // Pobieramy odpowiednie kolumny
+          .select('profile_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // ZMIANA: Pobieramy nową kolumnę
           .eq('id', user.id)
           .single();
 
@@ -38,7 +38,7 @@ export default function AnnouncementForm({ onSuccess }) {
           console.error('Błąd pobierania danych profilu dla formularza ogłoszenia:', error.message);
         } else if (profile) {
           // Autopodstawianie danych z profilu do stanów formularza
-          setContactPhone(profile.phone || '');
+          setContactPhone(profile.profile_contact_phone || ''); // ZMIANA: Używamy nowej kolumny
           setUsesWhatsapp(profile.profile_uses_whatsapp || false);
           setContactMessenger(profile.profile_messenger_link || '');
           setConsentPhoneShare(profile.profile_consent_phone_share || false);
@@ -47,7 +47,7 @@ export default function AnnouncementForm({ onSuccess }) {
     };
 
     fetchUserProfileData();
-  }, []); // Uruchamiamy raz przy montowaniu komponentu
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -139,7 +139,6 @@ export default function AnnouncementForm({ onSuccess }) {
       setWeightKg('');
       setBudgetPln('');
       setImageFile(null);
-      // Pola kontaktowe zostawiamy, aby były automatycznie podstawione z profilu ponownie
       if (onSuccess) {
         onSuccess();
       }
