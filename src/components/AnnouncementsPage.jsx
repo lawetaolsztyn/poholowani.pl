@@ -211,7 +211,7 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
-  // ZMIENIONA FUNKCJA: handleAskQuestion - inicjuje chat i otwiera modal chatu
+  // ZMIENIONA FUNKCJA: 	 - inicjuje chat i otwiera modal chatu
   const handleAskQuestion = async () => {
     if (!user) {
       alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
@@ -234,17 +234,20 @@ export default function AnnouncementsPage() {
     }
 
     try {
-      // Sprawdź, czy konwersacja już istnieje
+      // ZMIANA: UPROSZCZONE ZAPYTANIE O ISTNIEJĄCĄ KONWERSACJĘ
+      // Szukamy konwersacji, gdzie client_id to klient ORAZ carrier_id to ja
+      // LUB gdzie client_id to ja ORAZ carrier_id to klient (obsługa obu stron)
       const { data: existingConversation, error: convError } = await supabase
         .from('conversations')
         .select('id')
         .eq('announcement_id', selectedAnnouncement.id)
-        .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${currentUserId}),and(client_id.eq.${currentUserId},carrier_id.eq.${clientUserId})`) // Szukamy konwersacji między tą parą, niezależnie od roli client/carrier
+        .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${currentUserId}),and(client_id.eq.${currentUserId},carrier_id.eq.${clientUserId})`) 
         .single();
+
 
       let conversationId;
 
-      if (convError && convError.code !== 'PGRST116') { // PGRST116 oznacza "nie znaleziono rekordu" (OK, tworzymy nową)
+      if (convError && convError.code !== 'PGRST116') { 
         throw convError;
       }
 
@@ -257,8 +260,11 @@ export default function AnnouncementsPage() {
           .from('conversations')
           .insert({
             announcement_id: selectedAnnouncement.id,
-            client_id: clientUserId,
-            carrier_id: currentUserId,
+            // Upewnij się, że zawsze zapisujesz w spójnej kolejności (np. mniejszy UUID jako client_id)
+            // LUB zaakceptuj, że client_id to wystawca, carrier_id to inicjator.
+            // Zgodnie z naszą koncepcją, client_id to wystawca ogłoszenia, carrier_id to ten, kto klika "Zadaj pytanie".
+            client_id: clientUserId, 
+            carrier_id: currentUserId, 
             last_message_at: new Date().toISOString(),
             last_message_content: ''
           })
@@ -272,10 +278,9 @@ export default function AnnouncementsPage() {
         console.log(`✅ Nowa konwersacja utworzona (ID: ${conversationId}).`);
       }
 
-      // OTWÓRZ MODAL Z CHATEM
-      setActiveConversationId(conversationId); // Ustaw ID konwersacji, którą otworzyć
-      setShowChatModal(true); // Pokaż modal chatu
-      setSelectedAnnouncement(null); // Ukryj widok szczegółów ogłoszenia, jeśli był otwarty
+      setActiveConversationId(conversationId);
+      setShowChatModal(true);
+      setSelectedAnnouncement(null);
 
     } catch (error) {
       console.error('Błąd podczas inicjowania chatu:', error.message);

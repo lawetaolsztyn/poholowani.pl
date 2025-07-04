@@ -1,7 +1,7 @@
 // src/components/ChatWindow.jsx (CAŁY PLIK)
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
-import './ChatWindow.css'; // Stwórz ten plik CSS
+import './ChatWindow.css';
 
 export default function ChatWindow({ conversationId, currentUserId, onClose }) {
   const [messages, setMessages] = useState([]);
@@ -26,7 +26,7 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
         const participantIds = [conversation.client_id, conversation.carrier_id];
         const { data: usersData, error: usersError } = await supabase
           .from('users_extended')
-          .select('id, full_name, company_name, email, role') // DODANO: pobierz rolę
+          .select('id, full_name, company_name, email, role')
           .in('id', participantIds);
 
         if (usersError) throw usersError;
@@ -35,7 +35,7 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
         usersData.forEach(user => {
           pData[user.id] = {
             name: user.role === 'firma' ? user.company_name : user.full_name || user.email,
-            role: user.role // Zapisz rolę
+            role: user.role
           };
         });
         setParticipantsData(pData);
@@ -58,14 +58,13 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
     setLoading(true);
     setError(null);
 
-    // Fetch initial messages
     const fetchMessages = async () => {
       try {
         const { data, error } = await supabase
           .from('messages')
           .select('*')
           .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true }); // Najstarsze na górze
+          .order('created_at', { ascending: true });
 
         if (error) throw error;
         setMessages(data);
@@ -81,7 +80,6 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
     fetchParticipantsData(conversationId);
 
 
-    // Realtime subscription for new messages in this conversation
     const channel = supabase
       .channel(`chat:${conversationId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
@@ -97,19 +95,17 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
     };
   }, [conversationId, currentUserId]);
 
-  // Przewijanie do najnowszej wiadomości
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Funkcja do oznaczania wiadomości jako przeczytanej
   const markMessageAsRead = async (messageId) => {
     try {
       const { error } = await supabase
         .from('messages')
         .update({ is_read: true })
         .eq('id', messageId)
-        .eq('is_read', false); // Oznacz tylko nieprzeczytane
+        .eq('is_read', false);
 
       if (error) {
         console.error('Błąd oznaczania wiadomości jako przeczytanej:', error.message);
@@ -119,16 +115,22 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
     }
   };
 
-  // Funkcja do wysyłania wiadomości
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user, session } } = await supabase.auth.getUser(); // ZMIANA: Pobierz session
       const userId = user?.id;
       if (!userId) {
         alert('Musisz być zalogowany, aby wysłać wiadomość.');
+        return;
+      }
+      
+      // ZMIANA: Pobierz JWT z sesji
+      const userJwt = session?.access_token; 
+      if (!userJwt) {
+        alert('Błąd autoryzacji: Brak tokenu sesji.');
         return;
       }
 
@@ -139,12 +141,12 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
         is_read: false
       };
 
-      // ZMIANA TUTAJ: WYSYŁAMY DO /api/messages, a nie /api/comments
-      const workerResponse = await fetch('https://map-api-proxy.lawetaolsztyn.workers.dev/api/messages', { // <-- ZMIENIONY ENDPOINT
+      const workerResponse = await fetch('https://map-api-proxy.lawetaolsztyn.workers.dev/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-User-ID': userId,
+          'Authorization': `Bearer ${userJwt}` // ZMIANA: Dodaj nagłówek Authorization
         },
         body: JSON.stringify(messagePayload),
       });
@@ -173,16 +175,13 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
   return (
     <div className="chat-window-container">
       <div className="chat-header">
-        {/* Przycisk zamykania modala chatu */}
         <button className="chat-close-button" onClick={onClose}>&times;</button>
-        {/* Wyświetl nazwę drugiego uczestnika chatu */}
         <h4>Chat z: {Object.values(participantsData).find(p => p.id !== currentUserId)?.name || 'Nieznany uczestnik'}</h4>
       </div>
       <div className="chat-messages">
         {messages.map((msg) => (
           <div key={msg.id} className={`message-bubble ${msg.sender_id === currentUserId ? 'sent' : 'received'}`}>
             <div className="message-content">
-                {/* Wyświetl nazwę nadawcy, jeśli to nie moja wiadomość (lub zawsze, jeśli chcesz) */}
                 {msg.sender_id !== currentUserId && (
                     <span className="sender-name">
                         {participantsData[msg.sender_id]?.name || 'Nieznany'}
