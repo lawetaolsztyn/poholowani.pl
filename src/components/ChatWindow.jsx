@@ -1,6 +1,6 @@
 // src/components/ChatWindow.jsx (CAŁY PLIK)
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../supabaseClient'; // Upewnij się, że supabaseClient.js jest poprawnie skonfigurowany
+import { supabase } from '../supabaseClient';
 import './ChatWindow.css';
 
 export default function ChatWindow({ conversationId, currentUserId, userJwt, participantsData: initialParticipantsData, onClose }) {
@@ -47,20 +47,13 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
   };
 
 
-  // Efekt do ładowania wiadomości i subskrypcji Realtime
   useEffect(() => {
     if (!conversationId) {
       setChatError('Brak ID konwersacji.');
       setChatLoading(false);
       return;
     }
-
-    // WAŻNA ZMIANA: Usunięto userJwt z warunku, bo supabaseClient powinien sam dbać o auth
-    // Jeśli user nie jest zalogowany, RLS to zablokuje, a chatError zostanie ustawiony przez fetchMessages.
-    // Usunięto również jawne supabase.realtime.setAuth(userJwt);
-    // Biblioteka supabase-js powinna to robić automatycznie, jeśli jest poprawnie zainicjowana
-    // z opcjami auth w createClient.
-
+    
     let channel = null;
 
     const setupRealtimeConnection = async () => {
@@ -68,7 +61,6 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
       setChatError(null);
 
       try {
-        // Fetch initial messages
         const { data, error } = await supabase
           .from('messages')
           .select('*')
@@ -76,30 +68,28 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
           .order('created_at', { ascending: true });
 
         if (error) {
-            // Jeśli błąd to RLS (np. 401/403), ustawia się tu
-            if (error.code === 'PGRST116' || error.message.includes('permission denied')) { // PGRST116 no rows found; permission denied can be RLS
-              setChatError('Brak dostępu do wiadomości (prawdopodobnie problem z autoryzacją).');
+            if (error.code === 'PGRST116' || error.message.includes('permission denied') || error.message.includes('auth')) {
+              setChatError('Brak dostępu do wiadomości (prawdopodobnie problem z autoryzacją lub RLS).');
             } else {
               setChatError('Nie udało się załadować wiadomości: ' + error.message);
             }
-            throw error; // Rzuć błąd, aby przejść do bloku catch
+            throw error;
         }
         setMessages(data);
       } catch (err) {
         console.error('Błąd ładowania wiadomości:', err.message);
-        // Błąd już ustawiony powyżej, lub ogólny
       } finally {
         setChatLoading(false);
       }
 
       if (Object.keys(initialParticipantsData).length === 0) {
           fetchParticipantsData(conversationId);
+      } else {
+          setParticipantsData(initialParticipantsData);
       }
       
-      // ZAMKNIJ ISTNIEJĄCE KANAŁY DLA TEJ KONWERSACJI PRZED UTWORZENIEM NOWEGO
       supabase.removeChannel(supabase.channel(`chat:${conversationId}`));
 
-      // SUBSKRYBUJ KANAŁ - BIBLIOTEKA POWINNA UŻYĆ AKTUALNEGO JWT Z SESJI
       channel = supabase
         .channel(`chat:${conversationId}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
@@ -127,7 +117,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
         supabase.removeChannel(channel);
       }
     };
-  }, [conversationId, currentUserId, initialParticipantsData]); // ZMIANA: userJwt USUNIĘTO z zależności, bo klient powinien sam dbać o auth token
+  }, [conversationId, currentUserId, initialParticipantsData]); // userJwt usunięte z zależności
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -173,20 +163,17 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
     if (newMessage.trim() === '') return;
 
     try {
-      const { data: { user, session } } = await supabase.auth.getUser(); 
-      const userId = user?.id;
-      // ZMIANA: Używamy session?.access_token jako userJwt.
-      const userJwtToSend = session?.access_token; 
-
-      if (!userId || !userJwtToSend) { // Sprawdź, czy token jest dostępny PRZED wysyłką
+      // Używamy currentUserId i userJwt przekazanych jako propsy
+      // Sprawdź, czy są dostępne
+      if (!currentUserId || !userJwt) {
         alert('Błąd autoryzacji: Użytkownik nie jest zalogowany lub brak tokenu sesji.');
-        console.error('Błąd: currentUserId lub userJwtToSend brakujący.');
+        console.error('Błąd: currentUserId lub userJwt brakujący w handleSendMessage.');
         return;
       }
 
       const messagePayload = {
         conversation_id: conversationId,
-        sender_id: userId, // Używamy userId z getUser()
+        sender_id: currentUserId, // Używamy currentUserId z propsów
         content: newMessage.trim(),
         is_read: false
       };
@@ -195,8 +182,8 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': userId,
-          'Authorization': `Bearer ${userJwtToSend}` // Wysyłamy token z sesji
+          'X-User-ID': currentUserId,
+          'Authorization': `Bearer ${userJwt}` // Używamy userJwt z propsów
         },
         body: JSON.stringify(messagePayload),
       });
