@@ -12,6 +12,7 @@ import Modal from './Modal';
 // import ChatWindow from './ChatWindow'; // USUNIĘTO: Już nie importujemy ChatWindow bezpośrednio tutaj
 import AnnouncementChatSection from './AnnouncementChatSection'; // <-- Upewnij się, że ten import jest na górze
 
+
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
@@ -22,10 +23,9 @@ export default function AnnouncementsPage() {
   const [userJwt, setUserJwt] = useState(null);
   const navigate = useNavigate();
 
-  // NOWE STANY DLA CHATU (showChatModal i activeConversationId zostają usunięte z tego poziomu)
-  // Przekazujemy user, userJwt, selectedAnnouncement do AnnouncementChatSection
-  // const [showChatModal, setShowChatModal] = useState(false); // USUNIĘTO
-  // const [activeConversationId, setActiveConversationId] = useState(null); // USUNIĘTO
+  // STANY DLA CHATU (showChatModal i activeConversationId USUNIĘTO z tego komponentu)
+  // const [showChatModal, setShowChatModal] = useState(false);
+  // const [activeConversationId, setActiveConversationId] = useState(null);
 
 
   // STANY DLA FILTROWANIA
@@ -445,25 +445,15 @@ export default function AnnouncementsPage() {
                 )}
               </div>
               
-              {/* NOWA SEKCJA CHATU - Zastępuje poprzedni div.chat-and-direct-contact-buttons i przycisk Zadaj pytanie */}
-              {/* Przycisk "Zadaj pytanie" i logikę otwierania chatu przeniesiemy do AnnouncementChatSection */}
-              {selectedAnnouncement && user && userJwt && ( // Tylko jeśli jest ogłoszenie, zalogowany użytkownik i JWT
+              {/* Sekcja chatu: Jeśli ogłoszenie jest wybrane */}
+              {selectedAnnouncement && (
                  <AnnouncementChatSection
                     announcement={selectedAnnouncement}
-                    currentUserId={user.id}
+                    currentUserId={user?.id}
                     userJwt={userJwt}
-                    onAskQuestionRedirect={handleAskQuestionRedirect} // Funkcja do przekierowania, jeśli niezalogowany
+                    onAskQuestionRedirect={handleAskQuestionRedirect}
                   />
               )}
-              {selectedAnnouncement && !user && ( // Jeśli niezalogowany, ale jest ogłoszenie, pokaż przycisk, który przekieruje
-                 <div className="chat-and-direct-contact-buttons">
-                    <button className="action-button ask-question-button" onClick={handleAskQuestionRedirect}>
-                       <i className="fas fa-question-circle"></i> Zadaj pytanie (Zaloguj się)
-                    </button>
-                 </div>
-              )}
-
-
             </div>
           ) : (
             // WIDOK LISTY OGŁOSZEŃ
@@ -539,8 +529,7 @@ export default function AnnouncementsPage() {
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
       </Modal>
 
-      {/* MODAL CHATU - Usunięty z tego miejsca, teraz ChatWindow będzie w AnnouncementChatSection */}
-      {/* showChatModal i activeConversationId nie są już stanami na tym poziomie */}
+      {/* MODAL CHATU - NIE JEST JUŻ UŻYWANY TUTAJ */}
     </React.Fragment>
   );
 }
