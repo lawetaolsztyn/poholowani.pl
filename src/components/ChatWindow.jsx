@@ -3,62 +3,26 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import './ChatWindow.css';
 
-// ZMIANA: Dodano prop userJwt
-export default function ChatWindow({ conversationId, currentUserId, userJwt, onClose }) {
+// ZMIANA: Usunięto 'loading' i 'error' z propsów, przekazujemy 'participantsData' bezpośrednio
+export default function ChatWindow({ conversationId, currentUserId, userJwt, participantsData, onClose }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [chatLoading, setChatLoading] = useState(true); // Zmieniono nazwę, żeby nie kolidowało z globalnym loading
+  const [chatError, setChatError] = useState(null); // Zmieniono nazwę
   const messagesEndRef = useRef(null);
-  const [participantsData, setParticipantsData] = useState({});
-
-  // Funkcja do pobierania danych uczestników konwersacji
-  const fetchParticipantsData = async (convId) => {
-    try {
-      const { data: conversation, error: convError } = await supabase
-        .from('conversations')
-        .select('client_id, carrier_id, announcement_id')
-        .eq('id', convId)
-        .single();
-
-      if (convError) throw convError;
-
-      if (conversation) {
-        const participantIds = [conversation.client_id, conversation.carrier_id];
-        const { data: usersData, error: usersError } = await supabase
-          .from('users_extended')
-          .select('id, full_name, company_name, email, role')
-          .in('id', participantIds);
-
-        if (usersError) throw usersError;
-
-        const pData = {};
-        usersData.forEach(user => {
-          pData[user.id] = {
-            name: user.role === 'firma' ? user.company_name : user.full_name || user.email,
-            role: user.role
-          };
-        });
-        setParticipantsData(pData);
-      }
-    } catch (err) {
-      console.error('Błąd pobierania danych uczestników chatu:', err.message);
-      setError('Nie udało się załadować danych uczestników.');
-    }
-  };
-
 
   // Efekt do ładowania wiadomości i subskrypcji Realtime
   useEffect(() => {
     if (!conversationId) {
-      setError('Brak ID konwersacji.');
-      setLoading(false);
+      setChatError('Brak ID konwersacji.');
+      setChatLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    setChatLoading(true);
+    setChatError(null);
 
+    // Fetch initial messages
     const fetchMessages = async () => {
       try {
         const { data, error } = await supabase
@@ -71,42 +35,60 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
         setMessages(data);
       } catch (err) {
         console.error('Błąd ładowania wiadomości:', err.message);
-        setError('Nie udało się załadować wiadomości.');
+        setChatError('Nie udało się załadować wiadomości.');
       } finally {
-        setLoading(false);
+        setChatLoading(false);
       }
     };
 
-    fetchMessages();
-    fetchParticipantsData(conversationId);
+    fetchMessages(); // Pobierz początkowe wiadomości
 
 
+    // Realtime subscription for new messages in this conversation
     const channel = supabase
       .channel(`chat:${conversationId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
-        setMessages(prevMessages => [...prevMessages, payload.new]);
+        // console.log('Realtime message received!', payload.new);
+        setMessages(prevMessages => {
+            const updatedMessages = [...prevMessages, payload.new];
+            // Opcjonalnie: sortuj, jeśli mogą przyjść nie po kolei (rzadko w insert)
+            return updatedMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        });
+        // Po otrzymaniu nowej wiadomości, oznacz ją jako przeczytaną (jeśli jestem odbiorcą)
+        // Jeśli nie jesteś nadawcą, oznacz wiadomość jako przeczytaną
         if (payload.new.sender_id !== currentUserId) {
             markMessageAsRead(payload.new.id);
         }
+        // Upewnij się, że last_message_at i last_message_content są aktualizowane w `conversations`
+        updateConversationLastMessage(conversationId, payload.new.content);
+      })
+      // Subskrypcja na zmiany (UPDATE) - np. gdy wiadomość jest oznaczana jako przeczytana
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
+        setMessages(prevMessages => 
+          prevMessages.map(msg => (msg.id === payload.new.id ? payload.new : msg))
+        );
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channel); // Clean up on unmount
     };
-  }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId]); // Zależy od conversationId i currentUserId
 
+  // Przewijanie do najnowszej wiadomości
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Funkcja do oznaczania wiadomości jako przeczytanej
   const markMessageAsRead = async (messageId) => {
     try {
+      // Upewnij się, że RLS dla UPDATE na messages jest prawidłowe dla odbiorcy
       const { error } = await supabase
         .from('messages')
         .update({ is_read: true })
         .eq('id', messageId)
-        .eq('is_read', false);
+        .eq('is_read', false); 
 
       if (error) {
         console.error('Błąd oznaczania wiadomości jako przeczytanej:', error.message);
@@ -116,21 +98,40 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
     }
   };
 
+  // Funkcja do aktualizacji last_message_at/content w tabeli conversations
+  const updateConversationLastMessage = async (convId, lastContent) => {
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .update({
+          last_message_at: new Date().toISOString(),
+          last_message_content: lastContent.length > 100 ? lastContent.substring(0, 97) + '...' : lastContent
+        })
+        .eq('id', convId);
+
+      if (error) {
+        console.error('Błąd aktualizacji konwersacji (last_message):', error.message);
+      }
+    } catch (err) {
+      console.error('Błąd aktualizacji konwersacji (last_message):', err.message);
+    }
+  };
+
+
+  // Funkcja do wysyłania wiadomości
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
 
     try {
-      // ZMIANA: Używamy userJwt przekazanego jako prop
-      if (!currentUserId || !userJwt) { // Walidacja, czy ID i JWT są dostępne
+      if (!currentUserId || !userJwt) {
         alert('Błąd autoryzacji: Użytkownik nie jest zalogowany lub brak tokenu sesji.');
-        console.error('Błąd: currentUserId lub userJwt brakujący.');
         return;
       }
 
       const messagePayload = {
         conversation_id: conversationId,
-        sender_id: currentUserId, // Używamy currentUserId przekazanego jako prop
+        sender_id: currentUserId,
         content: newMessage.trim(),
         is_read: false
       };
@@ -139,8 +140,8 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': currentUserId, // Przekazujemy User ID dla Workera
-          'Authorization': `Bearer ${userJwt}` // PRZEKAZUJEMY TOKEN JWT
+          'X-User-ID': currentUserId,
+          'Authorization': `Bearer ${userJwt}`
         },
         body: JSON.stringify(messagePayload),
       });
@@ -151,6 +152,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
       }
 
       setNewMessage('');
+      // Wiadomość zostanie dodana do UI przez subskrypcję Realtime, nie dodajemy jej bezpośrednio
 
     } catch (err) {
       console.error('Błąd wysyłania wiadomości:', err.message);
@@ -158,24 +160,29 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
     }
   };
 
-  if (loading) {
+  if (chatLoading) { // Użyj nowego stanu ładowania chatu
     return <div className="chat-window-loading">Ładowanie chatu...</div>;
   }
 
-  if (error) {
-    return <div className="chat-window-error">{error}</div>;
+  if (chatError) { // Użyj nowego stanu błędu chatu
+    return <div className="chat-window-error">{chatError}</div>;
   }
+
+  // Określ nazwę drugiego uczestnika
+  const otherParticipant = Object.values(participantsData).find(p => p.id !== currentUserId);
+  const chatTitle = otherParticipant ? `Rozmowa z: ${otherParticipant.name}` : 'Rozmowa';
 
   return (
     <div className="chat-window-container">
       <div className="chat-header">
-        <button className="chat-close-button" onClick={onClose}>&times;</button>
-        <h4>Chat z: {Object.values(participantsData).find(p => p.id !== currentUserId)?.name || 'Nieznany uczestnik'}</h4>
+        {/* Usunięto przycisk zamykania z ChatWindow, będzie w AnnouncementChatSection */}
+        <h4>{chatTitle}</h4>
       </div>
       <div className="chat-messages">
         {messages.map((msg) => (
           <div key={msg.id} className={`message-bubble ${msg.sender_id === currentUserId ? 'sent' : 'received'}`}>
             <div className="message-content">
+                {/* Wyświetl nazwę nadawcy, jeśli to nie moja wiadomość */}
                 {msg.sender_id !== currentUserId && (
                     <span className="sender-name">
                         {participantsData[msg.sender_id]?.name || 'Nieznany'}

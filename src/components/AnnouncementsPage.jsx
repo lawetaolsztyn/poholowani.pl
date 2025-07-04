@@ -9,26 +9,23 @@ import './AnnouncementsPage.css';
 import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
-import ChatWindow from './ChatWindow';
-import AnnouncementChatSection from './AnnouncementChatSection'; // <-- IMPORTUJEMY NOWY KOMPONENT
+// import ChatWindow from './ChatWindow'; // USUNIĘTO: Już nie importujemy ChatWindow bezpośrednio tutaj
+import AnnouncementChatSection from './AnnouncementChatSection'; // <-- Upewnij się, że ten import jest na górze
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
-  const [showForm, setShowForm] = useState(false); // Kontroluje widoczność modala formularza
+  const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [user, setUser] = useState(null);
   const [userJwt, setUserJwt] = useState(null);
   const navigate = useNavigate();
 
-  // NOWE STANY DLA CHATU (showChatModal i activeConversationId zostaną usunięte/użyte w AnnouncementChatSection)
-  // Tak naprawdę showChatModal i activeConversationId już nie są potrzebne w AnnouncementPage,
-  // bo ChatWindow będzie otwierany z AnnouncementChatSection
-  // Jeśli jednak chcesz, aby modal chatu był zarządzany globalnie, możesz je zostawić i przekazać do AnnouncementChatSection
-  // Na razie je zostawimy, bo Modal komponent jest na tym poziomie
-  const [showChatModal, setShowChatModal] = useState(false); 
-  const [activeConversationId, setActiveConversationId] = useState(null);
+  // NOWE STANY DLA CHATU (showChatModal i activeConversationId zostają usunięte z tego poziomu)
+  // Przekazujemy user, userJwt, selectedAnnouncement do AnnouncementChatSection
+  // const [showChatModal, setShowChatModal] = useState(false); // USUNIĘTO
+  // const [activeConversationId, setActiveConversationId] = useState(null); // USUNIĘTO
 
 
   // STANY DLA FILTROWANIA
@@ -187,7 +184,6 @@ export default function AnnouncementsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
         localStorage.removeItem('redirect_to_announce_details_id');
-        // Tutaj można by obsłużyć otwarcie konkretnego ogłoszenia po zalogowaniu
       }
     } else {
       setShowForm(false);
@@ -221,8 +217,7 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
-  // handleAskQuestion zostanie przeniesione do AnnouncementChatSection
-  // Ale nadal potrzebujemy funkcji, która przekieruje do logowania, jeśli niezalogowany.
+  // Funkcja przekierowująca do logowania, wywoływana z AnnouncementChatSection
   const handleAskQuestionRedirect = () => {
     if (!user) {
         alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
@@ -230,7 +225,7 @@ export default function AnnouncementsPage() {
         navigate('/login');
         return true; // Zasygnalizuj, że nastąpiło przekierowanie
     }
-    return false; // Zasygnalizuj, że można kontynuować
+    return false; // Zasygnalizuj, że można kontynuować (jest zalogowany)
   };
 
 
@@ -450,13 +445,24 @@ export default function AnnouncementsPage() {
                 )}
               </div>
               
-              {/* Tutaj przeniesiemy logikę chatu do AnnouncementChatSection */}
-              <AnnouncementChatSection
-                announcement={selectedAnnouncement}
-                currentUserId={user?.id}
-                userJwt={userJwt} // Przekazujemy JWT
-                onAskQuestionRedirect={handleAskQuestionRedirect} // Funkcja do przekierowania, jeśli niezalogowany
-              />
+              {/* NOWA SEKCJA CHATU - Zastępuje poprzedni div.chat-and-direct-contact-buttons i przycisk Zadaj pytanie */}
+              {/* Przycisk "Zadaj pytanie" i logikę otwierania chatu przeniesiemy do AnnouncementChatSection */}
+              {selectedAnnouncement && user && userJwt && ( // Tylko jeśli jest ogłoszenie, zalogowany użytkownik i JWT
+                 <AnnouncementChatSection
+                    announcement={selectedAnnouncement}
+                    currentUserId={user.id}
+                    userJwt={userJwt}
+                    onAskQuestionRedirect={handleAskQuestionRedirect} // Funkcja do przekierowania, jeśli niezalogowany
+                  />
+              )}
+              {selectedAnnouncement && !user && ( // Jeśli niezalogowany, ale jest ogłoszenie, pokaż przycisk, który przekieruje
+                 <div className="chat-and-direct-contact-buttons">
+                    <button className="action-button ask-question-button" onClick={handleAskQuestionRedirect}>
+                       <i className="fas fa-question-circle"></i> Zadaj pytanie (Zaloguj się)
+                    </button>
+                 </div>
+              )}
+
 
             </div>
           ) : (
@@ -533,26 +539,8 @@ export default function AnnouncementsPage() {
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
       </Modal>
 
-      {/* MODAL CHATU - Teraz zarządzany przez AnnouncementChatSection */}
-      {/* activeConversationId i showChatModal są teraz zarządzane WEWNĄTRZ AnnouncementChatSection */}
-      {/* Usuniemy ten modal z tego miejsca, zostanie on przeniesiony do AnnouncementChatSection.jsx */}
-      {/* Na razie zakomentuję, żebyś widział, gdzie był: */}
-      {/*
-      <Modal
-        isOpen={showChatModal}
-        onClose={() => setShowChatModal(false)}
-        title="Rozmowa"
-      >
-        {activeConversationId && (
-          <ChatWindow 
-            conversationId={activeConversationId} 
-            currentUserId={user?.id} 
-            userJwt={userJwt}
-            onClose={() => setShowChatModal(false)} 
-          />
-        )}
-      </Modal>
-      */}
+      {/* MODAL CHATU - Usunięty z tego miejsca, teraz ChatWindow będzie w AnnouncementChatSection */}
+      {/* showChatModal i activeConversationId nie są już stanami na tym poziomie */}
     </React.Fragment>
   );
 }
