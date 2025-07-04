@@ -9,20 +9,21 @@ import './AnnouncementsPage.css';
 import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
-import ChatWindow from './ChatWindow'; // <-- IMPORTUJEMY NOWY KOMPONENT CHATWINDOW
+import ChatWindow from './ChatWindow';
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
-  const [showForm, setShowForm] = useState(false); // Kontroluje widoczność modala formularza
+  const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [user, setUser] = useState(null);
+  const [userJwt, setUserJwt] = useState(null); // NOWY STAN: do przechowywania tokenu JWT
   const navigate = useNavigate();
 
-  // NOWE STANY DLA CHATU
-  const [showChatModal, setShowChatModal] = useState(false); // Kontroluje widoczność modala chatu
-  const [activeConversationId, setActiveConversationId] = useState(null); // ID konwersacji do otwarcia
+  // STANY DLA CHATU
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [activeConversationId, setActiveConversationId] = useState(null);
 
   // STANY DLA FILTROWANIA
   const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
@@ -150,21 +151,24 @@ export default function AnnouncementsPage() {
     };
   }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage]);
 
+  // ZMIENIONY useEffect do zarządzania stanem użytkownika i JWT
   useEffect(() => {
-    const getInitialUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const getUserAndSession = async () => {
+      const { data: { user, session } } = await supabase.auth.getUser(); // Pobierz również sesję
       setUser(user);
+      setUserJwt(session?.access_token || null); // Ustaw token JWT
     };
-    getInitialUser();
+    getUserAndSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
+      setUserJwt(session?.access_token || null); // Zaktualizuj token JWT przy zmianach sesji
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Uruchamia się raz przy montowaniu, a potem reaguje na zmiany auth
 
   useEffect(() => {
     if (user) {
@@ -173,7 +177,7 @@ export default function AnnouncementsPage() {
 
       if (redirectToAnnounceForm === 'true') {
         localStorage.removeItem('redirect_to_announce_form');
-        setShowForm(true); // Otwórz modal formularza
+        setShowForm(true);
         setSelectedAnnouncement(null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
@@ -188,7 +192,7 @@ export default function AnnouncementsPage() {
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
     fetchAnnouncements();
-    setShowForm(false); // Zamknij modal formularza po sukcesie
+    setShowForm(false);
   };
 
   const handleOpenForm = () => {
@@ -198,7 +202,7 @@ export default function AnnouncementsPage() {
       navigate('/login');
       return;
     }
-    setShowForm(true); // Otwórz modal formularza
+    setShowForm(true);
     setSelectedAnnouncement(null);
   };
 
@@ -211,13 +215,17 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
-  // ZMIENIONA FUNKCJA: 	 - inicjuje chat i otwiera modal chatu
   const handleAskQuestion = async () => {
     if (!user) {
       alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
       localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
       navigate('/login');
       return;
+    }
+    if (!userJwt) { // DODANA WALIDACJA JWT
+        alert('Błąd autoryzacji: Brak tokenu sesji. Spróbuj się wylogować i zalogować ponownie.');
+        console.error('Błąd: Brak tokenu JWT użytkownika.');
+        return;
     }
 
     if (!selectedAnnouncement) {
@@ -234,16 +242,12 @@ export default function AnnouncementsPage() {
     }
 
     try {
-      // ZMIANA: UPROSZCZONE ZAPYTANIE O ISTNIEJĄCĄ KONWERSACJĘ
-      // Szukamy konwersacji, gdzie client_id to klient ORAZ carrier_id to ja
-      // LUB gdzie client_id to ja ORAZ carrier_id to klient (obsługa obu stron)
       const { data: existingConversation, error: convError } = await supabase
         .from('conversations')
         .select('id')
         .eq('announcement_id', selectedAnnouncement.id)
         .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${currentUserId}),and(client_id.eq.${currentUserId},carrier_id.eq.${clientUserId})`) 
         .single();
-
 
       let conversationId;
 
@@ -260,9 +264,6 @@ export default function AnnouncementsPage() {
           .from('conversations')
           .insert({
             announcement_id: selectedAnnouncement.id,
-            // Upewnij się, że zawsze zapisujesz w spójnej kolejności (np. mniejszy UUID jako client_id)
-            // LUB zaakceptuj, że client_id to wystawca, carrier_id to inicjator.
-            // Zgodnie z naszą koncepcją, client_id to wystawca ogłoszenia, carrier_id to ten, kto klika "Zadaj pytanie".
             client_id: clientUserId, 
             carrier_id: currentUserId, 
             last_message_at: new Date().toISOString(),
@@ -347,6 +348,16 @@ export default function AnnouncementsPage() {
             <button className="add-announcement-button" onClick={handleOpenForm}>
               Dodaj Nowe Ogłoszenie
             </button>
+          )}
+
+          {showForm && (
+            <>
+              <h3 className="form-header">Dodaj Nowe Ogłoszenie</h3>
+              <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
+              <button className="back-button" onClick={() => setShowForm(false)}>
+                ← Wróć
+              </button>
+            </>
           )}
 
           {/* MIEJSCE NA FILTRY WYSZUKIWANIA */}
@@ -595,7 +606,8 @@ export default function AnnouncementsPage() {
         {activeConversationId && (
           <ChatWindow 
             conversationId={activeConversationId} 
-            currentUserId={user?.id} 
+            currentUserId={user?.id}
+            userJwt={userJwt} // <-- PRZEKAZUJEMY TOKEN JWT DO CHATWINDOW
             onClose={() => setShowChatModal(false)} 
           />
         )}

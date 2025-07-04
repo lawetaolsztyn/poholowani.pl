@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import './ChatWindow.css';
 
-export default function ChatWindow({ conversationId, currentUserId, onClose }) {
+// ZMIANA: Dodano prop userJwt
+export default function ChatWindow({ conversationId, currentUserId, userJwt, onClose }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -120,23 +121,16 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
     if (newMessage.trim() === '') return;
 
     try {
-      const { data: { user, session } } = await supabase.auth.getUser(); // ZMIANA: Pobierz session
-      const userId = user?.id;
-      if (!userId) {
-        alert('Musisz być zalogowany, aby wysłać wiadomość.');
-        return;
-      }
-      
-      // ZMIANA: Pobierz JWT z sesji
-      const userJwt = session?.access_token; 
-      if (!userJwt) {
-        alert('Błąd autoryzacji: Brak tokenu sesji.');
+      // ZMIANA: Używamy userJwt przekazanego jako prop
+      if (!currentUserId || !userJwt) { // Walidacja, czy ID i JWT są dostępne
+        alert('Błąd autoryzacji: Użytkownik nie jest zalogowany lub brak tokenu sesji.');
+        console.error('Błąd: currentUserId lub userJwt brakujący.');
         return;
       }
 
       const messagePayload = {
         conversation_id: conversationId,
-        sender_id: userId,
+        sender_id: currentUserId, // Używamy currentUserId przekazanego jako prop
         content: newMessage.trim(),
         is_read: false
       };
@@ -145,8 +139,8 @@ export default function ChatWindow({ conversationId, currentUserId, onClose }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': userId,
-          'Authorization': `Bearer ${userJwt}` // ZMIANA: Dodaj nagłówek Authorization
+          'X-User-ID': currentUserId, // Przekazujemy User ID dla Workera
+          'Authorization': `Bearer ${userJwt}` // PRZEKAZUJEMY TOKEN JWT
         },
         body: JSON.stringify(messagePayload),
       });
