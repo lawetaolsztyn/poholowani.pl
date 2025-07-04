@@ -3,13 +3,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import './ChatWindow.css';
 
-export default function ChatWindow({ conversationId, currentUserId, userJwt, participantsData: initialParticipantsData, onClose }) {
+// ZMIANA: `session` jest teraz przekazywane jako prop, a `user` można z niego wywnioskować
+export default function ChatWindow({ conversationId, session, participantsData: initialParticipantsData, onClose }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [chatLoading, setChatLoading] = useState(true);
   const [chatError, setChatError] = useState(null);
   const messagesEndRef = useRef(null);
   const [participantsData, setParticipantsData] = useState(initialParticipantsData || {});
+
+  // ZMIANA: Pobieramy currentUserId i userJwtToSend bezpośrednio z propa session
+  const currentUserId = session?.user?.id;
+  const userJwt = session?.access_token;
+
 
   const fetchParticipantsData = async (convId) => {
     try {
@@ -47,13 +53,27 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
   };
 
 
+  // Efekt do ładowania wiadomości i subskrypcji Realtime
   useEffect(() => {
     if (!conversationId) {
       setChatError('Brak ID konwersacji.');
       setChatLoading(false);
       return;
     }
+
+    // ZMIANA: Realtime subskrybujemy tylko, gdy session jest dostępne i ma access_token
+    if (!session || !session.access_token) {
+        setChatError('Błąd autoryzacji Realtime: Brak aktywnej sesji użytkownika.');
+        setChatLoading(false);
+        supabase.removeChannel(supabase.channel(`chat:${conversationId}`));
+        return;
+    }
     
+    // ZMIANA: Jawnie ustaw token Realtime, aby upewnić się, że jest używany
+    // To jest kluczowe, aby WebSocket nawiązał połączenie jako uwierzytelniony użytkownik.
+    // Jeśli to nie zadziała, problem jest głębiej w konfiguracji supabaseClient.js.
+    supabase.realtime.setAuth(session.access_token); 
+
     let channel = null;
 
     const setupRealtimeConnection = async () => {
@@ -68,6 +88,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
           .order('created_at', { ascending: true });
 
         if (error) {
+            console.error('Błąd ładowania wiadomości początkowych:', error.message, error.code);
             if (error.code === 'PGRST116' || error.message.includes('permission denied') || error.message.includes('auth')) {
               setChatError('Brak dostępu do wiadomości (prawdopodobnie problem z autoryzacją lub RLS).');
             } else {
@@ -77,7 +98,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
         }
         setMessages(data);
       } catch (err) {
-        console.error('Błąd ładowania wiadomości:', err.message);
+        console.error("Ogólny błąd w setupRealtimeConnection:", err);
       } finally {
         setChatLoading(false);
       }
@@ -93,6 +114,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
       channel = supabase
         .channel(`chat:${conversationId}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
+          console.log('Realtime INSERT payload received:', payload.new);
           setMessages(prevMessages => {
               const updatedMessages = [...prevMessages, payload.new];
               return updatedMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -103,11 +125,14 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
           updateConversationLastMessage(conversationId, payload.new.content);
         })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
+          console.log('Realtime UPDATE payload received:', payload.new);
           setMessages(prevMessages => 
             prevMessages.map(msg => (msg.id === payload.new.id ? payload.new : msg))
           );
         })
         .subscribe();
+
+      console.log(`Zasubskrybowano kanał Realtime dla convId: ${conversationId}`);
     };
 
     setupRealtimeConnection();
@@ -116,8 +141,10 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
       if (channel) {
         supabase.removeChannel(channel);
       }
+      supabase.realtime.setAuth(null); // Resetuj token Realtime przy odmontowaniu
     };
-  }, [conversationId, currentUserId, initialParticipantsData]); // userJwt usunięte z zależności
+  }, [conversationId, session, initialParticipantsData]); // ZMIANA: Zależność od całego obiektu sesji
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -163,17 +190,19 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
     if (newMessage.trim() === '') return;
 
     try {
-      // Używamy currentUserId i userJwt przekazanych jako propsy
-      // Sprawdź, czy są dostępne
-      if (!currentUserId || !userJwt) {
+      // ZMIANA: Używamy propsa `session` bezpośrednio
+      const userId = session?.user?.id;
+      const userJwtToSend = session?.access_token; 
+
+      if (!userId || !userJwtToSend) {
         alert('Błąd autoryzacji: Użytkownik nie jest zalogowany lub brak tokenu sesji.');
-        console.error('Błąd: currentUserId lub userJwt brakujący w handleSendMessage.');
+        console.error('ChatWindow: Brak userId lub userJwtToSend w handleSendMessage.');
         return;
       }
 
       const messagePayload = {
         conversation_id: conversationId,
-        sender_id: currentUserId, // Używamy currentUserId z propsów
+        sender_id: userId,
         content: newMessage.trim(),
         is_read: false
       };
@@ -182,8 +211,8 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': currentUserId,
-          'Authorization': `Bearer ${userJwt}` // Używamy userJwt z propsów
+          'X-User-ID': userId,
+          'Authorization': `Bearer ${userJwtToSend}`
         },
         body: JSON.stringify(messagePayload),
       });
@@ -209,7 +238,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
     return <div className="chat-window-error">{chatError}</div>;
   }
 
-  const otherParticipant = Object.values(participantsData).find(p => p.id !== currentUserId);
+  const otherParticipant = Object.values(participantsData).find(p => p.id !== session?.user?.id); // ZMIANA: Używamy session?.user?.id
   const chatTitle = otherParticipant ? `Rozmowa z: ${otherParticipant.name}` : 'Rozmowa';
 
   return (
@@ -220,9 +249,9 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
       </div>
       <div className="chat-messages">
         {messages.map((msg) => (
-          <div key={msg.id} className={`message-bubble ${msg.sender_id === currentUserId ? 'sent' : 'received'}`}>
+          <div key={msg.id} className={`message-bubble ${msg.sender_id === session?.user?.id ? 'sent' : 'received'}`}> {/* ZMIANA: Używamy session?.user?.id */}
             <div className="message-content">
-                {msg.sender_id !== currentUserId && participantsData[msg.sender_id] && (
+                {msg.sender_id !== session?.user?.id && participantsData[msg.sender_id] && ( // ZMIANA: Używamy session?.user?.id
                     <span className="sender-name">
                         {participantsData[msg.sender_id].name || 'Nieznany'}
                     </span>
