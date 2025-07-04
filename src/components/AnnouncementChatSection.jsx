@@ -58,8 +58,8 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
       let query = supabase.from('conversations').select(`
         id, created_at, last_message_at, last_message_content,
         client_id, carrier_id,
-        client:client_id(full_name, company_name, role, id), /* USUNIĘTO KOMENTARZE */
-        carrier:carrier_id(full_name, company_name, role, id) /* USUNIĘTO KOMENTARZE */
+        client:client_id(full_name, company_name, role, id), 
+        carrier:carrier_id(full_name, company_name, role, id) 
       `).eq('announcement_id', announcement.id);
 
       if (isAnnouncementOwner) {
