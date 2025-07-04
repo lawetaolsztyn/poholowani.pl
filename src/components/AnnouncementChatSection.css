@@ -1,0 +1,147 @@
+/* src/components/AnnouncementChatSection.css */
+
+.chat-section-container {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.chat-section-container h3 {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.no-conversations-message,
+.no-active-chat-container p {
+  text-align: center;
+  color: #666;
+  font-size: 1.1em;
+  padding: 15px;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.conversation-card {
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.conversation-card:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.conversation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
+.conversation-header h4 {
+  margin: 0;
+  font-size: 1.1em;
+  color: #007bff;
+}
+
+.conversation-card .last-message-time {
+  font-size: 0.8em;
+  color: #999;
+}
+
+.conversation-card .last-message-content {
+  font-size: 0.95em;
+  color: #555;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.open-conversation-button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.open-conversation-button:hover {
+  background-color: #218838;
+}
+
+/* Style dla sekcji "Brak aktywnego chatu" dla przewoźnika */
+.no-active-chat-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+.no-active-chat-container .action-button.ask-question-button {
+    margin-top: 0; /* Usuń domyślny margines */
+    width: auto; /* Pozwól przyciskowi dopasować szerokość do zawartości */
+    min-width: 200px;
+}
+
+
+/* Tryb ciemny */
+@media (prefers-color-scheme: dark) {
+  .chat-section-container {
+    border-top-color: #555;
+  }
+  .chat-section-container h3 {
+    color: #f0f0f0;
+  }
+  .no-conversations-message,
+  .no-active-chat-container p {
+    color: #aaa;
+    border-color: #666;
+  }
+  .conversation-card {
+    background-color: #444;
+    border-color: #555;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  .conversation-card:hover {
+    background-color: #555;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  }
+  .conversation-header h4 {
+    color: #6bb3ff;
+  }
+  .conversation-card .last-message-time {
+    color: #aaa;
+  }
+  .conversation-card .last-message-content {
+    color: #ccc;
+  }
+  .open-conversation-button {
+    background-color: #1e7e34;
+  }
+  .open-conversation-button:hover {
+    background-color: #176a2c;
+  }
+  .no-active-chat-container .action-button.ask-question-button {
+    /* Style już są definiowane globalnie dla action-button i ask-question-button */
+  }
+}

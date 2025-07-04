@@ -10,20 +10,26 @@ import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
 import ChatWindow from './ChatWindow';
+import AnnouncementChatSection from './AnnouncementChatSection'; // <-- IMPORTUJEMY NOWY KOMPONENT
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false); // Kontroluje widoczność modala formularza
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [user, setUser] = useState(null);
-  const [userJwt, setUserJwt] = useState(null); // NOWY STAN: do przechowywania tokenu JWT
+  const [userJwt, setUserJwt] = useState(null);
   const navigate = useNavigate();
 
-  // STANY DLA CHATU
-  const [showChatModal, setShowChatModal] = useState(false);
+  // NOWE STANY DLA CHATU (showChatModal i activeConversationId zostaną usunięte/użyte w AnnouncementChatSection)
+  // Tak naprawdę showChatModal i activeConversationId już nie są potrzebne w AnnouncementPage,
+  // bo ChatWindow będzie otwierany z AnnouncementChatSection
+  // Jeśli jednak chcesz, aby modal chatu był zarządzany globalnie, możesz je zostawić i przekazać do AnnouncementChatSection
+  // Na razie je zostawimy, bo Modal komponent jest na tym poziomie
+  const [showChatModal, setShowChatModal] = useState(false); 
   const [activeConversationId, setActiveConversationId] = useState(null);
+
 
   // STANY DLA FILTROWANIA
   const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
@@ -151,24 +157,23 @@ export default function AnnouncementsPage() {
     };
   }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage]);
 
-  // ZMIENIONY useEffect do zarządzania stanem użytkownika i JWT
   useEffect(() => {
     const getUserAndSession = async () => {
-      const { data: { user, session } } = await supabase.auth.getUser(); // Pobierz również sesję
+      const { data: { user, session } } = await supabase.auth.getUser();
       setUser(user);
-      setUserJwt(session?.access_token || null); // Ustaw token JWT
+      setUserJwt(session?.access_token || null);
     };
     getUserAndSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
-      setUserJwt(session?.access_token || null); // Zaktualizuj token JWT przy zmianach sesji
+      setUserJwt(session?.access_token || null);
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []); // Uruchamia się raz przy montowaniu, a potem reaguje na zmiany auth
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -182,6 +187,7 @@ export default function AnnouncementsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
         localStorage.removeItem('redirect_to_announce_details_id');
+        // Tutaj można by obsłużyć otwarcie konkretnego ogłoszenia po zalogowaniu
       }
     } else {
       setShowForm(false);
@@ -215,78 +221,16 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
-  const handleAskQuestion = async () => {
+  // handleAskQuestion zostanie przeniesione do AnnouncementChatSection
+  // Ale nadal potrzebujemy funkcji, która przekieruje do logowania, jeśli niezalogowany.
+  const handleAskQuestionRedirect = () => {
     if (!user) {
-      alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
-      localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
-      navigate('/login');
-      return;
+        alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
+        localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
+        navigate('/login');
+        return true; // Zasygnalizuj, że nastąpiło przekierowanie
     }
-    if (!userJwt) { // DODANA WALIDACJA JWT
-        alert('Błąd autoryzacji: Brak tokenu sesji. Spróbuj się wylogować i zalogować ponownie.');
-        console.error('Błąd: Brak tokenu JWT użytkownika.');
-        return;
-    }
-
-    if (!selectedAnnouncement) {
-      alert('Błąd: Nie wybrano ogłoszenia, do którego chcesz zadać pytanie.');
-      return;
-    }
-
-    const clientUserId = selectedAnnouncement.user_id;
-    const currentUserId = user.id; 
-
-    if (clientUserId === currentUserId) {
-      alert('Nie możesz zadać pytania do własnego ogłoszenia.');
-      return;
-    }
-
-    try {
-      const { data: existingConversation, error: convError } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('announcement_id', selectedAnnouncement.id)
-        .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${currentUserId}),and(client_id.eq.${currentUserId},carrier_id.eq.${clientUserId})`) 
-        .single();
-
-      let conversationId;
-
-      if (convError && convError.code !== 'PGRST116') { 
-        throw convError;
-      }
-
-      if (existingConversation) {
-        conversationId = existingConversation.id;
-        console.log(`✅ Konwersacja już istnieje (ID: ${conversationId}).`);
-      } else {
-        console.log('Tworzę nową konwersację...');
-        const { data: newConversation, error: newConvError } = await supabase
-          .from('conversations')
-          .insert({
-            announcement_id: selectedAnnouncement.id,
-            client_id: clientUserId, 
-            carrier_id: currentUserId, 
-            last_message_at: new Date().toISOString(),
-            last_message_content: ''
-          })
-          .select('id')
-          .single();
-
-        if (newConvError) {
-          throw newConvError;
-        }
-        conversationId = newConversation.id;
-        console.log(`✅ Nowa konwersacja utworzona (ID: ${conversationId}).`);
-      }
-
-      setActiveConversationId(conversationId);
-      setShowChatModal(true);
-      setSelectedAnnouncement(null);
-
-    } catch (error) {
-      console.error('Błąd podczas inicjowania chatu:', error.message);
-      alert(`❌ Wystąpił błąd podczas inicjowania chatu: ${error.message}`);
-    }
+    return false; // Zasygnalizuj, że można kontynuować
   };
 
 
@@ -506,21 +450,13 @@ export default function AnnouncementsPage() {
                 )}
               </div>
               
-              <div className="chat-and-direct-contact-buttons">
-                {selectedAnnouncement.contact_whatsapp && (
-                  <a href={`https://wa.me/${selectedAnnouncement.contact_whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="action-button whatsapp-action-button">
-                    <i className="fab fa-whatsapp"></i> Otwórz WhatsApp
-                  </a>
-                )}
-                {selectedAnnouncement.contact_messenger && (
-                  <a href={selectedAnnouncement.contact_messenger} target="_blank" rel="noopener noreferrer" className="action-button messenger-action-button">
-                    <i className="fab fa-facebook-messenger"></i> Otwórz Messenger
-                  </a>
-                )}
-                <button className="action-button ask-question-button" onClick={handleAskQuestion}>
-                  <i className="fas fa-question-circle"></i> Zadaj pytanie
-                </button>
-              </div>
+              {/* Tutaj przeniesiemy logikę chatu do AnnouncementChatSection */}
+              <AnnouncementChatSection
+                announcement={selectedAnnouncement}
+                currentUserId={user?.id}
+                userJwt={userJwt} // Przekazujemy JWT
+                onAskQuestionRedirect={handleAskQuestionRedirect} // Funkcja do przekierowania, jeśli niezalogowany
+              />
 
             </div>
           ) : (
@@ -597,7 +533,11 @@ export default function AnnouncementsPage() {
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
       </Modal>
 
-      {/* NOWY MODAL DLA CHATU */}
+      {/* MODAL CHATU - Teraz zarządzany przez AnnouncementChatSection */}
+      {/* activeConversationId i showChatModal są teraz zarządzane WEWNĄTRZ AnnouncementChatSection */}
+      {/* Usuniemy ten modal z tego miejsca, zostanie on przeniesiony do AnnouncementChatSection.jsx */}
+      {/* Na razie zakomentuję, żebyś widział, gdzie był: */}
+      {/*
       <Modal
         isOpen={showChatModal}
         onClose={() => setShowChatModal(false)}
@@ -606,12 +546,13 @@ export default function AnnouncementsPage() {
         {activeConversationId && (
           <ChatWindow 
             conversationId={activeConversationId} 
-            currentUserId={user?.id}
-            userJwt={userJwt} // <-- PRZEKAZUJEMY TOKEN JWT DO CHATWINDOW
+            currentUserId={user?.id} 
+            userJwt={userJwt}
             onClose={() => setShowChatModal(false)} 
           />
         )}
       </Modal>
+      */}
     </React.Fragment>
   );
 }
