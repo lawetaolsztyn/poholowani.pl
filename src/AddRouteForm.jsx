@@ -34,8 +34,8 @@ function AddRouteForm({ onRouteCreated }) {
     loadCapacity: '',
     maxDetour: '50',
     passengerCount: '',
-    phone: '', // Będzie podstawiane z profilu (profile_contact_phone)
-    countryCode: '+48', // To pole nadal istnieje w stanie, ale nie będzie używane w JSX i p_phone
+    phone: '', // Będzie podstawiane z profilu (universal_contact_phone)
+    // countryCode: '+48', // USUNIĘTO: Ten stan nie jest już potrzebny
     messenger: '', // Będzie podstawiane z profilu (profile_messenger_link)
     usesWhatsapp: false, // Będzie podstawiane z profilu (profile_uses_whatsapp)
     consentPhoneShare: false, // Będzie podstawiane z profilu (profile_consent_phone_share)
@@ -51,7 +51,7 @@ function AddRouteForm({ onRouteCreated }) {
       if (user) {
         const { data: profile, error } = await supabase
           .from('users_extended')
-          .select('profile_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // ZMIANA: Pobieramy nową kolumnę
+          .select('universal_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // ZMIANA: Pobieramy nową kolumnę
           .eq('id', user.id)
           .single();
 
@@ -61,7 +61,7 @@ function AddRouteForm({ onRouteCreated }) {
           // Autopodstawianie danych z profilu do stanów formularza
           setForm(prevForm => ({
             ...prevForm,
-            phone: profile.profile_contact_phone || '', // ZMIANA: Używamy nowej kolumny
+            phone: profile.universal_contact_phone || '', // ZMIANA: Używamy nowej kolumny
             usesWhatsapp: profile.profile_uses_whatsapp || false,
             messenger: profile.profile_messenger_link || '',
             consentPhoneShare: profile.profile_consent_phone_share || false,
@@ -114,7 +114,7 @@ function AddRouteForm({ onRouteCreated }) {
         // Jeśli odznaczono zgodę, wyczyść numer telefonu i WhatsApp
         if (name === 'consentPhoneShare' && !checked) {
             newState.phone = '';
-            newState.usesWhatsapp = false; // Wyłącz WhatsApp, jeśli zgoda na telefon jest cofnięta
+            newState.usesWhatsapp = false;
         }
         return newState;
     });
@@ -214,7 +214,7 @@ function AddRouteForm({ onRouteCreated }) {
             p_load_capacity: form.loadCapacity || null,
             p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
             p_max_detour_km: parseInt(form.maxDetour),
-            p_phone: form.phone && form.consentPhoneShare ? form.phone : null, // ZMIANA: Używa tylko form.phone (które będzie z nowej kolumny profilu)
+            p_phone: form.phone && form.consentPhoneShare ? form.phone : null, // Używa form.phone (które będzie z nowej kolumny profilu)
             p_messenger_link: form.messenger || null,
             p_geojson: routeData,
             p_browser_token: browserToken || null,
@@ -254,7 +254,6 @@ function AddRouteForm({ onRouteCreated }) {
             loadCapacity: '',
             maxDetour: '50',
             passengerCount: '',
-            // Pola kontaktowe NIE są resetowane, aby pozostały podstawione z profilu
         }));
         alert('✅ Trasa zapisana do bazy danych!');
 
@@ -339,14 +338,13 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Numer telefonu:</label>
             <div className="phone-input-group">
-              {/* ZMIANA TUTAJ: Usunięto selektor countryCode */}
               <input
                 type="tel"
                 name="phone"
-                value={form.phone} // Będzie automatycznie podstawiane z profile.profile_contact_phone
+                value={form.phone} // Będzie automatycznie podstawiane z profile.universal_contact_phone
                 onChange={handleChange}
                 className="uinput"
-                placeholder="np. +48 123 456 789" // Zmieniono placeholder
+                placeholder="np. +48 123 456 789"
                 disabled={!form.consentPhoneShare}
               />
             </div>
@@ -357,7 +355,7 @@ function AddRouteForm({ onRouteCreated }) {
               <input
                 type="checkbox"
                 name="usesWhatsapp"
-                checked={form.usesWhatsapp} // Stan z profilu
+                checked={form.usesWhatsapp}
                 onChange={handleChange}
 		            className="whatsapp-checkbox"
               />
@@ -370,7 +368,7 @@ function AddRouteForm({ onRouteCreated }) {
             <input
               type="url"
               name="messenger"
-              value={form.messenger} // Stan z profilu
+              value={form.messenger}
               onChange={handleChange}
               className="uinput"
               placeholder="https://facebook.com/user"
@@ -388,7 +386,7 @@ function AddRouteForm({ onRouteCreated }) {
                 type="checkbox"
                 id="consentPhoneShare"
                 name="consentPhoneShare"
-                checked={form.consentPhoneShare} // Stan z profilu
+                checked={form.consentPhoneShare}
                 onChange={handleChange}
                 className="consent-checkbox"
               />

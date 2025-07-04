@@ -13,7 +13,7 @@ export default function AnnouncementForm({ onSuccess }) {
   const [itemToTransport, setItemToTransport] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [budgetPln, setBudgetPln] = useState('');
-  const [contactPhone, setContactPhone] = useState(''); // Ten stan będzie pobierał z profile.profile_contact_phone
+  const [contactPhone, setContactPhone] = useState(''); // Ten stan będzie pobierał z profile.universal_contact_phone
   const [usesWhatsapp, setUsesWhatsapp] = useState(false);
   const [contactMessenger, setContactMessenger] = useState('');
   const [consentPhoneShare, setConsentPhoneShare] = useState(false);
@@ -30,7 +30,7 @@ export default function AnnouncementForm({ onSuccess }) {
       if (user) {
         const { data: profile, error } = await supabase
           .from('users_extended')
-          .select('profile_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // ZMIANA: Pobieramy nową kolumnę
+          .select('universal_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // ZMIANA: Pobieramy nową kolumnę
           .eq('id', user.id)
           .single();
 
@@ -38,7 +38,7 @@ export default function AnnouncementForm({ onSuccess }) {
           console.error('Błąd pobierania danych profilu dla formularza ogłoszenia:', error.message);
         } else if (profile) {
           // Autopodstawianie danych z profilu do stanów formularza
-          setContactPhone(profile.profile_contact_phone || ''); // ZMIANA: Używamy nowej kolumny
+          setContactPhone(profile.universal_contact_phone || ''); // ZMIANA: Używamy nowej kolumny
           setUsesWhatsapp(profile.profile_uses_whatsapp || false);
           setContactMessenger(profile.profile_messenger_link || '');
           setConsentPhoneShare(profile.profile_consent_phone_share || false);
@@ -130,7 +130,6 @@ export default function AnnouncementForm({ onSuccess }) {
       }
 
       setSuccessMessage('Ogłoszenie zostało dodane pomyślnie!');
-      // Resetowanie pól specyficznych dla ogłoszenia
       setTitle('');
       setDescription('');
       setLocationFrom({ label: '', coords: null, lat: null, lng: null });
