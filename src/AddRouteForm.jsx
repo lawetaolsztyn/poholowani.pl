@@ -35,7 +35,7 @@ function AddRouteForm({ onRouteCreated }) {
     maxDetour: '50',
     passengerCount: '',
     phone: '', // Będzie podstawiane z profilu
-    countryCode: '+48', // Domyślny, ale nie zmieniamy go z profilu
+    // countryCode: '+48', // USUNIĘTO: Ten stan nie jest już potrzebny
     messenger: '', // Będzie podstawiane z profilu (profile_messenger_link)
     usesWhatsapp: false, // Będzie podstawiane z profilu (profile_uses_whatsapp)
     consentPhoneShare: false, // Będzie podstawiane z profilu (profile_consent_phone_share)
@@ -61,7 +61,7 @@ function AddRouteForm({ onRouteCreated }) {
           // Autopodstawianie danych z profilu do stanów formularza
           setForm(prevForm => ({
             ...prevForm,
-            phone: profile.phone || '',
+            phone: profile.phone || '', // Używamy 'phone'
             usesWhatsapp: profile.profile_uses_whatsapp || false,
             messenger: profile.profile_messenger_link || '',
             consentPhoneShare: profile.profile_consent_phone_share || false,
@@ -71,7 +71,7 @@ function AddRouteForm({ onRouteCreated }) {
     };
 
     fetchUserProfileData();
-  }, []); // Uruchamiamy raz przy montowaniu komponentu
+  }, []);
 
 
   useEffect(() => {
@@ -214,8 +214,8 @@ function AddRouteForm({ onRouteCreated }) {
             p_load_capacity: form.loadCapacity || null,
             p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
             p_max_detour_km: parseInt(form.maxDetour),
-            p_phone: form.phone && form.consentPhoneShare ? `${form.countryCode}${form.phone}` : null,
-            p_messenger_link: form.messenger || null, // Używamy pola 'messenger'
+            p_phone: form.phone && form.consentPhoneShare ? form.phone : null, // ZMIANA: Teraz używa tylko form.phone
+            p_messenger_link: form.messenger || null,
             p_geojson: routeData,
             p_browser_token: browserToken || null,
             p_uses_whatsapp: form.usesWhatsapp
@@ -249,17 +249,12 @@ function AddRouteForm({ onRouteCreated }) {
             from: { label: '', coords: null },
             to: { label: '', coords: null },
             via: { label: '', coords: null },
-            date: '', // Zresetuj datę
-            vehicleType: 'bus', // Zresetuj typ pojazdu
-            loadCapacity: '', // Zresetuj ładowność
-            maxDetour: '50', // Zresetuj objazd
-            passengerCount: '', // Zresetuj liczbę pasażerów
+            date: '',
+            vehicleType: 'bus',
+            loadCapacity: '',
+            maxDetour: '50',
+            passengerCount: '',
             // Pola kontaktowe NIE są resetowane, aby pozostały podstawione z profilu
-            // phone: '',
-            // countryCode: '+48',
-            // consentPhoneShare: false,
-            // messenger: '',
-            // usesWhatsapp: false,
         }));
         alert('✅ Trasa zapisana do bazy danych!');
 
@@ -344,56 +339,14 @@ function AddRouteForm({ onRouteCreated }) {
           <div className="form-field">
             <label>Numer telefonu:</label>
             <div className="phone-input-group">
-              <select
-                name="countryCode"
-                value={form.countryCode}
-                onChange={handleChange}
-                className="country-code-select uinput"
-                disabled={!form.consentPhoneShare}
-              >
-                <option value="+48">🇵🇱 +48</option>
-                <option value="+355">🇦🇱 Albania +355</option>
-                <option value="+43">🇦🇹 Austria +43</option>
-                <option value="+375">🇧🇾 Białoruś +375</option>
-                <option value="+32">🇧🇪 Belgia +32</option>
-                <option value="+387">🇧🇦 Bośnia i Hercegowina +387</option>
-                <option value="+359">🇧🇬 Bułgaria +359</option>
-                <option value="+385">🇭🇷 Chorwacja +385</option>
-                <option value="+420">🇨🇿 Czechy +420</option>
-                <option value="+45">🇩🇰 Dania +45</option>
-                <option value="+372">🇪🇪 Estonia +372</option>
-                <option value="+358">🇫🇮 Finlandia +358</option>
-                <option value="+33">🇫🇷 Francja +33</option>
-                <option value="+30">🇬🇷 Grecja +30</option>
-                <option value="+34">🇪🇸 Hiszpania +34</option>
-                <option value="+31">🇳🇱 Holandia +31</option>
-                <option value="+354">🇮🇸 Islandia +354</option>
-                <option value="+353">🇮🇪 Irlandia +353</option>
-                <option value="+423">🇱🇮 Liechtenstein +423</option>
-                <option value="+370">🇱🇹 Litwa +370</option>
-                <option value="+352">🇱🇺 Luksemburg +352</option>
-                <option value="+371">🇱🇻 Łotwa +371</option>
-                <option value="+49">🇩🇪 Niemcy +49</option>
-                <option value="+47">🇳🇴 Norwegia +47</option>
-                <option value="+351">🇵🇹 Portugalia +351</option>
-                <option value="+40">🇷🇴 Rumunia +40</option>
-                <option value="+421">🇸🇰 Słowacja +421</option>
-                <option value="+386">🇸🇮 Słowenia +386</option>
-                <option value="+46">🇸🇪 Szwecja +46</option>
-                <option value="+41">🇨🇭 Szwajcaria +41</option>
-                <option value="+90">🇹🇷 Turcja +90</option>
-                <option value="+380">🇺🇦 Ukraina +380</option>
-                <option value="+36">🇭🇺 Węgry +36</option>
-                <option value="+44">🇬🇧 Wielka Brytania +44</option>
-                <option value="+39">🇮🇹 Włochy +39</option>
-              </select>
+              {/* USUNIĘTO: select dla countryCode */}
               <input
                 type="tel"
                 name="phone"
                 value={form.phone} // Ten input ma teraz wartość ze stanu form.phone, inicjalizowanego z profilu
                 onChange={handleChange}
                 className="uinput"
-                placeholder="np. 123 456 789"
+                placeholder="np. +48 123 456 789" // Zmieniono placeholder
                 disabled={!form.consentPhoneShare} // Wyłącz, jeśli brak zgody na udostępnianie telefonu
               />
             </div>
