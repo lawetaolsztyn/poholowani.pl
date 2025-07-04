@@ -55,18 +55,11 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
       return;
     }
 
-    // WAŻNA ZMIANA: Sprawdź userJwt tutaj przed próbą nawiązania połączenia Realtime
-    if (!userJwt) {
-        setChatError('Błąd autoryzacji Realtime: Brak tokenu JWT użytkownika.');
-        setChatLoading(false);
-        // Usuń kanał, jeśli userJwt zniknie (np. wylogowanie)
-        supabase.removeChannel(supabase.channel(`chat:${conversationId}`));
-        return;
-    }
-    
-    // ZMIANA: JAWNIE USTAW TOKEN UWIERZYTELNIAJĄCY DLA REALTIME
-    // To jest kluczowe, aby WebSocket nawiązał połączenie jako uwierzytelniony użytkownik.
-    supabase.realtime.setAuth(userJwt); 
+    // WAŻNA ZMIANA: Usunięto userJwt z warunku, bo supabaseClient powinien sam dbać o auth
+    // Jeśli user nie jest zalogowany, RLS to zablokuje, a chatError zostanie ustawiony przez fetchMessages.
+    // Usunięto również jawne supabase.realtime.setAuth(userJwt);
+    // Biblioteka supabase-js powinna to robić automatycznie, jeśli jest poprawnie zainicjowana
+    // z opcjami auth w createClient.
 
     let channel = null;
 
@@ -82,26 +75,31 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
           .eq('conversation_id', conversationId)
           .order('created_at', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+            // Jeśli błąd to RLS (np. 401/403), ustawia się tu
+            if (error.code === 'PGRST116' || error.message.includes('permission denied')) { // PGRST116 no rows found; permission denied can be RLS
+              setChatError('Brak dostępu do wiadomości (prawdopodobnie problem z autoryzacją).');
+            } else {
+              setChatError('Nie udało się załadować wiadomości: ' + error.message);
+            }
+            throw error; // Rzuć błąd, aby przejść do bloku catch
+        }
         setMessages(data);
       } catch (err) {
         console.error('Błąd ładowania wiadomości:', err.message);
-        setChatError('Nie udało się załadować wiadomości.');
+        // Błąd już ustawiony powyżej, lub ogólny
       } finally {
         setChatLoading(false);
       }
 
       if (Object.keys(initialParticipantsData).length === 0) {
           fetchParticipantsData(conversationId);
-      } else {
-          setParticipantsData(initialParticipantsData); // Użyj propa jeśli jest dostępne
       }
       
       // ZAMKNIJ ISTNIEJĄCE KANAŁY DLA TEJ KONWERSACJI PRZED UTWORZENIEM NOWEGO
-      // TO JEST KLUCZOWE, ABY ZAPEWNIĆ, ŻE NOWY KANAŁ JEST UWierzytelniony
       supabase.removeChannel(supabase.channel(`chat:${conversationId}`));
 
-      // SUBSKRYBUJ KANAŁ - BIBLIOTEKA POWINNA UŻYĆ AKTUALNEGO JWT Z setAuth
+      // SUBSKRYBUJ KANAŁ - BIBLIOTEKA POWINNA UŻYĆ AKTUALNEGO JWT Z SESJI
       channel = supabase
         .channel(`chat:${conversationId}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
@@ -122,17 +120,14 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
         .subscribe();
     };
 
-    setupRealtimeConnection(); // Wywołaj funkcję setup
+    setupRealtimeConnection();
 
     return () => {
       if (channel) {
         supabase.removeChannel(channel);
       }
-      // WAŻNE: Przy odmontowaniu komponentu, zresetuj token Realtime do null,
-      // aby uniknąć używania przestarzałego tokena, jeśli użytkownik się wyloguje.
-      supabase.realtime.setAuth(null); 
     };
-  }, [conversationId, currentUserId, userJwt, initialParticipantsData]); // userJwt w zależnościach
+  }, [conversationId, currentUserId, initialParticipantsData]); // ZMIANA: userJwt USUNIĘTO z zależności, bo klient powinien sam dbać o auth token
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -178,14 +173,20 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
     if (newMessage.trim() === '') return;
 
     try {
-      if (!currentUserId || !userJwt) {
+      const { data: { user, session } } = await supabase.auth.getUser(); 
+      const userId = user?.id;
+      // ZMIANA: Używamy session?.access_token jako userJwt.
+      const userJwtToSend = session?.access_token; 
+
+      if (!userId || !userJwtToSend) { // Sprawdź, czy token jest dostępny PRZED wysyłką
         alert('Błąd autoryzacji: Użytkownik nie jest zalogowany lub brak tokenu sesji.');
+        console.error('Błąd: currentUserId lub userJwtToSend brakujący.');
         return;
       }
 
       const messagePayload = {
         conversation_id: conversationId,
-        sender_id: currentUserId,
+        sender_id: userId, // Używamy userId z getUser()
         content: newMessage.trim(),
         is_read: false
       };
@@ -194,8 +195,8 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-ID': currentUserId,
-          'Authorization': `Bearer ${userJwt}`
+          'X-User-ID': userId,
+          'Authorization': `Bearer ${userJwtToSend}` // Wysyłamy token z sesji
         },
         body: JSON.stringify(messagePayload),
       });
