@@ -1,25 +1,21 @@
 // src/components/ChatWindow.jsx (CAŁY PLIK)
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../supabaseClient'; // Upewnij się, że supabaseClient.js jest poprawnie skonfigurowany
 import './ChatWindow.css';
 
-// ZMIANA: Dodano 'participantsData' jako initialParticipantsData i używamy defaultowej pustej wartości
 export default function ChatWindow({ conversationId, currentUserId, userJwt, participantsData: initialParticipantsData, onClose }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [chatLoading, setChatLoading] = useState(true);
   const [chatError, setChatError] = useState(null);
   const messagesEndRef = useRef(null);
-  const [participantsData, setParticipantsData] = useState(initialParticipantsData || {}); // ZMIANA: Inicjalizacja z propsem lub pustym obiektem
+  const [participantsData, setParticipantsData] = useState(initialParticipantsData || {});
 
-
-  // Funkcja do pobierania danych uczestników konwersacji (została przeniesiona do AnnouncementChatSection)
-  // Ta funkcja jest teraz tylko awaryjna lub do użytku wewnętrznego, jeśli brakuje initialParticipantsData.
   const fetchParticipantsData = async (convId) => {
     try {
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
-        .select('client_id, carrier_id, announcement_id')
+        .select('client_id, carrier_id')
         .eq('id', convId)
         .single();
 
@@ -37,7 +33,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
         const pData = {};
         usersData.forEach(user => {
           pData[user.id] = {
-            id: user.id, // Ważne, aby ID było dostępne do porównań
+            id: user.id,
             name: user.role === 'firma' ? user.company_name : user.full_name || user.email,
             role: user.role
           };
@@ -59,11 +55,27 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
       return;
     }
 
-    setChatLoading(true);
-    setChatError(null);
+    // WAŻNA ZMIANA: Sprawdź userJwt tutaj przed próbą nawiązania połączenia Realtime
+    if (!userJwt) {
+        setChatError('Błąd autoryzacji Realtime: Brak tokenu JWT użytkownika.');
+        setChatLoading(false);
+        // Usuń kanał, jeśli userJwt zniknie (np. wylogowanie)
+        supabase.removeChannel(supabase.channel(`chat:${conversationId}`));
+        return;
+    }
+    
+    // ZMIANA: JAWNIE USTAW TOKEN UWIERZYTELNIAJĄCY DLA REALTIME
+    // To jest kluczowe, aby WebSocket nawiązał połączenie jako uwierzytelniony użytkownik.
+    supabase.realtime.setAuth(userJwt); 
 
-    const fetchMessages = async () => {
+    let channel = null;
+
+    const setupRealtimeConnection = async () => {
+      setChatLoading(true);
+      setChatError(null);
+
       try {
+        // Fetch initial messages
         const { data, error } = await supabase
           .from('messages')
           .select('*')
@@ -78,38 +90,49 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
       } finally {
         setChatLoading(false);
       }
+
+      if (Object.keys(initialParticipantsData).length === 0) {
+          fetchParticipantsData(conversationId);
+      } else {
+          setParticipantsData(initialParticipantsData); // Użyj propa jeśli jest dostępne
+      }
+      
+      // ZAMKNIJ ISTNIEJĄCE KANAŁY DLA TEJ KONWERSACJI PRZED UTWORZENIEM NOWEGO
+      // TO JEST KLUCZOWE, ABY ZAPEWNIĆ, ŻE NOWY KANAŁ JEST UWierzytelniony
+      supabase.removeChannel(supabase.channel(`chat:${conversationId}`));
+
+      // SUBSKRYBUJ KANAŁ - BIBLIOTEKA POWINNA UŻYĆ AKTUALNEGO JWT Z setAuth
+      channel = supabase
+        .channel(`chat:${conversationId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
+          setMessages(prevMessages => {
+              const updatedMessages = [...prevMessages, payload.new];
+              return updatedMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+          });
+          if (payload.new.sender_id !== currentUserId) {
+              markMessageAsRead(payload.new.id);
+          }
+          updateConversationLastMessage(conversationId, payload.new.content);
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
+          setMessages(prevMessages => 
+            prevMessages.map(msg => (msg.id === payload.new.id ? payload.new : msg))
+          );
+        })
+        .subscribe();
     };
 
-    fetchMessages();
-    // Jeśli initialParticipantsData nie jest puste, nie pobieraj ponownie
-    if (Object.keys(initialParticipantsData).length === 0) {
-        fetchParticipantsData(conversationId); // Awaryjne pobieranie uczestników
-    }
-
-
-    const channel = supabase
-      .channel(`chat:${conversationId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
-        setMessages(prevMessages => {
-            const updatedMessages = [...prevMessages, payload.new];
-            return updatedMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        });
-        if (payload.new.sender_id !== currentUserId) {
-            markMessageAsRead(payload.new.id);
-        }
-        updateConversationLastMessage(conversationId, payload.new.content);
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
-        setMessages(prevMessages => 
-          prevMessages.map(msg => (msg.id === payload.new.id ? payload.new : msg))
-        );
-      })
-      .subscribe();
+    setupRealtimeConnection(); // Wywołaj funkcję setup
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      // WAŻNE: Przy odmontowaniu komponentu, zresetuj token Realtime do null,
+      // aby uniknąć używania przestarzałego tokena, jeśli użytkownik się wyloguje.
+      supabase.realtime.setAuth(null); 
     };
-  }, [conversationId, currentUserId, initialParticipantsData]); // Zależność od initialParticipantsData
+  }, [conversationId, currentUserId, userJwt, initialParticipantsData]); // userJwt w zależnościach
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -198,22 +221,19 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, par
     return <div className="chat-window-error">{chatError}</div>;
   }
 
-  // Określ nazwę drugiego uczestnika
-  // ZMIANA: participantsData jest teraz zawsze obiektem
   const otherParticipant = Object.values(participantsData).find(p => p.id !== currentUserId);
   const chatTitle = otherParticipant ? `Rozmowa z: ${otherParticipant.name}` : 'Rozmowa';
 
   return (
     <div className="chat-window-container">
       <div className="chat-header">
-        {/* Przycisk zamykania z ChatWindow przeniesiony do AnnouncementChatSection */}
+        <button className="chat-close-button" onClick={onClose}>&times;</button>
         <h4>{chatTitle}</h4>
       </div>
       <div className="chat-messages">
         {messages.map((msg) => (
           <div key={msg.id} className={`message-bubble ${msg.sender_id === currentUserId ? 'sent' : 'received'}`}>
             <div className="message-content">
-                {/* ZMIANA: participantsData jest zawsze obiektem, więc bezpieczne odwołanie */}
                 {msg.sender_id !== currentUserId && participantsData[msg.sender_id] && (
                     <span className="sender-name">
                         {participantsData[msg.sender_id].name || 'Nieznany'}
