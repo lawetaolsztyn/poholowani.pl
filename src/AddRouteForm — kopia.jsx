@@ -1,11 +1,9 @@
-// src/AddRouteForm.jsx (CAŁY PLIK)
-
 import { useState, useEffect } from 'react';
 import LocationAutocomplete from './components/LocationAutocomplete';
 import { supabase } from './supabaseClient';
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import './AddRouteForm.css';
+import './AddRouteForm.css'; // Importujemy nowy plik CSS
 import 'leaflet-gesture-handling/dist/leaflet-gesture-handling.css';
 import 'leaflet-gesture-handling';
 import RouteMap from './RouteMap';
@@ -34,45 +32,15 @@ function AddRouteForm({ onRouteCreated }) {
     loadCapacity: '',
     maxDetour: '50',
     passengerCount: '',
-    phone: '', // Będzie podstawiane z profilu
-    countryCode: '+48', // Domyślny, ale nie zmieniamy go z profilu
-    messenger: '', // Będzie podstawiane z profilu (profile_messenger_link)
-    usesWhatsapp: false, // Będzie podstawiane z profilu (profile_uses_whatsapp)
-    consentPhoneShare: false, // Będzie podstawiane z profilu (profile_consent_phone_share)
+    phone: '',
+    countryCode: '+48', // Dodajemy domyślny kod kraju PL
+    messenger: '',
+    usesWhatsapp: false,
+    consentPhoneShare: false, // Stan zgody
   });
 
   const [routeData, setRouteData] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  // NOWY useEffect do pobierania danych profilu użytkownika i autopodstawiania
-  useEffect(() => {
-    const fetchUserProfileData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile, error } = await supabase
-          .from('users_extended')
-          .select('phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // Pobieramy odpowiednie kolumny
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Błąd pobierania danych profilu dla formularza trasy:', error.message);
-        } else if (profile) {
-          // Autopodstawianie danych z profilu do stanów formularza
-          setForm(prevForm => ({
-            ...prevForm,
-            phone: profile.phone || '',
-            usesWhatsapp: profile.profile_uses_whatsapp || false,
-            messenger: profile.profile_messenger_link || '',
-            consentPhoneShare: profile.profile_consent_phone_share || false,
-          }));
-        }
-      }
-    };
-
-    fetchUserProfileData();
-  }, []); // Uruchamiamy raz przy montowaniu komponentu
-
 
   useEffect(() => {
     let token = localStorage.getItem('browser_token');
@@ -111,10 +79,9 @@ function AddRouteForm({ onRouteCreated }) {
             [name]: type === 'checkbox' ? checked : value
         };
 
-        // Jeśli odznaczono zgodę, wyczyść numer telefonu i WhatsApp
+        // Jeśli odznaczono zgodę, wyczyść numer telefonu
         if (name === 'consentPhoneShare' && !checked) {
             newState.phone = '';
-            newState.usesWhatsapp = false; // Wyłącz WhatsApp, jeśli zgoda na telefon jest cofnięta
         }
         return newState;
     });
@@ -146,6 +113,7 @@ function AddRouteForm({ onRouteCreated }) {
     if (isSaving) return;
     setIsSaving(true);
 
+    // Walidacja współrzędnych
     if (!form.from.coords || !form.to.coords) {
       alert('❗Uzupełnij pola "Skąd" i "Dokąd", wybierając z listy sugestii.');
       setIsSaving(false);
@@ -158,6 +126,8 @@ function AddRouteForm({ onRouteCreated }) {
       return;
     }
 
+    // Walidacja dla numeru telefonu: sprawdzamy, czy pole nie jest puste, gdy podano kod kraju
+    // ORAZ czy zgoda została zaznaczona
     if (form.phone && form.phone.trim() !== '') {
         if (!form.consentPhoneShare) {
             alert('❗Musisz wyrazić zgodę na udostępnienie numeru telefonu, aby go zapisać.');
@@ -215,7 +185,7 @@ function AddRouteForm({ onRouteCreated }) {
             p_passenger_count: form.passengerCount ? parseInt(form.passengerCount) : null,
             p_max_detour_km: parseInt(form.maxDetour),
             p_phone: form.phone && form.consentPhoneShare ? `${form.countryCode}${form.phone}` : null,
-            p_messenger_link: form.messenger || null, // Używamy pola 'messenger'
+            p_messenger_link: form.messenger || null,
             p_geojson: routeData,
             p_browser_token: browserToken || null,
             p_uses_whatsapp: form.usesWhatsapp
@@ -225,7 +195,6 @@ function AddRouteForm({ onRouteCreated }) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-User-ID': userId || 'anon', // Dodaj User ID do nagłówka dla Rate Limiting
             },
             body: JSON.stringify(routePayload),
         });
@@ -243,23 +212,15 @@ function AddRouteForm({ onRouteCreated }) {
 
         onRouteCreated(routeData);
 
-        // Resetowanie formularza po zapisie (pozostawiamy pola kontaktowe, aby były autopodstawiane)
+        // Resetowanie formularza po zapisie
         setForm(prevForm => ({
             ...prevForm,
             from: { label: '', coords: null },
             to: { label: '', coords: null },
             via: { label: '', coords: null },
-            date: '', // Zresetuj datę
-            vehicleType: 'bus', // Zresetuj typ pojazdu
-            loadCapacity: '', // Zresetuj ładowność
-            maxDetour: '50', // Zresetuj objazd
-            passengerCount: '', // Zresetuj liczbę pasażerów
-            // Pola kontaktowe NIE są resetowane, aby pozostały podstawione z profilu
-            // phone: '',
-            // countryCode: '+48',
-            // consentPhoneShare: false,
-            // messenger: '',
-            // usesWhatsapp: false,
+            phone: '',
+            countryCode: '+48',
+            consentPhoneShare: false // Resetuj zgodę po zapisie
         }));
         alert('✅ Trasa zapisana do bazy danych!');
 
@@ -390,11 +351,11 @@ function AddRouteForm({ onRouteCreated }) {
               <input
                 type="tel"
                 name="phone"
-                value={form.phone} // Ten input ma teraz wartość ze stanu form.phone, inicjalizowanego z profilu
+                value={form.phone}
                 onChange={handleChange}
                 className="uinput"
                 placeholder="np. 123 456 789"
-                disabled={!form.consentPhoneShare} // Wyłącz, jeśli brak zgody na udostępnianie telefonu
+                disabled={!form.consentPhoneShare}
               />
             </div>
           </div>
@@ -404,9 +365,9 @@ function AddRouteForm({ onRouteCreated }) {
               <input
                 type="checkbox"
                 name="usesWhatsapp"
-                checked={form.usesWhatsapp} // Stan z profilu
-                onChange={handleChange}
-		            className="whatsapp-checkbox"
+                checked={form.usesWhatsapp}
+                onChange={(e) => setForm({ ...form, usesWhatsapp: e.target.checked })}
+		className="whatsapp-checkbox"
               />
               Kontakt WhatsApp
             </label>
@@ -417,7 +378,7 @@ function AddRouteForm({ onRouteCreated }) {
             <input
               type="url"
               name="messenger"
-              value={form.messenger} // Stan z profilu
+              value={form.messenger}
               onChange={handleChange}
               className="uinput"
               placeholder="https://facebook.com/user"
@@ -429,26 +390,27 @@ function AddRouteForm({ onRouteCreated }) {
             </small>
           </div>
 
-          {/* PRZENIESIONE POLE: Zgoda na udostępnienie numeru telefonu */}
+          {/* PRZENIESIONE POLE: Zgoda na udostępnienie numeru telefonu - TERAZ W TEJ SAMEJ LINII, PO MESSENGERZE */}
           <div className="form-field form-field-consent">
-            <label htmlFor="consentPhoneShare">
-              <input
-                type="checkbox"
-                id="consentPhoneShare"
-                name="consentPhoneShare"
-                checked={form.consentPhoneShare} // Stan z profilu
-                onChange={handleChange}
-                className="consent-checkbox"
-              />
-              <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie.</span>
-            </label>
-            <small style={{ marginTop: '5px', fontSize: '0.8em', color: '#666' }}>
-              Numer telefonu będzie widoczny dla innych użytkowników.
-            </small>
-          </div>
+  <label htmlFor="consentPhoneShare">
+    <input
+      type="checkbox"
+      id="consentPhoneShare"
+      name="consentPhoneShare"
+      checked={form.consentPhoneShare}
+      onChange={handleChange}
+      className="consent-checkbox"
+    />
+    <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie.</span>
+  </label>
+  <small style={{ marginTop: '5px', fontSize: '0.8em', color: '#666' }}>
+    Numer telefonu będzie widoczny dla innych użytkowników.
+  </small>
+</div>
 
 
-        </div> {/* ZAMYKAMY form-row */}
+          {/* Przycisk "Zapisz trasę" również w nowym rzędzie, aby był zawsze dostępny i czytelny */}
+        </div> {/* ZAMYKAMY TEN SAM form-row */}
 
         {/* NOWY FORM-ROW TYLKO DLA PRZYCISKU SUBMIT */}
         <div className="form-row submit-button-row">

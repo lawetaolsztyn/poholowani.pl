@@ -1,5 +1,6 @@
-// src/components/AnnouncementForm.jsx
-import React, { useState } from 'react';
+// src/components/AnnouncementForm.jsx (CAŁY PLIK)
+
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import './AnnouncementForm.css';
 import LocationAutocomplete from './LocationAutocomplete';
@@ -12,15 +13,41 @@ export default function AnnouncementForm({ onSuccess }) {
   const [itemToTransport, setItemToTransport] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [budgetPln, setBudgetPln] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
-  const [usesWhatsapp, setUsesWhatsapp] = useState(false);
-  const [contactMessenger, setContactMessenger] = useState('');
-  const [consentPhoneShare, setConsentPhoneShare] = useState(false);
+  const [contactPhone, setContactPhone] = useState(''); // Ten stan będzie pobierał z profile.phone
+  const [usesWhatsapp, setUsesWhatsapp] = useState(false); // Ten stan będzie pobierał z profile.profile_uses_whatsapp
+  const [contactMessenger, setContactMessenger] = useState(''); // Ten stan będzie pobierał z profile.profile_messenger_link
+  const [consentPhoneShare, setConsentPhoneShare] = useState(false); // Ten stan będzie pobierał z profile.profile_consent_phone_share
 
-  const [imageFile, setImageFile] = useState(null); // Do przechowywania wybranego pliku
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+
+  // NOWY useEffect do pobierania danych profilu użytkownika i autopodstawiania
+  useEffect(() => {
+    const fetchUserProfileData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile, error } = await supabase
+          .from('users_extended')
+          .select('phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // Pobieramy odpowiednie kolumny
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Błąd pobierania danych profilu dla formularza ogłoszenia:', error.message);
+        } else if (profile) {
+          // Autopodstawianie danych z profilu do stanów formularza
+          setContactPhone(profile.phone || '');
+          setUsesWhatsapp(profile.profile_uses_whatsapp || false);
+          setContactMessenger(profile.profile_messenger_link || '');
+          setConsentPhoneShare(profile.profile_consent_phone_share || false);
+        }
+      }
+    };
+
+    fetchUserProfileData();
+  }, []); // Uruchamiamy raz przy montowaniu komponentu
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -44,8 +71,7 @@ export default function AnnouncementForm({ onSuccess }) {
 
     let imageUrl = null;
     if (imageFile) {
-        // Logika uploadu zdjęcia na home.pl, tak jak w PublicProfile.jsx
-        if (imageFile.size > 5 * 1024 * 1024) { // 5MB limit
+        if (imageFile.size > 5 * 1024 * 1024) {
             setError(`Plik ${imageFile.name} jest za duży (max 5MB).`);
             setLoading(false);
             return;
@@ -53,7 +79,7 @@ export default function AnnouncementForm({ onSuccess }) {
 
         try {
             const formData = new FormData();
-            formData.append('userId', user.id); // Możesz dodać userId, jeśli Twój upload.php go potrzebuje
+            formData.append('userId', user.id);
             formData.append('file', imageFile);
 
             const response = await fetch('https://serwer2595576.home.pl/upload.php', {
@@ -63,7 +89,7 @@ export default function AnnouncementForm({ onSuccess }) {
 
             const result = await response.json();
             if (result.success) {
-                imageUrl = result.url; // URL zwrócony z serwera home.pl
+                imageUrl = result.url;
             } else {
                 throw new Error(result.error || 'Upload error');
             }
@@ -96,7 +122,7 @@ export default function AnnouncementForm({ onSuccess }) {
           contact_phone: consentPhoneShare ? contactPhone : null,
           contact_whatsapp: usesWhatsapp && consentPhoneShare ? contactPhone : null,
           contact_messenger: contactMessenger || null,
-          image_url: imageUrl || null, // Używamy URL z home.pl
+          image_url: imageUrl || null,
         });
 
       if (insertError) {
@@ -104,7 +130,7 @@ export default function AnnouncementForm({ onSuccess }) {
       }
 
       setSuccessMessage('Ogłoszenie zostało dodane pomyślnie!');
-      // Resetowanie formularza po sukcesie
+      // Resetowanie pól specyficznych dla ogłoszenia
       setTitle('');
       setDescription('');
       setLocationFrom({ label: '', coords: null, lat: null, lng: null });
@@ -112,11 +138,8 @@ export default function AnnouncementForm({ onSuccess }) {
       setItemToTransport('');
       setWeightKg('');
       setBudgetPln('');
-      setContactPhone('');
-      setUsesWhatsapp(false);
-      setContactMessenger('');
-      setConsentPhoneShare(false);
-      setImageFile(null); // Zresetuj wybrany plik
+      setImageFile(null);
+      // Pola kontaktowe zostawiamy, aby były automatycznie podstawione z profilu ponownie
       if (onSuccess) {
         onSuccess();
       }
@@ -244,10 +267,10 @@ export default function AnnouncementForm({ onSuccess }) {
             <input
               type="text"
               id="contactPhone"
-              value={contactPhone}
+              value={contactPhone} // Ten input ma teraz wartość ze stanu contactPhone, inicjalizowanego z profilu
               onChange={(e) => setContactPhone(e.target.value)}
               placeholder="Np. +48 123 456 789"
-              disabled={!consentPhoneShare}
+              disabled={!consentPhoneShare} // Wyłącz, jeśli brak zgody na udostępnianie telefonu
             />
           </div>
           
@@ -256,7 +279,7 @@ export default function AnnouncementForm({ onSuccess }) {
               <input
                 type="checkbox"
                 id="usesWhatsapp"
-                checked={usesWhatsapp}
+                checked={usesWhatsapp} // Stan z profilu
                 onChange={(e) => setUsesWhatsapp(e.target.checked)}
               />
               Ten numer ma WhatsApp (jeśli podano telefon)
@@ -268,7 +291,7 @@ export default function AnnouncementForm({ onSuccess }) {
             <input
               type="url"
               id="contactMessenger"
-              value={contactMessenger}
+              value={contactMessenger} // Stan z profilu
               onChange={(e) => setContactMessenger(e.target.value)}
               placeholder="https://m.me/twoj.profil"
             />
@@ -284,12 +307,12 @@ export default function AnnouncementForm({ onSuccess }) {
               <input
                 type="checkbox"
                 id="consentPhoneShare"
-                checked={consentPhoneShare}
+                checked={consentPhoneShare} // Stan z profilu
                 onChange={(e) => {
                   setConsentPhoneShare(e.target.checked);
                   if (!e.target.checked) {
-                    setContactPhone('');
-                    setUsesWhatsapp(false);
+                    setContactPhone(''); // Wyczyść telefon, jeśli zgoda jest cofnięta
+                    setUsesWhatsapp(false); // Wyłącz WhatsApp, jeśli zgoda na telefon jest cofnięta
                   }
                 }}
               />
