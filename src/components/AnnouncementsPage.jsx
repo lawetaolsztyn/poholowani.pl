@@ -1,4 +1,4 @@
-// src/components/AnnouncementsPage.jsx (CAŁY PLIK - PRZYWRÓCONA WERSJA)
+// src/components/AnnouncementsPage.jsx (CAŁY PLIK)
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
@@ -9,7 +9,8 @@ import './AnnouncementsPage.css';
 import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
-import AnnouncementChatSection from './AnnouncementChatSection'; // TEN IMPORT ZOSTAJE, bo jest używany na dole
+// import ChatWindow from './ChatWindow'; // USUNIĘTO: Już nie importujemy ChatWindow bezpośrednio tutaj
+import AnnouncementChatSection from './AnnouncementChatSection'; // <-- Upewnij się, że ten import jest na górze
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
@@ -18,10 +19,11 @@ export default function AnnouncementsPage() {
   const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [user, setUser] = useState(null);
-  const [userJwt, setUserJwt] = useState(null); // NOWY STAN: do przechowywania tokenu JWT
+  const [userJwt, setUserJwt] = useState(null);
   const navigate = useNavigate();
 
-  // STANY DLA CHATU (showChatModal i activeConversationId zostają usunięte z tego poziomu)
+  // NOWE STANY DLA CHATU (showChatModal i activeConversationId zostają usunięte z tego poziomu)
+  // Przekazujemy user, userJwt, selectedAnnouncement do AnnouncementChatSection
   // const [showChatModal, setShowChatModal] = useState(false); // USUNIĘTO
   // const [activeConversationId, setActiveConversationId] = useState(null); // USUNIĘTO
 
@@ -152,24 +154,23 @@ export default function AnnouncementsPage() {
     };
   }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage]);
 
-  // ZMIENIONY useEffect do zarządzania stanem użytkownika i JWT
   useEffect(() => {
     const getUserAndSession = async () => {
-      const { data: { user, session } } = await supabase.auth.getUser(); // Pobierz również sesję
+      const { data: { user, session } } = await supabase.auth.getUser();
       setUser(user);
-      setUserJwt(session?.access_token || null); // Ustaw token JWT
+      setUserJwt(session?.access_token || null);
     };
     getUserAndSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
-      setUserJwt(session?.access_token || null); // Zaktualizuj token JWT przy zmianach sesji
+      setUserJwt(session?.access_token || null);
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []); // Uruchamia się raz przy montowaniu, a potem reaguje na zmiany auth
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -444,13 +445,14 @@ export default function AnnouncementsPage() {
                 )}
               </div>
               
-              {/* Sekcja chatu w szczegółach ogłoszenia */}
-              {selectedAnnouncement && user && session && ( // ZMIANA: Dodano user && session jako warunek
+              {/* NOWA SEKCJA CHATU - Zastępuje poprzedni div.chat-and-direct-contact-buttons i przycisk Zadaj pytanie */}
+              {/* Przycisk "Zadaj pytanie" i logikę otwierania chatu przeniesiemy do AnnouncementChatSection */}
+              {selectedAnnouncement && user && userJwt && ( // Tylko jeśli jest ogłoszenie, zalogowany użytkownik i JWT
                  <AnnouncementChatSection
                     announcement={selectedAnnouncement}
                     currentUserId={user.id}
-                    userJwt={session.access_token} // ZMIANA: Przekazujemy access_token z session
-                    onAskQuestionRedirect={handleAskQuestionRedirect}
+                    userJwt={userJwt}
+                    onAskQuestionRedirect={handleAskQuestionRedirect} // Funkcja do przekierowania, jeśli niezalogowany
                   />
               )}
               {selectedAnnouncement && !user && ( // Jeśli niezalogowany, ale jest ogłoszenie, pokaż przycisk, który przekieruje
@@ -537,7 +539,8 @@ export default function AnnouncementsPage() {
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
       </Modal>
 
-      {/* MODAL CHATU - NIE JEST JUŻ UŻYWANY TUTAJ */}
+      {/* MODAL CHATU - Usunięty z tego miejsca, teraz ChatWindow będzie w AnnouncementChatSection */}
+      {/* showChatModal i activeConversationId nie są już stanami na tym poziomie */}
     </React.Fragment>
   );
 }
