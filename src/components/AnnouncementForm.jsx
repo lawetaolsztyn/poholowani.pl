@@ -57,7 +57,7 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
     console.log("AnnouncementForm useEffect - announcementToEdit:", announcementToEdit); 
     if (announcementToEdit) {
       setTitle(announcementToEdit.title || '');
-      setDescription(announcementToedit.description || '');
+      setDescription(announcementToEdit.description || ''); // <-- TUTAJ BYŁ BŁĄD announcementToedit
       
       const fromCoords = announcementToEdit.location_from_lng && announcementToEdit.location_from_lat
                          ? [announcementToEdit.location_from_lng, announcementToEdit.location_from_lat]
@@ -99,7 +99,7 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
       setError(null);
       setSuccessMessage(null);
     }
-  }, [announcementToEdit]);
+  }, [announcementToEdit]); // Dependency array: uruchamiamy useEffect gdy zmienia się announcementToEdit
 
 
   const handleSubmit = async (event) => {
@@ -128,10 +128,6 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
     if (shouldRemoveImage && !imageFile) {
         // Jeśli użytkownik zaznaczył "usuń zdjęcie" I nie wybrał nowego
         imageUrl = null; // Ustaw URL na NULL, aby usunąć z bazy danych
-        // TUTAJ MÓGŁBY BYĆ KOD DO USUNIĘCIA PLIKU Z HOME.PL (np. przez API do serwera proxy)
-        // To jest bardziej skomplikowane i wymagałoby dedykowanego endpointu na Twoim home.pl
-        // lub funkcji Supabase Edge Function do zarządzania storage'em.
-        // Na razie tylko usuwamy referencję w bazie danych.
     } else if (imageFile) {
         // Jeśli wybrano nowy plik, prześlij go
         if (imageFile.size > 5 * 1024 * 1024) {
@@ -332,12 +328,12 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
               type="file"
               id="image"
               accept="image/*"
-              onChange={(e) => { setImageFile(e.target.files[0]); setShouldRemoveImage(false); }} // Gdy wybrano nowy plik, nie usuwaj istniejącego
+              onChange={(e) => { setImageFile(e.target.files[0]); setShouldRemoveImage(false); }} // Gdy wybrano nowy plik, odznacz "usuń"
             />
             {imageFile && <p className="file-info">Wybrano plik: {imageFile.name}</p>}
 
             {/* Nowe elementy do zarządzania istniejącym zdjęciem */}
-            {announcementToEdit?.image_url && !imageFile && (
+            {announcementToEdit?.image_url && !imageFile && ( // Pokaż opcje tylko jeśli jest istniejący URL I NIE wybrano nowego pliku
                 <div className="image-management-options">
                     <p className="file-info">Obecne zdjęcie: <a href={announcementToEdit.image_url} target="_blank" rel="noopener noreferrer">Podgląd</a></p>
                     <label>
