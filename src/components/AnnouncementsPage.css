@@ -856,6 +856,15 @@
   flex-direction: column;
   align-items: center;
 }
+.announcements-grid.single-column {
+  align-items: stretch;
+}
+
+.announcements-grid.single-column .announcement-card-wide {
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
+}
 }
 
 /* Responsywność dla mniejszych ekranów */
