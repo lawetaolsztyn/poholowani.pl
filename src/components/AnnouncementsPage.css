@@ -16,8 +16,8 @@
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-    /* ZMIANA: Użycie calc() dla precyzyjnej szerokości z uwzględnieniem gapu */
-    width: calc(30% - (var(--announcements-gap) / 2));
+    /* Upewnij się, że flex-shrink: 0; jest tutaj */
+    flex: 0 0 calc(30% - (var(--announcements-gap) / 2)); 
     min-width: 280px; /* Aby nie było za wąsko na małych ekranach */
     max-width: 350px; /* Aby nie było za szeroko na bardzo dużych ekranach */
     background-color: #ffffff;
@@ -26,7 +26,7 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    flex-shrink: 0; /* Zapobiega kurczeniu się poniżej min-width */
+    flex-shrink: 0; /* WAŻNE: Zapobiega kurczeniu się poniżej min-width */
 }
 
 /* Nagłówek dla formularza dodawania ogłoszenia */
@@ -37,16 +37,19 @@
     text-align: center;
 }
 
+
 /* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
-    width: 100%;
-    max-width: 800px; /* lub 1000px, jeśli wolisz szerzej */
-    margin: 0 auto;
+    /* ZMIANA: Dodano flex-shrink: 0; i minimalną szerokość */
+    flex: 1; /* Nadal pozwala na rozciąganie */
+    width: calc(70% - (var(--announcements-gap) / 2));
+    min-width: 600px; /* Dodaj minimalną szerokość dla prawej kolumny (np. 600px) */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    flex-grow: 1;
+    flex-grow: 1; 
+    flex-shrink: 0; /* WAŻNE: Zapobiega kurczeniu się tej kolumny */
 }
 
 /* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
@@ -118,6 +121,7 @@
     background-color: #5a6268;
 }
 
+
 /* === STYLE DLA SEKCJI FILTRA === */
 .search-filter-section {
     background-color: #f8f8f8;
@@ -151,6 +155,7 @@
     color: #888; /* Szary kolor dla "Opcjonalnie" */
     margin-left: 5px; /* Mały odstęp od głównej etykiety */
 }
+
 
 .filter-input {
     width: 100%;
@@ -216,6 +221,7 @@
     background: #007bff;
     cursor: pointer;
 }
+
 
 .filter-button, .clear-filter-button {
     display: block;
@@ -289,6 +295,7 @@
     margin-top: 15px; /* Odstęp między "Dodaj nowe ogłoszenie" a filtrem ulubionych */
 }
 
+
 /* --- LISTA OGŁOSZEŃ (PRAWA KOLUMNA) - zachowanie oryginalnego układu single-column --- */
 .announcements-list-single-column {
     display: flex;
@@ -309,8 +316,6 @@
     width: 100%; /* Karta zajmuje całą szerokość kolumny */
     position: relative; /* WAŻNE: dla pozycjonowania serduszka absolute */
     overflow: hidden; /* Na wypadek, gdyby coś wystawało */
-    margin: 0;
-    box-sizing: border-box;
 }
 
 .announcement-card-wide:hover {
@@ -420,7 +425,7 @@
     padding: 5px;
     position: absolute; /* Pozycjonowanie absolutne względem .announcement-card-wide */
     top: 35px; /* Obniż serduszko */
-    right: 10px; /* Przesuń trochę w prawo */
+    right: 10px; /* Przesuń trochę w prawo, z dala od daty */
     z-index: 10;
     color: gray; /* Domyślny kolor obrysu */
     transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
@@ -552,78 +557,338 @@
 .action-button {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 1.1em;
-    padding: 10px 15px;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.2s ease;
     justify-content: center;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.action-button.whatsapp {
+.action-button i {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.whatsapp-action-button {
     background-color: #25d366;
 }
-.action-button.whatsapp:hover {
+.whatsapp-action-button:hover {
     background-color: #1DA851;
+    transform: translateY(-2px);
 }
 
-.action-button.messenger {
+.messenger-action-button {
     background-color: #007bff;
+    color: white;
 }
-.action-button.messenger:hover {
+.messenger-action-action:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
 }
 
-.action-button.question {
-    background-color: #6f42c1;
+.ask-question-button {
+    background-color: #ff6600;
+    color: white;
 }
-.action-button.question:hover {
-    background-color: #5936a2;
-}
-
-/* Zmiana ikonki na lewo w buttonach */
-.action-button svg {
-    width: 20px;
-    height: 20px;
-    fill: white;
+.ask-question-button:hover {
+    background-color: #e65100;
+    transform: translateY(-2px);
 }
 
-/* RESPONSYWNOŚĆ */
-@media (max-width: 1024px) {
+
+/* Komunikaty ładowania, błędów, braku ogłoszeń */
+.loading-message, .error-message-list, .no-announcements-message {
+    text-align: center;
+    font-size: 1.1em;
+    color: #666;
+    padding: 20px;
+}
+
+.error-message-list {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+
+/* === TRYB CIEMNY === */
+@media (prefers-color-scheme: dark) {
+    .left-panel,
+    .main-content-area {
+        background-color: #333;
+        color: #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .left-panel .form-header,
+    .main-content-area h2 {
+        color: #f0f0f0;
+    }
+
+    .add-announcement-button {
+        background-color: #0056b3;
+    }
+    .add-announcement-button:hover {
+        background-color: #003d80;
+    }
+
+    .announcement-detail-buttons {
+        background-color: #444;
+        border-color: #555;
+    }
+    .add-announcement-button-side {
+        background-color: #1e7e34;
+    }
+    .add-announcement-button-side:hover {
+        background-color: #176a2c;
+    }
+    .back-button-side {
+        background-color: #5a6268;
+    }
+    .back-button-side:hover {
+        background-color: #495057;
+    }
+
+    .search-filter-section {
+        background-color: #444;
+        border-color: #555;
+    }
+    .search-filter-section h3 {
+        color: #f0f0f0;
+    }
+    .filter-group label {
+        color: #ccc;
+    }
+    .filter-input, .filter-input-range {
+        background-color: #555;
+        border-color: #666;
+        color: #e0e0e0;
+    }
+    .filter-input::placeholder, .filter-input-range::placeholder {
+        color: #999;
+    }
+    .filter-group .range-inputs span { /* Zmieniono z filter-group-range na filter-group */
+        color: #ccc;
+    }
+    .filter-button {
+        background-color: #0056b3;
+    }
+    .filter-button:hover {
+        background-color: #003d80;
+    }
+    .clear-filter-button {
+        background-color: #5a6268;
+    }
+    .clear-filter-button:hover {
+        background-color: #495057;
+    }
+
+
+    /* Układ single-column w trybie ciemnym */
+    .announcements-list-single-column {
+        /* brak specyficznych zmian dla dark mode tutaj, dziedziczą po .main-content-area */
+    }
+
+    .announcement-card-wide {
+        background-color: #444;
+        border-color: #555;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .announcement-card-wide h3 {
+        color: #f0f0f0;
+    }
+    .announcement-card-wide p {
+        color: #ccc;
+    }
+    .announcement-card-wide p strong {
+        color: #f0f0f0;
+    }
+    .announcement-card-wide .posted-at {
+        color: #aaa;
+    }
+    .announcement-card-wide .card-meta {
+        border-color: #555;
+        color: #ccc;
+    }
+    .announcement-card-wide .card-meta span strong {
+        color: #f0f0f0;
+    }
+
+    .view-details-button {
+        background-color: #117a8b;
+    }
+    .view-details-button:hover {
+        background-color: #0e6774;
+    }
+
+    /* === WIDOK SZCZEGÓŁÓW W TRYBIE CIEMNYM === */
+    .full-announcement-details-card {
+        background-color: #444;
+        border: 1px solid #555;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .full-announcement-details-card h3,
+    .full-announcement-details-card h4 {
+        color: #f0f0f0;
+    }
+    .full-announcement-details-card p {
+        color: #ccc;
+    }
+    .full-announcement-details-card p strong {
+        color: #f0f0f0;
+    }
+    .announcement-details-image-full {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    .contact-info-details {
+        border-color: #666;
+    }
+    .contact-info-details p {
+        color: #f0f0f0;
+    }
+    /* .contact-button style definitions */
+
+    /* NOWE STYLE AKCJI W WIDOKU SZCZEGÓŁÓW W TRYBIE CIEMNYM */
+    .chat-and-direct-contact-buttons {
+        border-color: #555;
+    }
+    .whatsapp-action-button {
+        background-color: #1f9e4f;
+    }
+    .whatsapp-action-button:hover {
+        background-color: #177a3d;
+    }
+    .messenger-action-button {
+        background-color: #0056b3;
+    }
+    .messenger-action-button:hover {
+        background-color: #003d80;
+    }
+    .ask-question-button {
+        background-color: #e65100;
+    }
+    .ask-question-button:hover {
+        background-color: #c84400;
+    }
+
+
+    .loading-message, .error-message-list, .no-announcements-message {
+        color: #aaa;
+    }
+
+    .error-message-list {
+        color: #ff6b6b;
+    }
+
+    .no-route-info {
+        color: #aaa;
+    }
+}
+
+
+/* === NOWE STYLE DLA KONTROLEK PAGINACJI === */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.pagination-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.pagination-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.pagination-button.active {
+    background-color: #ff6600; /* Aktywna strona ma inny kolor */
+    transform: scale(1.1);
+}
+
+.pagination-button.active:hover {
+    background-color: #e65100;
+}
+
+
+/* === TRYB CIEMNY DLA PAGINACJI === */
+@media (prefers-color-scheme: dark) {
+    .pagination-controls {
+        border-top: 1px solid #555;
+    }
+    .pagination-button {
+        background-color: #0056b3;
+    }
+    .pagination-button:hover:not(:disabled) {
+        background-color: #003d80;
+    }
+    .pagination-button:disabled {
+        background-color: #666;
+    }
+    .pagination-button.active {
+        background-color: #e65100;
+    }
+    .pagination-button.active:hover {
+        background-color: #c84400;
+    }
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 992px) {
     .announcements-page-container {
         flex-direction: column;
-        padding: 15px;
+        gap: 20px;
+        padding: 20px;
     }
-    .left-panel {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-bottom: 25px;
-    }
+
+    .left-panel,
     .main-content-area {
-        max-width: 100% !important;
-        padding: 15px;
+        flex: none;
+        width: 100%;
     }
-}
 
-/* --- Najważniejsza zmiana dla szerokości listy ogłoszeń w trybie single-column --- */
-.announcements-grid.single-column {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    width: 100%;
-    max-width: 100%;
-    margin-top: 20px;
-    align-items: stretch; /* Elementy rozciągnięte na całą szerokość */
-}
+    /* Zmiana tutaj: upewnienie się, że ogłoszenia nadal są w kolumnie na małych ekranach */
+    .announcements-list-single-column { /* Używaj tej klasy dla listy */
+        display: flex;
+        flex-direction: column; /* Utrzymaj układ kolumnowy */
+        gap: 25px; /* Zachowaj odstęp */
+    }
+    
+    .full-announcement-details-card .announcement-details-image-full {
+        max-width: 100%;
+    }
+    .chat-and-direct-contact-buttons {
+        width: 100%;
+    }
+    .action-button {
+        padding: 10px 15px;
+        font-size: 1em;
+    }
+    .action-button i {
 
-.announcements-grid.single-column .announcement-card-wide {
-    width: 100% !important;
-    max-width: 100% !important;
-    align-self: stretch;
-    margin: 0;
-    box-sizing: border-box;
+        font-size: 1em;
+        margin-right: 5px;
+    }
 }
