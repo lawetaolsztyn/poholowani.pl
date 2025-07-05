@@ -8,6 +8,7 @@ import './App.css';
 import 'leaflet/dist/leaflet.css';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from './supabaseClient';
+import Navbar from './components/Navbar';
 
 // Importy komponentów (upewnij się, że ścieżki są poprawne w Twojej strukturze)
 import LandingPage from './LandingPage';
