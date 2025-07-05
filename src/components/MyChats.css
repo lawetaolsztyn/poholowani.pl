@@ -164,3 +164,28 @@
     padding: 12px;
   }
 }
+
+/* Style dla nieprzeczytanej karty konwersacji */
+.conversation-card.unread {
+    background-color: #f8f8f8; /* Jasnoszare tło dla nieprzeczytanych */
+    border-left: 5px solid #007bff; /* Niebieska linia po lewej */
+    font-weight: bold; /* Pogrubiony tekst */
+}
+
+.conversation-card.unread .last-message {
+    font-weight: bold; /* Dodatkowo pogrubienie ostatniej wiadomości */
+    color: #333; /* Ciemniejszy kolor */
+}
+
+/* Opcjonalny styl dla badge z licznikiem wewnątrz karty */
+.conversation-card .unread-count {
+    background-color: #dc3545; /* Czerwony badge */
+    color: white;
+    border-radius: 50%; /* Okrągły kształt */
+    padding: 3px 8px;
+    font-size: 0.75em;
+    margin-left: 10px;
+    min-width: 25px; /* Minimalna szerokość dla czytelności */
+    text-align: center;
+    display: inline-block;
+}
