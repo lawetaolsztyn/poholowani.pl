@@ -10,14 +10,14 @@
     display: flex;
     gap: var(--announcements-gap); /* Użycie zmiennej */
     padding: 30px;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 1200px; /* Maksymalna szerokość kontenera */
+    margin: 0 auto; /* Wyśrodkowanie */
 }
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
     /* ZMIANA: Użycie calc() dla precyzyjnej szerokości z uwzględnieniem gapu */
-    width: calc(30% - (var(--announcements-gap) / 2)); 
+    width: calc(30% - (var(--announcements-gap) / 2));
     min-width: 280px; /* Aby nie było za wąsko na małych ekranach */
     max-width: 350px; /* Aby nie było za szeroko na bardzo dużych ekranach */
     background-color: #ffffff;
