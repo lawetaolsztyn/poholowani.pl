@@ -501,7 +501,9 @@ export default function AnnouncementsPage() {
                     />
                 </div>
                 <div className="filter-group">
-                    <label htmlFor="filterTo">Dokąd:</label>
+                    <label htmlFor="filterTo">
+    Dokąd: <span className="optional-text">(Opcjonalnie)</span> 
+  </label>
                     <LocationAutocomplete
                         value={filterTo.label}
                         onSelectLocation={(label, sug) => setFilterTo({ label, coords: sug.geometry.coordinates })}
