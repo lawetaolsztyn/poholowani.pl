@@ -91,60 +91,24 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
     let convId; // Deklarujemy convId na zewnątrz bloku try/catch
 
     try {
+        // ZMIENIONE: Używamy .limit(1) zamiast .single() do sprawdzenia istnienia konwersacji
         const { data: existingConversations, error: findError } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('announcement_id', announcement.id)
-        .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${carrierUserId}),and(client_id.eq.${carrierUserId},carrier_id.eq.${clientUserId})`)
-        .limit(1); // <--- ZMIANA: Używamy .limit(1) zamiast .single()
-
-    if (findError) {
-        throw findError; // Rzuć błąd, jeśli zapytanie do Supabase się nie powiedzie
-    }
-
-    // Sprawdzamy, czy zwrócono jakiekolwiek dane
-    if (existingConversations && existingConversations.length > 0) {
-        convId = existingConversations[0].id; // Weź ID z pierwszego znalezionego elementu
-        console.log("Existing conversation found:", convId);
-    } else {
-        console.log("Creating new conversation...");
-        const { data: newConv, error: createError } = await supabase
             .from('conversations')
-            .insert({
-                announcement_id: announcement.id,
-                client_id: clientUserId,
-                carrier_id: carrierUserId,
-                last_message_at: new Date().toISOString(),
-                last_message_content: ''
-            })
             .select('id')
-            .single(); // Tutaj single() jest ok, bo Oczekujemy jednego wyniku po INSERT
+            .eq('announcement_id', announcement.id)
+            .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${carrierUserId}),and(client_id.eq.${carrierUserId},carrier_id.eq.${clientUserId})`)
+            .limit(1); // <-- Kluczowa zmiana tutaj
 
-        if (createError) throw createError;
-        convId = newConv.id;
-        console.log("New conversation created:", convId);
-
-        // Dodaj wpisy do conversation_participants dla obu stron
-        const { error: participantsError } = await supabase
-            .from('conversation_participants')
-            .insert([
-                { conversation_id: convId, user_id: clientUserId, unread_messages_count: 0 },
-                { conversation_id: convId, user_id: carrierUserId, unread_messages_count: 0 }
-            ]);
-
-        if (participantsError) {
-            console.error('Błąd podczas tworzenia wpisów conversation_participants:', participantsError.message);
-            throw participantsError;
+        if (findError) {
+            // Jeśli wystąpił błąd zapytania, rzuć go
+            throw findError; 
         }
-        console.log("Conversation participants created.");
-    }
-} catch (err) {
-    console.error("Error managing conversation:", err.message);
-    alert(`Błąd podczas zarządzania konwersacją: ${err.message}`);
-    return;
-}
 
-setActiveChatId(convId);
+        // Sprawdzamy, czy tablica existingConversations zawiera jakiekolwiek elementy
+        if (existingConversations && existingConversations.length > 0) {
+            convId = existingConversations[0].id; // Weź ID z pierwszego znalezionego elementu
+            console.log("Existing conversation found:", convId);
+        } else {
             console.log("Creating new conversation...");
             const { data: newConv, error: createError } = await supabase
                 .from('conversations')
@@ -156,13 +120,13 @@ setActiveChatId(convId);
                     last_message_content: ''
                 })
                 .select('id')
-                .single();
+                .single(); // Tutaj single() jest ok, bo Oczekujemy jednego wyniku po INSERT
 
             if (createError) throw createError;
             convId = newConv.id;
             console.log("New conversation created:", convId);
 
-            // DODANY KOD: Dodaj wpisy do conversation_participants dla obu stron
+            // DODANY WCZEŚNIEJ KOD: Dodaj wpisy do conversation_participants dla obu stron
             const { error: participantsError } = await supabase
                 .from('conversation_participants')
                 .insert([
