@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import './Navbar.css';
 import { supabase } from '../supabaseClient';
+import { useAuth } from '../AuthContext';
 
 export default function Navbar() {
   const location = useLocation();
@@ -9,6 +10,8 @@ export default function Navbar() {
   const [role, setRole] = useState(null);
   const [email, setEmail] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+ const { currentUser } = useAuth(); 
+  const [totalUnreadChats, setTotalUnreadChats] = useState(0);
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
@@ -47,6 +50,63 @@ export default function Navbar() {
   useEffect(() => {
     console.log('👀 Aktualna rola w stanie Reacta:', role);
   }, [role]);
+useEffect(() => {
+  let channel;
+
+  const fetchTotalUnreadChats = async () => {
+    if (!currentUser) {
+      setTotalUnreadChats(0);
+      return;
+    }
+
+    try {
+      // Pobierz sumę wszystkich nieprzeczytanych wiadomości dla zalogowanego użytkownika
+      const { data, error } = await supabase
+        .from('conversation_participants')
+        .select('unread_messages_count')
+        .eq('user_id', currentUser.id); // Filtrujemy po ID zalogowanego użytkownika
+
+      if (error) {
+        console.error('Błąd pobierania licznika nieprzeczytanych wiadomości z Navbar:', error.message);
+        setTotalUnreadChats(0);
+        return;
+      }
+
+      if (data) {
+        const total = data.reduce((sum, cp) => sum + cp.unread_messages_count, 0);
+        setTotalUnreadChats(total);
+      }
+    } catch (err) {
+      console.error('Ogólny błąd w fetchTotalUnreadChats:', err.message);
+      setTotalUnreadChats(0);
+    }
+  };
+
+  fetchTotalUnreadChats(); // Wywołaj przy montowaniu komponentu
+
+  // Subskrypcja Realtime na zmiany w conversation_participants
+  if (currentUser?.id) {
+      channel = supabase
+        .channel(`total_unread_chats_${currentUser.id}`) // Unikalna nazwa kanału dla użytkownika
+        .on('postgres_changes', {
+          event: 'UPDATE', // Interesują nas tylko aktualizacje
+          schema: 'public',
+          table: 'conversation_participants',
+          filter: `user_id=eq.${currentUser.id}` // Filtruj tylko dla aktualnego użytkownika
+        }, payload => {
+          console.log('Realtime unread count update received!', payload.new);
+          fetchTotalUnreadChats(); // Odśwież sumę po każdej zmianie
+        })
+        .subscribe();
+  }
+
+  // Cleanup function dla subskrypcji Realtime
+  return () => {
+    if (channel) {
+      supabase.removeChannel(channel);
+    }
+  };
+}, [currentUser]); 
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -100,8 +160,14 @@ export default function Navbar() {
             <>
               <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje Trasy</Link>
               <Link to="/moje-ogloszenia" className={isActive('/moje-ogloszenia')} onClick={closeMobileMenu}>Moje Ogłoszenia</Link>
-              <Link to="/moje-chaty" className={isActive('/moje-chaty')} onClick={closeMobileMenu}>Moje Chaty</Link> 
-
+<Link to="/moje-chaty" className={isActive('/moje-chaty')} onClick={closeMobileMenu}>
+  Moje Chaty
+  {totalUnreadChats > 0 && (
+    <span className="unread-badge-navbar">
+      {totalUnreadChats}
+    </span>
+  )}
+</Link>
               {email === 'lawetaolsztyn@gmail.com' && (
                 <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
               )}

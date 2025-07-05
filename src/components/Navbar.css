@@ -243,3 +243,15 @@
         border-color: transparent !important;
     }
 }
+/* W pliku Navbar.css */
+.unread-badge-navbar {
+  background-color: #dc3545; /* Czerwone tło */
+  color: white;
+  border-radius: 50%;
+  padding: 2px 7px;
+  font-size: 0.7em;
+  margin-left: 5px;
+  vertical-align: super;
+  line-height: 1; /* Zapewnia wyśrodkowanie tekstu */
+  display: inline-block; /* Aby padding i border-radius działały poprawnie */
+}
