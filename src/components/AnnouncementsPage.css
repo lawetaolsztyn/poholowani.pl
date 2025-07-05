@@ -11,7 +11,7 @@
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-    flex: 0 0 30%; /* ZMIANA: Szerokość 30% */
+    flex: 0 0 30%; /* Szerokość 30% */
     max-width: 350px; /* Opcjonalnie: Ustaw maksymalną szerokość, aby nie było za szeroko na bardzo dużych ekranach */
     background-color: #ffffff;
     padding: 20px;
@@ -145,23 +145,17 @@
     box-sizing: border-box;
 }
 
-/* ZMIANA TUTAJ: Styl dla pól zakresu - jedno pod drugim w pionie */
-.filter-group-range { /* Upewniamy się, że to jest używane w JSX */
+/* ZMIANA: Styl dla pól zakresu - teraz układane w kolumnie */
+.filter-group .range-inputs { 
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 15px;
-}
-
-.filter-group .range-inputs { /* Zachowujemy ten flex container dla inputów w JSX */
-    display: flex;
-    gap: 10px;
-    align-items: center;
+    flex-direction: column; /* Zmieniono na kolumnowy układ */
+    gap: 10px; /* Odstęp między inputami min/max */
     width: 100%;
+    /* Upewnij się, że .filter-group-range (jeśli używasz) nie koliduje */
 }
 
 .filter-input-range {
-    flex-grow: 1;
+    flex-grow: 1; /* Nadal wypełnia dostępną przestrzeń */
     padding: 10px 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -169,10 +163,11 @@
     box-sizing: border-box;
 }
 
-.filter-group .range-inputs span { /* Separator "-" */
+.filter-group .range-inputs span { /* Separator "-" - teraz może być nad/pod lub obok */
     font-weight: bold;
     color: #555;
-    flex-shrink: 0;
+    text-align: center; /* Wyśrodkuj separator jeśli w kolumnie */
+    margin: 5px 0; /* Dodaj margines pionowy do separatora */
 }
 
 /* NOWY STYL DLA SUWAKA */
@@ -240,7 +235,7 @@
     background-color: #5a6268;
 }
 
-/* === NOWE STYLE DLA PRZYCISKU FILTRA "ULUBIONE OGŁOSZENIA" (Gwiazdka) === */
+/* === STYLE DLA PRZYCISKU FILTRA "ULUBIONE OGŁOSZENIA" (Gwiazdka) === */
 .favorite-filter-button {
     background-color: #f0f0f0; /* Jasne tło */
     border: 1px solid #ccc; /* Delikatna ramka */
@@ -412,8 +407,8 @@
     font-size: 1.5em; /* Rozmiar ikony */
     padding: 5px;
     position: absolute; /* Pozycjonowanie absolutne względem .announcement-card-wide */
-    top: 10px;
-    right: 10px;
+    top: 35px; /* ZMIANA: Obniż serduszko */
+    right: 10px; /* ZMIANA: Przesuń trochę w prawo, z dala od daty */
     z-index: 10;
     color: gray; /* Domyślny kolor obrysu */
     transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
@@ -564,6 +559,7 @@
 
 .whatsapp-action-button {
     background-color: #25d366;
+    color: white;
 }
 .whatsapp-action-button:hover {
     background-color: #1DA851;
@@ -572,6 +568,7 @@
 
 .messenger-action-button {
     background-color: #007bff;
+    color: white;
 }
 .messenger-action-button:hover {
     background-color: #0056b3;
