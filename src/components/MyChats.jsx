@@ -82,43 +82,56 @@ export default function MyChats() {
   }, []);
 
   useEffect(() => {
-    fetchConversations();
+    fetchConversations(); // Wywołaj pobieranie konwersacji
 
-    // Subskrypcja Realtime na zmiany w konwersacjach i uczestnikach
-    const conversationChannel = supabase
-      .channel(`my_chats_updates_conv:${currentUser?.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'conversations',
-        filter: `or(client_id.eq.${currentUser?.id},carrier_id.eq.${currentUser?.id})`
-      }, payload => {
-        console.log('Realtime conversation update for conversations detected!', payload);
-        fetchConversations(); // Odśwież całą listę, gdy zmieni się konwersacja
-      })
-      .subscribe();
+    let conversationChannel;
+    let participantsChannel;
 
-    // Dodatkowa subskrypcja na conversation_participants dla szybkich aktualizacji licznika
-    // To jest kluczowe, aby MyChats natychmiast reagował na zmiany licznika
-    const participantsChannel = supabase
-      .channel(`my_chats_updates_part:${currentUser?.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE', // Tylko UPDATE, bo INSERT to początek, a DELETE to usunięcie czatu
-        schema: 'public',
-        table: 'conversation_participants',
-        filter: `user_id=eq.${currentUser?.id}`
-      }, payload => {
-        console.log('Realtime conversation participants update detected!', payload);
-        fetchConversations(); // Odśwież, gdy zmieni się licznik nieprzeczytanych
-      })
-      .subscribe();
+    // Inicjuj subskrypcje Realtime TYLKO, jeśli użytkownik jest zalogowany
+    if (currentUser && currentUser.id) { // <-- KLUCZOWA ZMIANA TUTAJ
+      console.log(`Subscribing to Realtime channels for user: ${currentUser.id}`);
 
+      conversationChannel = supabase
+        .channel(`my_chats_updates_conv:${currentUser.id}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+          filter: `or(client_id.eq.${currentUser.id},carrier_id.eq.${currentUser.id})`
+        }, payload => {
+          console.log('Realtime conversation update for conversations detected!', payload);
+          fetchConversations();
+        })
+        .subscribe();
+
+      participantsChannel = supabase
+        .channel(`my_chats_updates_part:${currentUser.id}`)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversation_participants',
+          filter: `user_id=eq.${currentUser.id}`
+        }, payload => {
+          console.log('Realtime conversation participants update detected!', payload);
+          fetchConversations();
+        })
+        .subscribe();
+    } else {
+      console.log("Not subscribing to Realtime channels: User not logged in or ID missing.");
+    }
 
     return () => {
-      supabase.removeChannel(conversationChannel);
-      supabase.removeChannel(participantsChannel); // Usuń oba kanały przy odmontowaniu
+      // Funkcja czyszcząca: odsubskrybuj kanały przy odmontowaniu komponentu
+      if (conversationChannel) {
+        console.log(`Unsubscribing conversation channel for user: ${currentUser?.id}`);
+        supabase.removeChannel(conversationChannel);
+      }
+      if (participantsChannel) {
+        console.log(`Unsubscribing participants channel for user: ${currentUser?.id}`);
+        supabase.removeChannel(participantsChannel);
+      }
     };
-  }, [currentUser, authLoading]);
+  }, [currentUser, authLoading]); // Zależności: currentUser i authLoading
 
 
   const handleOpenChat = (conversationId, announcementTitle) => {
