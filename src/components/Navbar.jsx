@@ -83,6 +83,7 @@ export default function Navbar() {
       {/* ZMIANA: Dodajemy klasę 'open' jeśli menu jest otwarte */}
       <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="nav-left">
+          {/* USUNIĘTO WSZYSTKIE <br /> - zawijanie będzie kontrolowane przez CSS */}
           <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>Strona Główna</Link>
           <Link to="/szukam" className={isActive('/szukam')} onClick={closeMobileMenu}>Szukam Transportu</Link>
           <Link to="/oferuje" className={isActive('/oferuje')} onClick={closeMobileMenu}>Oferuję Transport</Link>
@@ -97,7 +98,10 @@ export default function Navbar() {
 
           {email && (
             <>
-              <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje trasy</Link>
+              <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje Trasy</Link>
+              <Link to="/moje-ogloszenia" className={isActive('/moje-ogloszenia')} onClick={closeMobileMenu}>Moje Ogłoszenia</Link>
+              <Link to="/moje-chaty" className={isActive('/moje-chaty')} onClick={closeMobileMenu}>Moje Chaty</Link> 
+
               {email === 'lawetaolsztyn@gmail.com' && (
                 <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
               )}
@@ -150,3 +154,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
