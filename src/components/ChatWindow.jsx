@@ -80,17 +80,40 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
     fetchMessages();
     fetchParticipantsData(conversationId);
 
+    // --- DODANY KOD: Oznacz konwersację jako przeczytaną po załadowaniu ---
+    // Wywołanie funkcji RPC do zerowania licznika nieprzeczytanych wiadomości
+    const markConversationAsReadOnLoad = async () => {
+      if (currentUserId && conversationId) {
+        try {
+          const { error: rpcError } = await supabase.rpc('mark_conversation_as_read', {
+            p_conversation_id: conversationId,
+            p_user_id: currentUserId
+          });
+
+          if (rpcError) {
+            console.error('Błąd RPC mark_conversation_as_read:', rpcError.message);
+          } else {
+            console.log('Konwersacja oznaczona jako przeczytana dla użytkownika:', currentUserId);
+          }
+        } catch (err) {
+          console.error('Ogólny błąd podczas oznaczania jako przeczytane:', err.message);
+        }
+      }
+    };
+    markConversationAsReadOnLoad(); // Wywołaj tę funkcję od razu po załadowaniu czatu
+    // --- KONIEC DODANEGO KODU ---
+
 
     // ZMIANA: Sprawdź, czy kanał jest prawidłowo subskrybowany i czy zdarzenia są odbierane
     const channel = supabase
       .channel(`chat:${conversationId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
-        console.log('Realtime message received!', payload.new); // Dodaj to logowanie, aby sprawdzić, czy payload jest odbierany
+        console.log('Realtime message received!', payload.new);
         setMessages(prevMessages => [...prevMessages, payload.new]);
-        // Oznacz wiadomość jako przeczytaną, jeśli nie jest to wiadomość wysłana przez bieżącego użytkownika
-        if (payload.new.sender_id !== currentUserId) {
-            markMessageAsRead(payload.new.id);
-        }
+        // UWAGA: Funkcja markMessageAsRead została usunięta, bo logic jest w DB triggerze
+        // if (payload.new.sender_id !== currentUserId) {
+        //     markMessageAsRead(payload.new.id); // Ta linia została usunięta
+        // }
       })
       .subscribe();
 
@@ -103,21 +126,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const markMessageAsRead = async (messageId) => {
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('id', messageId)
-        .eq('is_read', false);
-
-      if (error) {
-        console.error('Błąd oznaczania wiadomości jako przeczytanej:', error.message);
-      }
-    } catch (err) {
-      console.error('Błąd oznaczania wiadomości jako przeczytanej:', err.message);
-    }
-  };
+  // Funkcja markMessageAsRead została usunięta z tego pliku
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -135,7 +144,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
         conversation_id: conversationId,
         sender_id: currentUserId, // Używamy currentUserId przekazanego jako prop
         content: newMessage.trim(),
-        is_read: false
+        // is_read: false // is_read nie jest już używane do licznika nieprzeczytanych
       };
 
       const workerResponse = await fetch('https://map-api-proxy.lawetaolsztyn.workers.dev/api/messages', {
