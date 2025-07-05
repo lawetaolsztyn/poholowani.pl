@@ -122,6 +122,22 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
             if (createError) throw createError;
             convId = newConv.id;
             console.log("New conversation created:", convId);
+const { error: participantsError } = await supabase
+        .from('conversation_participants')
+        .insert([
+            { conversation_id: convId, user_id: clientUserId, unread_messages_count: 0 },
+            { conversation_id: convId, user_id: carrierUserId, unread_messages_count: 0 }
+        ]);
+
+    if (participantsError) {
+        console.error('Błąd podczas tworzenia wpisów conversation_participants:', participantsError.message);
+        // Możesz zdecydować, czy rzucić błąd, czy pozwolić na kontynuowanie
+        // Jeśli rzucisz błąd, konwersacja może się nie otworzyć.
+        // Na razie pozwolimy na to, ale logujemy błąd.
+        throw participantsError; // Lepiej rzucić błąd, aby zapewnić spójność danych
+    }
+    console.log("Conversation participants created.");
+}
         }
 
         setActiveChatId(convId);
