@@ -34,6 +34,7 @@ import TransportNaJuz from './TransportNaJuz';
 import CarriersCatalog from './CarriersCatalog';
 import AnnouncementsPage from './components/AnnouncementsPage';
 import MojeOgloszenia from './components/MojeOgloszenia'; 
+import MyChats from './components/MyChats';
 
 
 
@@ -70,6 +71,9 @@ function App() {
           <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
         <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
             <Route path="/moje-ogloszenia" element={<MojeOgloszenia />} />
+              <Route path="/moje-chaty" element={<PrivateRoute><MyChats /></PrivateRoute>} /> 
+
+
 
 
 

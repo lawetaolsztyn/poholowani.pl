@@ -1,0 +1,166 @@
+/* src/components/MyChats.css */
+
+.my-chats-container {
+  padding: 20px;
+  max-width: 900px; /* Maksymalna szerokość dla listy chatów */
+  margin: 20px auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 500px; /* Minimalna wysokość, żeby strona nie była za krótka */
+}
+
+.my-chats-container h1 {
+  font-size: 2.5em; /* Powiększony nagłówek */
+  color: #333;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.conversations-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsywna siatka kart */
+  gap: 20px;
+}
+
+.conversation-card {
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.conversation-card:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.conversation-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.conversation-card h4 {
+  font-size: 1.2em;
+  color: #007bff;
+  margin: 0;
+  flex-grow: 1; /* Tytuł ogłoszenia zajmuje większość miejsca */
+}
+
+.conversation-card .unread-count {
+  background-color: #ff6600; /* Kolor dymka powiadomień */
+  color: white;
+  font-size: 0.8em;
+  font-weight: bold;
+  border-radius: 50%;
+  padding: 4px 8px;
+  min-width: 25px; /* Minimalna szerokość dla kropki */
+  text-align: center;
+  margin-left: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.conversation-card p {
+  font-size: 0.95em;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.conversation-card .last-message {
+  white-space: nowrap; /* Zapobiega zawijaniu podglądu wiadomości */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Dodaje kropki, jeśli za długa */
+  font-style: italic;
+  color: #666;
+}
+
+.conversation-card .message-time {
+  font-size: 0.8em;
+  color: #999;
+  text-align: right;
+  margin-top: 10px;
+  display: block;
+}
+
+/* Komunikaty ładowania/błędów/braku konwersacji */
+.my-chats-container p {
+  text-align: center;
+  font-size: 1.1em;
+  color: #666;
+  padding: 20px;
+}
+
+.my-chats-container .error-message {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Tryb ciemny */
+@media (prefers-color-scheme: dark) {
+  .my-chats-container {
+    background-color: #333;
+    color: #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .my-chats-container h1 {
+    color: #f0f0f0;
+  }
+  .conversations-list {
+    /* Utrzymuj ten sam układ siatki */
+  }
+  .conversation-card {
+    background-color: #444;
+    border-color: #555;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  .conversation-card:hover {
+    background-color: #555;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  }
+  .conversation-card h4 {
+    color: #6bb3ff;
+  }
+  .conversation-card .unread-count {
+    background-color: #e65100;
+  }
+  .conversation-card p {
+    color: #ccc;
+  }
+  .conversation-card .last-message {
+    color: #aaa;
+  }
+  .conversation-card .message-time {
+    color: #aaa;
+  }
+  .my-chats-container p {
+    color: #aaa;
+  }
+  .my-chats-container .error-message {
+    color: #ff6b6b;
+  }
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 768px) {
+  .my-chats-container {
+    padding: 15px;
+    margin: 10px auto;
+  }
+  .my-chats-container h1 {
+    font-size: 2em;
+  }
+  .conversations-list {
+    grid-template-columns: 1fr; /* Jedna kolumna na mobilnym */
+  }
+  .conversation-card {
+    padding: 12px;
+  }
+}
