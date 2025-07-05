@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient'; // Upewnij się, że masz ten impo
 import { useNavigate } from 'react-router-dom'; // Jeśli będziesz potrzebować do np. edycji
 
 import './MojeOgloszenia.css'; // Ten plik CSS już stworzyliśmy
-// import Navbar from './Navbar'; // Usunięty import, bo Navbar jest renderowany w main.jsx
+import Navbar from './Navbar'; 
 
 export default function MojeOgloszenia() {
   const [myAnnouncements, setMyAnnouncements] = useState([]);
@@ -91,6 +91,8 @@ export default function MojeOgloszenia() {
   }
 
   return (
+<>
+      <Navbar />
     <div className="moje-ogloszenia-container">
       <h1>Moje Ogłoszenia</h1>
       {myAnnouncements.length === 0 ? (
@@ -129,5 +131,6 @@ export default function MojeOgloszenia() {
         </div>
       )}
     </div>
+</>
   );
 }
