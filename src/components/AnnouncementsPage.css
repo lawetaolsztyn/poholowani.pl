@@ -1,24 +1,32 @@
 /* src/components/AnnouncementsPage.css */
 
+/* Definicja zmiennej CSS dla odstępu między kolumnami */
+:root {
+    --announcements-gap: 30px;
+}
+
 /* Ogólny kontener strony tablicy ogłoszeń */
 .announcements-page-container {
     display: flex;
-    gap: 30px; /* Odstęp między kolumnami */
+    gap: var(--announcements-gap); /* Użycie zmiennej */
     padding: 30px;
-    max-width: 1200px; /* Maksymalna szerokość kontenera */
-    margin: 0 auto; /* Wyśrodkowanie */
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-    flex: 0 0 30%; /* Szerokość 30% */
-    max-width: 350px; /* Opcjonalnie: Ustaw maksymalną szerokość, aby nie było za szeroko na bardzo dużych ekranach */
+    /* ZMIANA: Użycie calc() dla precyzyjnej szerokości z uwzględnieniem gapu */
+    width: calc(30% - (var(--announcements-gap) / 2)); 
+    min-width: 280px; /* Aby nie było za wąsko na małych ekranach */
+    max-width: 350px; /* Aby nie było za szeroko na bardzo dużych ekranach */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
+    flex-shrink: 0; /* Zapobiega kurczeniu się poniżej min-width */
 }
 
 /* Nagłówek dla formularza dodawania ogłoszenia */
@@ -32,11 +40,13 @@
 
 /* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
-    flex: 1; /* ZAJMIE RESZTĘ DOSTĘPNEGO MIEJSCA, co przy 30% lewej kolumny da efektywnie ~70% */
+    /* ZMIANA: Użycie calc() dla precyzyjnej szerokości z uwzględnieniem gapu */
+    width: calc(70% - (var(--announcements-gap) / 2));
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    flex-grow: 1; /* Nadal pozwalamy na rozciąganie */
 }
 
 /* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
@@ -136,14 +146,12 @@
     color: #555;
 }
 
-/* ZMIANA: Styl dla etykiet "Skąd" i "Dokąd" - tylko tekst "Opcjonalnie" jest lżejszy */
+/* Styl dla tekstu "Opcjonalnie" */
 .filter-group label .optional-text {
     font-weight: normal; /* Lżejsza czcionka dla "Opcjonalnie" */
     color: #888; /* Szary kolor dla "Opcjonalnie" */
     margin-left: 5px; /* Mały odstęp od głównej etykiety */
 }
-
-/* Pozostałe etykiety, które powinny być boldem, np. Promień, Słowo kluczowe, Budżet, Waga, pozostają boldem przez domyślne .filter-group label */
 
 
 .filter-input {
@@ -155,7 +163,7 @@
     box-sizing: border-box;
 }
 
-/* ZMIANA: Styl dla pól zakresu - teraz układane w kolumnie */
+/* Styl dla pól zakresu - teraz układane w kolumnie */
 .filter-group .range-inputs { 
     display: flex;
     flex-direction: column; /* Zmieniono na kolumnowy układ */
@@ -173,7 +181,7 @@
 }
 
 .filter-group .range-inputs span { /* Separator "-" - TERAZ USUNIĘTY Z WIDOKU */
-    display: none; /* KLUCZOWA ZMIANA: Ukrycie myślnika */
+    display: none; /* Ukrycie myślnika */
 }
 
 /* NOWY STYL DLA SUWAKA */
@@ -268,9 +276,9 @@
 }
 
 .favorite-filter-button.active {
-    background-color: #dc3545; /* ZMIANA: CZERWONE tło dla aktywnego stanu (jak serduszko) */
-    border-color: #c82333; /* ZMIANA: Ciemniejsza czerwona ramka */
-    color: white; /* ZMIANA: Biały tekst dla kontrastu */
+    background-color: #dc3545; /* CZERWONE tło dla aktywnego stanu (jak serduszko) */
+    border-color: #c82333; /* Ciemniejsza czerwona ramka */
+    color: white; /* Biały tekst dla kontrastu */
     font-weight: bolder; /* Jeszcze bardziej wyrazista czcionka dla aktywnego */
 }
 
