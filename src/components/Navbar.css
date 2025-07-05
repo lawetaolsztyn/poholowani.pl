@@ -26,15 +26,20 @@
   text-align: center; /* Zapewnia wyśrodkowanie tekstu */
   line-height: 1.2; /* Dostosuj wysokość linii */
   
-  /* ZMIENIONO TUTAJ - Zwiększony padding i min-height dla lepszego wyglądu dwuwierszowego tekstu */
-  padding: 0.5rem 0.7rem; /* Zwiększony pionowy padding */
-  min-height: 55px; /* Zwiększona minimalna wysokość, aby pomieścić dwie linie z paddingiem */
+  /* ZMIANY TUTAJ - Precyzyjniejsze dopasowanie paddingu i min-height */
+  padding: 0.4rem 0.6rem; /* Lekko zmniejszony padding, aby skrócić wysokość elementu */
+  min-height: 50px; /* Nieco zmniejszona minimalna wysokość. Przetestuj, jeśli tekst będzie obcinany! */
+  font-size: 0.95em; /* Delikatne zmniejszenie czcionki - eksperymentalnie */
   
   white-space: normal; /* Pozwalamy na zawijanie tekstu */
   word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
   
-  /* ZMIENIONO TUTAJ - Dostosuj tę szerokość, aby tekst ładnie się zawijał, np. 80-120px */
-  max-width: 90px; /* Przykład: Ustaw maksymalną szerokość dla linku. Będziesz musiał dostosować! */
+  /* ZMIANY TUTAJ - Kluczowe: Zwiększ max-width, aby tekst mieścił się w 2 liniach. Będziesz musiał dostosować! */
+  /* Zacznij od 95px i zwiększaj/zmniejszaj w zależności od potrzeb */
+  max-width: 125px; /* PRZYKŁADOWA WARTOŚĆ! Musisz dostosować tę wartość w zależności od najdłuższego tekstu! */
+
+  /* Eksperymentalna właściwość dla lepszego zawijania, wsparcie przeglądarek może być ograniczone */
+  /* text-wrap: balance; */
 }
 
 .navbar a:hover {
@@ -141,6 +146,7 @@
     overflow: hidden; /* Ukryj nadmiar tekstu, jeśli się nie mieści w 1 linii */
     text-overflow: ellipsis; /* Dodaj trzy kropki, jeśli tekst się nie mieści */
     max-width: none; /* Resetujemy max-width, aby mógł się rozciągnąć */
+    font-size: 1em; /* Resetuj font-size dla mobilnego, jeśli był zmieniony wyżej */
   }
 }
 
@@ -151,7 +157,9 @@
                  0 0 10px rgba(255, 255, 255, 0.7);
     background-color: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid #FFA500 !important;
-    padding: 0.5rem 1rem !important; /* Zwiększony padding, żeby pomieścić tekst */
+    
+    /* ZMIANY TUTAJ - Precyzyjniejsze dopasowanie paddingu i min-height dla tego linku */
+    padding: 0.5rem 1rem !important; /* Pozostawiamy ten padding, bo wyglądał ok na screenie */
     border-radius: 5px !important;
     transition: all 0.3s ease;
     /* Style dla zawijania tekstu w tym konkretnym linku */
@@ -161,11 +169,13 @@
     align-items: center;
     text-align: center;
     line-height: 1.2;
-    min-height: 55px; /* Zwiększona min-height */
+    min-height: 55px; /* Zwiększona min-height, aby pomieścić 2 linie z paddingiem */
     white-space: normal; /* Pozwalamy na zawijanie tekstu */
     word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
-    /* ZMIENIONO TUTAJ - Dostosuj tę szerokość dla tego linku, np. 90-130px */
-    max-width: 100px; /* Będziesz musiał dostosować! */
+    
+    /* ZMIANY TUTAJ - Kluczowe: Zwiększ max-width. Będziesz musiał dostosować! */
+    /* Zacznij od 105px i zwiększaj/zmniejszaj w zależności od potrzeb */
+    max-width: 105px; /* PRZYKŁADOWA WARTOŚĆ! Musisz dostosować tę wartość! */
 }
 
 .transport-na-juz-link:hover {
@@ -214,7 +224,7 @@
     .transport-na-juz-link {
         color: #FFBB33 !important; /* Jaśniejszy pomarańcz dla dark mode */
         border-color: #FFBB33 !important;
-        background-color: rgba(255, 55, 255, 0.08) !important; /* Lekko widoczne tło */
+        background-color: rgba(255, 255, 255, 0.08) !important; /* Lekko widoczne tło */
         text-shadow: 0 0 5px rgba(0, 0, 0, 0.7),
                      0 0 10px rgba(255, 255, 255, 0.3);
     }
