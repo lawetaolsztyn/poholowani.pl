@@ -822,7 +822,7 @@
 }
 
 .pagination-button.active {
-    background-color: #ff6600; /* Aktywna strona ma inny kolor */
+    background-color: #ff6600; /* Aktywna strona maa inny kolor */
     transform: scale(1.1);
 }
 
