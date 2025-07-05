@@ -16,8 +16,10 @@
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-    /* Upewnij się, że flex-shrink: 0; jest tutaj */
-    flex: 0 0 calc(30% - (var(--announcements-gap) / 2)); 
+    /* Upewnij się, że flex-basis jest tutaj */
+    flex-basis: calc(30% - (var(--announcements-gap) / 2)); 
+    flex-grow: 0; /* Nie rozciągaj się */
+    flex-shrink: 0; /* Nie kurcz się */
     min-width: 280px; /* Aby nie było za wąsko na małych ekranach */
     max-width: 350px; /* Aby nie było za szeroko na bardzo dużych ekranach */
     background-color: #ffffff;
@@ -26,7 +28,6 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    flex-shrink: 0; /* WAŻNE: Zapobiega kurczeniu się poniżej min-width */
 }
 
 /* Nagłówek dla formularza dodawania ogłoszenia */
@@ -40,16 +41,17 @@
 
 /* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
-    /* ZMIANA: Dodano flex-shrink: 0; i minimalną szerokość */
-    flex: 1; /* Nadal pozwala na rozciąganie */
-    width: calc(70% - (var(--announcements-gap) / 2));
-    min-width: 600px; /* Dodaj minimalną szerokość dla prawej kolumny (np. 600px) */
+    /* ZMIANA: flex-basis jako główna kontrola szerokości, flex-grow/shrink: 0 */
+    flex-basis: calc(70% - (var(--announcements-gap) / 2));
+    flex-grow: 0; /* Nie rozciągaj się ponad flex-basis */
+    flex-shrink: 0; /* Nie kurcz się poniżej flex-basis */
+    min-width: 600px; /* Dodaj minimalną szerokość dla prawej kolumny */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    flex-grow: 1; 
-    flex-shrink: 0; /* WAŻNE: Zapobiega kurczeniu się tej kolumny */
+    display: flex; /* Zapewnij, że to jest flex container dla zawartości */
+    flex-direction: column; /* Układ zawartości w kolumnie */
 }
 
 /* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
@@ -265,7 +267,7 @@
     display: flex; /* Aby ikona i tekst były w jednej linii */
     align-items: center; /* Wyśrodkowanie pionowe */
     justify-content: center; /* Wyśrodkowanie poziome */
-    gap: 8px; /* Odstęp między ikoną a tekstem */
+    gap: 8px; /* Odstęp między ikoną a teksem */
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
     white-space: nowrap; /* Zapobiega zawijaniu tekstu */
     width: 100%; /* Rozciągnij na całą szerokość lewej kolumny */
@@ -542,6 +544,7 @@
 }
 .messenger-button:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
 }
 
 /* NOWE STYLE DLA PRZYCISKÓW AKCJI (WhatsApp, Messenger, Zadaj pytanie) W WIDOKU SZCZEGÓŁÓW */
@@ -586,7 +589,7 @@
     background-color: #007bff;
     color: white;
 }
-.messenger-action-action:hover {
+.messenger-action-button:hover {
     background-color: #0056b3;
     transform: translateY(-2px);
 }
@@ -671,7 +674,7 @@
     .filter-input::placeholder, .filter-input-range::placeholder {
         color: #999;
     }
-    .filter-group .range-inputs span { /* Zmieniono z filter-group-range na filter-group */
+    .filter-group .range-inputs span {
         color: #ccc;
     }
     .filter-button {
@@ -887,7 +890,6 @@
         font-size: 1em;
     }
     .action-button i {
-
         font-size: 1em;
         margin-right: 5px;
     }
