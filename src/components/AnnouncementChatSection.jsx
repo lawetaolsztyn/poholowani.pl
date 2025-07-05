@@ -88,6 +88,8 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
     const clientUserId = announcement.user_id;
     const carrierUserId = currentUserId; // Ten, kto klika "Zadaj pytanie", jest carrierem
 
+    let convId; // Deklarujemy convId na zewnątrz bloku try/catch
+
     try {
         const { data: existing, error: findError } = await supabase
             .from('conversations')
@@ -96,9 +98,7 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
             .or(`and(client_id.eq.${clientUserId},carrier_id.eq.${carrierUserId}),and(client_id.eq.${carrierUserId},carrier_id.eq.${clientUserId})`)
             .single();
 
-        let convId;
-
-        if (findError && findError.code !== 'PGRST116') {
+        if (findError && findError.code !== 'PGRST116') { // PGRST116 oznacza "nie znaleziono wierszy"
             throw findError;
         }
 
@@ -122,29 +122,29 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
             if (createError) throw createError;
             convId = newConv.id;
             console.log("New conversation created:", convId);
-const { error: participantsError } = await supabase
-        .from('conversation_participants')
-        .insert([
-            { conversation_id: convId, user_id: clientUserId, unread_messages_count: 0 },
-            { conversation_id: convId, user_id: carrierUserId, unread_messages_count: 0 }
-        ]);
 
-    if (participantsError) {
-        console.error('Błąd podczas tworzenia wpisów conversation_participants:', participantsError.message);
-        // Możesz zdecydować, czy rzucić błąd, czy pozwolić na kontynuowanie
-        // Jeśli rzucisz błąd, konwersacja może się nie otworzyć.
-        // Na razie pozwolimy na to, ale logujemy błąd.
-        throw participantsError; // Lepiej rzucić błąd, aby zapewnić spójność danych
-    }
-    console.log("Conversation participants created.");
-}
+            // DODANY KOD: Dodaj wpisy do conversation_participants dla obu stron
+            const { error: participantsError } = await supabase
+                .from('conversation_participants')
+                .insert([
+                    { conversation_id: convId, user_id: clientUserId, unread_messages_count: 0 },
+                    { conversation_id: convId, user_id: carrierUserId, unread_messages_count: 0 }
+                ]);
+
+            if (participantsError) {
+                console.error('Błąd podczas tworzenia wpisów conversation_participants:', participantsError.message);
+                throw participantsError; // Rzucamy błąd, aby zapewnić spójność danych
+            }
+            console.log("Conversation participants created.");
         }
-
-        setActiveChatId(convId);
     } catch (err) {
         console.error("Error managing conversation:", err.message);
         alert(`Błąd podczas zarządzania konwersacją: ${err.message}`);
+        return; // Ważne: zakończ funkcję w przypadku błędu
     }
+
+    // TA LINIA MUSI BYĆ TUTAJ, PO CAŁYM BLOKU TRY/CATCH, aby convId było już zdefiniowane
+    setActiveChatId(convId);
   };
 
 
@@ -223,7 +223,7 @@ const { error: participantsError } = await supabase
             conversationId={activeChatId || existingConvForThisCarrier?.id}
             currentUserId={currentUserId}
             userJwt={userJwt}
-            onClose={() => setActiveChatId(null)} // W sumie przewoźnik nie zamyka sekcji, ale resetuje widok
+            onClose={() => setActiveChatId(null)}
           />
         ) : (
           // Przycisk "Zadaj pytanie" dla przewoźnika, jeśli nie ma jeszcze konwersacji
