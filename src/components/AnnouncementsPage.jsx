@@ -27,6 +27,20 @@ export default function AnnouncementsPage() {
 
   // NOWE: Pobieramy currentUser, userRole i authLoading z AuthContext
   const { currentUser, userRole, loading: authLoading } = useAuth();
+const [userJwt, setUserJwt] = useState('');
+
+useEffect(() => {
+  const fetchJwt = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error("Błąd pobierania JWT:", error.message);
+    } else {
+      setUserJwt(data?.session?.access_token || '');
+    }
+  };
+
+  fetchJwt();
+}, []);
 
   // Stany dla chatu już nie są zarządzane w AnnouncementsPage
   // const [showChatModal, setShowChatModal] = useState(false);
@@ -463,11 +477,11 @@ export default function AnnouncementsPage() {
               
               {/* Tutaj przeniesiemy logikę chatu do AnnouncementChatSection */}
               <AnnouncementChatSection
-                announcement={selectedAnnouncement}
-                currentUserId={currentUser?.id} // Zmieniono z 'user?.id' na 'currentUser?.id'
-                userJwt={currentUser?.jwt || ''} // Usunięto userJwt (nie jest dostępne z useAuth bezpośrednio), użyj tokenu sesji z supabaseClient
-                onAskQuestionRedirect={handleAskQuestionRedirect}
-              />
+  announcement={selectedAnnouncement}
+  currentUserId={currentUser?.id}
+  userJwt={userJwt}
+  onAskQuestionRedirect={handleAskQuestionRedirect}
+/>
 
             </div>
           ) : (
