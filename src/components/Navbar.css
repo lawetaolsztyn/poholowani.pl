@@ -25,12 +25,16 @@
   align-items: center; /* Wyśrodkowanie poziome */
   text-align: center; /* Zapewnia wyśrodkowanie tekstu */
   line-height: 1.2; /* Dostosuj wysokość linii */
-  padding: 0.3rem 0.7rem; /* Lekko zmniejszony padding pionowy */
-  min-height: 45px; /* Minimalna wysokość linku, aby pomieścić dwie linie */
-  white-space: normal; /* Pozwól tekstowi zawijać się automatycznie */
+  
+  /* ZMIENIONO TUTAJ - Zwiększony padding i min-height dla lepszego wyglądu dwuwierszowego tekstu */
+  padding: 0.5rem 0.7rem; /* Zwiększony pionowy padding */
+  min-height: 55px; /* Zwiększona minimalna wysokość, aby pomieścić dwie linie z paddingiem */
+  
+  white-space: normal; /* Pozwalamy na zawijanie tekstu */
   word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
-  /* Dodajemy max-width aby wymusić zawijanie w pewnym momencie */
-  max-width: 100px; /* Przykład: Ustaw maksymalną szerokość dla linku, aby wymusić zawijanie */
+  
+  /* ZMIENIONO TUTAJ - Dostosuj tę szerokość, aby tekst ładnie się zawijał, np. 80-120px */
+  max-width: 90px; /* Przykład: Ustaw maksymalną szerokość dla linku. Będziesz musiał dostosować! */
 }
 
 .navbar a:hover {
@@ -138,31 +142,6 @@
     text-overflow: ellipsis; /* Dodaj trzy kropki, jeśli tekst się nie mieści */
     max-width: none; /* Resetujemy max-width, aby mógł się rozciągnąć */
   }
-  
-  /* Usuwamy tę regułę, bo <br /> nie ma w JSX */
-  /* .navbar a br {
-      display: none;
-  } */
-
-
-  .nav-right {
-    margin-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    padding-top: 1rem;
-  }
-
-  .nav-right button {
-    width: 90%;
-    margin-left: 0;
-    margin-top: 0.5rem;
-  }
-
-  .nav-right span {
-    margin-right: 0;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    width: 100%;
-  }
 }
 
 .transport-na-juz-link {
@@ -172,7 +151,7 @@
                  0 0 10px rgba(255, 255, 255, 0.7);
     background-color: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid #FFA500 !important;
-    padding: 0.5rem 1rem !important;
+    padding: 0.5rem 1rem !important; /* Zwiększony padding, żeby pomieścić tekst */
     border-radius: 5px !important;
     transition: all 0.3s ease;
     /* Style dla zawijania tekstu w tym konkretnym linku */
@@ -182,10 +161,11 @@
     align-items: center;
     text-align: center;
     line-height: 1.2;
-    min-height: 45px;
+    min-height: 55px; /* Zwiększona min-height */
     white-space: normal; /* Pozwalamy na zawijanie tekstu */
     word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
-    max-width: 100px; /* Dodatkowa kontrola szerokości dla tego specyficznego linku */
+    /* ZMIENIONO TUTAJ - Dostosuj tę szerokość dla tego linku, np. 90-130px */
+    max-width: 100px; /* Będziesz musiał dostosować! */
 }
 
 .transport-na-juz-link:hover {
@@ -234,7 +214,7 @@
     .transport-na-juz-link {
         color: #FFBB33 !important; /* Jaśniejszy pomarańcz dla dark mode */
         border-color: #FFBB33 !important;
-        background-color: rgba(255, 255, 255, 0.08) !important; /* Lekko widoczne tło */
+        background-color: rgba(255, 55, 255, 0.08) !important; /* Lekko widoczne tło */
         text-shadow: 0 0 5px rgba(0, 0, 0, 0.7),
                      0 0 10px rgba(255, 255, 255, 0.3);
     }
