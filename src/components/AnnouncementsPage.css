@@ -8,10 +8,11 @@
 /* Ogólny kontener strony tablicy ogłoszeń */
 .announcements-page-container {
     display: flex;
-    gap: var(--announcements-gap); /* Użycie zmiennej */
+    gap: var(--announcements-gap);
     padding: 30px;
-    max-width: 1200px; /* Maksymalna szerokość kontenera */
-    margin: 0 auto; /* Wyśrodkowanie */
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: nowrap; /* WAŻNA ZMIANA: Zapobiega zawijaniu się kolumn */
 }
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
@@ -21,6 +22,7 @@
     flex-shrink: 0; 
     min-width: 280px; 
     max-width: 350px; 
+    width: 0; /* ZMIANA: Ustawienie width na 0 dla lepszej kontroli flex-basis */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
@@ -43,7 +45,8 @@
     flex-basis: calc(70% - (var(--announcements-gap) / 2));
     flex-grow: 0; 
     flex-shrink: 0; 
-    min-width: 600px; /* Dodaj minimalną szerokość dla prawej kolumny, aby ogłoszenia nie były za wąskie */
+    min-width: 65%; /* ZMIANA: Agresywny min-width, aby kolumna się nie kurczyła */
+    width: 0; /* ZMIANA: Ustawienie width na 0 dla lepszej kontroli flex-basis */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
@@ -145,7 +148,7 @@
 .filter-group label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold; /* DOMYŚLNIE POGRUBIONY */
+    font-weight: bold; 
     color: #555;
 }
 
@@ -316,7 +319,7 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out;
-    width: 100%; /* Karta zajmuje całą szerokość kolumny */
+    width: 100%; 
     position: relative; 
     overflow: hidden; 
 }
