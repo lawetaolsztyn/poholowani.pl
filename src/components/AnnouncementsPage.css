@@ -851,6 +851,11 @@
     .pagination-button.active:hover {
         background-color: #c84400;
     }
+.announcements-grid.single-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 }
 
 /* Responsywność dla mniejszych ekranów */
@@ -888,4 +893,10 @@
         font-size: 1em;
         margin-right: 5px;
     }
+
+.announcements-grid.single-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 }

@@ -641,7 +641,7 @@ export default function AnnouncementsPage() {
               ) : !loadingAnnouncements && announcements.length === 0 ? (
                 <p className="no-announcements-message">Brak aktualnych ogłoszeń. Bądź pierwszy!</p>
               ) : (
-                <div className="announcements-grid"> {/* Zmieniono z announcements-list-single-column na grid */}
+<div className={`announcements-grid ${showOnlyFavorites ? 'single-column' : ''}`}>
                   {announcements.map((announcement) => (
                     <div key={announcement.id} className="announcement-card-wide"> {/* Zmieniono z announcement-card-wide na inną klasę dla grida? Sprawdź CSS! */}
                       {/* Przycisk ulubionych (serduszko) */}
