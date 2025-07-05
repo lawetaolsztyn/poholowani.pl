@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext'; // Potrzebne do pobrania ID użytkownika
-import Navbar from './Navbar'; // Nadal dodajemy Navbar zgodnie z Twoimi preferencjami
 import Footer from './Footer'; // Dodaj też Footer, bo to będzie osobna strona
 import Modal from './Modal'; // Będziemy używać Modala do wyświetlania ChatWindow
 import ChatWindow from './ChatWindow'; // Komponent okna czatu
+import Navbar from './Navbar'; // Nadal dodajemy Navbar zgodnie z Twoimi preferencjami
 
 
 import './MyChats.css'; // Plik CSS dla tego komponentu
