@@ -4,7 +4,9 @@ import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
 import './MojeOgloszenia.css';
-import Navbar from './Navbar'; // Nadal tu jest, jak sobie życzysz
+import Navbar from './Navbar'; // Zostaje
+import Modal from './Modal'; // <--- IMPORTUJEMY MODAL
+import AnnouncementForm from './AnnouncementForm'; // <--- IMPORTUJEMY AnnouncementForm
 
 export default function MojeOgloszenia() {
   const [myAnnouncements, setMyAnnouncements] = useState([]);
@@ -12,41 +14,45 @@ export default function MojeOgloszenia() {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
 
+  const [showEditModal, setShowEditModal] = useState(false); // NOWY STAN: do kontroli widoczności modala edycji
+  const [currentAnnouncementToEdit, setCurrentAnnouncementToEdit] = useState(null); // NOWY STAN: przechowuje ogłoszenie do edycji
+
   const navigate = useNavigate();
 
+  // Przenieś to do globalnej funkcji, jeśli jest duplikowane, ale na razie zostawmy tu
+  const fetchUserAndAnnouncements = async () => {
+    setLoading(true);
+    setError(null);
+    
+    const { data: { user } = {} } = await supabase.auth.getUser(); // Dodano domyślną pustą dekonstrukcję
+    setUser(user);
+
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setMyAnnouncements(data);
+    } catch (err) {
+      console.error("Błąd ładowania moich ogłoszeń:", err.message);
+      setError("Nie udało się załadować Twoich ogłoszeń: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUserAndAnnouncements = async () => {
-      setLoading(true);
-      setError(null);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('announcements')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setMyAnnouncements(data);
-      } catch (err) {
-        console.error("Błąd ładowania moich ogłoszeń:", err.message);
-        setError("Nie udało się załadować Twoich ogłoszeń: " + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserAndAnnouncements();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -59,7 +65,7 @@ export default function MojeOgloszenia() {
 
   }, []);
 
-  // FUNKCJA OBSŁUGUJĄCA USUNIĘCIE OGŁOSZENIA
+  // FUNKCJA OBSŁUGUJĄCA USUNIĘCIE OGŁOSZENIA (bez zmian)
   const handleDeleteAnnouncement = async (announcementId) => {
     if (!user) {
       alert('Musisz być zalogowany, aby usunąć ogłoszenie.');
@@ -67,19 +73,18 @@ export default function MojeOgloszenia() {
     }
 
     if (window.confirm('Czy na pewno chcesz usunąć to ogłoszenie? Tej operacji nie można cofnąć!')) {
-      setLoading(true); // Aktywuj ładowanie na czas operacji
+      setLoading(true);
       try {
         const { error } = await supabase
           .from('announcements')
           .delete()
           .eq('id', announcementId)
-          .eq('user_id', user.id); // Dodatkowe zabezpieczenie: upewnij się, że użytkownik jest właścicielem
+          .eq('user_id', user.id);
 
         if (error) {
           throw error;
         }
 
-        // Jeśli usunięcie powiodło się, odśwież listę ogłoszeń
         setMyAnnouncements(prevAnnouncements => prevAnnouncements.filter(ann => ann.id !== announcementId));
         alert('Ogłoszenie zostało pomyślnie usunięte.');
 
@@ -92,14 +97,17 @@ export default function MojeOgloszenia() {
     }
   };
 
-  // FUNKCJA OBSŁUGUJĄCA EDYCJĘ OGŁOSZENIA
-  // Na razie to będzie proste przekierowanie, rozbudujesz to później
-  const handleEditAnnouncement = (announcementId) => {
-    alert(`Funkcja edycji dla ogłoszenia o ID: ${announcementId}. W przyszłości tu będzie przekierowanie do formularza edycji.`);
-    // Przykład przekierowania do formularza edycji z ID ogłoszenia
-    // navigate(`/edycja-ogloszenia/${announcementId}`);
-    // Będziesz musiał/a stworzyć trasę /edycja-ogloszenia/:id w main.jsx
-    // i komponent EdycjaOgloszenia.jsx
+  // FUNKCJA OBSŁUGUJĄCA EDYCJĘ OGŁOSZENIA - otwiera modal z formularzem
+  const handleEditAnnouncement = (announcement) => {
+    setCurrentAnnouncementToEdit(announcement); // Ustawia ogłoszenie do edycji
+    setShowEditModal(true); // Otwiera modal
+  };
+
+  // Funkcja wywoływana po udanej edycji/dodaniu ogłoszenia
+  const handleAnnouncementFormSuccess = () => {
+    setShowEditModal(false); // Zamknij modal
+    setCurrentAnnouncementToEdit(null); // Wyczyść ogłoszenie do edycji
+    fetchUserAndAnnouncements(); // Odśwież listę ogłoszeń
   };
 
 
@@ -133,7 +141,7 @@ export default function MojeOgloszenia() {
 
   return (
     <>
-      <Navbar /> {/* Zostaje zgodnie z Twoimi preferencjami */}
+      <Navbar />
       <div className="moje-ogloszenia-container">
         <h1>Moje Ogłoszenia</h1>
         {myAnnouncements.length === 0 ? (
@@ -164,7 +172,7 @@ export default function MojeOgloszenia() {
                 
                 {/* Przyciski Edytuj i Usuń - dodano onClick */}
                 <div className="my-announcement-actions">
-                  <button className="action-button edit-button" onClick={() => handleEditAnnouncement(announcement.id)}>Edytuj</button>
+                  <button className="action-button edit-button" onClick={() => handleEditAnnouncement(announcement)}>Edytuj</button>
                   <button className="action-button delete-button" onClick={() => handleDeleteAnnouncement(announcement.id)}>Usuń</button>
                 </div>
               </div>
@@ -172,6 +180,20 @@ export default function MojeOgloszenia() {
           </div>
         )}
       </div>
+
+      {/* MODAL EDYCJI OGŁOSZENIA */}
+      <Modal 
+        isOpen={showEditModal} 
+        onClose={() => setShowEditModal(false)} 
+        title={currentAnnouncementToEdit ? 'Edytuj Ogłoszenie' : 'Dodaj Nowe Ogłoszenie'}
+      >
+        {currentAnnouncementToEdit && ( // Renderuj formularz tylko jeśli jest ogłoszenie do edycji
+          <AnnouncementForm 
+            onSuccess={handleAnnouncementFormSuccess} 
+            announcementToEdit={currentAnnouncementToEdit} 
+          />
+        )}
+      </Modal>
     </>
   );
 }
