@@ -24,6 +24,9 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
+  // NOWY STAN: Czy użytkownik chce usunąć istniejące zdjęcie
+  const [shouldRemoveImage, setShouldRemoveImage] = useState(false); 
+
   // useEffect do pobierania danych profilu użytkownika i autopodstawiania (bez zmian)
   useEffect(() => {
     const fetchUserProfileData = async () => {
@@ -49,15 +52,13 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
     fetchUserProfileData();
   }, []);
 
-  // NOWY useEffect do ładowania danych ogłoszenia do edycji
+  // useEffect do ładowania danych ogłoszenia do edycji
   useEffect(() => {
-    console.log("AnnouncementForm useEffect - announcementToEdit:", announcementToEdit); // Dodane logowanie
+    console.log("AnnouncementForm useEffect - announcementToEdit:", announcementToEdit); 
     if (announcementToEdit) {
       setTitle(announcementToEdit.title || '');
-      setDescription(announcementToEdit.description || '');
+      setDescription(announcementToedit.description || '');
       
-      // ZMIANA: Sprawdź, czy location_from_coords i location_to_coords istnieją w obiekcie announcementToEdit
-      // Sprawdzamy też, czy są typu array i mają odpowiednią długość
       const fromCoords = announcementToEdit.location_from_lng && announcementToEdit.location_from_lat
                          ? [announcementToEdit.location_from_lng, announcementToEdit.location_from_lat]
                          : null;
@@ -79,24 +80,13 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
       });
       
       setItemToTransport(announcementToEdit.item_to_transport || '');
-      // Upewniamy się, że liczby są konwertowane na stringi dla inputów
       setWeightKg(announcementToEdit.weight_kg !== null ? String(announcementToEdit.weight_kg) : '');
       setBudgetPln(announcementToEdit.budget_pln !== null ? String(announcementToEdit.budget_pln) : '');
       
-      // Uwaga: pola kontaktowe są pobierane z profilu użytkownika, nie z ogłoszenia,
-      // co jest zazwyczaj bezpieczniejsze, aby użytkownik zawsze edytował aktualne dane kontaktowe.
-      // Jeśli jednak chcesz, aby pola kontaktowe z ogłoszenia były nadpisywane, musisz je tu dodać.
-      // setContactPhone(announcementToEdit.contact_phone || ''); // To by nadpisało dane z profilu
-      // setUsesWhatsapp(announcementToEdit.contact_whatsapp !== null); // Zakładając, że contact_whatsapp to numer telefonu
-      // setContactMessenger(announcementToEdit.contact_messenger || '');
-      // setConsentPhoneShare(announcementToEdit.contact_phone !== null); // Zakładając, że zgoda oznacza, że telefon jest w ogłoszeniu
-
-      // Resetuj imageFile, jeśli formularz jest otwierany do edycji i nie chcesz, aby był pusty.
-      // Opcjonalnie, możesz spróbować ustawić istniejący URL obrazu jako podgląd.
       setImageFile(null); // Upewnij się, że nie ma starego pliku wybranego
+      setShouldRemoveImage(false); // Resetuj stan usuwania obrazu przy nowym otwarciu formularza
     } else {
-      // Jeśli nie ma announcementToEdit, upewnij się, że formularz jest pusty (do dodawania)
-      // ale nie czyść pól kontaktowych, bo są pobierane z profilu.
+      // Tryb dodawania: Wyczyść wszystko
       setTitle('');
       setDescription('');
       setLocationFrom({ label: '', coords: null, lat: null, lng: null });
@@ -105,10 +95,11 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
       setWeightKg('');
       setBudgetPln('');
       setImageFile(null);
+      setShouldRemoveImage(false); // Resetuj stan usuwania obrazu
       setError(null);
       setSuccessMessage(null);
     }
-  }, [announcementToEdit]); // Dependency array: uruchamiamy useEffect gdy zmienia się announcementToEdit
+  }, [announcementToEdit]);
 
 
   const handleSubmit = async (event) => {
@@ -131,8 +122,18 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
         return;
     }
 
-    let imageUrl = announcementToEdit?.image_url || null; // Zachowaj istniejący URL obrazu, jeśli edytujesz
-    if (imageFile) {
+    let imageUrl = announcementToEdit?.image_url || null; // Zachowaj istniejący URL obrazu
+    
+    // Logika usuwania/uploadu zdjęcia
+    if (shouldRemoveImage && !imageFile) {
+        // Jeśli użytkownik zaznaczył "usuń zdjęcie" I nie wybrał nowego
+        imageUrl = null; // Ustaw URL na NULL, aby usunąć z bazy danych
+        // TUTAJ MÓGŁBY BYĆ KOD DO USUNIĘCIA PLIKU Z HOME.PL (np. przez API do serwera proxy)
+        // To jest bardziej skomplikowane i wymagałoby dedykowanego endpointu na Twoim home.pl
+        // lub funkcji Supabase Edge Function do zarządzania storage'em.
+        // Na razie tylko usuwamy referencję w bazie danych.
+    } else if (imageFile) {
+        // Jeśli wybrano nowy plik, prześlij go
         if (imageFile.size > 5 * 1024 * 1024) {
             setError(`Plik ${imageFile.name} jest za duży (max 5MB).`);
             setLoading(false);
@@ -163,9 +164,10 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
         }
     }
 
+
     try {
       const announcementData = {
-          user_id: user.id, // Ważne: user_id musi być takie samo jak zalogowanego użytkownika
+          user_id: user.id, 
           title,
           description,
           location_from_text: locationFrom.label || null,
@@ -182,19 +184,17 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
           contact_phone: consentPhoneShare ? contactPhone : null,
           contact_whatsapp: usesWhatsapp && consentPhoneShare ? contactPhone : null,
           contact_messenger: contactMessenger || null,
-          image_url: imageUrl || null,
+          image_url: imageUrl, // Ustawiamy URL na podstawie logiki powyżej
       };
 
       let operation;
       if (announcementToEdit) {
-        // Tryb edycji: aktualizuj istniejące ogłoszenie
         operation = await supabase
           .from('announcements')
           .update(announcementData)
           .eq('id', announcementToEdit.id)
-          .eq('user_id', user.id); // Dodatkowe zabezpieczenie: tylko właściciel może edytować
+          .eq('user_id', user.id); 
       } else {
-        // Tryb dodawania: wstaw nowe ogłoszenie
         operation = await supabase
           .from('announcements')
           .insert(announcementData);
@@ -205,7 +205,6 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
       }
 
       setSuccessMessage(announcementToEdit ? 'Ogłoszenie zostało zaktualizowane pomyślnie!' : 'Ogłoszenie zostało dodane pomyślnie!');
-      // Resetuj formularz tylko po dodaniu nowego ogłoszenia, nie po edycji
       if (!announcementToEdit) {
         setTitle('');
         setDescription('');
@@ -216,9 +215,10 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
         setBudgetPln('');
         setImageFile(null);
       }
+      setShouldRemoveImage(false); // Resetuj stan po pomyślnym zapisie
 
       if (onSuccess) {
-        onSuccess(announcementToEdit ? announcementToEdit.id : null); // Przekaż ID, jeśli to edycja
+        onSuccess(announcementToEdit ? announcementToEdit.id : null);
       }
 
     } catch (err) {
@@ -231,7 +231,6 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
 
   return (
     <div className="announcement-form-container">
-      {/* ZMIANA: Zmień tytuł formularza w zależności od trybu */}
       <h3>{announcementToEdit ? 'Edytuj Ogłoszenie' : 'Dodaj Nowe Ogłoszenie'}</h3>
       <form onSubmit={handleSubmit} className="announcement-form">
         <div className="form-group">
@@ -328,17 +327,31 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="image">Dodaj zdjęcie (max 1):</label>
+            <label htmlFor="image">Zdjęcie:</label>
             <input
               type="file"
               id="image"
               accept="image/*"
-              onChange={(e) => setImageFile(e.target.files[0])}
+              onChange={(e) => { setImageFile(e.target.files[0]); setShouldRemoveImage(false); }} // Gdy wybrano nowy plik, nie usuwaj istniejącego
             />
             {imageFile && <p className="file-info">Wybrano plik: {imageFile.name}</p>}
-            {/* Wyświetl istniejące zdjęcie, jeśli edytujesz i nie wybrano nowego */}
+
+            {/* Nowe elementy do zarządzania istniejącym zdjęciem */}
             {announcementToEdit?.image_url && !imageFile && (
-                <p className="file-info">Obecne zdjęcie: <a href={announcementToEdit.image_url} target="_blank" rel="noopener noreferrer">Podgląd</a></p>
+                <div className="image-management-options">
+                    <p className="file-info">Obecne zdjęcie: <a href={announcementToEdit.image_url} target="_blank" rel="noopener noreferrer">Podgląd</a></p>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={shouldRemoveImage}
+                            onChange={(e) => setShouldRemoveImage(e.target.checked)}
+                        /> 
+                        Usuń obecne zdjęcie
+                    </label>
+                    <small className="help-text">
+                        Zaznacz, aby usunąć zdjęcie. Jeśli wybierzesz nowy plik, obecne zostanie zastąpione.
+                    </small>
+                </div>
             )}
           </div>
         </div>
