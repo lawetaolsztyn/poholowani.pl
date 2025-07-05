@@ -20,15 +20,17 @@
   
   /* Style dla dużych ekranów: */
   display: flex; /* Link jako flex container */
-  flex-direction: column; /* Zawartość w kolumnie (dwie linie) */
+  flex-direction: column; /* Ustawienie, aby tekst zawijał się w kolumnie */
   justify-content: center; /* Wyśrodkowanie pionowe */
   align-items: center; /* Wyśrodkowanie poziome */
   text-align: center; /* Zapewnia wyśrodkowanie tekstu */
   line-height: 1.2; /* Dostosuj wysokość linii */
   padding: 0.3rem 0.7rem; /* Lekko zmniejszony padding pionowy */
   min-height: 45px; /* Minimalna wysokość linku, aby pomieścić dwie linie */
-  white-space: normal; /* Pozwalamy na zawijanie tekstu, choć <br> jest głównym wyzwalaczem */
+  white-space: normal; /* Pozwól tekstowi zawijać się automatycznie */
   word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
+  /* Dodajemy max-width aby wymusić zawijanie w pewnym momencie */
+  max-width: 100px; /* Przykład: Ustaw maksymalną szerokość dla linku, aby wymusić zawijanie */
 }
 
 .navbar a:hover {
@@ -125,7 +127,7 @@
     width: calc(100% - 2rem); /* Pełna szerokość minus padding */
     text-align: center;
     margin-right: 0;
-    /* NOWE STYLE DLA TRYBU MOBILNEGO - nadpisują domyślne zawijanie */
+    /* Style dla trybu mobilnego - jednowierszowy tekst */
     display: block; /* Zmieniamy na block */
     white-space: nowrap; /* Wymuszamy jedną linię w trybie mobilnym */
     flex-direction: row; /* W trybie block to nie ma znaczenia */
@@ -134,12 +136,13 @@
     word-break: normal; /* Resetujemy word-break dla mobilnego */
     overflow: hidden; /* Ukryj nadmiar tekstu, jeśli się nie mieści w 1 linii */
     text-overflow: ellipsis; /* Dodaj trzy kropki, jeśli tekst się nie mieści */
+    max-width: none; /* Resetujemy max-width, aby mógł się rozciągnąć */
   }
   
-  /* Ważne: Ukrywamy znaczniki <br> TYLKO w trybie mobilnym */
-  .navbar a br {
+  /* Usuwamy tę regułę, bo <br /> nie ma w JSX */
+  /* .navbar a br {
       display: none;
-  }
+  } */
 
 
   .nav-right {
@@ -180,8 +183,9 @@
     text-align: center;
     line-height: 1.2;
     min-height: 45px;
-    white-space: normal; /* Pozwalamy na zawijanie tekstu, choć <br> jest głównym wyzwalaczem */
+    white-space: normal; /* Pozwalamy na zawijanie tekstu */
     word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
+    max-width: 100px; /* Dodatkowa kontrola szerokości dla tego specyficznego linku */
 }
 
 .transport-na-juz-link:hover {
@@ -230,7 +234,7 @@
     .transport-na-juz-link {
         color: #FFBB33 !important; /* Jaśniejszy pomarańcz dla dark mode */
         border-color: #FFBB33 !important;
-        background-color: rgba(255, 55, 255, 0.08) !important; /* Lekko widoczne tło */
+        background-color: rgba(255, 255, 255, 0.08) !important; /* Lekko widoczne tło */
         text-shadow: 0 0 5px rgba(0, 0, 0, 0.7),
                      0 0 10px rgba(255, 255, 255, 0.3);
     }

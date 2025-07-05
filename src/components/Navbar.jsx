@@ -83,22 +83,22 @@ export default function Navbar() {
       {/* ZMIANA: Dodajemy klasę 'open' jeśli menu jest otwarte */}
       <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="nav-left">
-          {/* Zmiany tutaj: przywrócono <br /> aby tekst się zawijał na większych ekranach */}
-          <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>Strona<br />Główna</Link>
-          <Link to="/szukam" className={isActive('/szukam')} onClick={closeMobileMenu}>Szukam<br />Transportu</Link>
-          <Link to="/oferuje" className={isActive('/oferuje')} onClick={closeMobileMenu}>Oferuję<br />Transport</Link>
-          <Link to="/tablica-ogloszen" className={isActive('/tablica-ogloszen')} onClick={closeMobileMenu}>Tablica<br />Ogłoszeń</Link>
+          {/* USUNIĘTO WSZYSTKIE <br /> - zawijanie będzie kontrolowane przez CSS */}
+          <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>Strona Główna</Link>
+          <Link to="/szukam" className={isActive('/szukam')} onClick={closeMobileMenu}>Szukam Transportu</Link>
+          <Link to="/oferuje" className={isActive('/oferuje')} onClick={closeMobileMenu}>Oferuję Transport</Link>
+          <Link to="/tablica-ogloszen" className={isActive('/tablica-ogloszen')} onClick={closeMobileMenu}>Tablica Ogłoszeń</Link>
           <Link to="/transport-na-juz" className={`${isActive('/transport-na-juz')} transport-na-juz-link`} onClick={closeMobileMenu}>
-            Transport<br />na Już!
+            Transport na Już!
           </Link>
           {/* NOWA POZYCJA MENU: KATALOG PRZEWOŹNIKÓW */}
-          <Link to="/katalog-przewoznikow" className={isActive('/katalog-przewoznikow')} onClick={closeMobileMenu}>Katalog<br />Przewoźników</Link>
+          <Link to="/katalog-przewoznikow" className={isActive('/katalog-przewoznikow')} onClick={closeMobileMenu}>Katalog Przewoźników</Link>
           {/* KONIEC NOWEJ POZYCJI MENU */}
           <Link to="/kontakt" className={isActive('/kontakt')} onClick={closeMobileMenu}>Kontakt</Link>
 
           {email && (
             <>
-              <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje<br />Trasy</Link>
+              <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje Trasy</Link>
               {email === 'lawetaolsztyn@gmail.com' && (
                 <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
               )}
