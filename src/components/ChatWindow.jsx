@@ -81,10 +81,13 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
     fetchParticipantsData(conversationId);
 
 
+    // ZMIANA: Sprawdź, czy kanał jest prawidłowo subskrybowany i czy zdarzenia są odbierane
     const channel = supabase
       .channel(`chat:${conversationId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
+        console.log('Realtime message received!', payload.new); // Dodaj to logowanie, aby sprawdzić, czy payload jest odbierany
         setMessages(prevMessages => [...prevMessages, payload.new]);
+        // Oznacz wiadomość jako przeczytaną, jeśli nie jest to wiadomość wysłana przez bieżącego użytkownika
         if (payload.new.sender_id !== currentUserId) {
             markMessageAsRead(payload.new.id);
         }
@@ -94,7 +97,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, currentUserId]);
+  }, [conversationId, currentUserId]); // Zależy od ID konwersacji i ID zalogowanego użytkownika
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
