@@ -12,5 +12,6 @@ export default function MojeOgloszenia() {
       <p>Tutaj będą wyświetlane Twoje ogłoszenia.</p>
       {/* Tutaj będziesz dodawać logikę do pobierania i wyświetlania ogłoszeń użytkownika */}
     </div>
+</>
   );
 }
