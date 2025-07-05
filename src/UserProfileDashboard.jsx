@@ -759,6 +759,28 @@ export default function UserProfileDashboard() {
             >
               Moje trasy
             </button>
+ <button
+        key="moje-ogloszenia-button"
+        onClick={() => {
+          setActiveTab('Moje ogłoszenia'); // Ustaw stan, chociaż i tak przekierowujemy
+          window.location.href = '/moje-ogloszenia'; // Przekierowanie do strony "Moje ogłoszenia"
+        }}
+        className={`dashboard-tab-button ${activeTab === 'Moje ogłoszenia' ? 'active' : ''}`}
+      >
+        Moje ogłoszenia
+      </button>
+
+      {/* NOWY PRZYCISK: Moje chaty */}
+      <button
+        key="moje-chaty-button"
+        onClick={() => {
+          setActiveTab('Moje chaty'); // Ustaw stan, chociaż i tak przekierowujemy
+          window.location.href = '/moje-chaty'; // Przekierowanie do strony "Moje chaty"
+        }}
+        className={`dashboard-tab-button ${activeTab === 'Moje chaty' ? 'active' : ''}`}
+      >
+        Moje chaty
+      </button>
           </div>
         ) : (
           // Renderuj nic lub spinner ładowania dla sekcji zakładek, jeśli formData jest nullem
