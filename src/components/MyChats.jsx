@@ -1,7 +1,7 @@
 // src/components/MyChats.jsx
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '../../AuthContext.jsx'; // Pamiętaj o .jsx
+import { useAuth } from '../AuthContext'; // Potrzebne do pobrania ID użytkownika
 import Navbar from './Navbar';
 import Footer from './Footer';
 import Modal from './Modal';
