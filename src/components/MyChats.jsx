@@ -33,18 +33,17 @@ export default function MyChats() {
 
     try {
       const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          id,
-          created_at,
-          last_message_at,
-          last_message_content,
-          announcement:announcement_id (id, title, description, user_id),
-          client:client_id (id, full_name, company_name, email, role),
-          carrier:carrier_id (id, full_name, company_name, email, role),
-          -- NOWE: Dołączamy dane o udziale w konwersacji dla zalogowanego użytkownika
-          conversation_participants(unread_messages_count, user_id)
-        `)
+    .from('conversations')
+    .select(`
+      id,
+      created_at,
+      last_message_at,
+      last_message_content,
+      announcement:announcement_id (id, title, description, user_id),
+      client:client_id (id, full_name, company_name, email, role),
+      carrier:carrier_id (id, full_name, company_name, email, role),
+      conversation_participants(unread_messages_count, user_id)
+    `)
         .or(`client_id.eq.${currentUser.id},carrier_id.eq.${currentUser.id}`)
         .order('last_message_at', { ascending: false });
 
