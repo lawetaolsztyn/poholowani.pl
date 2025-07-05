@@ -1,17 +1,16 @@
 // src/components/MyChats.jsx
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '../AuthContext'; // Potrzebne do pobrania ID użytkownika
-import Footer from './Footer'; // Dodaj też Footer, bo to będzie osobna strona
-import Modal from './Modal'; // Będziemy używać Modala do wyświetlania ChatWindow
-import ChatWindow from './ChatWindow'; // Komponent okna czatu
-import Navbar from './Navbar'; // Nadal dodajemy Navbar zgodnie z Twoimi preferencjami
+import { useAuth } from '../../AuthContext.jsx'; // Pamiętaj o .jsx
+import Navbar from './Navbar';
+import Footer from './Footer';
+import Modal from './Modal';
+import ChatWindow from './ChatWindow';
 
-
-import './MyChats.css'; // Plik CSS dla tego komponentu
+import './MyChats.css';
 
 export default function MyChats() {
-  const { currentUser, loading: authLoading } = useAuth(); // Pobieramy dane użytkownika
+  const { currentUser, loading: authLoading } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [error, setError] = useState(null);
@@ -41,10 +40,10 @@ export default function MyChats() {
             created_at,
             last_message_at,
             last_message_content,
-            announcement:announcement_id (id, title, description, user_id), // Dane ogłoszenia
-            client:client_id (id, full_name, company_name, email, role), // Dane klienta
-            carrier:carrier_id (id, full_name, company_name, email, role)  // Dane przewoźnika
-          `)
+            announcement:announcement_id (id, title, description, user_id),
+            client:client_id (id, full_name, company_name, email, role),
+            carrier:carrier_id (id, full_name, company_name, email, role)
+          `) // <--- USUNIĘTO KOMENTARZE WEWNĄTRZ STRINGA SELECT()
           .or(`client_id.eq.${currentUser.id},carrier_id.eq.${currentUser.id}`) // Filtr: user.id jest albo klientem, albo przewoźnikiem
           .order('last_message_at', { ascending: false }); // Sortuj po ostatniej wiadomości
 
@@ -64,23 +63,21 @@ export default function MyChats() {
     fetchConversations();
 
     // Subskrypcja Realtime na zmiany w konwersacjach, aby odświeżać listę
-    // Ta subskrypcja powinna być bardziej zaawansowana, aby filtrować tylko istotne zmiany
-    // Na razie, prosty refresh listy
     const channel = supabase
       .channel(`my_chats_updates:${currentUser?.id}`) // Dedykowany kanał dla danego użytkownika
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'conversations', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversations',
         filter: `client_id=eq.${currentUser?.id}` // Filtrowanie dla klienta
       }, payload => {
         console.log('Realtime conversation update for client detected!', payload);
         fetchConversations();
       })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'conversations', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversations',
         filter: `carrier_id=eq.${currentUser?.id}` // Filtrowanie dla przewoźnika
       }, payload => {
         console.log('Realtime conversation update for carrier detected!', payload);
@@ -92,7 +89,7 @@ export default function MyChats() {
       supabase.removeChannel(channel);
     };
 
-  }, [currentUser, authLoading]); // Zależności: currentUser, authLoading
+  }, [currentUser, authLoading]);
 
   const handleOpenChat = (conversationId, announcementTitle) => {
     setActiveConversationId(conversationId);
@@ -105,8 +102,9 @@ export default function MyChats() {
     setActiveConversationId(null);
     setActiveAnnouncementTitle('');
     // Po zamknięciu modala, odśwież listę konwersacji, aby zaktualizować status nieprzeczytanych
-    // Jeśli używasz is_read w tabeli messages i zliczasz, musisz to zaimplementować.
-    // fetchConversations(); // Odświeżenie całej listy po zamknięciu chatu
+    // To jest miejsce, gdzie trzeba by zaimplementować logiczne oznaczenie jako przeczytane.
+    // Na razie: po prostu odświeżenie listy, żeby ewentualne nowe wiadomości były widoczne.
+    fetchConversations(); // Odświeżenie całej listy po zamknięciu chatu
   };
 
   if (authLoading || loadingConversations) {
@@ -142,8 +140,6 @@ export default function MyChats() {
         <div className="my-chats-container">
           <h1>Moje Chaty</h1>
           <p>Musisz być zalogowany, aby zobaczyć swoje konwersacje.</p>
-          {/* Możesz dodać przycisk do logowania */}
-          {/* <button className="action-button" onClick={() => navigate('/login')}>Zaloguj się</button> */}
         </div>
         <Footer />
       </>
@@ -187,16 +183,16 @@ export default function MyChats() {
       <Footer />
 
       {/* Modal do wyświetlania okna czatu */}
-      <Modal 
-        isOpen={showChatModal} 
-        onClose={handleCloseChatModal} 
+      <Modal
+        isOpen={showChatModal}
+        onClose={handleCloseChatModal}
         title={`Chat: ${activeAnnouncementTitle}`}
       >
         {activeConversationId && (
           <ChatWindow
             conversationId={activeConversationId}
             currentUserId={currentUser?.id}
-            userJwt={currentUser?.jwt || ''} // Przekazuj JWT, jeśli masz
+            userJwt={currentUser?.jwt || ''}
             onClose={handleCloseChatModal}
           />
         )}
