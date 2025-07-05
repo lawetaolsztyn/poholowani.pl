@@ -12,7 +12,7 @@
 
 .navbar a {
   color: white; /* Upewnij się, że linki są białe */
-  margin-right: 0.5rem;
+  margin-right: 0.4rem;
   text-decoration: none;
   font-weight: 500;
   border-radius: 5px;
@@ -36,7 +36,7 @@
   
   /* ZMIANY TUTAJ - Kluczowe: Zwiększ max-width, aby tekst mieścił się w 2 liniach. Będziesz musiał dostosować! */
   /* Zacznij od 95px i zwiększaj/zmniejszaj w zależności od potrzeb */
-  max-width: 125	px; /* PRZYKŁADOWA WARTOŚĆ! Musisz dostosować tę wartość w zależności od najdłuższego tekstu! */
+  max-width: 128px; /* PRZYKŁADOWA WARTOŚĆ! Musisz dostosować tę wartość w zależności od najdłuższego tekstu! */
 
   /* Eksperymentalna właściwość dla lepszego zawijania, wsparcie przeglądarek może być ograniczone */
   /* text-wrap: balance; */
