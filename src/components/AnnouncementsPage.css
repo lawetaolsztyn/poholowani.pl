@@ -11,7 +11,8 @@
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-    flex: 0 0 320px; /* Stała szerokość lewej kolumny (np. 320px) */
+    flex: 0 0 30%; /* ZMIANA: Szerokość 30% */
+    max-width: 350px; /* Opcjonalnie: Ustaw maksymalną szerokość, aby nie było za szeroko na bardzo dużych ekranach */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
@@ -31,7 +32,7 @@
 
 /* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
-    flex: 1; /* Zajmuje resztę dostępnego miejsca */
+    flex: 1; /* ZAJMIE RESZTĘ DOSTĘPNEGO MIEJSCA, co przy 30% lewej kolumny da efektywnie ~70% */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
@@ -266,9 +267,9 @@
 }
 
 .favorite-filter-button.active {
-    background-color: #ffeb3b; /* Żółte tło dla aktywnego stanu */
-    border-color: #fdd835; /* Ciemniejsza żółta ramka */
-    color: #333; /* Ciemny tekst */
+    background-color: #dc3545; /* ZMIANA: CZERWONE tło dla aktywnego stanu (jak serduszko) */
+    border-color: #c82333; /* ZMIANA: Ciemniejsza czerwona ramka */
+    color: white; /* ZMIANA: Biały tekst dla kontrastu */
     font-weight: bolder; /* Jeszcze bardziej wyrazista czcionka dla aktywnego */
 }
 
