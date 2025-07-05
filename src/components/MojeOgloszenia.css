@@ -1,0 +1,14 @@
+.moje-ogloszenia-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.moje-ogloszenia-container h1 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}

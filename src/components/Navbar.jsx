@@ -99,6 +99,8 @@ export default function Navbar() {
           {email && (
             <>
               <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje Trasy</Link>
+              <Link to="/moje-ogloszenia" className={isActive('/moje-ogloszenia')} onClick={closeMobileMenu}>Moje Ogłoszenia</Link>
+
               {email === 'lawetaolsztyn@gmail.com' && (
                 <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
               )}

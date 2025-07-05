@@ -32,7 +32,9 @@ import CookieWall from './components/CookieWall';
 import MessengerHelp from './MessengerHelp';
 import TransportNaJuz from './TransportNaJuz'; 
 import CarriersCatalog from './CarriersCatalog';
-import AnnouncementsPage from './components/AnnouncementsPage'; // Import nowej strony
+import AnnouncementsPage from './components/AnnouncementsPage';
+import MojeOgloszenia from './components/MojeOgloszenia'; 
+
 
 
 
@@ -67,6 +69,8 @@ function App() {
           <Route path="/transport-na-juz/:requestId" element={<TransportNaJuz />} />
           <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
         <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
+            <Route path="/moje-ogloszenia" element={<PrivateRoute><MojeOgloszenia /></PrivateRoute>} />
+
 
 
         </Routes>
