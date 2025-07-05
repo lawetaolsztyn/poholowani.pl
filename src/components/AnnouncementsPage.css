@@ -43,7 +43,7 @@
     flex-basis: calc(70% - (var(--announcements-gap) / 2));
     flex-grow: 0; 
     flex-shrink: 0; 
-    min-width: 600px; /* Dodaj minimalną szerokość dla prawej kolumny */
+    min-width: 600px; /* Dodaj minimalną szerokość dla prawej kolumny, aby ogłoszenia nie były za wąskie */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
@@ -145,7 +145,7 @@
 .filter-group label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold; 
+    font-weight: bold; /* DOMYŚLNIE POGRUBIONY */
     color: #555;
 }
 
@@ -297,13 +297,16 @@
 
 
 /* --- LISTA OGŁOSZEŃ (PRAWA KOLUMNA) - zachowanie oryginalnego układu single-column --- */
+/* NAJWAŻNIEJSZE: TA KLASA JEST TERAZ UŻYWANA W JSX DLA KONTENERA OGŁOSZEŃ */
 .announcements-list-single-column {
     display: flex;
     flex-direction: column; 
     gap: 25px;
     margin-top: 20px;
+    width: 100%; /* Upewnij się, że ten kontener zajmuje całą szerokość .main-content-area */
 }
 
+/* Karta ogłoszenia w układzie single-column */
 .announcement-card-wide { 
     background-color: #f8f8f8;
     border: 1px solid #eee;
@@ -313,7 +316,7 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out;
-    width: 100%; 
+    width: 100%; /* Karta zajmuje całą szerokość kolumny */
     position: relative; 
     overflow: hidden; 
 }
