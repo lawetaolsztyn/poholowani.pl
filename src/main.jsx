@@ -35,8 +35,7 @@ import CarriersCatalog from './CarriersCatalog';
 import AnnouncementsPage from './components/AnnouncementsPage';
 import MojeOgloszenia from './components/MojeOgloszenia'; 
 import MyChats from './components/MyChats';
-import { AuthProvider } from './AuthContext';
-
+import { AuthProvider } from './AuthContext.jsx';
 
 
 
