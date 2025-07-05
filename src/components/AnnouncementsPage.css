@@ -8,27 +8,28 @@
 /* Ogólny kontener strony tablicy ogłoszeń */
 .announcements-page-container {
     display: flex;
-    gap: var(--announcements-gap);
+    gap: var(--announcements-gap); /* Użycie zmiennej */
     padding: 30px;
-    max-width: 1200px;
-    margin: 0 auto;
-    flex-wrap: nowrap; /* WAŻNA ZMIANA: Zapobiega zawijaniu się kolumn */
+    max-width: 1200px; /* Maksymalna szerokość kontenera */
+    margin: 0 auto; /* Wyśrodkowanie */
+    flex-wrap: nowrap; /* Zapobiega zawijaniu się kolumn */
+    box-sizing: border-box; /* WAŻNA ZMIANA: Zapewnia, że padding/border są wliczone w width */
+    width: 100%; /* Upewnia się, że kontener zajmuje całą dostępną szerokość rodzica */
 }
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-    flex-basis: calc(30% - (var(--announcements-gap) / 2)); 
-    flex-grow: 0; 
-    flex-shrink: 0; 
+    /* ZMIANA: flex-basis jako główny kontroler szerokości, ale pozwalamy flex-grow/shrink działać w ramach definicji */
+    flex: 0 0 calc(30% - (var(--announcements-gap) / 2)); 
     min-width: 280px; 
     max-width: 350px; 
-    width: 0; /* ZMIANA: Ustawienie width na 0 dla lepszej kontroli flex-basis */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
+    /* Usunięto width: 0; */
 }
 
 /* Nagłówek dla formularza dodawania ogłoszenia */
@@ -42,17 +43,16 @@
 
 /* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
-    flex-basis: calc(70% - (var(--announcements-gap) / 2));
-    flex-grow: 0; 
-    flex-shrink: 0; 
-    min-width: 65%; /* ZMIANA: Agresywny min-width, aby kolumna się nie kurczyła */
-    width: 0; /* ZMIANA: Ustawienie width na 0 dla lepszej kontroli flex-basis */
+    /* ZMIANA: flex-basis jako główny kontroler szerokości, flex-grow: 1 aby wypełnić resztę */
+    flex: 1 0 calc(70% - (var(--announcements-gap) / 2)); 
+    min-width: 65%; /* ZMIANA: Upewnienie się, że minimum to ~65% */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     display: flex; 
     flex-direction: column;
+    /* Usunięto width: 0; */
 }
 
 /* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
@@ -300,7 +300,7 @@
 
 
 /* --- LISTA OGŁOSZEŃ (PRAWA KOLUMNA) - zachowanie oryginalnego układu single-column --- */
-/* NAJWAŻNIEJSZE: TA KLASA JEST TERAZ UŻYWANA W JSX DLA KONTENERA OGŁOSZEŃ */
+/* WAŻNE: TA KLASA JEST TERAZ UŻYWANA W JSX DLA KONTENERA OGŁOSZEŃ */
 .announcements-list-single-column {
     display: flex;
     flex-direction: column; 
