@@ -8,7 +8,63 @@
 }
 
 .moje-ogloszenia-container h1 {
+  /* ZMIANA TUTAJ */
+  font-size: 2.8em; /* Zwiększ rozmiar czcionki */
   color: #333;
   margin-bottom: 20px;
   text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .moje-ogloszenia-container h1 {
+    color: #f0f0f0; /* Jasny kolor w trybie ciemnym */
+  }
+}
+
+.my-announcement-actions {
+  display: flex; /* Użyj flexbox */
+  gap: 10px; /* Dodaj odstęp między przyciskami */
+  margin-top: 15px; /* Dodaj trochę marginesu od góry */
+  justify-content: flex-end; /* Wyrównaj przyciski do prawej */
+}
+
+.my-announcement-actions .action-button {
+  flex: 1; /* Pozwól przyciskom równo rozkładać się w dostępnej przestrzeni */
+  max-width: 120px; /* Opcjonalnie: Ogranicz maksymalną szerokość przycisków */
+  padding: 8px 12px; /* Dostosuj padding */
+  font-size: 0.9em; /* Dostosuj rozmiar czcionki */
+}
+
+.my-announcement-actions .edit-button {
+  background-color: #007bff; /* Kolor dla edycji */
+  color: white;
+}
+
+.my-announcement-actions .edit-button:hover {
+  background-color: #0056b3;
+}
+
+.my-announcement-actions .delete-button {
+  background-color: #dc3545; /* Kolor dla usunięcia (czerwony) */
+  color: white;
+}
+
+.my-announcement-actions .delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+    .my-announcement-actions .edit-button {
+        background-color: #0056b3;
+    }
+    .my-announcement-actions .edit-button:hover {
+        background-color: #003d80;
+    }
+    .my-announcement-actions .delete-button {
+        background-color: #b0232f;
+    }
+    .my-announcement-actions .delete-button:hover {
+        background-color: #9a1c26;
+    }
 }
