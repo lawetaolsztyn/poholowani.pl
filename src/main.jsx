@@ -10,7 +10,6 @@ import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
 
-// Importy komponentów (upewnij się, że ścieżki są poprawne w Twojej strukturze)
 import LandingPage from './LandingPage';
 import Login from './Login';
 import SearchRoutes from './SearchRoutes';
@@ -37,52 +36,51 @@ import CarriersCatalog from './CarriersCatalog';
 import AnnouncementsPage from './components/AnnouncementsPage';
 import MojeOgloszenia from './components/MojeOgloszenia'; 
 import MyChats from './components/MyChats';
+import { AuthProvider } from './AuthContext.jsx';
 
-import { AuthProvider } from './AuthContext.jsx'; // <-- Ten import jest kluczowy
 
 
-function App() { // Ta funkcja App jest głównym komponentem aplikacji
+
+function App() {
   return (
     <div className="app">
 	      <CookieWall />
-      
-      {/* AuthProvider musi obejmować CAŁĄ RESZTĘ aplikacji,
-          która wymaga dostępu do kontekstu użytkownika i autoryzacji (np. Navbar, Routes, itp.) */}
-      <AuthProvider> {/* <-- AuthProvider zaczyna się tutaj */}
-          <Navbar /> {/* Navbar musi być wewnątrz providerów, aby mieć dostęp do useAuth */}
-          <div className="main-content">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/szukam" element={<SearchRoutes />} />
-              <Route path="/oferuje" element={<OferujeTransport />} />
-              <Route path="/register" element={<Register />} />
-              {/* Tutaj usuwamy PrivateRoute z tras, bo ich nie używamy */}
-              <Route path="/moje-trasy" element={<MojeTrasy />} />
-              <Route path="/reset-hasla" element={<ResetHasla />} />
-              <Route path="/profil" element={<UserProfileDashboard />} />
-              <Route path="/pomoc-drogowa/:slug" element={<PomocDrogowaProfil />} />
-              <Route path="/regulamin" element={<Regulamin />} />
-              <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
-              <Route path="/rodo" element={<PolitykaPrywatnosci />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/admin-dashboard" element={<AdminDashboard />} />
-              <Route path="/kontakt" element={<Kontakt />} />
-              <Route path="/profil/:id" element={<PublicProfile />} />
-              <Route path="/panel/profil" element={<EdycjaProfilu />} />
-              <Route path="/choose-role" element={<ChooseRoleAfterOAuth />} />
-	          <Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
-              {/* Dwie trasy dla TransportNaJuz: jedna bazowa, druga ze szczegółami */}
-              <Route path="/transport-na-juz" element={<TransportNaJuz />} />
-              <Route path="/transport-na-juz/:requestId" element={<TransportNaJuz />} />
-              <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
-              <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
-              <Route path="/moje-ogloszenia" element={<MojeOgloszenia />} />
+      <div className="main-content">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/szukam" element={<SearchRoutes />} />
+          <Route path="/oferuje" element={<OferujeTransport />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/moje-trasy" element={<MojeTrasy />} />
+          <Route path="/reset-hasla" element={<ResetHasla />} />
+          <Route path="/profil" element={<UserProfileDashboard />} />
+          <Route path="/pomoc-drogowa/:slug" element={<PomocDrogowaProfil />} />
+          <Route path="/regulamin" element={<Regulamin />} />
+          <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
+          <Route path="/rodo" element={<PolitykaPrywatnosci />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/kontakt" element={<Kontakt />} />
+          <Route path="/profil/:id" element={<PublicProfile />} />
+          <Route path="/panel/profil" element={<EdycjaProfilu />} />
+          <Route path="/choose-role" element={<ChooseRoleAfterOAuth />} />
+	      <Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
+          {/* Dwie trasy dla TransportNaJuz: jedna bazowa, druga ze szczegółami */}
+          <Route path="/transport-na-juz" element={<TransportNaJuz />} />
+          <Route path="/transport-na-juz/:requestId" element={<TransportNaJuz />} />
+          <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
+        <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
+            <Route path="/moje-ogloszenia" element={<MojeOgloszenia />} />
               <Route path="/moje-chaty" element={<MyChats />} /> 
-            </Routes>
-            <Footer />
-          </div>
-        </AuthProvider> {/* <-- AuthProvider kończy się tutaj */}
+
+
+
+
+
+        </Routes>
+        <Footer />
+      </div>
     </div>
   );
 }
@@ -92,7 +90,7 @@ root.render(
   <React.StrictMode>
     <SessionContextProvider supabaseClient={supabase}>
       <BrowserRouter>
-        <App /> {/* Renderujemy główny komponent App, który zawiera całą strukturę */}
+        <App />
       </BrowserRouter>
     </SessionContextProvider>
   </React.StrictMode>
