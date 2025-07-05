@@ -3,35 +3,37 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext.jsx'; // <-- DODAJ TEN IMPORT
 
 import AnnouncementForm from './AnnouncementForm';
 import './AnnouncementsPage.css';
 import Navbar from './Navbar';
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
-import ChatWindow from './ChatWindow';
-import AnnouncementChatSection from './AnnouncementChatSection'; // <-- IMPORTUJEMY NOWY KOMPONENT
+// import ChatWindow from './ChatWindow'; // Już niepotrzebny, zarządzany w AnnouncementChatSection
+import AnnouncementChatSection from './AnnouncementChatSection';
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
-  const [showForm, setShowForm] = useState(false); // Kontroluje widoczność modala formularza
+  const [showForm, setShowForm] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
-  const [user, setUser] = useState(null);
-  const [userJwt, setUserJwt] = useState(null);
+  // Usunięto lokalne stany user i userJwt
+  // const [user, setUser] = useState(null);
+  // const [userJwt, setUserJwt] = useState(null);
+
   const navigate = useNavigate();
 
-  // NOWE STANY DLA CHATU (showChatModal i activeConversationId zostaną usunięte/użyte w AnnouncementChatSection)
-  // Tak naprawdę showChatModal i activeConversationId już nie są potrzebne w AnnouncementPage,
-  // bo ChatWindow będzie otwierany z AnnouncementChatSection
-  // Jeśli jednak chcesz, aby modal chatu był zarządzany globalnie, możesz je zostawić i przekazać do AnnouncementChatSection
-  // Na razie je zostawimy, bo Modal komponent jest na tym poziomie
-  const [showChatModal, setShowChatModal] = useState(false); 
-  const [activeConversationId, setActiveConversationId] = useState(null);
+  // NOWE: Pobieramy currentUser, userRole i authLoading z AuthContext
+  const { currentUser, userRole, loading: authLoading } = useAuth();
+
+  // Stany dla chatu już nie są zarządzane w AnnouncementsPage
+  // const [showChatModal, setShowChatModal] = useState(false);
+  // const [activeConversationId, setActiveConversationId] = useState(null);
 
 
-  // STANY DLA FILTROWANIA
+  // STANY DLA FILTROWANIA (bez zmian)
   const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
   const [filterTo, setFilterTo] = useState({ label: '', coords: null });
   const [filterRadiusKm, setFilterRadiusKm] = useState(50);
@@ -41,7 +43,7 @@ export default function AnnouncementsPage() {
   const [filterWeightMin, setFilterWeightMin] = useState('');
   const [filterWeightMax, setFilterWeightMax] = useState('');
 
-  // STANY DLA PAGINACJI
+  // STANY DLA PAGINACJI (bez zmian)
   const [currentPage, setCurrentPage] = useState(1);
   const [announcementsPerPage] = useState(20);
   const [totalAnnouncementsCount, setTotalAnnouncementsCount] = useState(0);
@@ -157,6 +159,8 @@ export default function AnnouncementsPage() {
     };
   }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage]);
 
+  // Usunięto stary useEffect do pobierania użytkownika, bo teraz używamy useAuth()
+  /*
   useEffect(() => {
     const getUserAndSession = async () => {
       const { data: { user, session } } = await supabase.auth.getUser();
@@ -174,9 +178,10 @@ export default function AnnouncementsPage() {
       authListener?.subscription.unsubscribe();
     };
   }, []);
+  */
 
   useEffect(() => {
-    if (user) {
+    if (currentUser) { // Zmieniono z 'user' na 'currentUser'
       const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
       const redirectToAnnounceDetailsId = localStorage.getItem('redirect_to_announce_details_id');
 
@@ -193,7 +198,7 @@ export default function AnnouncementsPage() {
       setShowForm(false);
       setSelectedAnnouncement(null);
     }
-  }, [user]);
+  }, [currentUser]); // Zmieniono z 'user' na 'currentUser'
 
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
@@ -202,7 +207,11 @@ export default function AnnouncementsPage() {
   };
 
   const handleOpenForm = () => {
-    if (!user) {
+    if (authLoading) { // Sprawdź, czy dane użytkownika są ładowane
+      alert('Sprawdzanie statusu logowania...');
+      return;
+    }
+    if (!currentUser) { // Zmieniono z 'user' na 'currentUser'
       alert('Musisz być zalogowany, aby dodać ogłoszenie. Zostaniesz przekierowany do strony logowania.');
       localStorage.setItem('redirect_to_announce_form', 'true');
       navigate('/login');
@@ -221,16 +230,18 @@ export default function AnnouncementsPage() {
     setSelectedAnnouncement(null);
   };
 
-  // handleAskQuestion zostanie przeniesione do AnnouncementChatSection
-  // Ale nadal potrzebujemy funkcji, która przekieruje do logowania, jeśli niezalogowany.
   const handleAskQuestionRedirect = () => {
-    if (!user) {
-        alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
-        localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
-        navigate('/login');
-        return true; // Zasygnalizuj, że nastąpiło przekierowanie
+    if (authLoading) { // Sprawdź, czy dane użytkownika są ładowane
+      alert('Sprawdzanie statusu logowania...');
+      return true;
     }
-    return false; // Zasygnalizuj, że można kontynuować
+    if (!currentUser) { // Zmieniono z 'user' na 'currentUser'
+      alert('Musisz być zalogowany, aby zadać pytanie. Zostaniesz przekierowany do strony logowania.');
+      localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
+      navigate('/login');
+      return true;
+    }
+    return false;
   };
 
 
@@ -453,9 +464,9 @@ export default function AnnouncementsPage() {
               {/* Tutaj przeniesiemy logikę chatu do AnnouncementChatSection */}
               <AnnouncementChatSection
                 announcement={selectedAnnouncement}
-                currentUserId={user?.id}
-                userJwt={userJwt} // Przekazujemy JWT
-                onAskQuestionRedirect={handleAskQuestionRedirect} // Funkcja do przekierowania, jeśli niezalogowany
+                currentUserId={currentUser?.id} // Zmieniono z 'user?.id' na 'currentUser?.id'
+                userJwt={currentUser?.jwt || ''} // Usunięto userJwt (nie jest dostępne z useAuth bezpośrednio), użyj tokenu sesji z supabaseClient
+                onAskQuestionRedirect={handleAskQuestionRedirect}
               />
 
             </div>
