@@ -1,14 +1,15 @@
 // src/components/AnnouncementChatSection.jsx
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import ChatWindow from './ChatWindow'; // Będziemy używać ChatWindow w środku
-import './AnnouncementChatSection.css'; // Stwórz ten plik CSS
+import ChatWindow from './ChatWindow';
+import './AnnouncementChatSection.css';
 
-export default function AnnouncementChatSection({ announcement, currentUserId, userJwt }) {
+// ZMIANA: Dodajemy prop onAskQuestionRedirect do obsługi przekierowania
+export default function AnnouncementChatSection({ announcement, currentUserId, userJwt, onAskQuestionRedirect }) {
   const [conversations, setConversations] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [errorConversations, setErrorConversations] = useState(null);
-  const [activeChatId, setActiveChatId] = useState(null); // ID aktywnego chatu, jeśli jeden jest otwarty
+  const [activeChatId, setActiveChatId] = useState(null);
 
   const isAnnouncementOwner = announcement.user_id === currentUserId;
 
@@ -26,12 +27,12 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
 
       // Dla właściciela ogłoszenia (klienta): pokaż wszystkie konwersacje związane z tym ogłoszeniem
       if (isAnnouncementOwner) {
-        query = query.eq('client_id', currentUserId); // Tylko konwersacje, gdzie ja jestem klientem ogłoszenia
+        query = query.eq('client_id', currentUserId);
       } else {
       // Dla przewoźnika: pokaż TYLKO jego konwersacje związane z tym ogłoszeniem
         query = query
           .eq('carrier_id', currentUserId)
-          .eq('client_id', announcement.user_id); // Upewnij się, że klient to wystawca ogłoszenia
+          .eq('client_id', announcement.user_id);
       }
 
       const { data, error } = await query.order('last_message_at', { ascending: false });
@@ -47,16 +48,14 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
   };
 
   useEffect(() => {
+    // ZMIANA: Dodajemy warunek, aby fetchConversations było wywoływane tylko jeśli user jest zalogowany
     if (announcement?.id && currentUserId) {
       fetchConversations();
 
-      // Realtime subscription for new conversations or updates
-      // This is a more general channel, then specific chat ones
       const channel = supabase
         .channel(`conversations_on_announcement:${announcement.id}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `announcement_id=eq.${announcement.id}` }, payload => {
           console.log('Realtime conversation change detected!', payload);
-          // Refetch conversations when a change occurs in conversations table for this announcement
           fetchConversations();
         })
         .subscribe();
@@ -64,17 +63,21 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
       return () => {
         supabase.removeChannel(channel);
       };
+    } else {
+      // Jeśli użytkownik nie jest zalogowany, ustawiamy loading na false od razu
+      setLoadingConversations(false);
+      setConversations([]); // Upewnij się, że lista konwersacji jest pusta
     }
-  }, [announcement.id, currentUserId]); // Zależy od ID ogłoszenia i ID zalogowanego użytkownika
+  }, [announcement.id, currentUserId]);
 
-
-  // Funkcja do inicjowania/otwierania chatu
   const handleOpenChat = async (targetUserId) => {
-    // targetUserId to ID drugiej osoby w konwersacji (albo client_id, albo carrier_id)
+    // ZMIANA: Wywołaj funkcję przekierowania z AnnouncementsPage, jeśli user nie jest zalogowany
     if (!currentUserId || !userJwt) {
-      alert('Musisz być zalogowany, aby rozpocząć rozmowę.');
-      // Opcjonalnie: Przekierowanie do logowania z localStorage.setItem(...)
-      return;
+        if (onAskQuestionRedirect && onAskQuestionRedirect()) {
+            return; // Jeśli funkcja przekierowała, zakończ działanie
+        }
+        alert('Musisz być zalogowany, aby rozpocząć rozmowę.'); // Fallback, choć powinno być obsłużone przez redirect
+        return;
     }
 
     if (!announcement) {
@@ -83,13 +86,8 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
     }
 
     const clientUserId = announcement.user_id;
-    const carrierUserId = (isAnnouncementOwner && targetUserId) ? targetUserId : currentUserId; // Jeśli jestem właścicielem i klikam na przewoźnika, to przewoźnik jest targetUserId. W innym przypadku (przewoźnik klika sam), to ja jestem carrier.
-                                                                                           // Upewnij się, że to logiczne, clientUserId to zawsze wystawca ogloszenia
+    const carrierUserId = currentUserId; // Ten, kto klika "Zadaj pytanie", jest carrierem
 
-    // Jeśli currentUserId to wystawca ogłoszenia, a targetUserId to ID przewoźnika
-    // Jeśli currentUserId to przewoźnik, a targetUserId to ID klienta (wystawcy ogłoszenia)
-
-    // Sprawdź, czy konwersacja już istnieje między clientUserId a carrierUserId dla TEGO ogłoszenia
     try {
         const { data: existing, error: findError } = await supabase
             .from('conversations')
@@ -100,7 +98,7 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
 
         let convId;
 
-        if (findError && findError.code !== 'PGRST116') { // PGRST116 means no rows found, which is OK for new conv
+        if (findError && findError.code !== 'PGRST116') {
             throw findError;
         }
 
@@ -126,7 +124,7 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
             console.log("New conversation created:", convId);
         }
 
-        setActiveChatId(convId); // Otwórz ten chat
+        setActiveChatId(convId);
     } catch (err) {
         console.error("Error managing conversation:", err.message);
         alert(`Błąd podczas zarządzania konwersacją: ${err.message}`);
@@ -134,6 +132,24 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
   };
 
 
+  // ZMIANA: Logika renderowania
+  if (!currentUserId) {
+    // Jeśli użytkownik NIE jest zalogowany, zawsze pokazujemy przycisk "Zadaj pytanie"
+    return (
+      <div className="chat-section-container">
+        <h3>Zadaj pytanie lub złóż ofertę</h3>
+        <div className="no-active-chat-container">
+          <p>Zaloguj się, aby rozpocząć rozmowę z wystawcą ogłoszenia.</p>
+          <button className="action-button ask-question-button" onClick={() => handleOpenChat(null)}>
+              <i className="fas fa-question-circle"></i> Zadaj pytanie
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Od tego momentu wiemy, że currentUserId JEST zalogowany.
+  // Reszta logiki pozostaje w zasadzie taka sama.
   if (loadingConversations) {
     return <div className="chat-section-loading">Ładowanie konwersacji...</div>;
   }
@@ -142,7 +158,6 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
     return <div className="chat-section-error">{errorConversations}</div>;
   }
 
-  // Widok dla WŁAŚCICIELA OGŁOSZENIA (Klient): Lista konwersacji
   if (isAnnouncementOwner) {
     return (
       <div className="chat-section-container">
@@ -151,16 +166,14 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
           <p className="no-conversations-message">Brak pytań/ofert do tego ogłoszenia.</p>
         )}
 
-        {/* Jeśli otwarty jest konkretny chat */}
         {activeChatId ? (
           <ChatWindow
             conversationId={activeChatId}
             currentUserId={currentUserId}
             userJwt={userJwt}
-            onClose={() => setActiveChatId(null)} // Zamknij chat
+            onClose={() => setActiveChatId(null)}
           />
         ) : (
-          // Lista konwersacji dla klienta
           <div className="conversation-list">
             {conversations.map(conv => (
               <div key={conv.id} className="conversation-card" onClick={() => setActiveChatId(conv.id)}>
@@ -183,7 +196,6 @@ export default function AnnouncementChatSection({ announcement, currentUserId, u
       </div>
     );
   } else {
-    // Widok dla PRZEWOŹNIKA (lub innego zainteresowanego): Otwarty chat LUB przycisk "Zadaj pytanie"
     const existingConvForThisCarrier = conversations.find(conv => conv.carrier_id === currentUserId);
 
     return (
