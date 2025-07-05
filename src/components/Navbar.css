@@ -12,7 +12,7 @@
 
 .navbar a {
   color: white; /* Upewnij się, że linki są białe */
-  margin-right: 0.2rem;
+  margin-right: 0.5rem;
   text-decoration: none;
   font-weight: 500;
   border-radius: 5px;
