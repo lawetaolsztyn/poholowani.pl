@@ -89,9 +89,11 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <SessionContextProvider supabaseClient={supabase}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AuthProvider> {/* <-- DODAJ TO */}
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AuthProvider> {/* <-- I ZAMKNIJ TO */}
     </SessionContextProvider>
   </React.StrictMode>
 );
