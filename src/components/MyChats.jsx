@@ -6,6 +6,7 @@ import Navbar from './Navbar'; // Nadal dodajemy Navbar zgodnie z Twoimi prefere
 import Footer from './Footer'; // Dodaj też Footer, bo to będzie osobna strona
 import Modal from './Modal'; // Będziemy używać Modala do wyświetlania ChatWindow
 import ChatWindow from './ChatWindow'; // Komponent okna czatu
+import Navbar from './Navbar';
 
 import './MyChats.css'; // Plik CSS dla tego komponentu
 
