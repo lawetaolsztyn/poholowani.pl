@@ -5,7 +5,8 @@ import { supabase } from '../supabaseClient';
 import './AnnouncementForm.css';
 import LocationAutocomplete from './LocationAutocomplete';
 
-export default function AnnouncementForm({ onSuccess }) {
+// ZMIANA: Dodano prop 'announcementToEdit'
+export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [locationFrom, setLocationFrom] = useState({ label: '', coords: null, lat: null, lng: null });
@@ -13,7 +14,7 @@ export default function AnnouncementForm({ onSuccess }) {
   const [itemToTransport, setItemToTransport] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [budgetPln, setBudgetPln] = useState('');
-  const [contactPhone, setContactPhone] = useState(''); // Ten stan będzie pobierał z profile.universal_contact_phone
+  const [contactPhone, setContactPhone] = useState('');
   const [usesWhatsapp, setUsesWhatsapp] = useState(false);
   const [contactMessenger, setContactMessenger] = useState('');
   const [consentPhoneShare, setConsentPhoneShare] = useState(false);
@@ -23,22 +24,21 @@ export default function AnnouncementForm({ onSuccess }) {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // NOWY useEffect do pobierania danych profilu użytkownika i autopodstawiania
+  // useEffect do pobierania danych profilu użytkownika i autopodstawiania (bez zmian)
   useEffect(() => {
     const fetchUserProfileData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile, error } = await supabase
           .from('users_extended')
-          .select('universal_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share') // ZMIANA: Pobieramy nową kolumnę
+          .select('universal_contact_phone, profile_uses_whatsapp, profile_messenger_link, profile_consent_phone_share')
           .eq('id', user.id)
           .single();
 
         if (error) {
           console.error('Błąd pobierania danych profilu dla formularza ogłoszenia:', error.message);
         } else if (profile) {
-          // Autopodstawianie danych z profilu do stanów formularza
-          setContactPhone(profile.universal_contact_phone || ''); // ZMIANA: Używamy nowej kolumny
+          setContactPhone(profile.universal_contact_phone || '');
           setUsesWhatsapp(profile.profile_uses_whatsapp || false);
           setContactMessenger(profile.profile_messenger_link || '');
           setConsentPhoneShare(profile.profile_consent_phone_share || false);
@@ -49,6 +49,68 @@ export default function AnnouncementForm({ onSuccess }) {
     fetchUserProfileData();
   }, []);
 
+  // NOWY useEffect do ładowania danych ogłoszenia do edycji
+  useEffect(() => {
+    console.log("AnnouncementForm useEffect - announcementToEdit:", announcementToEdit); // Dodane logowanie
+    if (announcementToEdit) {
+      setTitle(announcementToEdit.title || '');
+      setDescription(announcementToEdit.description || '');
+      
+      // ZMIANA: Sprawdź, czy location_from_coords i location_to_coords istnieją w obiekcie announcementToEdit
+      // Sprawdzamy też, czy są typu array i mają odpowiednią długość
+      const fromCoords = announcementToEdit.location_from_lng && announcementToEdit.location_from_lat
+                         ? [announcementToEdit.location_from_lng, announcementToEdit.location_from_lat]
+                         : null;
+      const toCoords = announcementToEdit.location_to_lng && announcementToEdit.location_to_lat
+                       ? [announcementToEdit.location_to_lng, announcementToEdit.location_to_lat]
+                       : null;
+
+      setLocationFrom({
+        label: announcementToEdit.location_from_text || '',
+        coords: fromCoords,
+        lat: announcementToEdit.location_from_lat || null,
+        lng: announcementToEdit.location_from_lng || null
+      });
+      setLocationTo({
+        label: announcementToEdit.location_to_text || '',
+        coords: toCoords,
+        lat: announcementToEdit.location_to_lat || null,
+        lng: announcementToEdit.location_to_lng || null
+      });
+      
+      setItemToTransport(announcementToEdit.item_to_transport || '');
+      // Upewniamy się, że liczby są konwertowane na stringi dla inputów
+      setWeightKg(announcementToEdit.weight_kg !== null ? String(announcementToEdit.weight_kg) : '');
+      setBudgetPln(announcementToEdit.budget_pln !== null ? String(announcementToEdit.budget_pln) : '');
+      
+      // Uwaga: pola kontaktowe są pobierane z profilu użytkownika, nie z ogłoszenia,
+      // co jest zazwyczaj bezpieczniejsze, aby użytkownik zawsze edytował aktualne dane kontaktowe.
+      // Jeśli jednak chcesz, aby pola kontaktowe z ogłoszenia były nadpisywane, musisz je tu dodać.
+      // setContactPhone(announcementToEdit.contact_phone || ''); // To by nadpisało dane z profilu
+      // setUsesWhatsapp(announcementToEdit.contact_whatsapp !== null); // Zakładając, że contact_whatsapp to numer telefonu
+      // setContactMessenger(announcementToEdit.contact_messenger || '');
+      // setConsentPhoneShare(announcementToEdit.contact_phone !== null); // Zakładając, że zgoda oznacza, że telefon jest w ogłoszeniu
+
+      // Resetuj imageFile, jeśli formularz jest otwierany do edycji i nie chcesz, aby był pusty.
+      // Opcjonalnie, możesz spróbować ustawić istniejący URL obrazu jako podgląd.
+      setImageFile(null); // Upewnij się, że nie ma starego pliku wybranego
+    } else {
+      // Jeśli nie ma announcementToEdit, upewnij się, że formularz jest pusty (do dodawania)
+      // ale nie czyść pól kontaktowych, bo są pobierane z profilu.
+      setTitle('');
+      setDescription('');
+      setLocationFrom({ label: '', coords: null, lat: null, lng: null });
+      setLocationTo({ label: '', coords: null, lat: null, lng: null });
+      setItemToTransport('');
+      setWeightKg('');
+      setBudgetPln('');
+      setImageFile(null);
+      setError(null);
+      setSuccessMessage(null);
+    }
+  }, [announcementToEdit]); // Dependency array: uruchamiamy useEffect gdy zmienia się announcementToEdit
+
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -58,7 +120,7 @@ export default function AnnouncementForm({ onSuccess }) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      setError('Musisz być zalogowany, aby dodać ogłoszenie.');
+      setError('Musisz być zalogowany, aby dodać/edytować ogłoszenie.');
       setLoading(false);
       return;
     }
@@ -69,7 +131,7 @@ export default function AnnouncementForm({ onSuccess }) {
         return;
     }
 
-    let imageUrl = null;
+    let imageUrl = announcementToEdit?.image_url || null; // Zachowaj istniejący URL obrazu, jeśli edytujesz
     if (imageFile) {
         if (imageFile.size > 5 * 1024 * 1024) {
             setError(`Plik ${imageFile.name} jest za duży (max 5MB).`);
@@ -102,10 +164,8 @@ export default function AnnouncementForm({ onSuccess }) {
     }
 
     try {
-      const { data, error: insertError } = await supabase
-        .from('announcements')
-        .insert({
-          user_id: user.id,
+      const announcementData = {
+          user_id: user.id, // Ważne: user_id musi być takie samo jak zalogowanego użytkownika
           title,
           description,
           location_from_text: locationFrom.label || null,
@@ -123,28 +183,47 @@ export default function AnnouncementForm({ onSuccess }) {
           contact_whatsapp: usesWhatsapp && consentPhoneShare ? contactPhone : null,
           contact_messenger: contactMessenger || null,
           image_url: imageUrl || null,
-        });
+      };
 
-      if (insertError) {
-        throw insertError;
+      let operation;
+      if (announcementToEdit) {
+        // Tryb edycji: aktualizuj istniejące ogłoszenie
+        operation = await supabase
+          .from('announcements')
+          .update(announcementData)
+          .eq('id', announcementToEdit.id)
+          .eq('user_id', user.id); // Dodatkowe zabezpieczenie: tylko właściciel może edytować
+      } else {
+        // Tryb dodawania: wstaw nowe ogłoszenie
+        operation = await supabase
+          .from('announcements')
+          .insert(announcementData);
       }
 
-      setSuccessMessage('Ogłoszenie zostało dodane pomyślnie!');
-      setTitle('');
-      setDescription('');
-      setLocationFrom({ label: '', coords: null, lat: null, lng: null });
-      setLocationTo({ label: '', coords: null, lat: null, lng: null });
-      setItemToTransport('');
-      setWeightKg('');
-      setBudgetPln('');
-      setImageFile(null);
+      if (operation.error) {
+        throw operation.error;
+      }
+
+      setSuccessMessage(announcementToEdit ? 'Ogłoszenie zostało zaktualizowane pomyślnie!' : 'Ogłoszenie zostało dodane pomyślnie!');
+      // Resetuj formularz tylko po dodaniu nowego ogłoszenia, nie po edycji
+      if (!announcementToEdit) {
+        setTitle('');
+        setDescription('');
+        setLocationFrom({ label: '', coords: null, lat: null, lng: null });
+        setLocationTo({ label: '', coords: null, lat: null, lng: null });
+        setItemToTransport('');
+        setWeightKg('');
+        setBudgetPln('');
+        setImageFile(null);
+      }
+
       if (onSuccess) {
-        onSuccess();
+        onSuccess(announcementToEdit ? announcementToEdit.id : null); // Przekaż ID, jeśli to edycja
       }
 
     } catch (err) {
-      console.error('Błąd dodawania ogłoszenia:', err);
-      setError('Błąd podczas dodawania ogłoszenia: ' + err.message);
+      console.error('Błąd dodawania/edycji ogłoszenia:', err);
+      setError('Błąd podczas dodawania/edycji ogłoszenia: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -152,6 +231,8 @@ export default function AnnouncementForm({ onSuccess }) {
 
   return (
     <div className="announcement-form-container">
+      {/* ZMIANA: Zmień tytuł formularza w zależności od trybu */}
+      <h3>{announcementToEdit ? 'Edytuj Ogłoszenie' : 'Dodaj Nowe Ogłoszenie'}</h3>
       <form onSubmit={handleSubmit} className="announcement-form">
         <div className="form-group">
           <label htmlFor="title">Tytuł ogłoszenia (obowiązkowo):</label>
@@ -255,6 +336,10 @@ export default function AnnouncementForm({ onSuccess }) {
               onChange={(e) => setImageFile(e.target.files[0])}
             />
             {imageFile && <p className="file-info">Wybrano plik: {imageFile.name}</p>}
+            {/* Wyświetl istniejące zdjęcie, jeśli edytujesz i nie wybrano nowego */}
+            {announcementToEdit?.image_url && !imageFile && (
+                <p className="file-info">Obecne zdjęcie: <a href={announcementToEdit.image_url} target="_blank" rel="noopener noreferrer">Podgląd</a></p>
+            )}
           </div>
         </div>
 
@@ -265,10 +350,10 @@ export default function AnnouncementForm({ onSuccess }) {
             <input
               type="text"
               id="contactPhone"
-              value={contactPhone} // Ten input ma teraz wartość ze stanu contactPhone, inicjalizowanego z profilu
+              value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
               placeholder="Np. +48 123 456 789"
-              disabled={!consentPhoneShare} // Wyłącz, jeśli brak zgody na udostępnianie telefonu
+              disabled={!consentPhoneShare}
             />
           </div>
           
@@ -277,7 +362,7 @@ export default function AnnouncementForm({ onSuccess }) {
               <input
                 type="checkbox"
                 id="usesWhatsapp"
-                checked={usesWhatsapp} // Stan z profilu
+                checked={usesWhatsapp}
                 onChange={(e) => setUsesWhatsapp(e.target.checked)}
               />
               Ten numer ma WhatsApp (jeśli podano telefon)
@@ -289,7 +374,7 @@ export default function AnnouncementForm({ onSuccess }) {
             <input
               type="url"
               id="contactMessenger"
-              value={contactMessenger} // Stan z profilu
+              value={contactMessenger}
               onChange={(e) => setContactMessenger(e.target.value)}
               placeholder="https://m.me/twoj.profil"
             />
@@ -305,12 +390,12 @@ export default function AnnouncementForm({ onSuccess }) {
               <input
                 type="checkbox"
                 id="consentPhoneShare"
-                checked={consentPhoneShare} // Stan z profilu
+                checked={consentPhoneShare}
                 onChange={(e) => {
                   setConsentPhoneShare(e.target.checked);
                   if (!e.target.checked) {
-                    setContactPhone(''); // Wyczyść telefon, jeśli zgoda jest cofnięta
-                    setUsesWhatsapp(false); // Wyłącz WhatsApp, jeśli zgoda na telefon jest cofnięta
+                    setContactPhone('');
+                    setUsesWhatsapp(false);
                   }
                 }}
               />
@@ -327,7 +412,7 @@ export default function AnnouncementForm({ onSuccess }) {
         {successMessage && <p className="success-message">{successMessage}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Dodawanie...' : 'Dodaj Ogłoszenie'}
+          {loading ? (announcementToEdit ? 'Aktualizowanie...' : 'Dodawanie...') : (announcementToEdit ? 'Zapisz Zmiany' : 'Dodaj Ogłoszenie')}
         </button>
       </form>
     </div>
