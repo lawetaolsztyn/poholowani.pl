@@ -72,7 +72,7 @@ function App() {
           <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
         <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
             <Route path="/moje-ogloszenia" element={<MojeOgloszenia />} />
-              <Route path="/moje-chaty" element={<PrivateRoute><MyChats /></PrivateRoute>} /> 
+              <Route path="/moje-chaty" element={<MyChats />} /> 
 
 
 
