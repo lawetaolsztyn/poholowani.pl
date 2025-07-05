@@ -132,9 +132,17 @@
 .filter-group label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold;
+    /* ZMIANA: Etykiety dla "Skąd" i "Dokąd" nie są już pogrubione */
+    font-weight: normal; /* Zmieniono z bold na normal */
     color: #555;
 }
+
+.filter-group label[for="filterRadius"],
+.filter-group label[for="filterKeyword"],
+.filter-group label:has(+ .range-inputs) { /* Etykiety nad sekcjami Budżet i Waga nadal boldem */
+    font-weight: bold;
+}
+
 
 .filter-input {
     width: 100%;
@@ -151,7 +159,6 @@
     flex-direction: column; /* Zmieniono na kolumnowy układ */
     gap: 10px; /* Odstęp między inputami min/max */
     width: 100%;
-    /* Upewnij się, że .filter-group-range (jeśli używasz) nie koliduje */
 }
 
 .filter-input-range {
@@ -163,11 +170,8 @@
     box-sizing: border-box;
 }
 
-.filter-group .range-inputs span { /* Separator "-" - teraz może być nad/pod lub obok */
-    font-weight: bold;
-    color: #555;
-    text-align: center; /* Wyśrodkuj separator jeśli w kolumnie */
-    margin: 5px 0; /* Dodaj margines pionowy do separatora */
+.filter-group .range-inputs span { /* Separator "-" - TERAZ USUNIĘTY Z WIDOKU */
+    display: none; /* KLUCZOWA ZMIANA: Ukrycie myślnika */
 }
 
 /* NOWY STYL DLA SUWAKA */
@@ -235,7 +239,7 @@
     background-color: #5a6268;
 }
 
-/* === STYLE DLA PRZYCISKU FILTRA "ULUBIONE OGŁOSZENIA" (Gwiazdka) === */
+/* === NOWE STYLE DLA PRZYCISKU FILTRA "ULUBIONE OGŁOSZENIA" (Gwiazdka) === */
 .favorite-filter-button {
     background-color: #f0f0f0; /* Jasne tło */
     border: 1px solid #ccc; /* Delikatna ramka */
@@ -559,7 +563,6 @@
 
 .whatsapp-action-button {
     background-color: #25d366;
-    color: white;
 }
 .whatsapp-action-button:hover {
     background-color: #1DA851;
@@ -568,7 +571,6 @@
 
 .messenger-action-button {
     background-color: #007bff;
-    color: white;
 }
 .messenger-action-button:hover {
     background-color: #0056b3;
