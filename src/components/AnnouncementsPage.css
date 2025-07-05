@@ -16,12 +16,11 @@
 
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
-    /* Upewnij się, że flex-basis jest tutaj */
     flex-basis: calc(30% - (var(--announcements-gap) / 2)); 
-    flex-grow: 0; /* Nie rozciągaj się */
-    flex-shrink: 0; /* Nie kurcz się */
-    min-width: 280px; /* Aby nie było za wąsko na małych ekranach */
-    max-width: 350px; /* Aby nie było za szeroko na bardzo dużych ekranach */
+    flex-grow: 0; 
+    flex-shrink: 0; 
+    min-width: 280px; 
+    max-width: 350px; 
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
@@ -41,17 +40,16 @@
 
 /* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
-    /* ZMIANA: flex-basis jako główna kontrola szerokości, flex-grow/shrink: 0 */
     flex-basis: calc(70% - (var(--announcements-gap) / 2));
-    flex-grow: 0; /* Nie rozciągaj się ponad flex-basis */
-    flex-shrink: 0; /* Nie kurcz się poniżej flex-basis */
+    flex-grow: 0; 
+    flex-shrink: 0; 
     min-width: 600px; /* Dodaj minimalną szerokość dla prawej kolumny */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    display: flex; /* Zapewnij, że to jest flex container dla zawartości */
-    flex-direction: column; /* Układ zawartości w kolumnie */
+    display: flex; 
+    flex-direction: column;
 }
 
 /* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
@@ -147,15 +145,15 @@
 .filter-group label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold; /* DOMYŚLNIE POGRUBIONY */
+    font-weight: bold; 
     color: #555;
 }
 
 /* Styl dla tekstu "Opcjonalnie" */
 .filter-group label .optional-text {
-    font-weight: normal; /* Lżejsza czcionka dla "Opcjonalnie" */
-    color: #888; /* Szary kolor dla "Opcjonalnie" */
-    margin-left: 5px; /* Mały odstęp od głównej etykiety */
+    font-weight: normal; 
+    color: #888; 
+    margin-left: 5px; 
 }
 
 
@@ -171,13 +169,13 @@
 /* Styl dla pól zakresu - teraz układane w kolumnie */
 .filter-group .range-inputs { 
     display: flex;
-    flex-direction: column; /* Zmieniono na kolumnowy układ */
-    gap: 10px; /* Odstęp między inputami min/max */
+    flex-direction: column; 
+    gap: 10px; 
     width: 100%;
 }
 
 .filter-input-range {
-    flex-grow: 1; /* Nadal wypełnia dostępną przestrzeń */
+    flex-grow: 1; 
     padding: 10px 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -185,7 +183,7 @@
     box-sizing: border-box;
 }
 
-.filter-group .range-inputs span { /* Separator "-" - TERAZ USUNIĘTY Z WIDOKU */
+.filter-group .range-inputs span { 
     display: none; /* Ukrycie myślnika */
 }
 
@@ -256,35 +254,35 @@
 
 /* === NOWE STYLE DLA PRZYCISKU FILTRA "ULUBIONE OGŁOSZENIA" (Gwiazdka) === */
 .favorite-filter-button {
-    background-color: #f0f0f0; /* Jasne tło */
-    border: 1px solid #ccc; /* Delikatna ramka */
-    color: #333; /* Ciemny tekst */
+    background-color: #f0f0f0; 
+    border: 1px solid #ccc; 
+    color: #333; 
     padding: 10px 15px;
-    border-radius: 8px; /* Lekko zaokrąglone rogi */
+    border-radius: 8px; 
     cursor: pointer;
-    font-size: 1.1em; /* Trochę większa czcionka */
-    font-weight: bold; /* Bardziej wyrazista czcionka */
-    display: flex; /* Aby ikona i tekst były w jednej linii */
-    align-items: center; /* Wyśrodkowanie pionowe */
-    justify-content: center; /* Wyśrodkowanie poziome */
-    gap: 8px; /* Odstęp między ikoną a teksem */
+    font-size: 1.1em; 
+    font-weight: bold; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px; 
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    white-space: nowrap; /* Zapobiega zawijaniu tekstu */
-    width: 100%; /* Rozciągnij na całą szerokość lewej kolumny */
-    margin-top: 15px; /* Odstęp od "Dodaj Nowe Ogłoszenie" */
-    box-sizing: border-box; /* Ważne dla paddingu i szerokości */
+    white-space: nowrap; 
+    width: 100%; 
+    margin-top: 15px; 
+    box-sizing: border-box; 
 }
 
 .favorite-filter-button:hover:not([disabled]) {
-    background-color: #e0e0e0; /* Ciemniejsze tło na najechaniu */
+    background-color: #e0e0e0; 
     border-color: #999;
 }
 
 .favorite-filter-button.active {
-    background-color: #dc3545; /* CZERWONE tło dla aktywnego stanu (jak serduszko) */
-    border-color: #c82333; /* Ciemniejsza czerwona ramka */
-    color: white; /* Biały tekst dla kontrastu */
-    font-weight: bolder; /* Jeszcze bardziej wyrazista czcionka dla aktywnego */
+    background-color: #dc3545; 
+    border-color: #c82333; 
+    color: white; 
+    font-weight: bolder; 
 }
 
 .favorite-filter-button[disabled] {
@@ -294,19 +292,19 @@
 
 /* Kontener dla górnych przycisków (Dodaj ogłoszenie, Ulubione ogłoszenia) w lewej kolumnie */
 .left-panel > .add-announcement-button + .favorite-filter-button {
-    margin-top: 15px; /* Odstęp między "Dodaj nowe ogłoszenie" a filtrem ulubionych */
+    margin-top: 15px; 
 }
 
 
 /* --- LISTA OGŁOSZEŃ (PRAWA KOLUMNA) - zachowanie oryginalnego układu single-column --- */
 .announcements-list-single-column {
     display: flex;
-    flex-direction: column; /* Układaj karty jedna pod drugą */
+    flex-direction: column; 
     gap: 25px;
     margin-top: 20px;
 }
 
-.announcement-card-wide { /* Karta ogłoszenia w układzie single-column */
+.announcement-card-wide { 
     background-color: #f8f8f8;
     border: 1px solid #eee;
     border-radius: 8px;
@@ -315,9 +313,9 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out;
-    width: 100%; /* Karta zajmuje całą szerokość kolumny */
-    position: relative; /* WAŻNE: dla pozycjonowania serduszka absolute */
-    overflow: hidden; /* Na wypadek, gdyby coś wystawało */
+    width: 100%; 
+    position: relative; 
+    overflow: hidden; 
 }
 
 .announcement-card-wide:hover {
@@ -355,7 +353,7 @@
 
 .announcement-image-preview {
     max-width: 100%;
-    height: 150px; /* Stała wysokość dla zdjęć */
+    height: 150px; 
     border-radius: 6px;
     margin-bottom: 15px;
     object-fit: cover;
