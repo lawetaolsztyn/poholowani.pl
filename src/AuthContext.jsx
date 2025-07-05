@@ -1,104 +1,94 @@
-// src/AuthContext.jsx
+// src/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient'; // Upewnij się, że ścieżka do supabaseClient.js jest poprawna
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0); // NOWY STAN
-
-  // NOWA FUNKCJA: Pobieranie całkowitej liczby nieprzeczytanych wiadomości
-  const fetchTotalUnreadMessages = async (userId) => {
-    if (!userId) {
-      setTotalUnreadMessages(0);
-      return;
-    }
-    try {
-      const { data, error } = await supabase
-        .from('conversation_participants')
-        .select('unread_messages_count')
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error("Błąd pobierania sumy nieprzeczytanych wiadomości:", error.message);
-        setTotalUnreadMessages(0);
-        return;
-      }
-
-      const sum = data.reduce((acc, participant) => acc + participant.unread_messages_count, 0);
-      setTotalUnreadMessages(sum);
-    } catch (err) {
-      console.error("Ogólny błąd fetchTotalUnreadMessages:", err.message);
-      setTotalUnreadMessages(0);
-    }
-  };
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
-        const { user } = session;
-        // Pobierz rozszerzone dane użytkownika z 'users_extended'
-        const { data: userData, error } = await supabase
-          .from('users_extended')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error("Błąd pobierania danych użytkownika z users_extended:", error.message);
-          setCurrentUser(user); // Ustaw podstawowe dane, jeśli rozszerzone nie są dostępne
-        } else {
-          setCurrentUser({ ...user, ...userData }); // Połącz dane z auth.user z users_extended
-        }
-        fetchTotalUnreadMessages(user.id); // Wywołaj po zalogowaniu
-      } else {
+    const fetchUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching user:", error.message);
         setCurrentUser(null);
-        setTotalUnreadMessages(0); // Wyzeruj licznik po wylogowaniu
-      }
-      setLoading(false);
-    });
-
-    // Sprawdź początkową sesję
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        const { user } = session;
-        const { data: userData, error } = await supabase
-          .from('users_extended')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error("Błąd pobierania danych użytkownika z users_extended (początkowa sesja):", error.message);
-          setCurrentUser(user);
-        } else {
-          setCurrentUser({ ...user, ...userData });
-        }
-        fetchTotalUnreadMessages(user.id); // Wywołaj po załadowaniu początkowej sesji
+        setUserRole(null);
       } else {
-        setCurrentUser(null);
-        setTotalUnreadMessages(0);
+        setCurrentUser(user);
+        if (user) {
+          // Pobierz rolę użytkownika z tabeli users_extended
+          const { data: profile, error: profileError } = await supabase
+            .from('users_extended')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+          if (profileError) {
+            console.error("Error fetching user role:", profileError.message);
+            setUserRole(null);
+          } else {
+            setUserRole(profile?.role || null);
+          }
+        } else {
+          setUserRole(null);
+        }
       }
-      setLoading(false);
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
+      setLoading(false); // Zakończ ładowanie po pobraniu danych użytkownika
     };
-  }, []);
+
+    fetchUser(); // Wywołaj funkcję raz przy montowaniu komponentu
+
+    // Subskrybuj zmiany stanu uwierzytelnienia (logowanie/wylogowanie)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Ustaw aktualnego użytkownika i odśwież jego rolę
+      setCurrentUser(session?.user || null);
+      if (session?.user) {
+        const fetchRole = async () => {
+          const { data: profile, error: profileError } = await supabase
+            .from('users_extended')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          if (profileError) {
+            console.error("Error fetching user role on auth state change:", profileError.message);
+            setUserRole(null);
+          } else {
+            setUserRole(profile?.role || null);
+          }
+        };
+        fetchRole();
+      } else {
+        setUserRole(null);
+      }
+      setLoading(false); // Zakończ ładowanie po zmianie stanu autoryzacji
+    });
+
+    // Funkcja czyszcząca subskrypcję przy odmontowaniu komponentu
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []); // Pusta tablica zależności, aby efekt uruchomił się tylko raz
 
   const value = {
     currentUser,
+    userRole,
     loading,
-    totalUnreadMessages, // Udostępnij w kontekście
-    fetchTotalUnreadMessages // Udostępnij funkcję do odświeżania
+    // Możesz tutaj dodać inne funkcje, np. login/logout, jeśli chcesz je centralizować
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
