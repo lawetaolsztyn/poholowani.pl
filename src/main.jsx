@@ -36,7 +36,6 @@ import CarriersCatalog from './CarriersCatalog';
 import AnnouncementsPage from './components/AnnouncementsPage';
 import MojeOgloszenia from './components/MojeOgloszenia'; 
 import MyChats from './components/MyChats';
-import Navbar from './components/Navbar'; // Dodano import Navbar, jeśli go nie było
 
 import { AuthProvider } from './AuthContext.jsx'; // <-- Ten import jest kluczowy
 
