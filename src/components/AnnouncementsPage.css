@@ -132,16 +132,18 @@
 .filter-group label {
     display: block;
     margin-bottom: 8px;
-    /* ZMIANA: Etykiety dla "Skąd" i "Dokąd" nie są już pogrubione */
-    font-weight: normal; /* Zmieniono z bold na normal */
+    font-weight: bold; /* DOMYŚLNIE POGRUBIONY */
     color: #555;
 }
 
-.filter-group label[for="filterRadius"],
-.filter-group label[for="filterKeyword"],
-.filter-group label:has(+ .range-inputs) { /* Etykiety nad sekcjami Budżet i Waga nadal boldem */
-    font-weight: bold;
+/* ZMIANA: Styl dla etykiet "Skąd" i "Dokąd" - tylko tekst "Opcjonalnie" jest lżejszy */
+.filter-group label .optional-text {
+    font-weight: normal; /* Lżejsza czcionka dla "Opcjonalnie" */
+    color: #888; /* Szary kolor dla "Opcjonalnie" */
+    margin-left: 5px; /* Mały odstęp od głównej etykiety */
 }
+
+/* Pozostałe etykiety, które powinny być boldem, np. Promień, Słowo kluczowe, Budżet, Waga, pozostają boldem przez domyślne .filter-group label */
 
 
 .filter-input {
@@ -571,6 +573,7 @@
 
 .messenger-action-button {
     background-color: #007bff;
+    color: white;
 }
 .messenger-action-button:hover {
     background-color: #0056b3;
