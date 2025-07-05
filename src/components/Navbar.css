@@ -15,10 +15,20 @@
   margin-right: 0.2rem;
   text-decoration: none;
   font-weight: 500;
-  padding: 0.5rem 0.7rem;
+  /* padding: 0.5rem 0.7rem; <--- Dostosujemy padding dla zawijania */
   border-radius: 5px;
   transition: background-color 0.3s;
-  white-space: nowrap;
+  /* white-space: nowrap; <--- USUNIĘTO, ABY TEKST SIĘ ZAWijał */
+
+  /* DODANE DLA ZAWIJANIA I WYŚRODKOWANIA TEKSTU */
+  display: flex; /* Link jako flex container */
+  flex-direction: column; /* Zawartość w kolumnie (dwie linie) */
+  justify-content: center; /* Wyśrodkowanie pionowe */
+  align-items: center; /* Wyśrodkowanie poziome */
+  text-align: center; /* Zapewnia wyśrodkowanie tekstu */
+  line-height: 1.2; /* Dostosuj wysokość linii, jeśli tekst jest dwuliniowy */
+  padding: 0.3rem 0.7rem; /* Lekko zmniejszony padding pionowy, aby zmieścić dwie linie */
+  min-height: 45px; /* Minimalna wysokość linku, aby pomieścić dwie linie */
 }
 
 .navbar a:hover {
@@ -115,6 +125,13 @@
     width: calc(100% - 2rem);
     text-align: center;
     margin-right: 0;
+    /* Resetujemy flexbox dla mobilnego, jeśli chcemy domyślne zachowanie */
+    display: flex; /* Pozostawiamy flex */
+    flex-direction: column; /* Nadal w kolumnie */
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem 1rem; /* Przywracamy większy padding dla lepszego dotyku */
+    min-height: auto; /* Resetujemy min-height */
   }
 
   .nav-right {
@@ -147,6 +164,14 @@
     padding: 0.5rem 1rem !important;
     border-radius: 5px !important;
     transition: all 0.3s ease;
+    /* Upewnij się, że ten link również będzie zawijany, jeśli chcesz */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    line-height: 1.2;
+    min-height: 45px;
 }
 
 .transport-na-juz-link:hover {
