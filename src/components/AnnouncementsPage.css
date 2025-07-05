@@ -813,4 +813,33 @@
   }
 }
 
-/* ... (reszta stylów dark mode i responsywności) ... */
+/* Style dla przycisku ulubionych (serduszka) */
+.favorite-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5em; /* Rozmiar ikony */
+    padding: 5px;
+    position: absolute; /* Ustawienie serduszka w rogu karty */
+    top: 10px;
+    right: 10px;
+    z-index: 10; /* Aby było nad innymi elementami */
+    color: gray; /* Domyślny kolor obrysu */
+    transition: color 0.2s ease-in-out;
+}
+
+.favorite-button:hover {
+    color: lightcoral; /* Kolor po najechaniu myszką */
+}
+
+.favorite-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Styl dla wypełnionego serduszka (czerwonego) - ustawiane inline stylem w React */
+/* Jeśli chcesz kontrolować kolor tylko przez CSS, możesz użyć:
+.favorite-button svg { color: gray; }
+.favorite-button.is-favorite svg { color: red; }
+I dodawać klasę .is-favorite do buttona.
+*/
