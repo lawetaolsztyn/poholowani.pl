@@ -1,5 +1,5 @@
 // src/AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'; // Dodano useCallback
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 
 const AuthContext = createContext();
@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
 
-  // ZMIENIONE: Funkcja fetchTotalUnreadMessages opakowana w useCallback
+  // Funkcja do pobierania i ustawiania całkowitej liczby nieprzeczytanych wiadomości
   const fetchTotalUnreadMessages = useCallback(async (userId) => {
     if (!userId) {
       setTotalUnreadMessages(0);
@@ -20,7 +20,8 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabase
         .from('conversation_participants')
         .select('unread_messages_count')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .filter('unread_messages_count', 'gt', 0); // Pobieramy tylko te, które mają niezerową liczbę
 
       if (error) {
         console.error("Błąd pobierania sumy nieprzeczytanych wiadomości:", error.message);
@@ -28,101 +29,86 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Ważne: Sumuj tylko te, które mają unread_messages_count > 0, jeśli takie są w bazie
-      const sum = data.reduce((acc, participant) => acc + participant.unread_messages_count, 0);
+      const sum = data.reduce((acc, item) => acc + item.unread_messages_count, 0);
       setTotalUnreadMessages(sum);
     } catch (err) {
-      console.error("Ogólny błąd w fetchTotalUnreadMessages:", err.message);
+      console.error('Ogólny błąd w fetchTotalUnreadMessages:', err.message);
       setTotalUnreadMessages(0);
     }
-  }, []); // Brak zależności, aby ta funkcja była stabilna i nie powodowała pętli
+  }, []); // Bez zależności, aby była stabilna i nie powodowała pętli
 
   useEffect(() => {
-    let authListener = null;
-    let participantsChannel = null; // Zmienna do przechowywania subskrypcji kanału participants
+    let participantsChannel = null; // Zmienna do przechowywania subskrypcji kanału Realtime
 
-    const setupAuthAndSubscriptions = async (initialLoad = false) => {
-      // Pobierz początkową sesję (lub aktualizację z authListener)
-      const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser();
+    // Subskrybuj zmiany stanu uwierzytelnienia (logowanie/wylogowanie)
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setLoading(true); // Ustaw loading na true, gdy stan autoryzacji się zmienia
 
-      if (sessionError) {
-        if (sessionError.message === 'Auth session missing!') {
-          console.info("Informacja: Użytkownik nie jest zalogowany.");
-        } else {
-          console.error("Error fetching user data:", sessionError.message);
-        }
-        setCurrentUser(null);
-        setUserRole(null);
-        setTotalUnreadMessages(0);
-        setLoading(false);
-        return; // Ważne: Zakończ, jeśli użytkownik nie jest zalogowany
-      }
+      if (session) {
+        // Użytkownik jest zalogowany
+        setCurrentUser(session.user);
 
-      if (sessionUser) {
-        setCurrentUser(sessionUser);
+        // Pobierz rolę użytkownika
         const { data: profile, error: profileError } = await supabase
           .from('users_extended')
           .select('role')
-          .eq('id', sessionUser.id)
+          .eq('id', session.user.id)
           .single();
 
         if (profileError) {
-          console.error("Error fetching user role:", profileError.message);
+          console.error("Błąd pobierania roli użytkownika:", profileError.message);
           setUserRole(null);
         } else {
           setUserRole(profile?.role || null);
         }
 
-        // Pobierz początkowy licznik nieprzeczytanych wiadomości
-        fetchTotalUnreadMessages(sessionUser.id);
+        // Pobierz początkową liczbę nieprzeczytanych wiadomości
+        await fetchTotalUnreadMessages(session.user.id);
 
-        // Subskrypcja do zmian w conversation_participants dla bieżącego użytkownika
-        // Aktywuj tylko, jeśli jest zalogowany i subskrypcja jeszcze nie istnieje
-        if (!participantsChannel) { // Sprawdzamy, czy kanał już nie istnieje
-            participantsChannel = supabase
-            .channel(`unread_messages_user_${sessionUser.id}`) // Użyj unikalnej nazwy kanału dla każdego użytkownika
+        // Subskrybuj zmiany w conversation_participants dla bieżącego użytkownika
+        // Sprawdź, czy kanał już istnieje i czy jest dla tego samego użytkownika
+        if (!participantsChannel || participantsChannel.topic !== `unread_messages_user_${session.user.id}`) {
+          // Jeśli istnieje kanał dla innego użytkownika lub ogólny, usuń go najpierw
+          if (participantsChannel) {
+            supabase.removeChannel(participantsChannel);
+          }
+
+          participantsChannel = supabase
+            .channel(`unread_messages_user_${session.user.id}`) // Unikalna nazwa kanału dla każdego użytkownika
             .on('postgres_changes', {
-              event: 'UPDATE', // Interesują nas aktualizacje
+              event: 'UPDATE', // Interesują nas tylko aktualizacje
               schema: 'public',
               table: 'conversation_participants',
-              filter: `user_id=eq.${sessionUser.id}` // Filtruj tylko zmiany dotyczące tego użytkownika
+              filter: `user_id=eq.${session.user.id}` // Filtruj tylko zmiany dotyczące tego użytkownika
             }, (payload) => {
               console.log('Realtime change in conversation_participants for current user:', payload);
               // Po każdej zmianie (np. zwiększeniu licznika lub zresetowaniu), odśwież globalny licznik
-              fetchTotalUnreadMessages(sessionUser.id);
+              fetchTotalUnreadMessages(session.user.id);
             })
             .subscribe();
         }
 
       } else {
+        // Użytkownik się wylogował
         setCurrentUser(null);
         setUserRole(null);
         setTotalUnreadMessages(0);
-        // Usuń subskrypcję, jeśli użytkownik się wylogował
+
+        // Usuń subskrypcję z kanału participants, jeśli jest aktywna
         if (participantsChannel) {
           supabase.removeChannel(participantsChannel);
           participantsChannel = null; // Resetuj zmienną kanału
         }
       }
-      setLoading(false);
-    };
-
-    // Initial load
-    setupAuthAndSubscriptions(true);
-
-    // Subskrybuj zmiany stanu uwierzytelnienia (logowanie/wylogowanie)
-    authListener = supabase.auth.onAuthStateChange((_event, session) => {
-      // Wywołujemy setupAuthAndSubscriptions, aby ponownie skonfigurować wszystko, w tym subskrypcję participants
-      // po każdej zmianie stanu autoryzacji
-      setupAuthAndSubscriptions(false); // Nie jest to initial load
+      setLoading(false); // Zakończ loading
     });
 
     // Funkcja czyszcząca subskrypcje przy odmontowaniu komponentu
     return () => {
-      if (authListener?.data?.subscription) {
-        authListener.data.subscription.unsubscribe();
+      if (authListener?.unsubscribe) {
+        authListener.unsubscribe();
       }
-      if (participantsChannel) { // Upewnij się, że kanał jest usunięty przy czyszczeniu
+      if (participantsChannel) {
         supabase.removeChannel(participantsChannel);
       }
     };
@@ -133,7 +119,7 @@ export function AuthProvider({ children }) {
     userRole,
     loading,
     totalUnreadMessages,
-    fetchTotalUnreadMessages
+    fetchTotalUnreadMessages // Udostępniamy funkcję, jeśli inne komponenty chciałyby ręcznie odświeżyć
   };
 
   return (
