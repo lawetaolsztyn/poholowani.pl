@@ -20,16 +20,15 @@
 /* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
 .left-panel {
     /* ZMIANA: flex-basis jako główny kontroler szerokości, ale pozwalamy flex-grow/shrink działać w ramach definicji */
-    flex: 0 0 calc(30% - (var(--announcements-gap) / 2)); 
-    min-width: 280px; 
-    max-width: 350px; 
+    flex: 0 0 calc(30% - (var(--announcements-gap) / 2));
+    min-width: 280px;
+    max-width: 350px;
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    /* Usunięto width: 0; */
 }
 
 /* Nagłówek dla formularza dodawania ogłoszenia */
@@ -44,13 +43,13 @@
 /* PRAWA KOLUMNA: lista ogłoszeń */
 .main-content-area {
     /* ZMIANA: flex-basis jako główny kontroler szerokości, flex-grow: 1 aby wypełnić resztę */
-    flex: 1 0 calc(70% - (var(--announcements-gap) / 2)); 
+    flex: 1 0 calc(70% - (var(--announcements-gap) / 2));
     min-width: 65%; /* ZMIANA: Upewnienie się, że minimum to ~65% */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    display: flex; 
+    display: flex;
     flex-direction: column;
     flex-grow: 1;
 }
@@ -148,15 +147,15 @@
 .filter-group label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold; 
+    font-weight: bold;
     color: #555;
 }
 
 /* Styl dla tekstu "Opcjonalnie" */
 .filter-group label .optional-text {
-    font-weight: normal; 
-    color: #888; 
-    margin-left: 5px; 
+    font-weight: normal;
+    color: #888;
+    margin-left: 5px;
 }
 
 
@@ -170,15 +169,15 @@
 }
 
 /* Styl dla pól zakresu - teraz układane w kolumnie */
-.filter-group .range-inputs { 
+.filter-group .range-inputs {
     display: flex;
-    flex-direction: column; 
-    gap: 10px; 
+    flex-direction: column;
+    gap: 10px;
     width: 100%;
 }
 
 .filter-input-range {
-    flex-grow: 1; 
+    flex-grow: 1;
     padding: 10px 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -186,7 +185,7 @@
     box-sizing: border-box;
 }
 
-.filter-group .range-inputs span { 
+.filter-group .range-inputs span {
     display: none; /* Ukrycie myślnika */
 }
 
@@ -257,35 +256,35 @@
 
 /* === NOWE STYLE DLA PRZYCISKU FILTRA "ULUBIONE OGŁOSZENIA" (Gwiazdka) === */
 .favorite-filter-button {
-    background-color: #f0f0f0; 
-    border: 1px solid #ccc; 
-    color: #333; 
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    color: #333;
     padding: 10px 15px;
-    border-radius: 8px; 
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.1em; 
-    font-weight: bold; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 8px; 
+    font-size: 1.1em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    white-space: nowrap; 
-    width: 100%; 
-    margin-top: 15px; 
-    box-sizing: border-box; 
+    white-space: nowrap;
+    width: 100%;
+    margin-top: 15px;
+    box-sizing: border-box;
 }
 
 .favorite-filter-button:hover:not([disabled]) {
-    background-color: #e0e0e0; 
+    background-color: #e0e0e0;
     border-color: #999;
 }
 
 .favorite-filter-button.active {
-    background-color: #dc3545; 
-    border-color: #c82333; 
-    color: white; 
-    font-weight: bolder; 
+    background-color: #dc3545;
+    border-color: #c82333;
+    color: white;
+    font-weight: bolder;
 }
 
 .favorite-filter-button[disabled] {
@@ -295,7 +294,7 @@
 
 /* Kontener dla górnych przycisków (Dodaj ogłoszenie, Ulubione ogłoszenia) w lewej kolumnie */
 .left-panel > .add-announcement-button + .favorite-filter-button {
-    margin-top: 15px; 
+    margin-top: 15px;
 }
 
 
@@ -303,14 +302,14 @@
 /* WAŻNE: TA KLASA JEST TERAZ UŻYWANA W JSX DLA KONTENERA OGŁOSZEŃ */
 .announcements-list-single-column {
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     gap: 25px;
     margin-top: 20px;
     width: 100%; /* Upewnij się, że ten kontener zajmuje całą szerokość .main-content-area */
 }
 
 /* Karta ogłoszenia w układzie single-column */
-.announcement-card-wide { 
+.announcement-card-wide {
     background-color: #f8f8f8;
     border: 1px solid #eee;
     border-radius: 8px;
@@ -319,9 +318,9 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease-in-out;
-    width: 100%; 
-    position: relative; 
-    overflow: hidden; 
+    width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .announcement-card-wide:hover {
@@ -359,7 +358,7 @@
 
 .announcement-image-preview {
     max-width: 100%;
-    height: 150px; 
+    height: 150px;
     border-radius: 6px;
     margin-bottom: 15px;
     object-fit: cover;
@@ -422,7 +421,7 @@
     background-color: #138496;
 }
 
-/* --- Serduszko na ogłoszeniu --- */
+/* --- Serduszko na ogłoszeniu (na liście) --- */
 .favorite-button {
     background: none;
     border: none;
@@ -437,22 +436,6 @@
     transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
     opacity: 1; /* Upewnienie się, że jest zawsze widoczne */
 }
-/* --- Serduszko w widoku szczegółów ogłoszenia --- */
-.favorite-button-details {
-    position: absolute; /* Pozycjonowanie absolutne */
-    top: 30px; /* Dostosuj pozycję pionową */
-    right: 30px; /* Dostosuj pozycję poziomą */
-    font-size: 2em; /* Większe serduszko dla widoku szczegółów */
-    padding: 10px;
-    z-index: 20; /* Upewnij się, że jest nad innymi elementami */
-}
-
-/* Dostosowanie dla trybu ciemnego */
-@media (prefers-color-scheme: dark) {
-    .favorite-button-details {
-        /* Jeśli potrzebujesz specyficznych zmian dla dark mode, dodaj tutaj */
-    }
-}
 
 .favorite-button:hover:not([disabled]) {
     color: lightcoral;
@@ -464,6 +447,7 @@
     opacity: 0.6;
 }
 
+
 /* --- Duży widok szczegółów ogłoszenia w prawej kolumnie --- */
 .full-announcement-details-card {
     background-color: #ffffff;
@@ -473,11 +457,28 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
-    min-height: 70vh; 
-    max-height: 90vh; 
-    overflow-y: auto; 
-    box-sizing: border-box; 
+    min-height: 70vh;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
+
+/* NOWE STYLE: Kontener dla tytułu ogłoszenia i serduszka w widoku szczegółów */
+.announcement-details-title-row {
+    display: flex; /* Użyj Flexbox do ułożenia elementów obok siebie */
+    align-items: center; /* Wyśrodkuj elementy w pionie */
+    justify-content: center; /* Wyśrodkuj zawartość h4 i przycisku */
+    gap: 15px; /* Odstęp między tytułem a serduszkiem */
+    margin-bottom: 20px; /* Margines pod całą linią tytułową */
+    text-align: center; /* Wyśrodkuj tekst tytułu */
+}
+
+/* Zresetuj margines h4 w nowym kontenerze */
+.announcement-details-title-row h4 {
+    margin: 0; /* Usuń domyślny margines z h4, aby uniknąć problemów z Flexbox */
+    line-height: 1.2; /* Dostosuj wysokość linii */
+}
+
 
 .full-announcement-details-card h3 {
     font-size: 2.2em;
@@ -489,7 +490,7 @@
 .full-announcement-details-card h4 {
     font-size: 1.8em;
     color: #333;
-    margin-bottom: 20px;
+    /* Usunięto margin-bottom, bo jest w .announcement-details-title-row */
     text-align: center;
 }
 
@@ -893,15 +894,27 @@
     .main-content-area {
         flex: none;
         width: 100%;
+        /* Dodatkowo dla mobilnych, aby full-announcement-details-card mogło się rozciągać wewnątrz main-content-area */
+        height: auto; /* Upewnij się, że nie ma sztywnej wysokości na mobilnych */
+        min-height: unset; /* Usuń ewentualne min-height, które kolidowałoby */
     }
 
     /* Zmiana tutaj: upewnienie się, że ogłoszenia nadal są w kolumnie na małych ekranach */
-    .announcements-list-single-column { /* Używaj tej klasy dla listy */
+    .announcements-list-single-column {
         display: flex;
-        flex-direction: column; /* Utrzymaj układ kolumnowy */
-        gap: 25px; /* Zachowaj odstęp */
+        flex-direction: column;
+        gap: 25px;
     }
     
+    .full-announcement-details-card {
+        padding: 15px; /* Mniejszy padding na mobilnych */
+        min-height: 70vh; /* Utrzymaj minimalną widoczną wysokość, możesz dostosować */
+        max-height: unset; /* Pozwól na rozciąganie na pełną wysokość, jeśli modal jest full screen */
+        overflow-y: auto; /* Nadal przewijanie wewnątrz karty */
+        height: auto; /* Ważne dla elastyczności */
+        width: 100%; /* Upewnij się, że jest pełna szerokość */
+    }
+
     .full-announcement-details-card .announcement-details-image-full {
         max-width: 100%;
     }
@@ -916,12 +929,22 @@
         font-size: 1em;
         margin-right: 5px;
     }
-}
-@media (max-width: 992px) {
+
+    /* --- Serduszko w widoku szczegółów ogłoszenia (ZMODYFIKOWANE) --- */
     .favorite-button-details {
-        top: 15px; /* Mniejszy offset na mobilnych */
-        right: 15px; /* Mniejszy offset na mobilnych */
+        /* Usunięto position: absolute, top, right, z-index - TERAZ DZIECKO FLEXBOXA */
+        background: none;
+        border: none;
+        cursor: pointer;
         font-size: 1.8em; /* Nieco mniejsze serduszko na mobilnych */
         padding: 5px;
+        color: gray;
+        transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        opacity: 1;
+        width: auto;
+        height: auto;
+        display: flex; /* Zapewnia, że ikonka jest dobrze wyśrodkowana w przycisku */
+        align-items: center;
+        justify-content: center;
     }
 }
