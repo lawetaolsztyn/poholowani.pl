@@ -1,13 +1,14 @@
 /* src/components/MyChats.css */
 
 .my-chats-container {
-  padding: 20px;
+  width: 100%;
   max-width: 1200px;
   margin: 20px auto;
+  padding: 20px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-height: 500px;
+  box-sizing: border-box;
 }
 
 .my-chats-container h1 {
@@ -19,10 +20,11 @@
 
 .conversations-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 kolumny domyślnie */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
 }
 
+/* Pojedyncza karta */
 .conversation-card {
   background-color: #f8f8f8;
   border: 1px solid #eee;
@@ -34,13 +36,16 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-sizing: border-box;
 }
 
+/* Hover efekt */
 .conversation-card:hover {
   background-color: #f0f0f0;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* Header w karcie */
 .conversation-card .card-header {
   display: flex;
   justify-content: space-between;
@@ -65,7 +70,6 @@
   min-width: 25px;
   text-align: center;
   margin-left: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   display: inline-block;
 }
 
@@ -91,7 +95,7 @@
   display: block;
 }
 
-/* Komunikaty */
+/* Wiadomości, błędy itp. */
 .my-chats-container p {
   text-align: center;
   font-size: 1.1em;
@@ -104,7 +108,7 @@
   font-weight: bold;
 }
 
-/* Nieprzeczytane */
+/* Nieprzeczytana karta */
 .conversation-card.unread {
   background-color: #f8f8f8;
   border-left: 5px solid #007bff;
@@ -121,7 +125,6 @@
   .my-chats-container {
     background-color: #333;
     color: #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
   .my-chats-container h1 {
@@ -136,7 +139,6 @@
 
   .conversation-card:hover {
     background-color: #555;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   }
 
   .conversation-card h4 {
@@ -154,18 +156,6 @@
     color: #ccc;
   }
 
-  .conversation-card .last-message {
-    color: #aaa;
-  }
-
-  .conversation-card .message-time {
-    color: #aaa;
-  }
-
-  .my-chats-container .error-message {
-    color: #ff6b6b;
-  }
-
   .conversation-card.unread {
     background-color: #444;
     border-left-color: #6bb3ff;
@@ -174,34 +164,16 @@
   .conversation-card.unread .last-message {
     color: #fff;
   }
+
+  .my-chats-container .error-message {
+    color: #ff6b6b;
+  }
 }
 
-/* RESPONSYWNOŚĆ */
-
-/* TABLETY: 2 kolumny */
-@media (max-width: 1024px) {
-  .conversations-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+/* Mniejsze urządzenia */
+@media (max-width: 768px) {
   .my-chats-container {
     padding: 15px;
-  }
-
-  .my-chats-container h1 {
-    font-size: 2.2em;
-  }
-}
-
-/* TELEFONY: 1 kolumna */
-@media (max-width: 768px) {
-  .conversations-list {
-    grid-template-columns: 1fr;
-  }
-
-  .my-chats-container {
-    padding: 10px;
-    margin: 10px auto;
   }
 
   .my-chats-container h1 {
