@@ -3,7 +3,8 @@ import { supabase } from './supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
-import './LandingPage.css';
+import './LandingPage.css'; // Zakładam, że ten plik nadal zawiera ogólne style dla całej strony
+import './Login.css'; // <--- DODAJ TEN IMPORT DLA NOWYCH STYLÓW LOGOWANIA
 import { getRecaptchaToken } from './utils/getRecaptchaToken';
 import ReCAPTCHA from 'react-google-recaptcha';
 
@@ -16,7 +17,27 @@ export default function Login() {
   const [isResendLoading, setIsResendLoading] = useState(false);
   const [captchaVersion, setCaptchaVersion] = useState('v3'); // 'v3' lub 'v2'
   const [recaptchaV2Token, setRecaptchaV2Token] = useState('');
+  // Dodajemy stan dla trybu ciemnego, potrzebny do komponentu ReCAPTCHA
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
+
+  // Efekt do wykrywania trybu ciemnego przeglądarki
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => setIsDarkMode(e.matches);
+
+    // Ustaw początkowy stan
+    setIsDarkMode(mediaQuery.matches);
+
+    // Dodaj listenera do zmian
+    mediaQuery.addEventListener('change', handleChange);
+
+    // Funkcja czyszcząca
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []); // Pusta tablica zależności, aby efekt uruchomił się tylko raz
+
 
   useEffect(() => {
     const handleAuthRedirect = async (user) => {
@@ -188,8 +209,10 @@ export default function Login() {
         <Header title="Zaloguj się do swojego konta" subtitle="Zarządzaj zleceniami i trasami w jednym miejscu" />
       </div>
       <div className="landing-container">
-        <div style={wrapper}>
-          <h2 style={{ marginBottom: 20, textAlign: 'center', fontSize: '1.8rem', color: '#333' }}>
+        {/* Zmieniamy 'style={wrapper}' na 'className="login-form-wrapper"' */}
+        <div className="login-form-wrapper">
+          {/* Zmieniamy 'style={{ marginBottom: ..., textAlign: ..., fontSize: ..., color: ... }}' na 'className="login-heading"' */}
+          <h2 className="login-heading">
             {resetMode ? 'Resetowanie Hasła' : 'Zaloguj się'}
           </h2>
 
@@ -200,7 +223,7 @@ export default function Login() {
                 placeholder="E-mail"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                style={inputStyle}
+                className="login-input" // Zmieniamy 'style={inputStyle}' na 'className="login-input"'
                 required
               />
               <input
@@ -208,7 +231,7 @@ export default function Login() {
                 placeholder="Hasło"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                style={inputStyle}
+                className="login-input" // Zmieniamy 'style={inputStyle}' na 'className="login-input"'
                 required
               />
 
@@ -221,12 +244,13 @@ export default function Login() {
                       setRecaptchaV2Token(token);
                       setMessage('');
                     }}
+                    theme={isDarkMode ? 'dark' : 'light'} {/* Ustawienie motywu reCAPTCHA na podstawie stanu isDarkMode */}
                   />
                 </div>
               )}
 
-              <button type="submit" style={btnStyle}>Zaloguj</button>
-              <button type="button" onClick={() => setResetMode(true)} style={linkStyle}>Zapomniałeś hasła?</button>
+              <button type="submit" className="login-button">Zaloguj</button> {/* Zmieniamy 'style={btnStyle}' na 'className="login-button"' */}
+              <button type="button" onClick={() => setResetMode(true)} className="login-link-button">Zapomniałeś hasła?</button> {/* Zmieniamy 'style={linkStyle}' na 'className="login-link-button"' */}
             </form>
           ) : (
             <>
@@ -235,31 +259,34 @@ export default function Login() {
                 placeholder="Wpisz swój e-mail"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                style={inputStyle}
+                className="login-input" // Zmieniamy 'style={inputStyle}' na 'className="login-input"'
                 required
               />
-              <button type="button" onClick={handleResetPassword} style={btnStyle}>Wyślij link do resetowania</button>
-              <button type="button" onClick={() => setResetMode(false)} style={linkStyle}>Wróć do logowania</button>
+              <button type="button" onClick={handleResetPassword} className="login-button">Wyślij link do resetowania</button> {/* Zmieniamy 'style={btnStyle}' na 'className="login-button"' */}
+              <button type="button" onClick={() => setResetMode(false)} className="login-link-button">Wróć do logowania</button> {/* Zmieniamy 'style={linkStyle}' na 'className="login-link-button"' */}
             </>
           )}
 
-          <hr style={{ margin: '20px 0' }} />
+          <hr className="login-hr" /> {/* Zmieniamy 'style={{ margin: '20px 0' }}' na 'className="login-hr"' */}
 
-          <button onClick={() => handleOAuthLogin('google')} style={{ ...btnStyle, backgroundColor: '#db4437' }}>
+          {/* Tutaj łączymy klasę bazową 'login-button' z klasą specyficzną dla przycisku */}
+          <button onClick={() => handleOAuthLogin('google')} className="login-button google">
             Zaloguj przez Google
           </button>
-          <button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>
+          <button onClick={() => handleOAuthLogin('facebook')} className="login-button facebook">
             Zaloguj przez Facebook
           </button>
 
-          {message && <p style={{ marginTop: 20 }}>{message}</p>}
+          {/* Zmieniamy 'style={{ marginTop: 20 }}' na 'className="login-message"' */}
+          {message && <p className="login-message">{message}</p>}
 
           {showResendEmailButton && (
             <button
               type="button"
               onClick={handleResendActivationEmail}
               disabled={isResendLoading}
-              style={{ ...btnStyle, backgroundColor: isResendLoading ? '#ccc' : '#28a745', marginTop: 10 }}
+              // Warunkowe dodanie klasy 'disabled' jeśli isResendLoading jest true
+              className={`login-button resend-email ${isResendLoading ? 'disabled' : ''}`}
             >
               {isResendLoading ? 'Wysyłam...' : 'Wyślij ponownie link aktywacyjny'}
             </button>
@@ -270,50 +297,8 @@ export default function Login() {
   );
 }
 
-const wrapper = {
-  background: '#fff',
-  padding: 40,
-  maxWidth: 500,
-  margin: '0 auto',
-  marginTop: 40,
-  borderRadius: 12,
-  boxShadow: '0 0 15px rgba(0,0,0,0.1)'
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: 12,
-  marginBottom: 15,
-  borderRadius: 6,
-  border: '1px solid #ccc',
-  fontSize: '1rem'
-};
-
-const btnStyle = {
-  width: '100%',
-  padding: 12,
-  backgroundColor: '#007bff',
-  color: '#fff',
-  fontSize: '1rem',
-  border: 'none',
-  borderRadius: 6,
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease',
-  marginBottom: 10
-};
-
-const linkStyle = {
-  width: '100%',
-  padding: 12,
-  backgroundColor: 'transparent',
-  color: '#007bff',
-  fontSize: '1rem',
-  border: '1px solid #007bff',
-  borderRadius: 6,
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease, color 0.3s ease',
-  marginTop: 5,
-  display: 'block',
-  textAlign: 'center',
-  textDecoration: 'none'
-};
+// WAŻNE: USUŃ TE DEFINICJE STYLÓW Z Login.jsx, PONIEWAŻ PRZENIEŚLIŚMY JE DO LOGIN.CSS
+// const wrapper = { ... };
+// const inputStyle = { ... };
+// const btnStyle = { ... };
+// const linkStyle = { ... };

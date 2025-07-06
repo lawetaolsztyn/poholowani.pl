@@ -1,0 +1,183 @@
+/* --- Podstawowe style dla trybu jasnego (domyślne) --- */
+
+/* Wrapper kontenera formularza */
+.login-form-wrapper {
+  background: #fff;
+  padding: 40px;
+  max-width: 500px;
+  margin: 0 auto;
+  margin-top: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+/* Nagłówek h2 */
+.login-heading {
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+/* Pola input */
+.login-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  background-color: #fff;
+  color: #333;
+}
+
+/* Placeholdery dla inputów */
+.login-input::placeholder {
+  color: #888;
+}
+
+/* Ogólny styl przycisków */
+.login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+/* Styl dla przycisków "linkowych" (np. "Zapomniałeś hasła?") */
+.login-link-button {
+  width: 100%;
+  padding: 12px;
+  background-color: transparent;
+  color: #007bff;
+  font-size: 1rem;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin-top: 5px;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Styl dla wiadomości (np. komunikatów o błędach/sukcesie) */
+.login-message {
+  margin-top: 20px;
+  color: #333;
+}
+
+/* Styl dla linii poziomej */
+.login-hr {
+  margin: 20px 0;
+  border-color: #ccc;
+}
+
+/* Specyficzne kolory dla przycisków OAuth i ponownej wysyłki */
+.login-button.google {
+    background-color: #db4437;
+}
+
+.login-button.facebook {
+    background-color: #3b5998;
+}
+
+.login-button.resend-email {
+    background-color: #28a745;
+    margin-top: 10px;
+}
+
+.login-button.resend-email:disabled {
+    background-color: #ccc;
+    cursor: not-allowed; /* Dodajemy wizualną informację, że przycisk jest wyłączony */
+}
+
+/* --- Style dla trybu ciemnego --- */
+@media (prefers-color-scheme: dark) {
+  .login-form-wrapper {
+    background: #333;
+    box-shadow: 0 0 15px rgba(255,255,255,0.1);
+  }
+
+  .login-heading {
+    color: #eee;
+  }
+
+  .login-input {
+    background-color: #555;
+    color: #eee;
+    border: 1px solid #777;
+  }
+
+  .login-input::placeholder {
+    color: #bbb;
+  }
+
+  .login-button {
+    background-color: #0056b3; /* Ciemniejszy odcień niebieskiego */
+    color: #fff;
+  }
+
+  .login-link-button {
+    color: #9bd3ff; /* Jaśniejszy odcień niebieskiego */
+    border-color: #0056b3;
+  }
+
+  .login-message {
+    color: #eee;
+  }
+
+  .login-hr {
+    border-color: #777;
+  }
+
+  /* Specyficzne kolory dla przycisków OAuth i ponownej wysyłki w trybie ciemnym */
+  .login-button.google {
+      background-color: #c0392b; /* Ciemniejszy czerwony */
+  }
+
+  .login-button.facebook {
+      background-color: #2c3e50; /* Ciemniejszy niebieski/szary */
+  }
+
+  .login-button.resend-email {
+      background-color: #218838; /* Ciemniejszy zielony */
+  }
+
+  .login-button.resend-email:disabled {
+      background-color: #666; /* Ciemniejszy szary dla wyłączonego */
+  }
+}
+
+/* --- Responsywność dla telefonów (np. ekrany do 600px szerokości) --- */
+/* Zauważ, że Twoje obecne style już są dość responsywne (width: 100%, margin: 0 auto),
+   ale możemy dodać drobne optymalizacje. */
+@media (max-width: 600px) {
+  .login-form-wrapper {
+    margin-top: 20px; /* Mniejszy margines od góry na małych ekranach */
+    padding: 20px; /* Mniejsze wypełnienie na małych ekranach */
+    border-radius: 8px; /* Mniejszy promień zaokrąglenia */
+    box-shadow: none; /* Możesz usunąć cień, żeby było lżej na małych ekranach */
+  }
+
+  .login-heading {
+    font-size: 1.5rem; /* Mniejszy nagłówek */
+  }
+
+  .login-input,
+  .login-button,
+  .login-link-button {
+    padding: 10px; /* Mniejszy padding dla inputów i przycisków */
+    font-size: 0.95rem; /* Mniejsza czcionka */
+  }
+
+  .login-hr {
+      margin: 15px 0; /* Mniejszy margines dla linii poziomej */
+  }
+}
