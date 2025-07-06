@@ -429,7 +429,7 @@ export default function UserProfileDashboard() {
                 value={formData.province || ''}
                 onChange={handleChange}
                 required
-                className="form-select" {/* Dodana klasa */}
+                className="form-select" 
               >
                 <option value="">-- Wybierz województwo --</option>
                 {provinces.map(prov => (
@@ -451,7 +451,7 @@ export default function UserProfileDashboard() {
             </label>
 
             {/* === NOWE POLA DANYCH KONTAKTOWYCH PROFILU (do auto-podstawiania) === */}
-            <h4 className="form-section-subtitle" >Preferowane dane kontaktowe do formularzy</h4> {/* Dodana klasa */}
+            <h4 className="form-section-subtitle" >Preferowane dane kontaktowe do formularzy</h4> 
             <label className="form-label">
               Numer telefonu (do auto-podstawiania): {/* ZMIANA ETYKIETY */}
               <input
@@ -487,8 +487,8 @@ export default function UserProfileDashboard() {
                 className="form-input"
                 placeholder="https://m.me/twoj.profil"
               />
-              <small className="form-label-small"> {/* Dodana klasa */}
-                <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer" className="form-link"> {/* Dodana klasa */}
+              <small className="form-label-small"> 
+                <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer" className="form-link"> 
                     ❓ Skąd wziąć link do Messengera?
                 </a>
               </small>
@@ -510,7 +510,7 @@ export default function UserProfileDashboard() {
                 />
                 <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie w formularzach.</span>
               </label>
-              <small className="form-group-checkbox-small"> {/* Dodana klasa */}
+              <small className="form-group-checkbox-small"> 
                 Numer telefonu będzie widoczny dla innych użytkowników w zgłoszeniach i ogłoszeniach.
               </small>
             </div>
@@ -525,7 +525,7 @@ export default function UserProfileDashboard() {
       case 'Hasło':
         return (
           <form onSubmit={handlePasswordReset} className="dashboard-form-section">
-            <h3 className="dashboard-form-heading">Zmiana hasła</h3> {/* Dodana klasa */}
+            <h3 className="dashboard-form-heading">Zmiana hasła</h3> 
             {passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p>}
             <label className="form-label">
               Nowe hasło:
@@ -547,7 +547,7 @@ export default function UserProfileDashboard() {
 
         return (
           <div className="dashboard-form-section">
-            <h3 className="dashboard-form-heading">Profil publiczny</h3> {/* Dodana klasa */}
+            <h3 className="dashboard-form-heading">Profil publiczny</h3> 
             <p>Twój profil publiczny jest widoczny pod tym linkiem:</p>
 
             <label className="form-label">
@@ -561,7 +561,7 @@ export default function UserProfileDashboard() {
             </label>
 
             {!isPublicProfileAgreed && (
-                <p className="dashboard-message error dashboard-message-spacing"> {/* Dodana klasa */}
+                <p className="dashboard-message error dashboard-message-spacing"> 
                     Aby Twój profil publiczny był widoczny, musisz wyrazić powyższą zgodę.
                 </p>
             )}
@@ -587,7 +587,7 @@ export default function UserProfileDashboard() {
       case 'Pomoc drogowa':
         return (
           <form onSubmit={handleSave} className="dashboard-form-section">
-            <h3 className="dashboard-form-heading">Pomoc drogowa</h3> {/* Dodana klasa */}
+            <h3 className="dashboard-form-heading">Pomoc drogowa</h3> 
 
             <label className="form-label">
                 <input
@@ -599,7 +599,7 @@ export default function UserProfileDashboard() {
                 Oświadczam, że prowadzę działalność gospodarczą w zakresie pomocy drogowej i posiadam wpisany kod PKD 52.21.A
             </label>
 
-            <label className="form-label form-label-spacing-top"> {/* Dodana klasa */}
+            <label className="form-label form-label-spacing-top"> 
                 <input
                     type="checkbox"
                     checked={isRoadsideAssistanceAgreed}
@@ -610,7 +610,7 @@ export default function UserProfileDashboard() {
             </label>
 
             {(!formData.is_pomoc_drogowa || !isRoadsideAssistanceAgreed) && (
-                <p className="dashboard-message error dashboard-message-spacing"> {/* Dodana klasa */}
+                <p className="dashboard-message error dashboard-message-spacing"> 
                     Aby uzupełnić i udostępnić dane pomocy drogowej, musisz zaznaczyć powyższe oświadczenia.
                 </p>
             )}
@@ -618,7 +618,7 @@ export default function UserProfileDashboard() {
             <button
                 onClick={handleSave} 
                 disabled={saving}
-                className="form-button form-button-spacing-top" {/* Dodana klasa */}
+                className="form-button form-button-spacing-top" 
             >
                 {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
             </button>
@@ -708,7 +708,7 @@ export default function UserProfileDashboard() {
                   ></textarea>
                 </label>
 
-                <button type="submit" disabled={saving} className="form-button form-button-spacing-top"> {/* Dodana klasa */}
+                <button type="submit" disabled={saving} className="form-button form-button-spacing-top"> 
                   {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
                 </button>
 
