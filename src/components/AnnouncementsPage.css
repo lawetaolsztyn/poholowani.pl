@@ -955,3 +955,15 @@
         justify-content: center;
     }
 }
+@media (max-width: 768px) {
+  .announcement-card-wide .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .announcement-card-wide .posted-at {
+    text-align: left;
+    margin-top: 5px;
+  }
+}
