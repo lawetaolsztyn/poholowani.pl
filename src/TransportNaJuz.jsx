@@ -1,437 +1,544 @@
-/* src/TransportNaJuz.css */
+// src/TransportNaJuz.jsx
 
-.transport-na-juz-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import Navbar from './components/Navbar';
+import LocationAutocomplete from './components/LocationAutocomplete';
+import RequestDetails from './components/RequestDetails';
+import { supabase } from './supabaseClient';
+import { useParams, useNavigate } from 'react-router-dom';
+import 'leaflet/dist/leaflet.css';
+import './TransportNaJuz.css'; // Upewnij się, że ten import jest poprawny
+
+// Importy dla Mapy w formularzu
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+
+// Konfiguracja domyślnych ikon Leaflet (jeśli nadal występują błędy z ikonami, ten blok jest niezbędny)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+// Komponent do centrowania mapy (dla mapy w formularzu)
+function FormMapCenterUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center && center[0] != null && center[1] != null) {
+      map.setView(center, map.getZoom() > 10 ? map.getZoom() : 10); // Lekko mniejszy zoom dla 50km
+    }
+  }, [center, map]);
+  return null;
 }
 
-.hero-section {
-  text-align: center;
-  padding: 60px 20px;
-  background-color: #ffe5e5; /* zmienione na czerwone podkład */
-  border: 2px solid #ff3b3b; /* wyraźna czerwona ramka */
-  border-radius: 8px;
-  margin-bottom: 40px;
-  box-shadow: 0 6px 12px rgba(255, 0, 0, 0.2); /* delikatny cień czerwony */
-}
+export default function TransportNaJuz() {
+  const { requestId: urlRequestId } = useParams();
+  const navigate = useNavigate();
 
-.hero-section h1 {
-  font-size: 3em; /* większy tytuł */
-  color: #b30000; /* ciemniejsza czerwień */
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
+  const [showForm, setShowForm] = useState(false);
+  const formRef = useRef(null);
 
-.hero-section p {
-  font-size: 1.2em;
-  color: #700000;
-  margin-bottom: 25px;
-  line-height: 1.6;
-}
+  // Stany dla pól formularza zgłoszenia
+  const [vehicleType, setVehicleType] = useState('');
+  const [locationFromLabel, setLocationFromLabel] = useState('');
+  const [locationFromCoords, setLocationFromCoords] = useState({ latitude: null, longitude: null });
+  const [locationToLabel, setLocationToLabel] = useState('');
+  const [locationToCoords, setLocationToCoords] = useState({ latitude: null, longitude: null });
+  const [problemDescription, setProblemDescription] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [agreeToSharePhone, setAgreeToSharePhone] = useState(false);
 
-/* ========================== */
-/* ZNACZNIK PILNE (urgent badge) */
-/* ========================== */
-.urgent-badge {
-  background-color: #ff3b3b;
-  color: white;
-  padding: 4px 10px;
-  font-size: 0.75em;
-  font-weight: bold;
-  border-radius: 4px;
-  margin-right: 10px;
-  text-transform: uppercase;
-  display: inline-block;
-  vertical-align: middle;
-}
+  // Stany dla geolokalizacji
+  const [gettingLocation, setGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
-/* Migający (pulsujący) znaczek */
-.urgent-badge::after {
-  content: '';
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-left: 8px;
-  background-color: red;
-  border-radius: 50%;
-  animation: pulse 1.2s infinite;
-  vertical-align: middle;
-}
+  const [urgentRequests, setUrgentRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.5; }
-  100% { transform: scale(1); opacity: 1; }
-}
+  // NOWE STANY I IKONY DLA MAPY W FORMULARZU
+  const [nearbyRoadsideAssistanceInForm, setNearbyRoadsideAssistanceInForm] = useState([]);
+  const [loadingRoadsideInForm, setLoadingRoadsideInForm] = useState(false);
 
-/* ========================== */
-/* KARTA ZGŁOSZENIA PILNEGO */
-/* ========================== */
-.request-card.urgent {
-  background-color: #fff1f1;
-  border: 2px solid #ff3b3b;
-  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.15);
-}
+  // Ikony dla mapy w formularzu (tworzone z useMemo)
+  const userLocationIcon = useMemo(() => {
+    return new L.Icon({
+      iconUrl: '/icons/request-marker.png',
+      iconSize: [35, 35],
+      iconAnchor: [17, 35],
+      popupAnchor: [0, -35],
+    });
+  }, []);
 
-.request-card.urgent:hover {
-  border-color: #d60000;
-  box-shadow: 0 3px 12px rgba(255, 0, 0, 0.25);
-  transform: translateY(-2px);
-}
+  const roadsideIcon = useMemo(() => {
+    return new L.Icon({
+      iconUrl: '/icons/pomoc-drogowa.png',
+      iconSize: [40, 60],
+      iconAnchor: [20, 60],
+      popupAnchor: [0, -60],
+    });
+  }, []);
 
-/* ========================== */
-/* PRZYCISKI */
-/* ========================== */
-.btn-primary {
-  background-color: #ff6f00; /* Jakiś wyrazisty kolor, np. pomarańczowy */
-  color: white;
-  padding: 15px 30px;
-  font-size: 1.3em;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  text-decoration: none; /* Jeśli użyjesz jako link */
-}
+  // Funkcja obliczająca odległość (duplikacja z RequestDetails, jeśli nie ma globalnej utility)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Promień Ziemi w kilometrach
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return distance; // Odległość w kilometrach
+  };
 
-.btn-primary:hover {
-  background-color: #e65100; /* Ciemniejszy odcień pomarańczowego */
-}
 
-.btn-secondary {
-  background-color: #6c757d; /* Szary kolor */
-  color: white;
-  padding: 12px 25px;
-  font-size: 1.1em;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
+  useEffect(() => {
+    const fetchUrgentRequests = async () => {
+      setLoadingRequests(true);
+      const { data, error } = await supabase
+        .from('urgent_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
+      if (error) {
+        console.error('Błąd ładowania pilnych zgłoszeń:', error.message);
+      } else {
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+        const activeRequests = data.filter(req => {
+          if (!req.created_at) {
+            return false;
+          }
+          const createdAtDate = new Date(req.created_at);
+          return createdAtDate >= fortyEightHoursAgo;
+        });
+        setUrgentRequests(activeRequests);
+      }
+      setLoadingRequests(false);
+    };
 
-/* Mały przycisk */
-.btn-secondary.small-btn {
-  padding: 8px 15px;
-  font-size: 0.9em;
-  min-width: unset;
-}
+    fetchUrgentRequests();
 
-/* ========================== */
-/* SEKCJE I GRID */
-/* ========================== */
-.report-form-section,
-.current-requests-section,
-.request-details-section {
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-}
+    const interval = setInterval(fetchUrgentRequests, 60 * 1000); // Odświeżanie listy co minutę
+    return () => clearInterval(interval);
+  }, []);
 
-.report-form-section h2,
-.current-requests-section h2,
-.request-details-section h2 {
-  font-size: 2em;
-  color: #333;
-  margin-bottom: 25px;
-  text-align: center;
-}
+  // Efekt do zarządzania widokiem (formularz / szczegóły / lista) na podstawie URL
+  useEffect(() => {
+    if (urlRequestId) {
+      // Jeśli ID zgłoszenia jest w URL, pokaż szczegóły
+      setShowForm(false);
+    } else {
+      // Jeśli ID zgłoszenia nie ma w URL, schowaj szczegóły i formularz (pokaż listę)
+      setShowForm(false);
+    }
+  }, [urlRequestId]); // Reaguj na zmiany w ID zgłoszenia w URL
 
-.request-details-section {
-  min-height: 400px; /* Zapewnij minimalną wysokość dla treści */
-}
+  // NOWY EFFECT: Pobieranie pobliskich pomocy drogowych do formularza
+  useEffect(() => {
+    const findNearbyRoadsideAssistance = async () => {
+      if (!locationFromCoords.latitude || !locationFromCoords.longitude) {
+        setNearbyRoadsideAssistanceInForm([]); // Wyczyść, jeśli nie ma koordynat
+        return;
+      }
 
-.main-content-grid {
-  display: grid;
-  grid-template-columns: 1fr; /* Domyślnie jedna kolumna na małych ekranach */
-  gap: 30px; /* Odstęp między kolumnami */
-}
+      setLoadingRoadsideInForm(true);
+      try {
+        const { data: roadsideData, error: roadsideError } = await supabase
+          .from('users_extended')
+          .select('id, company_name, roadside_slug, roadside_city, roadside_street, roadside_number, roadside_phone, latitude, longitude')
+          .eq('is_pomoc_drogowa', true)
+          .eq('is_roadside_assistance_agreed', true) // Tylko te, które wyraziły zgodę
+          .not('latitude', 'is', null)
+          .not('longitude', 'is', null);
 
-@media (min-width: 768px) {
-  .main-content-grid {
-    grid-template-columns: 300px 1fr; /* Lewa kolumna stała szerokość, prawa elastyczna */
-  }
-}
+        if (roadsideError) throw roadsideError;
 
-.left-column {
-  padding: 15px;
-  background-color: #f0f2f5;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
+        const distanceThresholdKm = 50; // Zasięg 50 km
+        const nearby = roadsideData.filter(rs => {
+          if (rs.latitude && rs.longitude) {
+            const distance = calculateDistance(
+              locationFromCoords.latitude,
+              locationFromCoords.longitude,
+              rs.latitude,
+              rs.longitude
+            );
+            return distance <= distanceThresholdKm;
+          }
+          return false;
+        });
+        setNearbyRoadsideAssistanceInForm(nearby);
+      } catch (error) {
+        console.error("Błąd ładowania pobliskiej pomocy drogowej w formularzu:", error.message);
+        setNearbyRoadsideAssistanceInForm([]);
+      } finally {
+        setLoadingRoadsideInForm(false);
+      }
+    };
 
-.report-cta-section {
-  text-align: center;
-  margin-bottom: 20px;
-}
+    findNearbyRoadsideAssistance();
+  }, [locationFromCoords.latitude, locationFromCoords.longitude]); // Reaguj na zmiany lokalizacji 'Skąd'
 
-.full-width-btn {
-  width: 100%;
-}
+  const handleGetMyLocation = async () => {
+    setGettingLocation(true);
+    setLocationError('');
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocationFromCoords({ latitude, longitude });
 
-.right-column {
-  padding: 15px;
-}
+          try {
+            const response = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&language=pl&types=place,address,poi,postcode,locality`
+            );
+            const data = await response.json();
+            if (data.features && data.features.length > 0) {
+              const placeName = data.features[0].place_name;
+              setLocationFromLabel(placeName);
+              alert(`✅ Twoja lokalizacja: ${placeName}`);
+            } else {
+              setLocationFromLabel(`Lokalizacja GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+              alert(`✅ Znaleziono lokalizację GPS, ale nie udało się pobrać dokładnego adresu.`);
+            }
+          } catch (error) {
+            console.error("Błąd geokodowania wstecznego Mapbox:", error);
+            setLocationFromLabel(`Lokalizacja GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+            alert(`✅ Znaleziono lokalizację GPS, ale błąd pobierania adresu.`);
+          } finally {
+            setGettingLocation(false);
+          }
+        },
+        (error) => {
+          setGettingLocation(false);
+          let errorMessage = 'Błąd pobierania lokalizacji.';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Lokalizacja została zablokowana. Zezwól na dostęp w ustawieniach przeglądarki.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Informacje o lokalizacji są niedostępne.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Przekroczono czas oczekiwania na lokalizację.';
+              break;
+            default:
+              errorMessage = `Wystąpił nieznany błąd: ${error.message}`;
+              break;
+          }
+          setLocationError(`❌ ${errorMessage}`);
+          alert(`Błąd: ${errorMessage}`);
+          console.error("Błąd geolokalizacji:", error);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      setGettingLocation(false);
+      setLocationError('❌ Twoja przeglądarka nie wspiera geolokalizacji.');
+      alert('Twoja przeglądarka nie wspiera geolokalizacji.');
+    }
+  };
 
-/* ========================== */
-/* FORMULARZE */
-/* ========================== */
-.urgent-request-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Odstępy między polami */
-}
+  const handleReportUrgentNeedClick = () => {
+    setShowForm(true);
+    navigate('/transport-na-juz');
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
 
-.form-label {
-  display: flex;
-  flex-direction: column;
-  font-weight: bold;
-  color: #444;
-  font-size: 0.95em;
-}
+  const handleViewRequestDetails = (requestId) => {
+    navigate(`/transport-na-juz/${requestId}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-.form-input,
-.form-select,
-.form-textarea {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1em;
-  margin-top: 5px;
-  width: 100%; /* Pełna szerokość */
-  box-sizing: border-box;
-}
+  const handleBackToList = () => {
+    navigate('/transport-na-juz');
+  };
 
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
+  const handleSubmitUrgentRequest = async (e) => {
+    e.preventDefault();
 
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  border-color: #ff6f00;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
-}
+    if (!locationFromCoords.latitude || !locationFromCoords.longitude) {
+      alert('❗Lokalizacja (Skąd) jest wymagana. Użyj przycisku "Użyj mojej lokalizacji" lub wybierz adres z listy.');
+      return;
+    }
+    if (!phoneNumber || phoneNumber.trim() === '') {
+      alert('❗Numer telefonu jest wymagany.');
+      return;
+    }
+    if (!agreeToSharePhone) {
+      alert('❗Musisz wyrazić zgodę na udostępnienie numeru telefonu przewoźnikom.');
+      return;
+    }
+    if (!vehicleType) {
+      alert('❗Wybierz rodzaj pojazdu.');
+      return;
+    }
 
-.form-checkbox-label {
-  display: flex;
-  align-items: center;
-  font-weight: normal;
-  color: #555;
-  cursor: pointer;
-  font-size: 0.9em;
-}
+    try {
+      const { data, error } = await supabase
+        .from('urgent_requests')
+        .insert([
+          {
+            vehicle_type: vehicleType,
+            location_from_label: locationFromLabel,
+            location_from_lat: locationFromCoords.latitude,
+            location_from_lng: locationFromCoords.longitude,
+            location_to_label: locationToLabel || null,
+            location_to_lat: locationToCoords.latitude || null,
+            location_to_lng: locationToCoords.longitude || null,
+            problem_description: problemDescription,
+            phone_number: agreeToSharePhone ? phoneNumber : null,
+            agree_to_share_phone: agreeToSharePhone,
+          },
+        ])
+        .select();
 
-.form-checkbox-label input[type="checkbox"] {
-  margin-right: 10px;
-  transform: scale(1.1);
-}
+      if (error) throw error;
 
-.form-submit-btn,
-.btn-secondary {
-  align-self: center;
-  margin-top: 15px;
-  width: auto;
-  min-width: 180px;
-}
+      alert('✅ Twoje zgłoszenie zostało wysłane! Przewoźnicy zostaną o nim powiadomieni.');
 
-/* Styl dla licznika znaków pod textarea */
-.form-textarea + small {
-  align-self: flex-end;
-  font-size: 0.85em;
-  color: #777;
-  margin-top: 5px;
-}
+      setVehicleType('');
+      setLocationFromLabel('');
+      setLocationFromCoords({ latitude: null, longitude: null });
+      setLocationToLabel('');
+      setLocationToCoords({ latitude: null, longitude: null });
+      setProblemDescription('');
+      setPhoneNumber('');
+      setAgreeToSharePhone(false);
+      setShowForm(false);
 
-/* input-group i location-input-group */
-.form-label > div {
-  display: flex;
-  gap: 10px; /* Odstęp między inputem a przyciskiem */
-  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
-}
+      if (data && data.length > 0) {
+        setUrgentRequests(prevRequests => [data[0], ...prevRequests].slice(0, 100));
+      }
 
-.form-label > div .form-input {
-  flex-grow: 1; /* Pozwól inputowi rozciągnąć się */
-}
+    } catch (error) {
+      alert(`❌ Wystąpił błąd podczas wysyłania zgłoszenia: ${error.message || JSON.stringify(error)}`);
+      console.error('Błąd wysyłania zgłoszenia:', error);
+    }
+  };
 
-.location-input-group {
-  display: flex;
-  flex-wrap: wrap; /* Pozwól elementom zawijać się do następnej linii */
-  gap: 10px; /* Odstęp między elementami */
-  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
-}
+  return (
+    <>
+      <Navbar />
+      <div className="transport-na-juz-container">
+        <div className="main-content-grid">
+          <div className="left-column">
+            <section className="report-cta-section">
+              <button className="btn-primary full-width-btn" onClick={handleReportUrgentNeedClick}>
+                Zgłoś pilną potrzebę
+              </button>
+            </section>
+          </div>
 
-.location-input-group .form-input {
-  flex-grow: 1;
-  min-width: 200px; /* Minimalna szerokość inputa na małych ekranach */
-}
+          <div className="right-column">
+            {showForm ? (
+              <section className="report-form-section" ref={formRef}>
+                <h2>Formularz zgłoszenia pilnej potrzeby</h2>
+                <form onSubmit={handleSubmitUrgentRequest} className="urgent-request-form">
+                  <label className="form-label">
+                    Rodzaj pojazdu do holowania/transportu:
+                    <select
+                      value={vehicleType}
+                      onChange={(e) => setVehicleType(e.target.value)}
+                      required
+                      className="form-select"
+                    >
+                      <option value="">Wybierz typ pojazdu</option>
+                      <option value="osobowy">Samochód osobowy</option>
+                      <option value="bus">Bus / Dostawczy</option>
+                      <option value="ciezarowy">Samochód ciężarowy</option>
+                      <option value="motocykl">Motocykl</option>
+                      <option value="inny">Inny</option>
+                    </select>
+                  </label>
 
-@media (max-width: 600px) {
-  .location-input-group {
-    flex-direction: column; /* Ułóż elementy w kolumnie */
-    align-items: stretch; /* Rozciągnij elementy na całą szerokość */
-  }
-  .location-input-group .btn-secondary.small-btn {
-    width: 100%; /* Przycisk na całą szerokość */
-    margin-top: 5px; /* Odstęp od góry */
-  }
-}
+                  <label className="form-label">
+                    Lokalizacja (Skąd potrzebujesz transportu?):
+                    <div className="location-input-group">
+                      <LocationAutocomplete
+                        value={locationFromLabel}
+                        onSelectLocation={(label, sug) => {
+                          setLocationFromLabel(label);
+                          if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
+                            setLocationFromCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                          } else {
+                            console.warn("Brak koordynatów (sug.center) dla lokalizacji 'Skąd':", sug);
+                            setLocationFromCoords({ latitude: null, longitude: null });
+                          }
+                        }}
+                        placeholder="Wpisz adres lub lokalizację"
+                        className="form-input"
+                        searchType="all"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleGetMyLocation}
+                        disabled={gettingLocation}
+                        className="btn-secondary small-btn"
+                      >
+                        {gettingLocation ? 'Pobieram...' : 'Użyj mojej lokalizacji'}
+                      </button>
+                    </div>
+                    {locationError && <p className="error-message">{locationError}</p>}
+                  </label>
 
-/* ========================== */
-/* LISTY I KARTY ZGŁOSZEŃ */
-/* ========================== */
-.current-requests-section {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-}
+                  <label className="form-label">
+                    Lokalizacja (Dokąd ma być transport? - opcjonalnie):
+                    <LocationAutocomplete
+                      value={locationToLabel}
+                      onSelectLocation={(label, sug) => {
+                        setLocationToLabel(label);
+                        if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
+                          setLocationToCoords({ latitude: sug.center[1], longitude: sug.center[0] });
+                        } else {
+                          console.warn("Brak koordynatów (sug.center) dla lokalizacji 'Dokąd':", sug);
+                          setLocationToCoords({ latitude: null, longitude: null });
+                        }
+                      }}
+                      placeholder="Wpisz adres docelowy (opcjonalnie)"
+                      className="form-input"
+                      searchType="all"
+                    />
+                  </label>
 
-.current-requests-section h2 {
-  font-size: 1.8em;
-  color: #333;
-  margin-bottom: 20px;
-  text-align: center;
-}
+                  <label className="form-label">
+                    Krótki opis problemu/sytuacji:
+                    <textarea
+                      value={problemDescription}
+                      onChange={(e) => setProblemDescription(e.target.value)}
+                      maxLength={250}
+                      rows={3}
+                      placeholder="Np. 'Awaria silnika na autostradzie A1', 'Stłuczka, auto nie jeździ', 'Brak paliwa w lesie'."
+                      className="form-textarea"
+                    ></textarea>
+                    <small>{problemDescription.length}/250 znaków</small>
+                  </label>
 
-.requests-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Odstęp między kartami zgłoszeń */
-}
+                  <label className="form-label">
+                    Numer telefonu do kontaktu:
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                      placeholder="Np. +48 123 456 789"
+                      className="form-input"
+                    />
+                  </label>
 
-.request-card {
-  background-color: #fefefe;
-  padding: 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
+                  <label className="form-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={agreeToSharePhone}
+                      onChange={(e) => setAgreeToSharePhone(e.target.checked)}
+                      required
+                    />
+                    Wyrażam zgodę na udostępnienie mojego numeru telefonu przewoźnikom w celu kontaktu.
+                  </label>
 
-.request-card:hover {
-  border-color: #ff6f00;
-  box-shadow: 0 2px 5px rgba(255, 111, 0, 0.15);
-  transform: translateY(-2px);
-}
+                  <button type="submit" className="btn-primary form-submit-btn">
+                    Wyślij zgłoszenie
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={() => setShowForm(false)} style={{marginTop: '10px'}}>
+                    Anuluj
+                  </button>
+                </form>
 
-.request-card h3 {
-  font-size: 1.2em;
-  color: #333;
-  margin-bottom: 5px;
-}
+                {/* Sekcja Mapy w formularzu - POKAZUJE SIĘ, GDY LOKALIZACJA JEST DOSTĘPNA */}
+                {locationFromCoords.latitude && locationFromCoords.longitude && userLocationIcon && roadsideIcon ? (
+                  <div className="map-in-form-container">
+                        <h3>Pomoc drogowa w pobliżu ({locationFromCoords.latitude.toFixed(4)}, {locationFromCoords.longitude.toFixed(4)})</h3>
+                    {loadingRoadsideInForm && <p>Ładowanie pobliskiej pomocy drogowej...</p>}
 
-.request-card p {
-  font-size: 0.9em;
-  color: #666;
-  margin-bottom: 3px;
-}
+                    <MapContainer center={[locationFromCoords.latitude, locationFromCoords.longitude]} zoom={10} className="form-map" gestureHandling={true}>
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution="&copy; OpenStreetMap contributors"
+                      />
+                      <FormMapCenterUpdater center={[locationFromCoords.latitude, locationFromCoords.longitude]} />
 
-.request-card small {
-  font-size: 0.75em;
-  color: #888;
-}
+                      {/* Marker dla lokalizacji użytkownika */}
+                      <Marker position={[locationFromCoords.latitude, locationFromCoords.longitude]} icon={userLocationIcon}>
+                        <Popup>
+                          <strong>Twoja Lokalizacja</strong><br/>
+                          {locationFromLabel || `Lat: ${locationFromCoords.latitude.toFixed(4)}, Lng: ${locationFromCoords.longitude.toFixed(4)}`}
+                        </Popup>
+                      </Marker>
 
-/* ========================== */
-/* Mapa w formularzu */
-/* ========================== */
-.form-map {
-  height: 400px; /* To jest najważniejsze - mapa potrzebuje wysokości */
-  width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+                      {/* Markery dla pobliskich pomocy drogowych */}
+                      {nearbyRoadsideAssistanceInForm.length > 0 ? (
+                        nearbyRoadsideAssistanceInForm.map(rs => (
+                          rs.latitude && rs.longitude && (
+                            <Marker key={rs.id} position={[rs.latitude, rs.longitude]} icon={roadsideIcon}>
+                              <Popup>
+                                <strong>{rs.company_name || 'Pomoc Drogowa'}</strong><br/>
+                                {rs.roadside_city}, {rs.roadside_street} {rs.roadside_number}<br/>
+                                {rs.roadside_phone && <a href={`tel:${rs.roadside_phone}`}>{rs.roadside_phone}</a>}<br/>
+                                {rs.roadside_slug && <a href={`/pomoc-drogowa/${rs.roadside_slug}`} target="_blank" rel="noopener noreferrer">Zobacz profil</a>}
+                              </Popup>
+                            </Marker>
+                          )
+                        ))
+                      ) : (
+                        !loadingRoadsideInForm && <div className="map-info-overlay-small">Brak pobliskich pomocy drogowej (do 50 km).</div>
+                      )}
+                    </MapContainer>
+                  </div>
+                ) : (
+                  // Komunikat, gdy lokalizacja nie jest jeszcze określona
+                  <div className="map-placeholder">
+ {console.log("Mapa nie jest renderowana. Koordynaty:", locationFromCoords)}
+    {console.log("Błąd lokalizacji:", locationError)}
+                        {locationError ? <p className="error-message">{locationError}</p> : <p>Określ lokalizację "Skąd", aby zobaczyć pobliskie pomoce drogowe.</p>}
+                  </div>
+                )}
 
-/* ========================== */
-/* TRYB CIEMNY */
-/* ========================== */
-@media (prefers-color-scheme: dark) {
-  .hero-section {
-    background-color: #4a1a1a;
-    border: 2px solid #ff3b3b;
-    box-shadow: 0 6px 12px rgba(255, 0, 0, 0.3);
-  }
-  .hero-section h1 {
-    color: #ffaaaa;
-  }
-  .hero-section p {
-    color: #ffcccc;
-  }
-  .left-column,
-  .report-form-section,
-  .current-requests-section,
-  .request-details-section,
-  .request-card {
-    background-color: #333;
-    color: #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-  .left-column {
-    background-color: #2b2b2b;
-  }
-  .form-label {
-    color: #ddd;
-  }
-  .form-input,
-  .form-select,
-  .form-textarea {
-    background-color: #444;
-    color: #eee;
-    border-color: #555;
-  }
-  .form-input::placeholder,
-  .form-textarea::placeholder {
-    color: #bbb;
-  }
-  .form-input:focus,
-  .form-select:focus,
-  .form-textarea:focus {
-    border-color: #ff6f00;
-    box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.4);
-  }
-  .form-checkbox-label {
-    color: #ddd;
-  }
-  .request-card {
-    background-color: #444;
-    border-color: #555;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  }
-  .request-card h3 {
-    color: #f0f0f0;
-  }
-  .request-card p {
-    color: #ccc;
-  }
-  .request-card small {
-    color: #bbb;
-  }
-  .request-card.urgent {
-    background-color: #5a2222;
-    border-color: #ff3b3b;
-    box-shadow: 0 2px 6px rgba(255, 0, 0, 0.25);
-  }
-  .request-card.urgent h3,
-  .request-card.urgent p {
-    color: #ffeaea;
-  }
-  .urgent-badge {
-    background-color: #ff5555;
-    color: black;
-  }
-  .urgent-badge::after {
-    background-color: #ff8888;
-  }
+
+              </section>
+            ) : urlRequestId ? (
+              <RequestDetails
+                requestId={urlRequestId}
+                onBackToList={handleBackToList}
+              />
+            ) : (
+              <section className="current-requests-section">
+                <h2>Aktualne pilne zgłoszenia</h2>
+                {loadingRequests ? (
+                  <p>Ładowanie zgłoszeń...</p>
+                ) : urgentRequests.length > 0 ? (
+                  <div className="requests-list">
+                    {urgentRequests.map((request) => (
+                      <div
+                        key={request.id}
+                        className={`request-card ${new Date(request.created_at) > new Date(Date.now() - 30 * 60 * 1000) ? 'urgent' : ''}`} // DODANO: Warunkowa klasa 'urgent'
+                        onClick={() => handleViewRequestDetails(request.id)}
+                      >
+                        <h3>
+                          {new Date(request.created_at) > new Date(Date.now() - 30 * 60 * 1000) && ( // DODANO: Warunkowy znaczek PILNE
+                            <span className="urgent-badge">PILNE</span>
+                          )}
+                          {request.problem_description && request.problem_description.length > 100
+                            ? request.problem_description.substring(0, 100) + '...'
+                            : request.problem_description || 'Brak opisu'}
+                        </h3>
+                        <p>Rodzaj pojazdu: {request.vehicle_type}</p>
+                        <p>Lokalizacja: {request.location_from_label}</p>
+                        <small>Zgłoszono: {new Date(request.created_at).toLocaleString()}</small>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>Brak aktualnych pilnych zgłoszeń.</p>
+                )}
+              </section>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
