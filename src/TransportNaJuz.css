@@ -375,7 +375,7 @@
   .request-details-section,
   .request-card {
     background-color: #333;
-    color: #e0e0e0;
+    color: #e0e0e0; /* Ten kolor jest dla ogólnego tekstu w sekcjach */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   .left-column {
