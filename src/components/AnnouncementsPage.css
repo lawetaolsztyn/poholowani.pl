@@ -437,7 +437,7 @@
     opacity: 1; /* Upewnienie się, że jest zawsze widoczne */
 }
 
-.favorite-button:hover:not([disabled]) {
+.favorite-button:hover:not(:disabled) {
     color: lightcoral;
     transform: scale(1.1);
 }
@@ -461,9 +461,11 @@
     max-height: 90vh;
     overflow-y: auto;
     box-sizing: border-box;
+    position: relative; /* Dodano to w poprzednim kroku */
 }
 
 /* NOWE STYLE: Kontener dla tytułu ogłoszenia i serduszka w widoku szczegółów */
+/* Jeśli serduszko ma być w rogu, a nie obok tytułu, ten blok CSS i jego odpowiednik w JSX są zbędne lub muszą być zmienione */
 .announcement-details-title-row {
     display: flex; /* Użyj Flexbox do ułożenia elementów obok siebie */
     align-items: center; /* Wyśrodkuj elementy w pionie */
@@ -932,7 +934,12 @@
 
     /* --- Serduszko w widoku szczegółów ogłoszenia (ZMODYFIKOWANE) --- */
     .favorite-button-details {
-        /* Usunięto position: absolute, top, right, z-index - TERAZ DZIECKO FLEXBOXA */
+        /* Poniższe style pozwolą na pozycjonowanie serduszka w rogu karty */
+        position: absolute;
+        top: 15px; /* Dostosuj pozycję pionową od góry karty */
+        right: 15px; /* Dostosuj pozycję poziomą od prawej krawędzi karty */
+        z-index: 20; /* Upewnij się, że jest nad innymi elementami */
+
         background: none;
         border: none;
         cursor: pointer;
