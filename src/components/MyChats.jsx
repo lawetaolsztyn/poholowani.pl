@@ -10,7 +10,6 @@ import ChatWindow from './ChatWindow';
 import './MyChats.css';
 
 export default function MyChats() {
-  // POBIERZ fetchTotalUnreadMessages z useAuth
   const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
   const [userJwt, setUserJwt] = useState('');
   const [conversations, setConversations] = useState([]);
@@ -21,7 +20,7 @@ export default function MyChats() {
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [activeAnnouncementTitle, setActiveAnnouncementTitle] = useState('');
 
-  // Funkcja fetchConversations dostępna globalnie w komponencie
+  // Pobieraj tylko konwersacje NIEUSUNIĘTE przez danego użytkownika
   const fetchConversations = async () => {
     if (authLoading || !currentUser) {
       setLoadingConversations(false);
@@ -33,6 +32,7 @@ export default function MyChats() {
     setError(null);
 
     try {
+      // Pobierz konwersacje z połączeniem do conversation_participants i filtruj po is_deleted = false
       const { data, error } = await supabase
         .from('conversations')
         .select(`
@@ -43,27 +43,33 @@ export default function MyChats() {
           announcement:announcement_id (id, title, description, user_id),
           client:client_id (id, full_name, company_name, email, role),
           carrier:carrier_id (id, full_name, company_name, email, role),
-          conversation_participants(unread_messages_count, user_id)
+          conversation_participants (
+            unread_messages_count,
+            user_id,
+            is_deleted
+          )
         `)
         .or(`client_id.eq.${currentUser.id},carrier_id.eq.${currentUser.id}`)
         .order('last_message_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Przetwarzamy dane, aby uzyskać unread_count bezpośrednio w obiekcie konwersacji
-      const processedConversations = data.map(conv => {
-        // Musimy znaleźć odpowiedni wpis w conversation_participants dla AKTUALNEGO użytkownika
+      // Filtruj po is_deleted = false dla aktualnego usera
+      const visibleConversations = data.filter(conv => {
+        const participation = conv.conversation_participants.find(p => p.user_id === currentUser.id);
+        return participation && participation.is_deleted === false;
+      });
+
+      // Dodaj unread_count
+      const processedConversations = visibleConversations.map(conv => {
         const currentUserParticipation = conv.conversation_participants.find(p => p.user_id === currentUser.id);
-        const unreadCount = currentUserParticipation ? currentUserParticipation.unread_messages_count : 0;
         return {
           ...conv,
-          unread_count: unreadCount // Dodajemy nową właściwość unread_count
+          unread_count: currentUserParticipation ? currentUserParticipation.unread_messages_count : 0
         };
       });
 
-      setConversations(processedConversations); // Ustawiamy przetworzone konwersacje
+      setConversations(processedConversations);
     } catch (err) {
       console.error("Błąd ładowania konwersacji:", err.message);
       setError("Nie udało się załadować Twoich konwersacji: " + err.message);
@@ -72,7 +78,6 @@ export default function MyChats() {
     }
   };
 
-  // Pobranie JWT z supabase.auth.getSession()
   useEffect(() => {
     async function fetchSession() {
       const { data } = await supabase.auth.getSession();
@@ -82,15 +87,12 @@ export default function MyChats() {
   }, []);
 
   useEffect(() => {
-    fetchConversations(); // Wywołaj pobieranie konwersacji
+    fetchConversations();
 
     let conversationChannel;
     let participantsChannel;
 
-    // Inicjuj subskrypcje Realtime TYLKO, jeśli użytkownik jest zalogowany
     if (currentUser && currentUser.id) {
-      console.log(`Subscribing to Realtime channels for user: ${currentUser.id}`);
-
       conversationChannel = supabase
         .channel(`my_chats_updates_conv:${currentUser.id}`)
         .on('postgres_changes', {
@@ -98,10 +100,7 @@ export default function MyChats() {
           schema: 'public',
           table: 'conversations',
           filter: `or(client_id.eq.${currentUser.id},carrier_id.eq.${currentUser.id})`
-        }, payload => {
-          console.log('Realtime conversation update for conversations detected!', payload);
-          fetchConversations();
-        })
+        }, () => fetchConversations())
         .subscribe();
 
       participantsChannel = supabase
@@ -111,24 +110,13 @@ export default function MyChats() {
           schema: 'public',
           table: 'conversation_participants',
           filter: `user_id=eq.${currentUser.id}`
-        }, payload => {
-          console.log('Realtime conversation participants update detected!', payload);
-          fetchConversations();
-        })
+        }, () => fetchConversations())
         .subscribe();
-    } else {
-      console.log("Not subscribing to Realtime channels: User not logged in or ID missing.");
     }
 
     return () => {
-      if (conversationChannel) {
-        console.log(`Unsubscribing conversation channel for user: ${currentUser?.id}`);
-        supabase.removeChannel(conversationChannel);
-      }
-      if (participantsChannel) {
-        console.log(`Unsubscribing participants channel for user: ${currentUser?.id}`);
-        supabase.removeChannel(participantsChannel);
-      }
+      if (conversationChannel) supabase.removeChannel(conversationChannel);
+      if (participantsChannel) supabase.removeChannel(participantsChannel);
     };
   }, [currentUser, authLoading]);
 
@@ -143,33 +131,22 @@ export default function MyChats() {
     setActiveConversationId(null);
     setActiveAnnouncementTitle('');
     fetchConversations();
-
-    if (currentUser) {
-      fetchTotalUnreadMessages(currentUser.id);
-    }
+    if (currentUser) fetchTotalUnreadMessages(currentUser.id);
   };
 
-  // Funkcja usuwająca czat i powiązane wiadomości w Supabase
-  const handleDeleteChat = async (conversationId) => {
+  // Ustaw is_deleted = true dla konwersacji dla aktualnego użytkownika (ukrycie)
+  const handleHideConversation = async (conversationId) => {
     try {
-      // Usuń wiadomości powiązane z czatem
-      let { error: msgError } = await supabase
-        .from('messages')
-        .delete()
-        .eq('chat_id', conversationId);
-      if (msgError) throw msgError;
+      const { error } = await supabase
+        .from('conversation_participants')
+        .update({ is_deleted: true })
+        .eq('conversation_id', conversationId)
+        .eq('user_id', currentUser.id);
 
-      // Usuń czat
-      let { error: chatError } = await supabase
-        .from('conversations')
-        .delete()
-        .eq('id', conversationId);
-      if (chatError) throw chatError;
-
-      // Odśwież listę po usunięciu
+      if (error) throw error;
       fetchConversations();
-    } catch (error) {
-      alert('Błąd podczas usuwania czatu: ' + error.message);
+    } catch (err) {
+      alert('Błąd podczas ukrywania konwersacji: ' + err.message);
     }
   };
 
@@ -227,10 +204,10 @@ export default function MyChats() {
               const otherParticipantRole = otherParticipant?.role === 'firma' ? 'Przewoźnik' : (otherParticipant?.role === 'klient' ? 'Klient' : 'Użytkownik');
 
               const handleDeleteClick = async (e) => {
-                e.stopPropagation(); // nie otwieraj modala czatu
+                e.stopPropagation();
                 const confirmDelete = window.confirm('Czy na pewno chcesz usunąć tę rozmowę?');
                 if (!confirmDelete) return;
-                await handleDeleteChat(conv.id);
+                await handleHideConversation(conv.id);
               };
 
               return (
@@ -238,13 +215,13 @@ export default function MyChats() {
                   key={conv.id}
                   className={`conversation-card ${conv.unread_count > 0 ? 'unread' : ''}`}
                   onClick={() => handleOpenChat(conv.id, conv.announcement?.title)}
-                  style={{ position: 'relative' }} // pozycjonowanie przycisku usuń
+                  style={{ position: 'relative' }}
                 >
                   <button
                     className="delete-chat-button"
                     onClick={handleDeleteClick}
-                    aria-label="Usuń czat"
-                    title="Usuń czat"
+                    aria-label="Ukryj czat"
+                    title="Ukryj czat"
                   >
                     🗑️
                   </button>
