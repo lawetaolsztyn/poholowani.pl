@@ -14,6 +14,7 @@ export default function Login() {
   const [resetMode, setResetMode] = useState(false);
   const [showResendEmailButton, setShowResendEmailButton] = useState(false);
   const [isResendLoading, setIsResendLoading] = useState(false);
+const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // NOWY STAN: Czy reCAPTCHA jest gotowa do użycia
