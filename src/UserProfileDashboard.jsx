@@ -362,7 +362,7 @@ export default function UserProfileDashboard() {
       case 'Moje dane':
         return (
           <form onSubmit={handleSave} className="dashboard-form-section">
-            <h3 className="dashboard-form-heading">Moje dane</h3> {/* Dodana klasa */}
+            <h3 className="dashboard-form-heading">Moje dane</h3>
             {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>}
 
             <label className="form-label">
