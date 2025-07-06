@@ -434,4 +434,11 @@
   .urgent-badge::after {
     background-color: #ff8888;
   }
+
+  /* POPRAWKA DLA KOLORU H2 W TRYBIE CIEMNYM */
+  .report-form-section h2,
+  .current-requests-section h2,
+  .request-details-section h2 {
+    color: #f0f0f0; /* Ustawienie jasnego koloru dla h2 w trybie ciemnym */
+  }
 }
