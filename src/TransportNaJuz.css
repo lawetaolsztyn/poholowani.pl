@@ -83,9 +83,8 @@
 }
 
 /* ========================== */
-/* Poniżej Twoje oryginalne style, bez zmian */
+/* PRZYCISKI */
 /* ========================== */
-
 .btn-primary {
   background-color: #ff6f00; /* Jakiś wyrazisty kolor, np. pomarańczowy */
   color: white;
@@ -102,9 +101,34 @@
   background-color: #e65100; /* Ciemniejszy odcień pomarańczowego */
 }
 
-/* Dodatkowe style dla przyszłych sekcji */
+.btn-secondary {
+  background-color: #6c757d; /* Szary kolor */
+  color: white;
+  padding: 12px 25px;
+  font-size: 1.1em;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Mały przycisk */
+.btn-secondary.small-btn {
+  padding: 8px 15px;
+  font-size: 0.9em;
+  min-width: unset;
+}
+
+/* ========================== */
+/* SEKCJE I GRID */
+/* ========================== */
 .report-form-section,
-.current-requests-section {
+.current-requests-section,
+.request-details-section {
   background-color: #ffffff;
   padding: 30px;
   border-radius: 8px;
@@ -113,84 +137,16 @@
 }
 
 .report-form-section h2,
-.current-requests-section h2 {
+.current-requests-section h2,
+.request-details-section h2 {
   font-size: 2em;
   color: #333;
   margin-bottom: 25px;
   text-align: center;
 }
 
-.report-form-section {
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-}
-
-.urgent-request-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px; /* Odstępy między polami */
-}
-
-.form-label {
-  display: flex;
-  flex-direction: column;
-  font-weight: bold;
-  color: #444;
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1em;
-  margin-top: 5px;
-  width: 100%; /* Pełna szerokość */
-  box-sizing: border-box; /* Uwzględnij padding w szerokości */
-}
-
-.form-textarea {
-  resize: vertical; /* Pozwól na zmianę wysokości */
-  min-height: 80px;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  border-color: #ff6f00;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
-}
-
-.form-checkbox-label {
-  display: flex;
-  align-items: center;
-  font-weight: normal;
-  color: #555;
-  cursor: pointer;
-}
-
-.form-checkbox-label input[type="checkbox"] {
-  margin-right: 10px;
-  transform: scale(1.2); /* Większy checkbox */
-}
-
-.form-submit-btn {
-  align-self: center; /* Wyśrodkuj przycisk */
-  margin-top: 20px;
-  width: auto; /* Dopasuj szerokość do zawartości */
-  min-width: 200px;
-}
-
-.form-textarea + small { /* Styl dla licznika znaków */
-  align-self: flex-end;
-  font-size: 0.85em;
-  color: #777;
-  margin-top: 5px;
+.request-details-section {
+  min-height: 400px; /* Zapewnij minimalną wysokość dla treści */
 }
 
 .main-content-grid {
@@ -199,14 +155,13 @@
   gap: 30px; /* Odstęp między kolumnami */
 }
 
-@media (min-width: 768px) { /* Od tabletów w górę - dwie kolumny */
+@media (min-width: 768px) {
   .main-content-grid {
     grid-template-columns: 300px 1fr; /* Lewa kolumna stała szerokość, prawa elastyczna */
   }
 }
 
 .left-column {
-  /* Style dla lewej kolumny */
   padding: 15px;
   background-color: #f0f2f5;
   border-radius: 8px;
@@ -223,22 +178,16 @@
 }
 
 .right-column {
-  /* Style dla prawej kolumny */
   padding: 15px;
 }
 
-/* Style dla formularza */
-.report-form-section {
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
+/* ========================== */
+/* FORMULARZE */
+/* ========================== */
 .urgent-request-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 15px; /* Odstępy między polami */
 }
 
 .form-label {
@@ -257,7 +206,7 @@
   border-radius: 4px;
   font-size: 1em;
   margin-top: 5px;
-  width: 100%;
+  width: 100%; /* Pełna szerokość */
   box-sizing: border-box;
 }
 
@@ -288,34 +237,65 @@
   transform: scale(1.1);
 }
 
-.form-submit-btn, .btn-secondary {
+.form-submit-btn,
+.btn-secondary {
   align-self: center;
   margin-top: 15px;
   width: auto;
   min-width: 180px;
 }
 
-.btn-secondary {
-  background-color: #6c757d; /* Szary kolor */
-  color: white;
-  padding: 12px 25px;
-  font-size: 1.1em;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+/* Styl dla licznika znaków pod textarea */
+.form-textarea + small {
+  align-self: flex-end;
+  font-size: 0.85em;
+  color: #777;
+  margin-top: 5px;
 }
 
-.btn-secondary:hover {
-  background-color: #5a6268;
+/* input-group i location-input-group */
+.form-label > div {
+  display: flex;
+  gap: 10px; /* Odstęp między inputem a przyciskiem */
+  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
 }
 
-/* Style dla listy aktualnych zgłoszeń */
+.form-label > div .form-input {
+  flex-grow: 1; /* Pozwól inputowi rozciągnąć się */
+}
+
+.location-input-group {
+  display: flex;
+  flex-wrap: wrap; /* Pozwól elementom zawijać się do następnej linii */
+  gap: 10px; /* Odstęp między elementami */
+  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
+}
+
+.location-input-group .form-input {
+  flex-grow: 1;
+  min-width: 200px; /* Minimalna szerokość inputa na małych ekranach */
+}
+
+@media (max-width: 600px) {
+  .location-input-group {
+    flex-direction: column; /* Ułóż elementy w kolumnie */
+    align-items: stretch; /* Rozciągnij elementy na całą szerokość */
+  }
+  .location-input-group .btn-secondary.small-btn {
+    width: 100%; /* Przycisk na całą szerokość */
+    margin-top: 5px; /* Odstęp od góry */
+  }
+}
+
+/* ========================== */
+/* LISTY I KARTY ZGŁOSZEŃ */
+/* ========================== */
 .current-requests-section {
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
 }
 
 .current-requests-section h2 {
@@ -364,23 +344,19 @@
   color: #888;
 }
 
-/* Style dla widoku szczegółów zgłoszenia */
-.request-details-section {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    min-height: 400px; /* Zapewnij minimalną wysokość dla treści */
+/* ========================== */
+/* Mapa w formularzu */
+/* ========================== */
+.form-map {
+  height: 400px; /* To jest najważniejsze - mapa potrzebuje wysokości */
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.request-details-section h2 {
-    font-size: 2em;
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-/* Dostosowanie dla trybu ciemnego */
+/* ========================== */
+/* TRYB CIEMNY */
+/* ========================== */
 @media (prefers-color-scheme: dark) {
   .hero-section {
     background-color: #4a1a1a;
@@ -393,7 +369,11 @@
   .hero-section p {
     color: #ffcccc;
   }
-  .left-column, .report-form-section, .current-requests-section, .request-details-section, .request-card {
+  .left-column,
+  .report-form-section,
+  .current-requests-section,
+  .request-details-section,
+  .request-card {
     background-color: #333;
     color: #e0e0e0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -404,15 +384,20 @@
   .form-label {
     color: #ddd;
   }
-  .form-input, .form-select, .form-textarea {
+  .form-input,
+  .form-select,
+  .form-textarea {
     background-color: #444;
     color: #eee;
     border-color: #555;
   }
-  .form-input::placeholder, .form-textarea::placeholder {
+  .form-input::placeholder,
+  .form-textarea::placeholder {
     color: #bbb;
   }
-  .form-input:focus, .form-select:focus, .form-textarea:focus {
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
     border-color: #ff6f00;
     box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.4);
   }
@@ -433,80 +418,20 @@
   .request-card small {
     color: #bbb;
   }
-
   .request-card.urgent {
     background-color: #5a2222;
     border-color: #ff3b3b;
     box-shadow: 0 2px 6px rgba(255, 0, 0, 0.25);
   }
-
   .request-card.urgent h3,
   .request-card.urgent p {
     color: #ffeaea;
   }
-
   .urgent-badge {
     background-color: #ff5555;
     color: black;
   }
-
   .urgent-badge::after {
     background-color: #ff8888;
   }
-}
-
-/* Style dla małego przycisku */
-.btn-secondary.small-btn {
-  padding: 8px 15px;
-  font-size: 0.9em;
-  min-width: unset;
-}
-
-/* Style dla input-group (jeśli używasz) */
-.form-label > div {
-  display: flex;
-  gap: 10px; /* Odstęp między inputem a przyciskiem */
-  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
-}
-.form-label > div .form-input {
-    flex-grow: 1; /* Pozwól inputowi rozciągnąć się */
-}
-
-/* Dostosowanie dla trybu ciemnego */
-@media (prefers-color-scheme: dark) {
-  /* ... (istniejące style dark mode) ... */
-
-  .form-label .error-message {
-    color: #ff8888;
-  }
-}
-
-.location-input-group { /* Nowa klasa do owinięcia pola i przycisku */
-  display: flex;
-  flex-wrap: wrap; /* Pozwól elementom zawijać się do następnej linii */
-  gap: 10px; /* Odstęp między elementami */
-  align-items: flex-end; /* Wyrównaj przycisk do dołu inputa */
-}
-
-.location-input-group .form-input {
-    flex-grow: 1; /* Pozwól inputowi rozciągnąć się */
-    min-width: 200px; /* Zapewnij minimalną szerokość dla inputa na małych ekranach */
-}
-
-/* Na małych ekranach, ustaw elementy w kolumnie */
-@media (max-width: 600px) { /* Możesz dostosować breakpoint */
-  .location-input-group {
-    flex-direction: column; /* Ułóż elementy w kolumnie */
-    align-items: stretch; /* Rozciągnij elementy na całą szerokość */
-  }
-  .location-input-group .btn-secondary.small-btn {
-      width: 100%; /* Przycisk na całą szerokość */
-      margin-top: 5px; /* Dodatkowy odstęp od góry */
-  }
-}
-.form-map {
-  height: 400px; /* To jest najważniejsze - mapa potrzebuje wysokości */
-  width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
