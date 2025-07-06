@@ -419,7 +419,6 @@ export default function AnnouncementsPage() {
     if (pageNumber < 1 || pageNumber > totalPages) {
       return;
     }
-    setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -455,7 +454,7 @@ export default function AnnouncementsPage() {
         {/* LEWA KOLUMNA - FILTRY I PRZYCISKI */}
         <div className="left-panel">
           {/* Przycisk "Dodaj Nowe Ogłoszenie" */}
-          {!showForm && !selectedAnnouncement && ( // Teraz selectedAnnouncement będzie ustawiane przez URL
+          {!showForm && !selectedAnnouncement && ( // selectedAnnouncement będzie ustawiane przez URL
             <button className="add-announcement-button" onClick={handleOpenForm}>
               Dodaj Nowe Ogłoszenie
             </button>
@@ -491,7 +490,7 @@ export default function AnnouncementsPage() {
           )}
 
           {/* MIEJSCE NA FILTRY WYSZUKIWANIA */}
-          {!showForm && !selectedAnnouncement && ( // Teraz selectedAnnouncement będzie ustawiane przez URL
+          {!showForm && !selectedAnnouncement && ( // selectedAnnouncement będzie ustawiane przez URL
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
                 <div className="filter-group">
@@ -695,8 +694,10 @@ export default function AnnouncementsPage() {
 
                       <div className="card-header">
                         <h3>{announcement.title}</h3>
-                        <p className="posted-at">Dodano: {new Date(announcement.created_at).toLocaleString()}</p>
+                        <p className="posted-at">Dodano: {new Date(announcement.created_at).toLocaleString()}</p> {/* <--- TEN WIERSZ */}
                       </div>
+                      {/* Tutaj zostanie dodany nowy element p.posted-at-mobile na mobilnych */}
+                      
                       {announcement.image_url && (
                         <img src={announcement.image_url} alt={announcement.title} className="announcement-image-preview" />
                       )}
@@ -753,7 +754,7 @@ export default function AnnouncementsPage() {
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
       </Modal>
 
-     
+      <Footer />
     </React.Fragment>
   );
 }
