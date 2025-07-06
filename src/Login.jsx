@@ -297,8 +297,3 @@ export default function Login() {
   );
 }
 
-// WAŻNE: USUŃ TE DEFINICJE STYLÓW Z Login.jsx, PONIEWAŻ PRZENIEŚLIŚMY JE DO LOGIN.CSS
-// const wrapper = { ... };
-// const inputStyle = { ... };
-// const btnStyle = { ... };
-// const linkStyle = { ... };
