@@ -219,3 +219,62 @@
     color: #ff6b6b;
   }
 }
+/* Zmniejszenie czcionek i dostosowanie na małych ekranach */
+@media (max-width: 768px) {
+  .chat-header h4 {
+    font-size: 1em; /* Zmniejsz czcionkę nagłówka "Chat z: przewoźnik" */
+  }
+
+  .chat-close-button {
+    font-size: 1.5em; /* Możesz również dostosować rozmiar przycisku zamykania */
+  }
+
+  .chat-messages {
+    padding: 10px; /* Nieco mniejszy padding wiadomości */
+    gap: 8px; /* Mniejszy odstęp między wiadomościami */
+  }
+
+  .message-content {
+    max-width: 85%; /* Daj dymkom więcej miejsca na małych ekranach */
+    padding: 8px 12px; /* Mniejszy padding w dymkach */
+    font-size: 0.9em; /* Zmniejsz czcionkę wiadomości */
+  }
+
+  .sender-name {
+    font-size: 0.7em; /* Zmniejsz czcionkę nazwy nadawcy */
+  }
+
+  .message-timestamp {
+    font-size: 0.65em; /* Zmniejsz czcionkę znacznika czasu */
+  }
+
+  /* Przeniesienie przycisku Wyślij i dostosowanie pola tekstowego */
+  .chat-input-form {
+    flex-direction: column; /* Zmień układ na kolumnowy */
+    gap: 10px; /* Odstęp między textarea a przyciskiem */
+    padding: 10px; /* Mniejszy padding dla formularza inputu */
+  }
+
+  .chat-textarea {
+    width: 100%; /* Pełna szerokość dla textarea */
+    min-height: 40px; /* Zachowaj minimalną wysokość */
+    max-height: 100px; /* Możesz dostosować maksymalną wysokość na mobilnych */
+  }
+
+  .send-button {
+    width: 100%; /* Przycisk "Wyślij" na całą szerokość */
+    margin-left: 0; /* Usuń lewy margines */
+    padding: 10px 15px; /* Dostosuj padding przycisku */
+    font-size: 0.95em; /* Zmniejsz czcionkę przycisku */
+  }
+}
+
+/* Tryb ciemny dla powyższych zmian na mobilnych (opcjonalnie, ale dobra praktyka) */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  .chat-header h4 {
+    color: #f0f0f0; /* Upewnij się, że kolor jest czytelny w trybie ciemnym */
+  }
+  .chat-textarea::placeholder {
+    color: #888;
+  }
+ 
