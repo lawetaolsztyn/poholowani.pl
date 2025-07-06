@@ -21,6 +21,7 @@ import { FaStar, FaRegStar } from 'react-icons/fa'; // FaStar to wypełniona gwi
 
 export default function AnnouncementsPage() {
   const navigate = useNavigate();
+  // PRAWIDŁOWE POBRANIE 'loading' Z useAuth JAKO 'authLoading'
   const { currentUser, userRole, loading: authLoading } = useAuth(); 
   const [userJwt, setUserJwt] = useState(''); // JWT dla API Workera
 
@@ -262,9 +263,8 @@ export default function AnnouncementsPage() {
 
       // ZASTOSOWANIE FILTRA "POKAŻ TYLKO ULUBIONE" DLA ZAPYTANIA BEZPOŚREDNIEGO (po stronie Supabase)
       if (showOnlyFavorites && currentUser) {
-        // Musimy najpierw pobrać ID ulubionych, jeśli ich nie mamy (choć fetchFavorites powinien je pobrać)
-        // LUB po prostu dodaj relację JOIN w zapytaniu, żeby filtrować po ulubionych
-        query = query.in('id', Array.from(favoriteAnnouncementIds)); // Użyj już pobranych ulubionych ID
+        // Użyj już pobranych ulubionych ID
+        query = query.in('id', Array.from(favoriteAnnouncementIds)); 
       }
       
       // ... (pozostałe Twoje oryginalne filtry dla bezpośredniego zapytania) ...
@@ -503,7 +503,7 @@ export default function AnnouncementsPage() {
                 <div className="filter-group">
                     <label htmlFor="filterTo">
     Dokąd: <span className="optional-text">(Opcjonalnie)</span> 
-  </label>
+    </label>
                     <LocationAutocomplete
                         value={filterTo.label}
                         onSelectLocation={(label, sug) => setFilterTo({ label, coords: sug.geometry.coordinates })}
@@ -642,7 +642,7 @@ export default function AnnouncementsPage() {
                 <p className="no-announcements-message">Brak aktualnych ogłoszeń. Bądź pierwszy!</p>
               ) : (
 <div className="announcements-list-single-column">
-                 {announcements.map((announcement) => (
+                {announcements.map((announcement) => (
                     <div key={announcement.id} className="announcement-card-wide"> {/* Zmieniono z announcement-card-wide na inną klasę dla grida? Sprawdź CSS! */}
                       {/* Przycisk ulubionych (serduszko) */}
                       {currentUser && ( // Pokaż serduszko tylko dla zalogowanych użytkowników
