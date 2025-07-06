@@ -694,8 +694,8 @@ export default function AnnouncementsPage() {
 
                      <div className="card-header">
   <h3>{announcement.title}</h3>
-  <p className="posted-at posted-at-desktop">Dodano: {new Date(announcement.created_at).toLocaleString()}</p>
-  <p className="posted-at posted-at-mobile">Dodano: {new Date(announcement.created_at).toLocaleString()}</p>
+  <p className="posted-at">Dodano: {new Date(announcement.created_at).toLocaleString()}</p>
+
 </div>
                       {/* Tutaj zostanie dodany nowy element p.posted-at-mobile na mobilnych */}
                       
