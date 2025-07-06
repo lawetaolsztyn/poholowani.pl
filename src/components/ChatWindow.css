@@ -219,6 +219,7 @@
     color: #ff6b6b;
   }
 }
+
 /* Zmniejszenie czcionek i dostosowanie na małych ekranach */
 @media (max-width: 768px) {
   .chat-header h4 {
@@ -277,4 +278,4 @@
   .chat-textarea::placeholder {
     color: #888;
   }
- 
+} /* <-- TEN NAWIAS KLAMROWY BYŁO BRAKUJĄCY */
