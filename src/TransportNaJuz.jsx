@@ -106,13 +106,13 @@ export default function TransportNaJuz() {
       if (error) {
         console.error('Błąd ładowania pilnych zgłoszeń:', error.message);
       } else {
-        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000); // Definicja 48h
         const activeRequests = data.filter(req => {
           if (!req.created_at) {
             return false;
           }
           const createdAtDate = new Date(req.created_at);
-          return createdAtDate >= fortyEightHoursAgo;
+          return createdAtDate >= fortyEightHoursAgo; // Filtrowanie: tylko zgłoszenia nie starsze niż 48h
         });
         setUrgentRequests(activeRequests);
       }
@@ -514,11 +514,11 @@ export default function TransportNaJuz() {
                     {urgentRequests.map((request) => (
                       <div
                         key={request.id}
-                        className={`request-card ${new Date(request.created_at) > new Date(Date.now() - 30 * 60 * 1000) ? 'urgent' : ''}`} // DODANO: Warunkowa klasa 'urgent'
+                        className={`request-card ${new Date(request.created_at) > new Date(Date.now() - 48 * 60 * 60 * 1000) ? 'urgent' : ''}`} // ZMIENIONO NA 48H
                         onClick={() => handleViewRequestDetails(request.id)}
                       >
                         <h3>
-                          {new Date(request.created_at) > new Date(Date.now() - 30 * 60 * 1000) && ( // DODANO: Warunkowy znaczek PILNE
+                          {new Date(request.created_at) > new Date(Date.now() - 48 * 60 * 60 * 1000) && ( // ZMIENIONO NA 48H
                             <span className="urgent-badge">PILNE</span>
                           )}
                           {request.problem_description && request.problem_description.length > 100
