@@ -41,6 +41,7 @@ import { AuthProvider } from './AuthContext.jsx';
 
 
 
+
 function App() {
   return (
     <div className="app">
@@ -73,6 +74,9 @@ function App() {
         <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
             <Route path="/moje-ogloszenia" element={<MojeOgloszenia />} />
               <Route path="/moje-chaty" element={<MyChats />} /> 
+        <Route path="/announcements" element={<AnnouncementsPage />} />
+        <Route path="/announcements/:announcementId" element={<AnnouncementsPage />} />
+
 
 
 

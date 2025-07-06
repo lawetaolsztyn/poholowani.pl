@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom'; // Nadal bez useParams w tym pliku, bo nie nawigujemy bezpośrednio do URL z ID.
+import { useNavigate, useParams } from 'react-router-dom'; // <--- DODANO useParams
 import { useAuth } from '../AuthContext.jsx';
 
 import AnnouncementForm from './AnnouncementForm';
 import './AnnouncementsPage.css';
 import Navbar from './Navbar';
-import Footer from './Footer';
+import Footer from './Footer'; // Upewnij się, że ścieżka do Footer jest poprawna
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
 import AnnouncementChatSection from './AnnouncementChatSection';
@@ -21,7 +21,7 @@ import { FaStar, FaRegStar } from 'react-icons/fa';
 
 export default function AnnouncementsPage() {
   const navigate = useNavigate();
-  // USUŃ tę linię: const { announcementId: urlAnnouncementId } = useParams(); // <-- To było dla Części 2, którą cofamy
+  const { announcementId: urlAnnouncementId } = useParams(); // <--- KLUCZOWE: POBIERZ ID Z URL
   const { currentUser, userRole, loading: authLoading } = useAuth();
   const [userJwt, setUserJwt] = useState('');
 
@@ -29,7 +29,7 @@ export default function AnnouncementsPage() {
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // Zachowujemy ten stan
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // Będzie ustawiane przez useEffect na podstawie URL
 
   // NOWE STANY DLA ULUBIONYCH
   const [favoriteAnnouncementIds, setFavoriteAnnouncementIds] = useState(new Set());
@@ -298,35 +298,36 @@ export default function AnnouncementsPage() {
     };
   }, [fetchAnnouncements]);
 
-  // COFNIĘCIE ZMIAN Z useParams - ten useEffect nie jest już potrzebny w tej wersji
-  // useEffect(() => {
-  //     const fetchAnnouncementDetails = async (id) => {
-  //         setLoadingAnnouncements(true);
-  //         setErrorAnnouncements(null);
-  //         try {
-  //             const { data, error } = await supabase
-  //                 .from('announcements')
-  //                 .select(`*, user:user_id(full_name, company_name, email, role)`)
-  //                 .eq('id', id)
-  //                 .single();
+  // KLUCZOWY useEffect do ładowania selectedAnnouncement na podstawie URL
+  useEffect(() => {
+      const fetchAnnouncementDetails = async (id) => {
+          setLoadingAnnouncements(true);
+          setErrorAnnouncements(null);
+          try {
+              const { data, error } = await supabase
+                  .from('announcements')
+                  .select(`*, user:user_id(full_name, company_name, email, role)`)
+                  .eq('id', id)
+                  .single();
 
-  //             if (error) throw error;
-  //             setSelectedAnnouncement(data);
-  //         } catch (err) {
-  //             console.error('Błąd ładowania szczegółów ogłoszenia:', err.message);
-  //             setErrorAnnouncements('Nie udało się załadować szczegółów ogłoszenia.');
-  //             setSelectedAnnouncement(null);
-  //         } finally {
-  //             setLoadingAnnouncements(false);
-  //         }
-  //     };
+              if (error) throw error;
+              setSelectedAnnouncement(data);
+          } catch (err) {
+              console.error('Błąd ładowania szczegółów ogłoszenia:', err.message);
+              setErrorAnnouncements('Nie udało się załadować szczegółów ogłoszenia.');
+              setSelectedAnnouncement(null);
+          } finally {
+              setLoadingAnnouncements(false);
+          }
+      };
 
-  //     if (urlAnnouncementId) {
-  //         fetchAnnouncementDetails(urlAnnouncementId);
-  //     } else {
-  //         setSelectedAnnouncement(null);
-  //     }
-  // }, [urlAnnouncementId]);
+      if (urlAnnouncementId) { // Jeśli ID jest w URL, załaduj ogłoszenie
+          fetchAnnouncementDetails(urlAnnouncementId);
+      } else {
+          setSelectedAnnouncement(null); // Jeśli nie ma ID w URL, ustaw selectedAnnouncement na null (pokaż listę)
+      }
+  }, [urlAnnouncementId]); // Zależność od ID w URL
+
 
   useEffect(() => {
     if (currentUser) {
@@ -340,18 +341,8 @@ export default function AnnouncementsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
         localStorage.removeItem('redirect_to_announce_details_id');
-        // W tej wersji, jeśli cofamy się do poprzedniej, nie nawigujemy URL-em
-        // Tylko ustawiamy selectedAnnouncement, jeśli ID jest w localStorage
-        // Najpierw musimy pobrać to ogłoszenie
-        const fetchAndSetSelectedAnnouncement = async (id) => {
-            const { data, error } = await supabase.from('announcements').select('*').eq('id', id).single();
-            if (error) {
-                console.error("Błąd pobierania ogłoszenia po przekierowaniu:", error.message);
-            } else {
-                setSelectedAnnouncement(data);
-            }
-        };
-        fetchAndSetSelectedAnnouncement(redirectToAnnounceDetailsId);
+        // Tutaj przekierowujemy do URL z ID, aby uruchomić useEffect wyżej
+        navigate(`/announcements/${redirectToAnnounceDetailsId}`);
       }
     } else {
       setShowForm(false);
@@ -363,6 +354,8 @@ export default function AnnouncementsPage() {
     console.log('Ogłoszenie dodane pomyślnie!');
     fetchAnnouncements();
     setShowForm(false);
+    // Po dodaniu/edycji i sukcesie, można nawigować do listy ogłoszeń
+    navigate('/announcements');
   };
 
   const handleOpenForm = () => {
@@ -377,17 +370,19 @@ export default function AnnouncementsPage() {
       return;
     }
     setShowForm(true);
-    setSelectedAnnouncement(null);
+    // W tej wersji nie ustawiamy selectedAnnouncement na null, ponieważ URL ma decydować
+    // navigate('/announcements/new'); // Można by nawigować do dedykowanego URL dla formularza
   };
 
   const handleViewDetails = (announcement) => {
-    // Wracamy do poprzedniej logiki opartej na stanie
-    setSelectedAnnouncement(announcement);
+    // KLUCZOWE: Zmieniamy URL, co pozwala na działanie przycisku WSTECZ
+    navigate(`/announcements/${announcement.id}`);
     setShowForm(false);
   };
 
   const handleBackToList = () => {
-    setSelectedAnnouncement(null); // Powrót do listy poprzez ustawienie na null
+    // KLUCZOWE: Wracamy do URL listy ogłoszeń
+    navigate('/announcements');
   };
 
   const handleAskQuestionRedirect = () => {
@@ -460,7 +455,7 @@ export default function AnnouncementsPage() {
         {/* LEWA KOLUMNA - FILTRY I PRZYCISKI */}
         <div className="left-panel">
           {/* Przycisk "Dodaj Nowe Ogłoszenie" */}
-          {!showForm && !selectedAnnouncement && (
+          {!showForm && !selectedAnnouncement && ( // Teraz selectedAnnouncement będzie ustawiane przez URL
             <button className="add-announcement-button" onClick={handleOpenForm}>
               Dodaj Nowe Ogłoszenie
             </button>
@@ -496,7 +491,7 @@ export default function AnnouncementsPage() {
           )}
 
           {/* MIEJSCE NA FILTRY WYSZUKIWANIA */}
-          {!showForm && !selectedAnnouncement && (
+          {!showForm && !selectedAnnouncement && ( // Teraz selectedAnnouncement będzie ustawiane przez URL
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
                 <div className="filter-group">
@@ -594,7 +589,7 @@ export default function AnnouncementsPage() {
           )}
 
           {/* Przyciski w lewej kolumnie, gdy widok szczegółów jest aktywny */}
-          {selectedAnnouncement && (
+          {selectedAnnouncement && ( // selectedAnnouncement będzie ustawiane przez URL
             <div className="announcement-detail-buttons">
               <button className="add-announcement-button-side" onClick={handleOpenForm}>
                 Dodaj Ogłoszenie
@@ -612,25 +607,22 @@ export default function AnnouncementsPage() {
             // WIDOK SZCZEGÓŁÓW JEDNEGO OGŁOSZENIA
             <div className="full-announcement-details-card">
               <h3>Szczegóły Ogłoszenia</h3>
-              {/* NOWY KONTENER DLA TYTUŁU I SERDUSZKA - ZMODYFIKOWANY */}
-              <div className="announcement-details-title-row">
-                <h4>{selectedAnnouncement.title}</h4>
-                {currentUser && (
-                  <button
-                    onClick={(e) => handleToggleFavorite(selectedAnnouncement.id, e)}
-                    className="favorite-button favorite-button-details"
-                    disabled={loadingFavorites}
-                    title={favoriteAnnouncementIds.has(selectedAnnouncement.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
-                  >
-                    {favoriteAnnouncementIds.has(selectedAnnouncement.id) ? (
-                      <FaHeart style={{ color: 'red' }} />
-                    ) : (
-                      <FaRegHeart style={{ color: 'gray' }} />
-                    )}
-                  </button>
-                )}
-              </div> {/* KONIEC NOWEGO KONTENERA */}
-
+              {/* SERDUSZKO UMIESZCZONE W ROGU KARTY SZCZEGÓŁÓW OGŁOSZENIA */}
+              {currentUser && (
+                <button
+                  onClick={(e) => handleToggleFavorite(selectedAnnouncement.id, e)}
+                  className="favorite-button favorite-button-details"
+                  disabled={loadingFavorites}
+                  title={favoriteAnnouncementIds.has(selectedAnnouncement.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+                >
+                  {favoriteAnnouncementIds.has(selectedAnnouncement.id) ? (
+                    <FaHeart style={{ color: 'red' }} />
+                  ) : (
+                    <FaRegHeart style={{ color: 'gray' }} />
+                  )}
+                </button>
+              )}
+              <h4>{selectedAnnouncement.title}</h4> {/* TYTUŁ OGŁOSZENIA */}
               {selectedAnnouncement.image_url && (
                 <img src={selectedAnnouncement.image_url} alt={selectedAnnouncement.title} className="announcement-details-image-full" />
               )}
