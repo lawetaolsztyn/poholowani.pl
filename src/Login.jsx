@@ -1,297 +1,206 @@
-// src/Login.jsx (cała zawartość pliku, z uwzględnieniem zmian)
-
-import { useState, useEffect } from 'react';
+// src/Login.jsx
+import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { useNavigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Header from './components/Header';
-import './LandingPage.css'; // Upewnij się, że ten CSS jest właściwy dla tej strony
-import { getRecaptchaToken } from './utils/getRecaptchaToken';
-
+import { useNavigate, Link } from 'react-router-dom'; // Dodano Link, jeśli jest używany w szablonie
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'; // Import hooka
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [resetMode, setResetMode] = useState(false);
-  const [showResendEmailButton, setShowResendEmailButton] = useState(false);
-  const [isResendLoading, setIsResendLoading] = useState(false);
   const navigate = useNavigate();
+  const { executeRecaptcha } = useGoogleReCaptcha(); // Użycie hooka
 
+  // NOWY STAN: Czy reCAPTCHA jest gotowa do użycia
+  const [recaptchaReady, setRecaptchaReady] = useState(false); //
+
+  // Efekt do monitorowania gotowości reCAPTCHA
   useEffect(() => {
-    // Ta funkcja jest wywoływana po każdej zmianie stanu autentykacji
-    // lub gdy komponent się montuje, aby sprawdzić, czy użytkownik jest już zalogowany.
-    const handleAuthRedirect = async (user) => {
-      if (!user) {
-        // Jeśli brak użytkownika (np. wylogowany), po prostu nic nie robimy na stronie logowania.
-        return;
-      }
-
-      console.log("Login.jsx: handleAuthRedirect - Użytkownik zalogowany:", user);
-
-      // === LOGIKA PRZEKIEROWANIA PO ZALOGOWANIU ===
-      const redirectToAnnounceForm = localStorage.getItem('redirect_to_announce_form');
-      const redirectToAnnounceDetailsId = localStorage.getItem('redirect_to_announce_details_id');
-
-      if (redirectToAnnounceForm === 'true') {
-        localStorage.removeItem('redirect_to_announce_form'); // Usuń flagę po użyciu
-        console.log('Login.jsx: Przekierowuję na /tablica-ogloszen (otworzy formularz po powrocie).');
-        navigate('/tablica-ogloszen');
-        return;
-      }
-
-      if (redirectToAnnounceDetailsId) {
-        localStorage.removeItem('redirect_to_announce_details_id'); // Usuń ID po użyciu
-        console.log(`Login.jsx: Przekierowuję na /tablica-ogloszen (miał otworzyć szczegóły ID: ${redirectToAnnounceDetailsId}).`);
-        // Docelowo: navigate(`/tablica-ogloszen?id=${redirectToAnnounceDetailsId}`);
-        navigate('/tablica-ogloszen'); 
-        return;
-      }
-      
-      // Standardowe przekierowania, jeśli nie ma żadnych specjalnych flag
-      // Pobieramy rolę, aby zdecydować o domyślnym przekierowaniu
-      const { data: profile, error: profileError } = await supabase
-        .from('users_extended')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle(); // Użyj maybeSingle, aby obsłużyć brak profilu bez rzucania błędu
-
-      if (profileError && profileError.code !== 'PGRST116') { // Ignorujemy błąd 'no rows found'
-        console.error('Login.jsx: Błąd pobierania profilu:', profileError.message);
-        // Możesz tutaj zadecydować o przekierowaniu awaryjnym, np. do /profil
-      }
-
-      const userRole = profile?.role?.toLowerCase();
-
-      if (!profile || userRole === 'nieprzypisana') {
-        console.log('Login.jsx: Brak profilu lub rola nieprzypisana. Przekierowuję do wyboru roli.');
-        navigate('/choose-role');
-        return;
-      }
-      
-      // Domyślne przekierowanie, jeśli użytkownik jest zalogowany i ma przypisaną rolę
-      console.log('Login.jsx: Użytkownik zalogowany i ma rolę. Przekierowuję do profilu.');
-      navigate('/profil');
-    };
-
-    // Nasłuchuj zmian stanu autentykacji
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Login.jsx: Auth state changed:', event, session);
-      if (event === 'SIGNED_IN') {
-        handleAuthRedirect(session?.user);
-      } else if (event === 'SIGNED_OUT') {
-        // Wyczyść flagi przekierowania, gdy użytkownik się wyloguje
-        localStorage.removeItem('redirect_to_announce_form');
-        localStorage.removeItem('redirect_to_announce_details_id');
-        // Jeśli użytkownik wylogował się i nie jest na stronie logowania, przekieruj
-        if (window.location.pathname !== '/login') {
-            navigate('/login');
-        }
-      }
-    });
-
-    // Sprawdź początkowy stan autentykacji przy załadowaniu komponentu Login
-    const checkInitialAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) { // Jeśli użytkownik jest już zalogowany przy wejściu na /login
-            handleAuthRedirect(user);
-        }
-    };
-    checkInitialAuth();
+    if (executeRecaptcha) {
+      setRecaptchaReady(true); //
+    } else {
+      setRecaptchaReady(false); //
+    }
+  }, [executeRecaptcha]); // Zależy od dostępności executeRecaptcha
 
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]); // navigate jako zależność
-
+  // Funkcja obsługi logowania (główna)
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setMessage('');
-    setShowResendEmailButton(false);
 
-    const token = await getRecaptchaToken('login');
-    if (!token) {
-      setMessage('❌ Nie udało się zweryfikować reCAPTCHA.');
+    // Sprawdzenie, czy reCAPTCHA jest gotowa przed próbą wywołania
+    if (!recaptchaReady || !executeRecaptcha) { //
+      setMessage('Błąd reCAPTCHA: Usługa zabezpieczeń niezaładowana. Proszę chwilę poczekać i spróbować ponownie.'); //
+      setLoading(false);
       return;
     }
-    console.log("URL edge function:", import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL);
+
     try {
-      // Upewnij się, że VITE_SUPABASE_EDGE_FUNCTION_URL jest poprawnie załadowane
-      const response = await fetch(import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL, {
+      const recaptchaToken = await executeRecaptcha('login'); // Wywołanie reCAPTCHA
+      if (!recaptchaToken) { //
+        setMessage('Błąd reCAPTCHA: Nie udało się uzyskać tokena. Proszę spróbować ponownie.'); //
+        setLoading(false);
+        return;
+      }
+
+      // Wysłanie danych do Twojej funkcji Supabase Edge Function
+      const response = await fetch('https://rzqahfqtbqsmhodzlgzs.supabase.co/functions/v1/login-with-recaptcha', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, recaptchaToken: token }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${recaptchaToken}` // Token reCAPTCHA jako Bearer token
+        },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(`❌ Błąd logowania: ${data.error || 'Nieznany błąd'}`);
-        // Dodatkowe sprawdzenie, czy to błąd aktywacji
-        if (data.error === "Email not confirmed") {
-          setShowResendEmailButton(true);
-        }
-        return;
+        // Jeśli odpowiedź nie jest OK (np. 403 Forbidden), obsłuż błąd
+        throw new Error(data.message || 'Nieznany błąd podczas weryfikacji logowania.');
       }
 
-      // Ustaw sesję ręcznie
-      // To wywoła onAuthStateChange w useEffect, który następnie obsłuży przekierowanie
-      await supabase.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
+      // Jeśli logowanie przebiegło pomyślnie, zaloguj użytkownika przez Supabase Auth
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
       });
 
-      setMessage('✅ Zalogowano pomyślnie');
-      // NIE PRZEKIEROWUJ TUTAJ BEZPOŚREDNIO! Pozwól useEffect to zrobić.
-      // navigate('/profil'); // <-- USUŃ LUB ZAKOMENTUJ TĘ LINIĘ
+      if (authError) {
+        throw new Error(authError.message);
+      }
+
+      setMessage('✅ Zalogowano pomyślnie!');
+      // Sprawdź, czy jest jakieś przekierowanie po logowaniu
+      const redirectTo = localStorage.getItem('redirect_after_login');
+      if (redirectTo) {
+        localStorage.removeItem('redirect_after_login');
+        navigate(redirectTo);
+      } else {
+        navigate('/'); // Domyślne przekierowanie na stronę główną
+      }
 
     } catch (err) {
-      setMessage('❌ Błąd logowania');
-      console.error(err);
+      console.error('Błąd logowania:', err.message);
+      let errorMessage = 'Wystąpił błąd podczas logowania. Sprawdź swoje dane.';
+      if (err.message.includes('Invalid login credentials')) {
+        errorMessage = 'Błędny email lub hasło.';
+      } else if (err.message.includes('reCAPTCHA')) {
+        errorMessage = err.message; // Wyświetlaj bardziej szczegółowe błędy reCAPTCHA
+      }
+      setMessage(`❌ ${errorMessage}`);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Funkcja obsługi logowania przez Google
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setMessage('');
 
-  const handleOAuthLogin = async (provider) => {
-    setMessage(''); // Wyczyść wiadomość przed logowaniem OAuth
+    if (!recaptchaReady || !executeRecaptcha) { //
+        setMessage('Błąd reCAPTCHA: Usługa zabezpieczeń niezaładowana. Proszę chwilę poczekać i spróbować ponownie.'); //
+        setLoading(false);
+        return;
+    }
+
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          // Tutaj możesz dynamicznie ustawić redirectTo, jeśli chcesz, aby OAuth też wracało do /tablica-ogloszen
-          // np. redirectTo: localStorage.getItem('redirect_to_announce_form') ? window.location.origin + '/choose-role?returnTo=/tablica-ogloszen' : window.location.origin + '/choose-role'
-          redirectTo: 'https://poholowani.pl/choose-role'
+        const recaptchaToken = await executeRecaptcha('google_login'); //
+        if (!recaptchaToken) { //
+            setMessage('Błąd reCAPTCHA: Nie udało się uzyskać tokena Google. Spróbuj ponownie.'); //
+            setLoading(false);
+            return;
         }
-      });
-      if (error) throw error;
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                    // Możesz przekazać token reCAPTCHA w queryParams,
+                    // jeśli Twoja funkcja Edge Function go potrzebuje do weryfikacji OAuth
+                    // (chociaż zwykle reCAPTCHA jest używana dla standardowych loginów email/hasło,
+                    // a nie dla OAuth, które ma własne zabezpieczenia).
+                    // Jeśli Twoja funkcja edge function oczekuje tego tokena również dla OAuth, musisz go tutaj dodać.
+                    // recaptcha_token: recaptchaToken // Przykład, jeśli potrzebne
+                },
+                redirectTo: window.location.origin + '/choose-role' // Przekierowanie po pomyślnym logowaniu
+            },
+        });
+
+        if (error) {
+            throw error;
+        }
+        // Użytkownik zostanie przekierowany do dostawcy OAuth
     } catch (error) {
-      console.error("OAuth error:", error.message);
-      setMessage("❌ Błąd logowania OAuth: " + error.message);
+        console.error("Błąd logowania przez Google:", error.message);
+        setMessage(`❌ Błąd logowania przez Google: ${error.message}`);
+    } finally {
+        setLoading(false);
     }
-  };
+};
 
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    const result = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://poholowani.pl/reset-hasla',
-    });
-
-    const { error } = result;
-    if (error) {
-      setMessage(`❌ Błąd resetowania: ${error.message}`);
-      console.error('❌ Reset error:', error);
-    } else {
-      setMessage('✅ Wysłano instrukcje resetu hasła.');
-    }
-  };
-
-  const handleResendActivationEmail = async () => {
-    setIsResendLoading(true);
-    setMessage('');
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email,
-    });
-
-    if (error) {
-      setMessage(`❌ Błąd wysyłki: ${error.message}`);
-      console.error('❌ Błąd wysyłki:', error);
-    } else {
-      setMessage('✅ Link aktywacyjny wysłany ponownie.');
-    }
-    setIsResendLoading(false);
-  };
 
   return (
-    <>
-      <Navbar />
-      <div className="overlay-header">
-        <Header title="Zaloguj się do swojego konta" subtitle="Zarządzaj zleceniami i trasami w jednym miejscu" />
-      </div>
-      <div className="landing-container">
-        <div style={wrapper}>
-          <h2 style={{ marginBottom: '20px', textAlign: 'center', fontSize: '1.8rem', color: '#333' }}>
-            {resetMode ? 'Resetowanie Hasła' : 'Zaloguj się'}
-          </h2>
+    <div className="login-container">
+      <h2>Zaloguj się</h2>
+      {message && <p className={`message ${message.includes('Błąd') || message.startsWith('❌') ? 'error' : 'success'}`}>{message}</p>}
+      <form onSubmit={handleLogin} className="login-form">
+        <label className="login-label">
+          Email:
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="login-input"
+            disabled={loading || !recaptchaReady} //
+          />
+        </label>
+        <label className="login-label">
+          Hasło:
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="login-input"
+            disabled={loading || !recaptchaReady} //
+          />
+        </label>
+        <button type="submit" disabled={loading || !recaptchaReady} className="login-button"> {/* */}
+          {loading ? 'Logowanie...' : 'Zaloguj'}
+        </button>
 
-          {!resetMode ? (
-            <form onSubmit={handleLogin}>
-              <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} required />
-              <input type="password" placeholder="Hasło" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} required />
-              <button type="submit" style={btnStyle}>Zaloguj</button>
-              <button type="button" onClick={() => setResetMode(true)} style={linkStyle}>Zapomniałeś hasła?</button>
-            </form>
-          ) : (
-            <>
-              <input type="email" placeholder="Wpisz swój e-mail" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} required />
-              <button type="button" onClick={handleResetPassword} style={btnStyle}>Wyślij link do resetowania</button>
-              <button type="button" onClick={() => setResetMode(false)} style={linkStyle}>Wróć do logowania</button>
-            </>
-          )}
+        {/* Komunikat, gdy reCAPTCHA się ładuje */}
+        {!recaptchaReady && ( //
+          <p className="recaptcha-loading-message">
+            Ładowanie zabezpieczeń (reCAPTCHA)... Proszę chwilę poczekać.
+          </p>
+        )}
 
-          <hr style={{ margin: '20px 0' }} />
+      </form>
 
-          <button onClick={() => handleOAuthLogin('google')} style={{ ...btnStyle, backgroundColor: '#db4437' }}>Zaloguj przez Google</button>
-          <button onClick={() => handleOAuthLogin('facebook')} style={{ ...btnStyle, backgroundColor: '#3b5998' }}>Zaloguj przez Facebook</button>
-          {message && <p style={{ marginTop: '20px' }}>{message}</p>}
+      <p className="login-register-text">
+        Nie masz konta? <Link to="/register">Zarejestruj się</Link>
+      </p>
+      <p className="login-register-text">
+        <Link to="/reset-password">Zapomniałeś hasła?</Link>
+      </p>
 
-          {showResendEmailButton && (
-            <button type="button" onClick={handleResendActivationEmail} disabled={isResendLoading} style={{ ...btnStyle, backgroundColor: isResendLoading ? '#ccc' : '#28a745', marginTop: '10px' }}>
-              {isResendLoading ? 'Wysyłam...' : 'Wyślij ponownie link aktywacyjny'}
-            </button>
-          )}
-        </div>
-      </div>
-    </>
+      {/* Przycisk Google Login */}
+      <button
+        onClick={handleGoogleLogin}
+        disabled={loading || !recaptchaReady} //
+        className="google-login-button"
+      >
+        Zaloguj przez Google
+      </button>
+    </div>
   );
 }
-
-const wrapper = {
-  background: '#fff',
-  padding: '40px',
-  maxWidth: '500px',
-  margin: '0 auto',
-  marginTop: '40px',
-  borderRadius: '12px',
-  boxShadow: '0 0 15px rgba(0,0,0,0.1)'
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '12px',
-  marginBottom: '15px',
-  borderRadius: '6px',
-  border: '1px solid #ccc',
-  fontSize: '1rem'
-};
-
-const btnStyle = {
-  width: '100%',
-  padding: '12px',
-  backgroundColor: '#007bff',
-  color: '#fff',
-  fontSize: '1rem',
-  border: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease',
-  marginBottom: '10px'
-};
-
-const linkStyle = {
-  width: '100%',
-  padding: '12px',
-  backgroundColor: 'transparent',
-  color: '#007bff',
-  fontSize: '1rem',
-  border: '1px solid #007bff',
-  borderRadius: '6px',
-  cursor: 'pointer',
-  transition: 'background-color 0.3s ease, color 0.3s ease',
-  marginTop: '5px',
-  display: 'block',
-  textAlign: 'center',
-  textDecoration: 'none'
-};
