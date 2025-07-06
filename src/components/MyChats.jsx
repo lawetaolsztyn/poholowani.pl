@@ -11,7 +11,7 @@ import './MyChats.css';
 
 export default function MyChats() {
   // POBIERZ fetchTotalUnreadMessages z useAuth
-  const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth(); 
+  const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
   const [userJwt, setUserJwt] = useState('');
   const [conversations, setConversations] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
@@ -88,7 +88,7 @@ export default function MyChats() {
     let participantsChannel;
 
     // Inicjuj subskrypcje Realtime TYLKO, jeśli użytkownik jest zalogowany
-    if (currentUser && currentUser.id) { // <-- KLUCZOWA ZMIANA TUTAJ
+    if (currentUser && currentUser.id) {
       console.log(`Subscribing to Realtime channels for user: ${currentUser.id}`);
 
       conversationChannel = supabase
@@ -121,7 +121,6 @@ export default function MyChats() {
     }
 
     return () => {
-      // Funkcja czyszcząca: odsubskrybuj kanały przy odmontowaniu komponentu
       if (conversationChannel) {
         console.log(`Unsubscribing conversation channel for user: ${currentUser?.id}`);
         supabase.removeChannel(conversationChannel);
@@ -131,8 +130,7 @@ export default function MyChats() {
         supabase.removeChannel(participantsChannel);
       }
     };
-  }, [currentUser, authLoading]); // Zależności: currentUser i authLoading
-
+  }, [currentUser, authLoading]);
 
   const handleOpenChat = (conversationId, announcementTitle) => {
     setActiveConversationId(conversationId);
@@ -144,13 +142,34 @@ export default function MyChats() {
     setShowChatModal(false);
     setActiveConversationId(null);
     setActiveAnnouncementTitle('');
-    // Odświeżenie listy konwersacji po zamknięciu modala
-    // TO WYWOŁANIE jest KLUCZOWE, bo zresetuje licznik w MyChats po tym, jak ChatWindow go wyzeruje
     fetchConversations();
-    
-    // DODANA LINIA: Odśwież globalny licznik w Navbarze poprzez AuthContext
-    if (currentUser) { // Upewnij się, że użytkownik jest zalogowany
+
+    if (currentUser) {
       fetchTotalUnreadMessages(currentUser.id);
+    }
+  };
+
+  // Funkcja usuwająca czat i powiązane wiadomości w Supabase
+  const handleDeleteChat = async (conversationId) => {
+    try {
+      // Usuń wiadomości powiązane z czatem
+      let { error: msgError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('chat_id', conversationId);
+      if (msgError) throw msgError;
+
+      // Usuń czat
+      let { error: chatError } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId);
+      if (chatError) throw chatError;
+
+      // Odśwież listę po usunięciu
+      fetchConversations();
+    } catch (error) {
+      alert('Błąd podczas usuwania czatu: ' + error.message);
     }
   };
 
@@ -207,15 +226,29 @@ export default function MyChats() {
               const otherParticipantName = otherParticipant?.company_name || otherParticipant?.full_name || otherParticipant?.email || 'Nieznany';
               const otherParticipantRole = otherParticipant?.role === 'firma' ? 'Przewoźnik' : (otherParticipant?.role === 'klient' ? 'Klient' : 'Użytkownik');
 
-              // conv.unread_count jest już dostępne dzięki mapowaniu w fetchConversations
-              // const unreadCount = 0; // Ta linia jest zbędna i została usunięta
-              
+              const handleDeleteClick = async (e) => {
+                e.stopPropagation(); // nie otwieraj modala czatu
+                const confirmDelete = window.confirm('Czy na pewno chcesz usunąć tę rozmowę?');
+                if (!confirmDelete) return;
+                await handleDeleteChat(conv.id);
+              };
+
               return (
                 <div
                   key={conv.id}
                   className={`conversation-card ${conv.unread_count > 0 ? 'unread' : ''}`}
                   onClick={() => handleOpenChat(conv.id, conv.announcement?.title)}
+                  style={{ position: 'relative' }} // pozycjonowanie przycisku usuń
                 >
+                  <button
+                    className="delete-chat-button"
+                    onClick={handleDeleteClick}
+                    aria-label="Usuń czat"
+                    title="Usuń czat"
+                  >
+                    🗑️
+                  </button>
+
                   <div className="card-header">
                     <h4>{conv.announcement?.title || 'Brak tytułu ogłoszenia'}</h4>
                     {conv.unread_count > 0 && <span className="unread-count">{conv.unread_count}</span>}
@@ -229,7 +262,6 @@ export default function MyChats() {
           </div>
         )}
       </div>
-      <Footer />
 
       <Modal
         isOpen={showChatModal}
@@ -245,6 +277,7 @@ export default function MyChats() {
           />
         )}
       </Modal>
+      <Footer />
     </>
   );
 }
