@@ -755,7 +755,6 @@ export default function AnnouncementsPage() {
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
       </Modal>
 
-      <Footer />
-    </React.Fragment>
+         </React.Fragment>
   );
 }
