@@ -218,13 +218,13 @@ export default function MyChats() {
                   style={{ position: 'relative' }}
                 >
                   <button
-                    className="delete-chat-button"
-                    onClick={handleDeleteClick}
-                    aria-label="Ukryj czat"
-                    title="Ukryj czat"
-                  >
-                    🗑️
-                  </button>
+  className="delete-chat-button"
+  onClick={handleDeleteClick}
+  aria-label="Usuń czat"
+  title="Usuń czat"
+>
+  <i className="fas fa-trash-alt"></i>
+</button>
 
                   <div className="card-header">
                     <h4>{conv.announcement?.title || 'Brak tytułu ogłoszenia'}</h4>

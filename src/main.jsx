@@ -37,6 +37,7 @@ import AnnouncementsPage from './components/AnnouncementsPage';
 import MojeOgloszenia from './components/MojeOgloszenia'; 
 import MyChats from './components/MyChats';
 import { AuthProvider } from './AuthContext.jsx';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 
 
