@@ -118,7 +118,7 @@
 
   .nav-links.open {
     height: auto;
-    max-height: 500px;  
+    max-height: fit-content;   
     opacity: 1;
     padding: 1rem 0;
     pointer-events: auto;
