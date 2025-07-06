@@ -1,34 +1,4 @@
-/* src/TransportNaJuz.css */
 
-/* TESTOWE STYLE - JEŚLI TE STYLE SĄ WIDOCZNE, CSS JEST ŁADOWANY */
-body {
-  background-color: #f0f8ff !important; /* Bardzo jasny błękit */
-  font-family: 'Roboto', sans-serif !important; /* Zmiana czcionki */
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: #8b0000 !important; /* Ciemna czerwień dla nagłówków */
-  border-bottom: 2px solid #8b0000 !important; /* Linia pod nagłówkami */
-  padding-bottom: 5px !important;
-  margin-bottom: 20px !important;
-}
-
-button {
-  border: 3px dashed blue !important; /* Niebieska kreskowana ramka wokół przycisków */
-  background-color: yellow !important; /* Żółte tło przycisków */
-  color: black !important; /* Czarny tekst na przyciskach */
-}
-/* KONIEC TESTOWYCH STYLÓW */
-
-
-.transport-na-juz-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
-}
-
-/* ... reszta twojego istniejącego CSS ... */
 
 
 /* src/TransportNaJuz.css */
