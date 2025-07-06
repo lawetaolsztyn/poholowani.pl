@@ -244,7 +244,7 @@ export default function Login() {
                       setRecaptchaV2Token(token);
                       setMessage('');
                     }}
-                    theme={isDarkMode ? 'dark' : 'light'} {/* Ustawienie motywu reCAPTCHA na podstawie stanu isDarkMode */}
+                    theme={isDarkMode ? 'dark' : 'light'}
                   />
                 </div>
               )}
