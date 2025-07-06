@@ -124,20 +124,6 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
         console.log('Realtime message received!', payload.new);
         setMessages(prevMessages => [...prevMessages, payload.new]);
-
-        // Jeśli nowa wiadomość przyszła od drugiego użytkownika, zaktualizuj też jego last_read_message_id (opcjonalnie)
-        // LUB po prostu polegaj na triggerze/logice w MyChats.jsx do oznaczania jako przeczytane.
-        // Jeśli trigger działa, to ten fragment jest zbędny:
-        // if (payload.new.sender_id !== currentUserId) {
-        //   // Jeśli ChatWindow jest otwarte i wiadomość jest od drugiej strony, oznacz ją jako przeczytaną
-        //   supabase.from('conversation_participants')
-        //     .update({ last_read_message_id: payload.new.id, unread_messages_count: 0 })
-        //     .eq('conversation_id', conversationId)
-        //     .eq('user_id', currentUserId)
-        //     .then(res => {
-        //       if (res.error) console.error('Error marking message as read on receive:', res.error);
-        //     });
-        // }
       })
       .subscribe();
 
@@ -151,7 +137,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
   }, [messages]);
 
 
-  // handleSendMessage - KLUCZOWA ZMIANA: Aktualizacja conversation_participants i conversations
+  // handleSendMessage - TERAZ W PEŁNI POLEGA NA TRIGGERACH!
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
@@ -169,7 +155,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
         content: newMessage.trim(),
       };
 
-      // Używamy Workera do wysłania wiadomości (jak w Twoim kodzie)
+      // Używamy Workera do wysłania wiadomości
       const workerResponse = await fetch('https://map-api-proxy.lawetaolsztyn.workers.dev/api/messages', {
         method: 'POST',
         headers: {
@@ -186,67 +172,9 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
       }
 
       setNewMessage('');
-
-      // WAŻNE: Dodajemy wywołania RPC/UPDATE bezpośrednio tutaj,
-      // jeśli nie masz triggerów w bazie danych.
-      // Jeśli masz triggery (jak te, które proponowałem), możesz usunąć te fragmenty.
-
-      // 1. Zaktualizuj główną konwersację w tabeli 'conversations'
-      // Zapewnij, że 'last_message_sender_id' jest aktualizowany.
-      const { error: convoUpdateError } = await supabase
-        .from('conversations')
-        .update({
-          last_message_at: new Date().toISOString(),
-          last_message_content: messagePayload.content,
-          last_message_sender_id: currentUserId, // KLUCZOWE
-        })
-        .eq('id', conversationId);
-
-      if (convoUpdateError) {
-        console.error('Błąd aktualizacji konwersacji (handleSendMessage):', convoUpdateError.message);
-      }
-
-      // 2. Zaktualizuj conversation_participants dla OBU uczestników
-      // Pobierz dane konwersacji, aby zidentyfikować drugiego uczestnika
-      const { data: convData, error: convDataError } = await supabase
-        .from('conversations')
-        .select('client_id, carrier_id')
-        .eq('id', conversationId)
-        .single();
-
-      if (convDataError) {
-        console.error('Błąd pobierania danych konwersacji dla uczestników:', convDataError.message);
-        return;
-      }
-
-      const otherParticipantId = convData.client_id === currentUserId ? convData.carrier_id : convData.client_id;
-
-      // a) Dla nadawcy (bieżącego użytkownika): zresetuj unread_messages_count i ustaw is_deleted na false
-      const { error: senderPartUpdateError } = await supabase
-        .from('conversation_participants')
-        .update({
-          unread_messages_count: 0,
-          is_deleted: false, // Nadawca właśnie wysłał wiadomość, więc czat musi być dla niego widoczny
-          last_read_message_id: messageData.id // (Jeśli messageData.id jest dostępne po wysłaniu)
-        })
-        .eq('conversation_id', conversationId)
-        .eq('user_id', currentUserId);
-
-      if (senderPartUpdateError) {
-        console.error('Błąd aktualizacji uczestnika (nadawcy):', senderPartUpdateError.message);
-      }
-
-      // b) Dla ODBIORCY: zwiększ unread_messages_count i ustaw is_deleted na false
-      // TO WYWOŁUJE FUNKCJĘ RPC Z BAZY DANYCH!
-      const { error: receiverPartUpdateError } = await supabase
-        .rpc('increment_unread_and_undelete_participant', {
-          p_conversation_id: conversationId,
-          p_user_id: otherParticipantId
-        });
-
-      if (receiverPartUpdateError) {
-        console.error('Błąd aktualizacji uczestnika (odbiorcy) przez RPC:', receiverPartUpdateError.message);
-      }
+      // Dalsze aktualizacje (last_message_at, last_message_content, unread_messages_count, is_deleted)
+      // są teraz obsługiwane w bazie danych przez TRIGGERS po wstawieniu wiadomości.
+      // Nie ma potrzeby ręcznych wywołań supabase.from().update() tutaj.
 
     } catch (err) {
       console.error('Błąd wysyłania wiadomości:', err.message);
@@ -276,7 +204,7 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
         {messages.map((msg) => (
           <div key={msg.id} className={`message-bubble ${msg.sender_id === currentUserId ? 'sent' : 'received'}`}>
             <div className="message-content">
-                {/* Usuń warunek sender_id !== currentUserId, aby nazwa była zawsze wyświetlana (lub usuń całkowicie, jeśli nie potrzebujesz) */}
+                {/* Usunięto ten warunek, aby nazwa była zawsze wyświetlana, jeśli chcesz ją widzieć, lub usuń cały span */}
                 {/* <span className="sender-name">
                     {participantsData[msg.sender_id]?.name || 'Nieznany'}
                 </span> */}
