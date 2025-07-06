@@ -1,42 +1,43 @@
 // src/components/AnnouncementsPage.jsx (CAŁY PLIK)
 
-import React, { useState, useEffect, useCallback } from 'react'; // Dodano useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../AuthContext.jsx'; 
+import { useNavigate } from 'react-router-dom'; // Nadal bez useParams w tym pliku, bo nie nawigujemy bezpośrednio do URL z ID.
+import { useAuth } from '../AuthContext.jsx';
 
 import AnnouncementForm from './AnnouncementForm';
-import './AnnouncementsPage.css'; // Twój plik CSS
+import './AnnouncementsPage.css';
 import Navbar from './Navbar';
-import Footer from './Footer'; // Dodano import Footer, jeśli go używasz
+import Footer from './Footer';
 import LocationAutocomplete from './LocationAutocomplete';
 import Modal from './Modal';
 import AnnouncementChatSection from './AnnouncementChatSection';
 
 // Importy ikon serduszka (dla karty ogłoszenia)
-import { FaRegHeart, FaHeart } from 'react-icons/fa'; // FaRegHeart to obrys, FaHeart to wypełnione
+import { FaRegHeart, FaHeart } from 'react-icons/fa';
 // Importy ikon dla przycisku filtrowania (dla filtra "Ulubione")
-import { FaStar, FaRegStar } from 'react-icons/fa'; // FaStar to wypełniona gwiazdka, FaRegStar to obrys
+import { FaStar, FaRegStar } from 'react-icons/fa';
 
 
 export default function AnnouncementsPage() {
   const navigate = useNavigate();
-  const { currentUser, userRole, loading: authLoading } = useAuth(); 
-  const [userJwt, setUserJwt] = useState(''); // JWT dla API Workera
+  // USUŃ tę linię: const { announcementId: urlAnnouncementId } = useParams(); // <-- To było dla Części 2, którą cofamy
+  const { currentUser, userRole, loading: authLoading } = useAuth();
+  const [userJwt, setUserJwt] = useState('');
 
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
   const [errorAnnouncements, setErrorAnnouncements] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
-  
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null); // Zachowujemy ten stan
+
   // NOWE STANY DLA ULUBIONYCH
-  const [favoriteAnnouncementIds, setFavoriteAnnouncementIds] = useState(new Set()); // Zbiór ID ulubionych
-  const [loadingFavorites, setLoadingFavorites] = useState(false); // Stan ładowania operacji na ulubionych
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false); // Stan dla filtra "Pokaż tylko ulubione"
+  const [favoriteAnnouncementIds, setFavoriteAnnouncementIds] = useState(new Set());
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
 
-  // STANY DLA FILTROWANIA (Twoje oryginalne stany)
+  // STANY DLA FILTROWANIA
   const [filterFrom, setFilterFrom] = useState({ label: '', coords: null });
   const [filterTo, setFilterTo] = useState({ label: '', coords: null });
   const [filterRadiusKm, setFilterRadiusKm] = useState(50);
@@ -46,12 +47,12 @@ export default function AnnouncementsPage() {
   const [filterWeightMin, setFilterWeightMin] = useState('');
   const [filterWeightMax, setFilterWeightMax] = useState('');
 
-  // STANY DLA PAGINACJI (Twoje oryginalne stany)
+  // STANY DLA PAGINACJI
   const [currentPage, setCurrentPage] = useState(1);
   const [announcementsPerPage] = useState(20);
   const [totalAnnouncementsCount, setTotalAnnouncementsCount] = useState(0);
 
-  // Pobranie JWT z supabase.auth.getSession() - potrzebne dla AnnouncementChatSection
+  // Pobranie JWT z supabase.auth.getSession()
   useEffect(() => {
     const fetchJwt = async () => {
       const { data, error } = await supabase.auth.getSession();
@@ -67,10 +68,9 @@ export default function AnnouncementsPage() {
 
   // === FUNKCJE ULUBIONYCH ===
 
-  // Funkcja do pobierania ID ulubionych ogłoszeń użytkownika
   const fetchFavorites = useCallback(async () => {
     if (!currentUser || !currentUser.id) {
-      setFavoriteAnnouncementIds(new Set()); // Wyczyść, jeśli użytkownik wylogowany
+      setFavoriteAnnouncementIds(new Set());
       return;
     }
     setLoadingFavorites(true);
@@ -91,26 +91,23 @@ export default function AnnouncementsPage() {
     } finally {
       setLoadingFavorites(false);
     }
-  }, [currentUser]); // Zależy od currentUser
+  }, [currentUser]);
 
-  // Efekt do ładowania ulubionych ogłoszeń przy zmianie użytkownika
   useEffect(() => {
     fetchFavorites();
 
-    // Opcjonalnie: Subskrypcja Realtime na zmiany w ulubionych ogłoszeniach
-    // aby serduszka aktualizowały się na żywo
     let favoritesChannel;
     if (currentUser && currentUser.id) {
       favoritesChannel = supabase
         .channel(`favorites:${currentUser.id}`)
         .on('postgres_changes', {
-          event: '*', // INSERT, DELETE, UPDATE (w przypadku problemów z usuwaniem)
+          event: '*',
           schema: 'public',
           table: 'user_favorite_announcements',
           filter: `user_id=eq.${currentUser.id}`
         }, payload => {
           console.log('Realtime favorite update!', payload);
-          fetchFavorites(); // Odśwież listę ulubionych ID
+          fetchFavorites();
         })
         .subscribe();
     }
@@ -120,11 +117,10 @@ export default function AnnouncementsPage() {
         supabase.removeChannel(favoritesChannel);
       }
     };
-  }, [currentUser, fetchFavorites]); // Zależności: currentUser i fetchFavorites
+  }, [currentUser, fetchFavorites]);
 
-  // Funkcja odpowiedzialna za dodawanie/usuwanie ogłoszeń z ulubionych
   const handleToggleFavorite = async (announcementId, e) => {
-    e.stopPropagation(); // Zapobiega wywołaniu click na karcie ogłoszenia
+    e.stopPropagation();
     if (!currentUser) {
       alert('Musisz być zalogowany, aby dodać ogłoszenie do ulubionych!');
       return;
@@ -135,7 +131,6 @@ export default function AnnouncementsPage() {
 
     try {
       if (isCurrentlyFavorite) {
-        // Usuń z ulubionych
         const { error } = await supabase
           .from('user_favorite_announcements')
           .delete()
@@ -143,14 +138,12 @@ export default function AnnouncementsPage() {
           .eq('announcement_id', announcementId);
 
         if (error) throw error;
-        // Zaktualizuj stan lokalnie
         setFavoriteAnnouncementIds(prev => {
           const newSet = new Set(prev);
           newSet.delete(announcementId);
           return newSet;
         });
       } else {
-        // Dodaj do ulubionych
         const { error } = await supabase
           .from('user_favorite_announcements')
           .insert({
@@ -159,16 +152,14 @@ export default function AnnouncementsPage() {
           });
 
         if (error) throw error;
-        // Zaktualizuj stan lokalnie
         setFavoriteAnnouncementIds(prev => {
           const newSet = new Set(prev);
           newSet.add(announcementId);
           return newSet;
         });
       }
-      // Po zmianie statusu ulubionych, odśwież listę ogłoszeń, jeśli filtr jest włączony
       if (showOnlyFavorites) {
-        fetchAnnouncements(); // Aby usunięte ogłoszenie zniknęło z widoku
+        fetchAnnouncements();
       }
     } catch (err) {
       console.error("Błąd toggle ulubionych:", err.message);
@@ -178,18 +169,17 @@ export default function AnnouncementsPage() {
     }
   };
 
-  // Funkcja do przełączania filtra "Pokaż tylko ulubione"
   const handleToggleShowOnlyFavorites = () => {
     if (!currentUser) {
       alert('Musisz być zalogowany, aby filtrować ulubione ogłoszenia!');
       return;
     }
     setShowOnlyFavorites(prev => !prev);
-    setCurrentPage(1); // Resetuj paginację przy zmianie filtra
+    setCurrentPage(1);
   };
 
 
-  // === GŁÓWNA FUNKCJA POBIERANIA OGŁOSZEŃ (zmodyfikowana o filtr ulubionych) ===
+  // === GŁÓWNA FUNKCJA POBIERANIA OGŁOSZEŃ ===
   const fetchAnnouncements = useCallback(async () => {
     setLoadingAnnouncements(true);
     setErrorAnnouncements(null);
@@ -200,7 +190,6 @@ export default function AnnouncementsPage() {
 
     const isRadiusFilterActive = filterFrom.coords && filterRadiusKm > 0;
 
-    // Pobierz ogłoszenia RPC z filtrem promienia LUB zapytaj bezpośrednio z tabeli
     if (isRadiusFilterActive) {
       const fromLng = filterFrom.coords[0];
       const fromLat = filterFrom.coords[1];
@@ -220,12 +209,10 @@ export default function AnnouncementsPage() {
 
       let filteredData = data;
 
-      // ZASTOSOWANIE FILTRA "POKAŻ TYLKO ULUBIONE" DLA RPC (po stronie klienta)
       if (showOnlyFavorites && currentUser) {
         filteredData = filteredData.filter(ann => favoriteAnnouncementIds.has(ann.id));
       }
       
-      // ... (pozostałe Twoje oryginalne filtry dla danych z RPC) ...
       if (filterTo.label) {
         filteredData = filteredData.filter(ann => 
           ann.location_to_text && ann.location_to_text.toLowerCase().includes(filterTo.label.toLowerCase())
@@ -258,16 +245,12 @@ export default function AnnouncementsPage() {
 
     } else { // BEZ FILTRA PROMIENIA - zapytanie bezpośrednio do tabeli
       let query = supabase.from('announcements')
-        .select(`*, user:user_id(full_name, company_name, email, role)`, { count: 'exact' }); // Dodano join na user_id
+        .select(`*, user:user_id(full_name, company_name, email, role)`, { count: 'exact' });
 
-      // ZASTOSOWANIE FILTRA "POKAŻ TYLKO ULUBIONE" DLA ZAPYTANIA BEZPOŚREDNIEGO (po stronie Supabase)
       if (showOnlyFavorites && currentUser) {
-        // Musimy najpierw pobrać ID ulubionych, jeśli ich nie mamy (choć fetchFavorites powinien je pobrać)
-        // LUB po prostu dodaj relację JOIN w zapytaniu, żeby filtrować po ulubionych
-        query = query.in('id', Array.from(favoriteAnnouncementIds)); // Użyj już pobranych ulubionych ID
+        query = query.in('id', Array.from(favoriteAnnouncementIds));
       }
       
-      // ... (pozostałe Twoje oryginalne filtry dla bezpośredniego zapytania) ...
       if (filterTo.label) {
         query = query.ilike('location_to_text', `%${filterTo.label}%`);
       }
@@ -303,18 +286,47 @@ export default function AnnouncementsPage() {
     }
 
     setLoadingAnnouncements(false);
-  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage, showOnlyFavorites, currentUser, favoriteAnnouncementIds, announcementsPerPage]); // Dodano zależności do filtra ulubionych i paginacji
+  }, [filterFrom, filterTo, filterKeyword, filterBudgetMin, filterBudgetMax, filterWeightMin, filterWeightMax, filterRadiusKm, currentPage, showOnlyFavorites, currentUser, favoriteAnnouncementIds, announcementsPerPage]);
 
-  // Efekt do ładowania ogłoszeń przy zmianie filtra/sortowania/paginacji/ulubionych
   useEffect(() => {
     const handler = setTimeout(() => {
       fetchAnnouncements();
-    }, 300); // Małe opóźnienie dla debounce filtrów
+    }, 300);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [fetchAnnouncements]); // Zależność od memoizowanej funkcji
+  }, [fetchAnnouncements]);
+
+  // COFNIĘCIE ZMIAN Z useParams - ten useEffect nie jest już potrzebny w tej wersji
+  // useEffect(() => {
+  //     const fetchAnnouncementDetails = async (id) => {
+  //         setLoadingAnnouncements(true);
+  //         setErrorAnnouncements(null);
+  //         try {
+  //             const { data, error } = await supabase
+  //                 .from('announcements')
+  //                 .select(`*, user:user_id(full_name, company_name, email, role)`)
+  //                 .eq('id', id)
+  //                 .single();
+
+  //             if (error) throw error;
+  //             setSelectedAnnouncement(data);
+  //         } catch (err) {
+  //             console.error('Błąd ładowania szczegółów ogłoszenia:', err.message);
+  //             setErrorAnnouncements('Nie udało się załadować szczegółów ogłoszenia.');
+  //             setSelectedAnnouncement(null);
+  //         } finally {
+  //             setLoadingAnnouncements(false);
+  //         }
+  //     };
+
+  //     if (urlAnnouncementId) {
+  //         fetchAnnouncementDetails(urlAnnouncementId);
+  //     } else {
+  //         setSelectedAnnouncement(null);
+  //     }
+  // }, [urlAnnouncementId]);
 
   useEffect(() => {
     if (currentUser) {
@@ -328,14 +340,24 @@ export default function AnnouncementsPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (redirectToAnnounceDetailsId) {
         localStorage.removeItem('redirect_to_announce_details_id');
-        // Tutaj można by obsłużyć otwarcie konkretnego ogłoszenia po zalogowaniu
-        navigate(`/announcements/${redirectToAnnounceDetailsId}`); // Przekierowanie do szczegółów ogłoszenia
+        // W tej wersji, jeśli cofamy się do poprzedniej, nie nawigujemy URL-em
+        // Tylko ustawiamy selectedAnnouncement, jeśli ID jest w localStorage
+        // Najpierw musimy pobrać to ogłoszenie
+        const fetchAndSetSelectedAnnouncement = async (id) => {
+            const { data, error } = await supabase.from('announcements').select('*').eq('id', id).single();
+            if (error) {
+                console.error("Błąd pobierania ogłoszenia po przekierowaniu:", error.message);
+            } else {
+                setSelectedAnnouncement(data);
+            }
+        };
+        fetchAndSetSelectedAnnouncement(redirectToAnnounceDetailsId);
       }
     } else {
       setShowForm(false);
       setSelectedAnnouncement(null);
     }
-  }, [currentUser, navigate]); // Dodano navigate do zależności
+  }, [currentUser, navigate]);
 
   const handleAnnouncementSuccess = () => {
     console.log('Ogłoszenie dodane pomyślnie!');
@@ -344,11 +366,11 @@ export default function AnnouncementsPage() {
   };
 
   const handleOpenForm = () => {
-    if (authLoading) { 
+    if (authLoading) {
       alert('Sprawdzanie statusu logowania...');
       return;
     }
-    if (!currentUser) { 
+    if (!currentUser) {
       alert('Musisz być zalogowany, aby dodać ogłoszenie. Zostaniesz przekierowany do strony logowania.');
       localStorage.setItem('redirect_to_announce_form', 'true');
       navigate('/login');
@@ -359,12 +381,13 @@ export default function AnnouncementsPage() {
   };
 
   const handleViewDetails = (announcement) => {
+    // Wracamy do poprzedniej logiki opartej na stanie
     setSelectedAnnouncement(announcement);
     setShowForm(false);
   };
 
   const handleBackToList = () => {
-    setSelectedAnnouncement(null);
+    setSelectedAnnouncement(null); // Powrót do listy poprzez ustawienie na null
   };
 
   const handleAskQuestionRedirect = () => {
@@ -392,7 +415,7 @@ export default function AnnouncementsPage() {
     setFilterWeightMin('');
     setFilterWeightMax('');
     setCurrentPage(1);
-    setShowOnlyFavorites(false); // Również wyczyść filtr ulubionych
+    setShowOnlyFavorites(false);
   };
 
   const totalPages = Math.ceil(totalAnnouncementsCount / announcementsPerPage);
@@ -444,11 +467,11 @@ export default function AnnouncementsPage() {
           )}
 
           {/* NOWY PRZYCISK FILTRA: Pokaż tylko ulubione */}
-          {currentUser && ( // Pokaż przycisk tylko dla zalogowanych
+          {currentUser && (
             <button
               className={`favorite-filter-button ${showOnlyFavorites ? 'active' : ''}`}
               onClick={handleToggleShowOnlyFavorites}
-              disabled={loadingAnnouncements || loadingFavorites} // Wyłącz podczas ładowania ogłoszeń lub ulubionych
+              disabled={loadingAnnouncements || loadingFavorites}
             >
               {showOnlyFavorites ? (
                 <>
@@ -472,7 +495,7 @@ export default function AnnouncementsPage() {
             </>
           )}
 
-          {/* MIEJSCE NA FILTRY WYSZUKIWANIA (Twoje oryginalne filtry) */}
+          {/* MIEJSCE NA FILTRY WYSZUKIWANIA */}
           {!showForm && !selectedAnnouncement && (
               <div className="search-filter-section">
                 <h3>Filtruj Ogłoszenia</h3>
@@ -589,21 +612,25 @@ export default function AnnouncementsPage() {
             // WIDOK SZCZEGÓŁÓW JEDNEGO OGŁOSZENIA
             <div className="full-announcement-details-card">
               <h3>Szczegóły Ogłoszenia</h3>
-{currentUser && ( // Pokaż serduszko tylko dla zalogowanych użytkowników
-    <button
-      onClick={(e) => handleToggleFavorite(selectedAnnouncement.id, e)}
-      className="favorite-button favorite-button-details" // Dodano nową klasę do stylizacji
-      disabled={loadingFavorites}
-      title={favoriteAnnouncementIds.has(selectedAnnouncement.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
-    >
-      {favoriteAnnouncementIds.has(selectedAnnouncement.id) ? (
-        <FaHeart style={{ color: 'red' }} /> // Wypełnione serce (czerwone)
-      ) : (
-        <FaRegHeart style={{ color: 'gray' }} /> // Pusty obrys (szary)
-      )}
-    </button>
-  )}
-              <h4>{selectedAnnouncement.title}</h4>
+              {/* NOWY KONTENER DLA TYTUŁU I SERDUSZKA - ZMODYFIKOWANY */}
+              <div className="announcement-details-title-row">
+                <h4>{selectedAnnouncement.title}</h4>
+                {currentUser && (
+                  <button
+                    onClick={(e) => handleToggleFavorite(selectedAnnouncement.id, e)}
+                    className="favorite-button favorite-button-details"
+                    disabled={loadingFavorites}
+                    title={favoriteAnnouncementIds.has(selectedAnnouncement.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+                  >
+                    {favoriteAnnouncementIds.has(selectedAnnouncement.id) ? (
+                      <FaHeart style={{ color: 'red' }} />
+                    ) : (
+                      <FaRegHeart style={{ color: 'gray' }} />
+                    )}
+                  </button>
+                )}
+              </div> {/* KONIEC NOWEGO KONTENERA */}
+
               {selectedAnnouncement.image_url && (
                 <img src={selectedAnnouncement.image_url} alt={selectedAnnouncement.title} className="announcement-details-image-full" />
               )}
@@ -655,11 +682,11 @@ export default function AnnouncementsPage() {
               ) : !loadingAnnouncements && announcements.length === 0 ? (
                 <p className="no-announcements-message">Brak aktualnych ogłoszeń. Bądź pierwszy!</p>
               ) : (
-<div className="announcements-list-single-column">
+                <div className="announcements-list-single-column">
                  {announcements.map((announcement) => (
-                    <div key={announcement.id} className="announcement-card-wide"> {/* Zmieniono z announcement-card-wide na inną klasę dla grida? Sprawdź CSS! */}
-                      {/* Przycisk ulubionych (serduszko) */}
-                      {currentUser && ( // Pokaż serduszko tylko dla zalogowanych użytkowników
+                    <div key={announcement.id} className="announcement-card-wide">
+                      {/* Przycisk ulubionych (serduszko) na liście */}
+                      {currentUser && (
                         <button
                           onClick={(e) => handleToggleFavorite(announcement.id, e)}
                           className="favorite-button"
@@ -667,9 +694,9 @@ export default function AnnouncementsPage() {
                           title={favoriteAnnouncementIds.has(announcement.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
                         >
                           {favoriteAnnouncementIds.has(announcement.id) ? (
-                            <FaHeart style={{ color: 'red' }} /> // Wypełnione serce (czerwone)
+                            <FaHeart style={{ color: 'red' }} />
                           ) : (
-                            <FaRegHeart style={{ color: 'gray' }} /> // Pusty obrys (szary)
+                            <FaRegHeart style={{ color: 'gray' }} />
                           )}
                         </button>
                       )}
@@ -734,7 +761,7 @@ export default function AnnouncementsPage() {
         <AnnouncementForm onSuccess={handleAnnouncementSuccess} />
       </Modal>
 
-      
+      <Footer />
     </React.Fragment>
   );
 }
