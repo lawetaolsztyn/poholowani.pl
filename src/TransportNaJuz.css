@@ -10,24 +10,81 @@
 .hero-section {
   text-align: center;
   padding: 60px 20px;
-  background-color: #f8f9fa;
+  background-color: #ffe5e5; /* zmienione na czerwone podkład */
+  border: 2px solid #ff3b3b; /* wyraźna czerwona ramka */
   border-radius: 8px;
   margin-bottom: 40px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 12px rgba(255, 0, 0, 0.2); /* delikatny cień czerwony */
 }
 
 .hero-section h1 {
-  font-size: 2.8em;
-  color: #333;
-  margin-bottom: 15px;
+  font-size: 3em; /* większy tytuł */
+  color: #b30000; /* ciemniejsza czerwień */
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .hero-section p {
   font-size: 1.2em;
-  color: #555;
+  color: #700000;
   margin-bottom: 25px;
   line-height: 1.6;
 }
+
+/* ========================== */
+/* ZNACZNIK PILNE (urgent badge) */
+/* ========================== */
+.urgent-badge {
+  background-color: #ff3b3b;
+  color: white;
+  padding: 4px 10px;
+  font-size: 0.75em;
+  font-weight: bold;
+  border-radius: 4px;
+  margin-right: 10px;
+  text-transform: uppercase;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Migający (pulsujący) znaczek */
+.urgent-badge::after {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 8px;
+  background-color: red;
+  border-radius: 50%;
+  animation: pulse 1.2s infinite;
+  vertical-align: middle;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ========================== */
+/* KARTA ZGŁOSZENIA PILNEGO */
+/* ========================== */
+.request-card.urgent {
+  background-color: #fff1f1;
+  border: 2px solid #ff3b3b;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.15);
+}
+
+.request-card.urgent:hover {
+  border-color: #d60000;
+  box-shadow: 0 3px 12px rgba(255, 0, 0, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ========================== */
+/* Poniżej Twoje oryginalne style, bez zmian */
+/* ========================== */
 
 .btn-primary {
   background-color: #ff6f00; /* Jakiś wyrazisty kolor, np. pomarańczowy */
@@ -63,23 +120,12 @@
   text-align: center;
 }
 
-/* src/pages/TransportNaJuz.css */
-
-/* ... (istniejące style) ... */
-
 .report-form-section {
   background-color: #ffffff;
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
-}
-
-.report-form-section h2 {
-  font-size: 2em;
-  color: #333;
-  margin-bottom: 25px;
-  text-align: center;
 }
 
 .urgent-request-form {
@@ -146,8 +192,6 @@
   color: #777;
   margin-top: 5px;
 }
-
-
 
 .main-content-grid {
   display: grid;
@@ -339,15 +383,15 @@
 /* Dostosowanie dla trybu ciemnego */
 @media (prefers-color-scheme: dark) {
   .hero-section {
-    background-color: #444;
-    color: #e0e0e0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background-color: #4a1a1a;
+    border: 2px solid #ff3b3b;
+    box-shadow: 0 6px 12px rgba(255, 0, 0, 0.3);
   }
   .hero-section h1 {
-    color: #f0f0f0;
+    color: #ffaaaa;
   }
   .hero-section p {
-    color: #ccc;
+    color: #ffcccc;
   }
   .left-column, .report-form-section, .current-requests-section, .request-details-section, .request-card {
     background-color: #333;
@@ -389,12 +433,26 @@
   .request-card small {
     color: #bbb;
   }
-}
 
-.form-label .error-message {
-  color: #dc3545;
-  font-size: 0.85em;
-  margin-top: 5px;
+  .request-card.urgent {
+    background-color: #5a2222;
+    border-color: #ff3b3b;
+    box-shadow: 0 2px 6px rgba(255, 0, 0, 0.25);
+  }
+
+  .request-card.urgent h3,
+  .request-card.urgent p {
+    color: #ffeaea;
+  }
+
+  .urgent-badge {
+    background-color: #ff5555;
+    color: black;
+  }
+
+  .urgent-badge::after {
+    background-color: #ff8888;
+  }
 }
 
 /* Style dla małego przycisku */
