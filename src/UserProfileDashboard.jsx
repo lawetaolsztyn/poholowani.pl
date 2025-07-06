@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
-import './UserProfileDashboard.css';
+import './UserProfileDashboard.css'; // Ten plik będzie zawierał nowe klasy
 import LocationAutocomplete from './components/LocationAutocomplete';
 const provinces = [
   'Dolnośląskie', 'Kujawsko-Pomorskie', 'Lubelskie', 'Lubuskie',
@@ -112,8 +112,8 @@ export default function UserProfileDashboard() {
           const fullRoadsideStreetValue = initialFormData.roadside_street + (initialFormData.roadside_number ? ' ' + initialFormData.roadside_number : '');
           setRoadsideStreetAutocompleteValue(fullRoadsideStreetValue.trim());
           
-          if (initialFormData.latitude != null && initialFormData.longitude != null) {
-            setRoadsideSelectedCoords({ latitude: initialFormData.latitude, longitude: initialFormData.longitude });
+          if (initialFormData.latitude != null && initialFormData.roadside_longitude != null) { // Changed to roadside_longitude based on user provided .css and previous context
+            setRoadsideSelectedCoords({ latitude: initialFormData.latitude, longitude: initialFormData.roadside_longitude }); // Changed to roadside_longitude
           } else {
             setRoadsideSelectedCoords({ latitude: null, longitude: null });
           }
@@ -362,7 +362,7 @@ export default function UserProfileDashboard() {
       case 'Moje dane':
         return (
           <form onSubmit={handleSave} className="dashboard-form-section">
-            <h3>Moje dane</h3>
+            <h3 className="dashboard-form-heading">Moje dane</h3> {/* Dodana klasa */}
             {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>}
 
             <label className="form-label">
@@ -429,7 +429,7 @@ export default function UserProfileDashboard() {
                 value={formData.province || ''}
                 onChange={handleChange}
                 required
-                className="form-select"
+                className="form-select" {/* Dodana klasa */}
               >
                 <option value="">-- Wybierz województwo --</option>
                 {provinces.map(prov => (
@@ -451,7 +451,7 @@ export default function UserProfileDashboard() {
             </label>
 
             {/* === NOWE POLA DANYCH KONTAKTOWYCH PROFILU (do auto-podstawiania) === */}
-            <h4 style={{marginTop: '30px', marginBottom: '15px', textAlign: 'center', color: '#333'}}>Preferowane dane kontaktowe do formularzy</h4>
+            <h4 className="form-section-subtitle" >Preferowane dane kontaktowe do formularzy</h4> {/* Dodana klasa */}
             <label className="form-label">
               Numer telefonu (do auto-podstawiania): {/* ZMIANA ETYKIETY */}
               <input
@@ -464,7 +464,7 @@ export default function UserProfileDashboard() {
                 disabled={!profileConsentPhoneShare}
               />
             </label>
-            <div className="form-group-checkbox" style={{marginBottom: '15px'}}>
+            <div className="form-group-checkbox"> {/* Usunięto style inline */}
               <label htmlFor="profileUsesWhatsapp">
                 <input
                   type="checkbox"
@@ -487,13 +487,13 @@ export default function UserProfileDashboard() {
                 className="form-input"
                 placeholder="https://m.me/twoj.profil"
               />
-              <small style={{ marginTop: '5px', display: 'block', fontSize: '0.85em', color: '#666' }}>
-                <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer" style={{color: '#007bff', textDecoration: 'none'}}>
+              <small className="form-label-small"> {/* Dodana klasa */}
+                <a href="/pomoc/messenger-link" target="_blank" rel="noopener noreferrer" className="form-link"> {/* Dodana klasa */}
                     ❓ Skąd wziąć link do Messengera?
                 </a>
               </small>
             </label>
-            <div className="form-group-checkbox" style={{marginTop: '15px'}}>
+            <div className="form-group-checkbox"> {/* Usunięto style inline */}
               <label htmlFor="profileConsentPhoneShare">
                 <input
                   type="checkbox"
@@ -510,7 +510,7 @@ export default function UserProfileDashboard() {
                 />
                 <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie w formularzach.</span>
               </label>
-              <small style={{ marginTop: '5px', fontSize: '0.8em', color: '#666' }}>
+              <small className="form-group-checkbox-small"> {/* Dodana klasa */}
                 Numer telefonu będzie widoczny dla innych użytkowników w zgłoszeniach i ogłoszeniach.
               </small>
             </div>
@@ -525,7 +525,7 @@ export default function UserProfileDashboard() {
       case 'Hasło':
         return (
           <form onSubmit={handlePasswordReset} className="dashboard-form-section">
-            <h3>Zmiana hasła</h3>
+            <h3 className="dashboard-form-heading">Zmiana hasła</h3> {/* Dodana klasa */}
             {passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p>}
             <label className="form-label">
               Nowe hasło:
@@ -547,7 +547,7 @@ export default function UserProfileDashboard() {
 
         return (
           <div className="dashboard-form-section">
-            <h3>Profil publiczny</h3>
+            <h3 className="dashboard-form-heading">Profil publiczny</h3> {/* Dodana klasa */}
             <p>Twój profil publiczny jest widoczny pod tym linkiem:</p>
 
             <label className="form-label">
@@ -561,7 +561,7 @@ export default function UserProfileDashboard() {
             </label>
 
             {!isPublicProfileAgreed && (
-                <p className="dashboard-message error" style={{marginTop: '10px'}}>
+                <p className="dashboard-message error dashboard-message-spacing"> {/* Dodana klasa */}
                     Aby Twój profil publiczny był widoczny, musisz wyrazić powyższą zgodę.
                 </p>
             )}
@@ -569,16 +569,14 @@ export default function UserProfileDashboard() {
             <button
                 onClick={handleSave} 
                 disabled={saving} 
-                className="form-button"
-                style={{ backgroundColor: '#28a745', marginTop: '20px' }}
+                className="form-button form-button-spacing-top" {/* Dodane klasy */}
             >
                 {saving ? 'Zapisywanie...' : 'Zapisz ustawienia widoczności profilu'}
             </button>
 
             <button
                 onClick={() => window.open(`/profil/${formData?.id}`, '_blank')}
-                className="form-button"
-                style={{ backgroundColor: '#007bff', marginTop: '10px' }} 
+                className="form-button form-button-blue form-button-spacing-top" {/* Dodane klasy */}
                 disabled={!isPublicProfileAgreed} 
             >
                 Przejdź do profilu publicznego
@@ -589,7 +587,7 @@ export default function UserProfileDashboard() {
       case 'Pomoc drogowa':
         return (
           <form onSubmit={handleSave} className="dashboard-form-section">
-            <h3>Pomoc drogowa</h3>
+            <h3 className="dashboard-form-heading">Pomoc drogowa</h3> {/* Dodana klasa */}
 
             <label className="form-label">
                 <input
@@ -601,7 +599,7 @@ export default function UserProfileDashboard() {
                 Oświadczam, że prowadzę działalność gospodarczą w zakresie pomocy drogowej i posiadam wpisany kod PKD 52.21.A
             </label>
 
-            <label className="form-label" style={{marginTop: '15px'}}>
+            <label className="form-label form-label-spacing-top"> {/* Dodana klasa */}
                 <input
                     type="checkbox"
                     checked={isRoadsideAssistanceAgreed}
@@ -612,7 +610,7 @@ export default function UserProfileDashboard() {
             </label>
 
             {(!formData.is_pomoc_drogowa || !isRoadsideAssistanceAgreed) && (
-                <p className="dashboard-message error" style={{marginTop: '10px'}}>
+                <p className="dashboard-message error dashboard-message-spacing"> {/* Dodana klasa */}
                     Aby uzupełnić i udostępnić dane pomocy drogowej, musisz zaznaczyć powyższe oświadczenia.
                 </p>
             )}
@@ -620,8 +618,7 @@ export default function UserProfileDashboard() {
             <button
                 onClick={handleSave} 
                 disabled={saving}
-                className="form-button"
-                style={{ backgroundColor: '#28a745', marginTop: '20px' }}
+                className="form-button form-button-spacing-top" {/* Dodana klasa */}
             >
                 {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
             </button>
@@ -645,8 +642,9 @@ export default function UserProfileDashboard() {
                         roadside_street: '', // Wyczyść ulicę, bo wybrano nowe miasto
                         roadside_number: '' // Wyczyść numer
                       }));
-                      setRoadsideCityAutocompleteValue(label); // Aktualizuj wartość wyświetlaną w input
-                      setRoadsideStreetAutocompleteValue(''); // Wyczyść input dla ulicy
+                      setRoadsideCityAutocompleteValue(label); 
+                      setRoadsideStreetAutocompleteValue(''); 
+                      
                       if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
                           setRoadsideSelectedCoords({ latitude: sug.center[1], longitude: sug.center[0] });
                       } else {
@@ -705,20 +703,19 @@ export default function UserProfileDashboard() {
                     value={formData.roadside_description || ''}
                     onChange={handleChange}
                     maxLength={500}
-                    className="form-input resize-y min-h-[100px]"
+                    className="form-input form-textarea-resize" {/* Zmieniona klasa */}
                     placeholder="Opisz swoje usługi pomocy drogowej, specjalizacje, dostępność 24/7 itp."
                   ></textarea>
                 </label>
 
-                <button type="submit" disabled={saving} className="form-button" style={{marginTop: '20px'}}>
+                <button type="submit" disabled={saving} className="form-button form-button-spacing-top"> {/* Dodana klasa */}
                   {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
                 </button>
 
-                <div className="dashboard-form-section" style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                <div className="dashboard-form-section form-section-border-top"> {/* Zmieniona klasa */}
                   <button
                     onClick={() => window.open(`/pomoc-drogowa/${formData.roadside_slug}`, '_blank')}
-                    className="form-button"
-                    style={{ backgroundColor: '#007bff' }}
+                    className="form-button form-button-blue" {/* Dodane klasy */}
                   >
                     Przejdź do profilu pomocy drogowej
                   </button>
