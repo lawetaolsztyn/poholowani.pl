@@ -68,3 +68,12 @@
         background-color: #9a1c26;
     }
 }
+@media (prefers-color-scheme: dark) {
+  .moje-ogloszenia-container {
+    background-color: #1e1e1e; /* ciemne tło */
+  }
+
+  .moje-ogloszenia-container h1 {
+    color: #f0f0f0; /* jasny tekst */
+  }
+}
