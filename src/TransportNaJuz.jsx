@@ -1,13 +1,13 @@
-// src/pages/TransportNaJuz.jsx
+// src/TransportNaJuz.jsx
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import LocationAutocomplete from './components/LocationAutocomplete';
 import RequestDetails from './components/RequestDetails';
-import './TransportNaJuz.css';
 import { supabase } from './supabaseClient';
 import { useParams, useNavigate } from 'react-router-dom'; // Dodano useParams, useNavigate
 import 'leaflet/dist/leaflet.css';
+import './TransportNaJuz.css';
 
 // Importy dla Mapy w formularzu
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
