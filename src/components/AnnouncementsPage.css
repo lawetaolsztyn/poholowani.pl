@@ -437,6 +437,22 @@
     transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
     opacity: 1; /* Upewnienie się, że jest zawsze widoczne */
 }
+/* --- Serduszko w widoku szczegółów ogłoszenia --- */
+.favorite-button-details {
+    position: absolute; /* Pozycjonowanie absolutne */
+    top: 30px; /* Dostosuj pozycję pionową */
+    right: 30px; /* Dostosuj pozycję poziomą */
+    font-size: 2em; /* Większe serduszko dla widoku szczegółów */
+    padding: 10px;
+    z-index: 20; /* Upewnij się, że jest nad innymi elementami */
+}
+
+/* Dostosowanie dla trybu ciemnego */
+@media (prefers-color-scheme: dark) {
+    .favorite-button-details {
+        /* Jeśli potrzebujesz specyficznych zmian dla dark mode, dodaj tutaj */
+    }
+}
 
 .favorite-button:hover:not([disabled]) {
     color: lightcoral;
@@ -899,5 +915,13 @@
     .action-button i {
         font-size: 1em;
         margin-right: 5px;
+    }
+}
+@media (max-width: 992px) {
+    .favorite-button-details {
+        top: 15px; /* Mniejszy offset na mobilnych */
+        right: 15px; /* Mniejszy offset na mobilnych */
+        font-size: 1.8em; /* Nieco mniejsze serduszko na mobilnych */
+        padding: 5px;
     }
 }

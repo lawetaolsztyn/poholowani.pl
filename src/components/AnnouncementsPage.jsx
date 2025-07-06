@@ -589,6 +589,20 @@ export default function AnnouncementsPage() {
             // WIDOK SZCZEGÓŁÓW JEDNEGO OGŁOSZENIA
             <div className="full-announcement-details-card">
               <h3>Szczegóły Ogłoszenia</h3>
+{currentUser && ( // Pokaż serduszko tylko dla zalogowanych użytkowników
+    <button
+      onClick={(e) => handleToggleFavorite(selectedAnnouncement.id, e)}
+      className="favorite-button favorite-button-details" // Dodano nową klasę do stylizacji
+      disabled={loadingFavorites}
+      title={favoriteAnnouncementIds.has(selectedAnnouncement.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+    >
+      {favoriteAnnouncementIds.has(selectedAnnouncement.id) ? (
+        <FaHeart style={{ color: 'red' }} /> // Wypełnione serce (czerwone)
+      ) : (
+        <FaRegHeart style={{ color: 'gray' }} /> // Pusty obrys (szary)
+      )}
+    </button>
+  )}
               <h4>{selectedAnnouncement.title}</h4>
               {selectedAnnouncement.image_url && (
                 <img src={selectedAnnouncement.image_url} alt={selectedAnnouncement.title} className="announcement-details-image-full" />
