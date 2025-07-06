@@ -381,7 +381,7 @@ export default function UserProfileDashboard() {
                   <input type="text" name="company_name" value={formData.company_name || ''} onChange={handleChange} className="form-input" />
                 </label>
                 <label className="form-label">
-                  Telefon (firmowy): {/* TO JEST NUMER FIRMOWY */}
+                  Telefon (firmowy): 
                   <input type="text" name="phone" value={formData.phone || ''} onChange={handleChange} className="form-input" />
                 </label>
                 <label className="form-label">
@@ -453,7 +453,7 @@ export default function UserProfileDashboard() {
             {/* === NOWE POLA DANYCH KONTAKTOWYCH PROFILU (do auto-podstawiania) === */}
             <h4 className="form-section-subtitle" >Preferowane dane kontaktowe do formularzy</h4> 
             <label className="form-label">
-              Numer telefonu (do auto-podstawiania): {/* ZMIANA ETYKIETY */}
+              Numer telefonu (do auto-podstawiania): 
               <input
                 type="text"
                 name="universal_contact_phone_input" // ZMIANA: NOWA UNIKALNA NAZWA DLA INPUTA (nie mapuje na formData)
@@ -464,7 +464,7 @@ export default function UserProfileDashboard() {
                 disabled={!profileConsentPhoneShare}
               />
             </label>
-            <div className="form-group-checkbox"> {/* Usunięto style inline */}
+            <div className="form-group-checkbox"> 
               <label htmlFor="profileUsesWhatsapp">
                 <input
                   type="checkbox"
@@ -493,7 +493,7 @@ export default function UserProfileDashboard() {
                 </a>
               </small>
             </label>
-            <div className="form-group-checkbox"> {/* Usunięto style inline */}
+            <div className="form-group-checkbox"> 
               <label htmlFor="profileConsentPhoneShare">
                 <input
                   type="checkbox"
@@ -569,14 +569,14 @@ export default function UserProfileDashboard() {
             <button
                 onClick={handleSave} 
                 disabled={saving} 
-                className="form-button form-button-spacing-top" {/* Dodane klasy */}
+                className="form-button form-button-spacing-top" 
             >
                 {saving ? 'Zapisywanie...' : 'Zapisz ustawienia widoczności profilu'}
             </button>
 
             <button
                 onClick={() => window.open(`/profil/${formData?.id}`, '_blank')}
-                className="form-button form-button-blue form-button-spacing-top" {/* Dodane klasy */}
+                className="form-button form-button-blue form-button-spacing-top" 
                 disabled={!isPublicProfileAgreed} 
             >
                 Przejdź do profilu publicznego
@@ -703,7 +703,7 @@ export default function UserProfileDashboard() {
                     value={formData.roadside_description || ''}
                     onChange={handleChange}
                     maxLength={500}
-                    className="form-input form-textarea-resize" {/* Zmieniona klasa */}
+                    className="form-input form-textarea-resize" 
                     placeholder="Opisz swoje usługi pomocy drogowej, specjalizacje, dostępność 24/7 itp."
                   ></textarea>
                 </label>
@@ -712,10 +712,10 @@ export default function UserProfileDashboard() {
                   {saving ? 'Zapisywanie...' : 'Zapisz dane pomocy drogowej'}
                 </button>
 
-                <div className="dashboard-form-section form-section-border-top"> {/* Zmieniona klasa */}
+                <div className="dashboard-form-section form-section-border-top"> 
                   <button
                     onClick={() => window.open(`/pomoc-drogowa/${formData.roadside_slug}`, '_blank')}
-                    className="form-button form-button-blue" {/* Dodane klasy */}
+                    className="form-button form-button-blue" 
                   >
                     Przejdź do profilu pomocy drogowej
                   </button>
