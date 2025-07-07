@@ -34,9 +34,9 @@ export default function UnreadMessagesListener() {
           fetchTotalUnreadMessages(currentUser.id);
         }
       )
-      .subscribe()
-      .then(() => console.log(`✅ Subskrypcja do kanału ${channelName} utworzona`))
-      .catch((error) => console.error('❌ Błąd subskrypcji:', error));
+      .subscribe();
+
+    console.log(`✅ Subskrypcja do kanału ${channelName} utworzona`);
 
     return () => {
       console.log(`🗑️ Usuwam subskrypcję dla usera ${currentUser?.id} na kanale ${channelName}`);
