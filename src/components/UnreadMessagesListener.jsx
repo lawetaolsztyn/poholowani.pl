@@ -1,3 +1,4 @@
+// src/components/UnreadMessagesListener.jsx
 import { useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
@@ -6,34 +7,35 @@ export default function UnreadMessagesListener() {
   const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
 
   useEffect(() => {
-    console.log('📡 UnreadMessagesListener uruchomiony');
+    console.log('UnreadMessagesListener useEffect start');
+    console.log('CurrentUser:', currentUser);
+    console.log('Auth Loading:', authLoading);
 
     if (!currentUser?.id || authLoading) {
-      console.log("Not subscribing yet: User is null/loading or ID is missing.");
+      console.log('Listener NIE subskrybuje - user null/loading');
       return;
     }
 
-    console.log(`Subskrybuję zmiany nieprzeczytanych wiadomości dla użytkownika: ${currentUser.id}`);
+    console.log('Listener subskrybuje zmiany dla user:', currentUser.id);
 
-    const participantsChannel = supabase
+    const channel = supabase
       .channel(`unread_messages_user_listener_${currentUser.id}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'conversation_participants',
-        filter: `user_id=eq.${currentUser.id}`
+        filter: `user_id=eq.${currentUser.id}`,
       }, (payload) => {
-        console.log('🟢 PRZYCHODZI REAKCJA Z REALTIME:', payload.new);
+        console.log('Realtime update dla nieprzeczytanych wiadomości (payload):', payload.new);
         fetchTotalUnreadMessages(currentUser.id);
       })
       .subscribe();
 
     return () => {
-      console.log(`Usuwam subskrypcję nieprzeczytanych wiadomości dla użytkownika: ${currentUser.id}`);
-      supabase.removeChannel(participantsChannel);
+      console.log('Usuwam subskrypcję unread_messages_user_listener dla:', currentUser.id);
+      supabase.removeChannel(channel);
     };
-
-  }, [currentUser, authLoading, fetchTotalUnreadMessages]);
+  }, [currentUser?.id, authLoading, fetchTotalUnreadMessages]);
 
   return null;
 }
