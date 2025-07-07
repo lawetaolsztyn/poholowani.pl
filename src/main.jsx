@@ -20,7 +20,7 @@ import ResetHasla from './ResetHasla';
 import UserProfileDashboard from './UserProfileDashboard';
 import PomocDrogowaProfil from './PomocDrogowaProfil';
 import Regulamin from './Regulamin';
-import PolitykaPrywatnosci from './PolitykaPrywatosci';
+import PolitykaPrywatnosci from './PolitykaPrywatnosci';
 import FAQ from './FAQ';
 import AdminDashboard from './AdminDashboard';
 import Kontakt from './components/Kontakt';
