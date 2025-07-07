@@ -45,6 +45,8 @@ function App() {
   return (
     <div className="app">
       <CookieWall />
+      {/* 🚀 Przenieś listener tu, działa równolegle z Navbar */}
+      <UnreadMessagesListener />
       <div className="main-content">
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -75,7 +77,7 @@ function App() {
           <Route path="/moje-chaty" element={<MyChats />} />
           <Route path="/announcements" element={<AnnouncementsPage />} />
           <Route path="/announcements/:announcementId" element={<AnnouncementsPage />} />
-        </Routes>
+       </Routes>
         <Footer />
       </div>
     </div>
@@ -89,8 +91,6 @@ root.render(
       <AuthProvider>
         <BrowserRouter>
           <App />
-          {/* DODANE: Komponent UnreadMessagesListener jest renderowany tutaj */}
-          <UnreadMessagesListener />
         </BrowserRouter>
       </AuthProvider>
     </SessionContextProvider>
