@@ -8,7 +8,7 @@ import './App.css';
 import 'leaflet/dist/leaflet.css';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from './supabaseClient';
-import Navbar from './components/Navbar';
+import Navbar from './components/Navbar'; // Nie używany bezpośrednio tutaj, ale to ok
 
 import LandingPage from './LandingPage';
 import Login from './Login';
@@ -20,7 +20,7 @@ import ResetHasla from './ResetHasla';
 import UserProfileDashboard from './UserProfileDashboard';
 import PomocDrogowaProfil from './PomocDrogowaProfil';
 import Regulamin from './Regulamin';
-import PolitykaPrywatnosci from './PolitykaPrywatnosci';
+import PolitykaPrywatnosci from './PolitykaPrywatosci';
 import FAQ from './FAQ';
 import AdminDashboard from './AdminDashboard';
 import Kontakt from './components/Kontakt';
@@ -31,22 +31,20 @@ import Footer from './components/Footer';
 import { Routes, Route } from 'react-router-dom';
 import CookieWall from './components/CookieWall';
 import MessengerHelp from './MessengerHelp';
-import TransportNaJuz from './TransportNaJuz'; 
+import TransportNaJuz from './TransportNaJuz';
 import CarriersCatalog from './CarriersCatalog';
 import AnnouncementsPage from './components/AnnouncementsPage';
-import MojeOgloszenia from './components/MojeOgloszenia'; 
+import MojeOgloszenia from './components/MojeOgloszenia';
 import MyChats from './components/MyChats';
 import { AuthProvider } from './AuthContext.jsx';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-
-
-
-
+// Import Font Awesome jest podwójnie, jedno wystarczy, ale to nie krytyczny błąd
+// import '@fortawesome/fontawesome-free/css/all.min.css';
+import UnreadMessagesListener from './components/UnreadMessagesListener'; // Import Listenera
 
 function App() {
   return (
     <div className="app">
-	      <CookieWall />
+      <CookieWall />
       <div className="main-content">
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -67,22 +65,16 @@ function App() {
           <Route path="/profil/:id" element={<PublicProfile />} />
           <Route path="/panel/profil" element={<EdycjaProfilu />} />
           <Route path="/choose-role" element={<ChooseRoleAfterOAuth />} />
-	      <Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
+          <Route path="/pomoc/messenger-link" element={<MessengerHelp />} />
           {/* Dwie trasy dla TransportNaJuz: jedna bazowa, druga ze szczegółami */}
           <Route path="/transport-na-juz" element={<TransportNaJuz />} />
           <Route path="/transport-na-juz/:requestId" element={<TransportNaJuz />} />
           <Route path="/katalog-przewoznikow" element={<CarriersCatalog />} />
-        <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} /> 
-            <Route path="/moje-ogloszenia" element={<MojeOgloszenia />} />
-              <Route path="/moje-chaty" element={<MyChats />} /> 
-        <Route path="/announcements" element={<AnnouncementsPage />} />
-        <Route path="/announcements/:announcementId" element={<AnnouncementsPage />} />
-
-
-
-
-
-
+          <Route path="/tablica-ogloszen" element={<AnnouncementsPage />} />
+          <Route path="/moje-ogloszenia" element={<MojeOgloszenia />} />
+          <Route path="/moje-chaty" element={<MyChats />} />
+          <Route path="/announcements" element={<AnnouncementsPage />} />
+          <Route path="/announcements/:announcementId" element={<AnnouncementsPage />} />
         </Routes>
         <Footer />
       </div>
@@ -94,11 +86,13 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <SessionContextProvider supabaseClient={supabase}>
-      <AuthProvider> {/* <-- DODAJ TO */}
+      <AuthProvider>
         <BrowserRouter>
           <App />
+          {/* DODANE: Komponent UnreadMessagesListener jest renderowany tutaj */}
+          <UnreadMessagesListener />
         </BrowserRouter>
-      </AuthProvider> {/* <-- I ZAMKNIJ TO */}
+      </AuthProvider>
     </SessionContextProvider>
   </React.StrictMode>
 );
