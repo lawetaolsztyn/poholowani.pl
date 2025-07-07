@@ -26,6 +26,7 @@ export default function UnreadMessagesListener() {
           event: 'UPDATE',
           schema: 'public',
           table: 'conversation_participants',
+	 filter: `user_id=eq.${currentUser.id}`
           // filter: `user_id=eq.${currentUser.id}` // Nadal zakomentowany
         }, (payload) => {
           // TEN LOG POWINIEN SIĘ POJAWIĆ, JEŚLI JAKAKOLWIEK ZMIANA W TABELI JEST ODBIERANA
