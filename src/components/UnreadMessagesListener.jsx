@@ -17,18 +17,16 @@ export default function UnreadMessagesListener() {
     if (currentUser && currentUser.id && !authLoading) {
       console.log(`Subskrybuję zmiany nieprzeczytanych wiadomości dla użytkownika: ${currentUser.id}`);
 
-      // ZMIANA TUTAJ: Usunięto filtr user_id
+      // PRZYWRÓCONY FILTR: Upewnij się, że jest dokładnie taki
       participantsChannel = supabase
         .channel(`unread_messages_user_listener_${currentUser.id}`)
         .on('postgres_changes', {
           event: 'UPDATE',
           schema: 'public',
           table: 'conversation_participants',
-          // filter: `user_id=eq.${currentUser.id}` // TYMCZASOWO ZAKOMENTOWANE LUB USUNIĘTE
+          filter: `user_id=eq.${currentUser.id}` // FILTR PRZYWRÓCONY
         }, (payload) => {
-          // TEN LOG POWINIEN SIĘ POJAWIĆ, JEŚLI JAKAKOLWIEK ZMIANA W TABELI JEST ODBIERANA
-          console.log('Realtime update for ANY unread messages detected (payload):', payload.new);
-          // Nadal wywołujemy funkcję, ale teraz będzie reagować na każdą zmianę w tabeli
+          console.log('Realtime update for UNREAD messages detected (payload):', payload.new);
           fetchTotalUnreadMessages(currentUser.id);
         })
         .subscribe();
