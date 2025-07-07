@@ -119,11 +119,25 @@ export default function ChatWindow({ conversationId, currentUserId, userJwt, onC
     markConversationAsReadOnLoad(); // Wywołaj tę funkcję od razu po załadowaniu czatu
 
 
+    // KLUCZOWA ZMIANA: Subskrypcja do Realtime bez filtra serwerowego
     const channel = supabase
-      .channel(`chat:${conversationId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
-        console.log('Realtime message received!', payload.new);
-        setMessages(prevMessages => [...prevMessages, payload.new]);
+      .channel(`chat_messages_${conversationId}`) // Unikalna nazwa kanału dla każdej konwersacji
+      .on('postgres_changes', {
+        event: 'INSERT', // Interesują nas tylko nowe wiadomości
+        schema: 'public',
+        table: 'messages',
+        // FILTR PO STRONIE SERWERA JEST USUNIĘTY (zakomentowany)
+        // filter: `conversation_id=eq.${conversationId}`
+      }, payload => {
+        // FILTRACJA ODBYWA SIĘ TUTAJ, PO STRONIE KLIENTA
+        if (payload.new && payload.new.conversation_id === conversationId) {
+          console.log('Realtime message received (client-filtered):', payload.new);
+          setMessages(prevMessages => [...prevMessages, payload.new]);
+          // Tutaj możesz też przewinąć do dołu, jeśli wiadomość jest nowa
+          // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        } else {
+          console.log('Realtime message received for OTHER conversation (client-filtered out):', payload.new);
+        }
       })
       .subscribe();
 

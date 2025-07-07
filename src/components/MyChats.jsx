@@ -71,11 +71,20 @@ export default function MyChats() {
 
           const isDeletedByMe = currentUserParticipation.is_deleted;
           const hasUnreadMessages = currentUserParticipation.unread_messages_count > 0;
+          // Alternatywnie, jeśli unread_messages_count nie jest zawsze aktualne przez triggery:
+          // const isLastMessageFromOther = conv.last_message_sender_id !== currentUser.id;
+          // const myLastReadMessageId = currentUserParticipation.last_read_message_id;
+          // const hasUnreadMessages = isLastMessageFromOther && conv.last_message_content && conv.last_message_id !== myLastReadMessageId;
 
           if (hasUnreadMessages) {
             totalUnreadInMyChats += currentUserParticipation.unread_messages_count;
           }
 
+          // KLUCZOWA ZMIANA LOGIKI WIDOCZNOŚCI:
+          // Czat jest widoczny, jeśli:
+          // 1. NIE jest oznaczony jako usunięty PRZEZE MNIE (isDeletedByMe === false)
+          // LUB
+          // 2. JEST oznaczony jako usunięty PRZEZE MNIE (isDeletedByMe === true), ALE ma nieprzeczytane wiadomości
           const isVisible = !isDeletedByMe || (isDeletedByMe && hasUnreadMessages);
 
           return isVisible ? {
@@ -87,7 +96,9 @@ export default function MyChats() {
         .filter(Boolean); 
 
       setConversations(processedConversations);
+      // Aktualizuj globalny licznik nieprzeczytanych wiadomości w AuthContext
       fetchTotalUnreadMessages(currentUser.id); 
+      // Jeśli AuthContext.jsx sam zlicza i odpytuje supabase, to ta linia może być wystarczająca.
 
     } catch (err) {
       console.error("Błąd ładowania konwersacji:", err.message);
@@ -106,14 +117,13 @@ export default function MyChats() {
   }, []);
 
   useEffect(() => {
-    fetchConversations(); // Ta linia pozostaje
+    fetchConversations(); 
 
     let conversationChannel;
     let participantsChannel;
 
     if (currentUser && currentUser.id) {
-      // ZAKOMENTOWANY BLOK SUBKRYPCJI NR 1: my_chats_updates_conv_global
-      /*
+      // Subskrypcja na zmiany w tabeli 'conversations'
       conversationChannel = supabase
         .channel(`my_chats_updates_conv_global_${currentUser.id}`) 
         .on('postgres_changes', {
@@ -123,13 +133,12 @@ export default function MyChats() {
           filter: `or(client_id.eq.${currentUser.id},carrier_id.eq.${currentUser.id})`
         }, (payload) => {
           console.log("Zmiana w conversations (realtime):", payload);
+          // Jeśli nastąpiła zmiana w konwersacji, odśwież listę
           fetchConversations();
         })
         .subscribe();
-      */
 
-      // ZAKOMENTOWANY BLOK SUBKRYPCJI NR 2: my_chats_updates_part
-      /*
+      // Subskrypcja na zmiany w tabeli 'conversation_participants' (zmiana is_deleted, unread_messages_count)
       participantsChannel = supabase
         .channel(`my_chats_updates_part_${currentUser.id}`) 
         .on('postgres_changes', {
@@ -142,12 +151,9 @@ export default function MyChats() {
           fetchConversations(); 
         })
         .subscribe();
-      */
     }
 
     return () => {
-      // Ważne: Upewnij się, że te linie pozostają, nawet jeśli kanały są zakomentowane.
-      // Nie spowodują błędu, jeśli channel jest null.
       if (conversationChannel) supabase.removeChannel(conversationChannel);
       if (participantsChannel) supabase.removeChannel(participantsChannel);
     };
@@ -159,6 +165,7 @@ export default function MyChats() {
     setActiveAnnouncementTitle(announcementTitle);
     setShowChatModal(true);
 
+    // KLUCZOWA ZMIANA: Po otwarciu czatu, oznacz go jako nie-usunięty i przeczytany dla TEGO użytkownika
     if (currentUser && conversationId) {
       try {
         const { error: updateError } = await supabase
@@ -166,12 +173,14 @@ export default function MyChats() {
           .update({
             is_deleted: false, 
             unread_messages_count: 0, 
+            // last_read_message_id: <ID_OSTATNIEJ_WIADOMOSCI> 
           })
           .eq('conversation_id', conversationId)
           .eq('user_id', currentUser.id);
 
         if (updateError) throw updateError;
 
+        // Odśwież konwersacje i globalny licznik po aktualizacji statusu
         fetchConversations();
         fetchTotalUnreadMessages(currentUser.id); 
       } catch (error) {
@@ -185,10 +194,12 @@ export default function MyChats() {
     setShowChatModal(false);
     setActiveConversationId(null);
     setActiveAnnouncementTitle('');
+    // Po zamknięciu modalu, odśwież dane, aby upewnić się, że liczniki i statusy są aktualne
     fetchConversations();
     fetchTotalUnreadMessages(currentUser.id); 
   };
 
+  // handleHideConversation - ta funkcja już ustawia is_deleted na true, co jest poprawne
   const handleHideConversation = async (conversationId) => {
     try {
       const confirmDelete = window.confirm('Czy na pewno chcesz usunąć tę rozmowę z listy? Będzie widoczna ponownie, jeśli otrzymasz nową wiadomość.');
@@ -286,6 +297,7 @@ export default function MyChats() {
 
                   <div className="card-header">
                     <h4>{conv.announcement?.title || 'Brak tytułu ogłoszenia'}</h4>
+                    {/* Tutaj unread_count jest pobierany z konw. participants */}
                     {conv.unread_count > 0 && <span className="unread-count">{conv.unread_count}</span>}
                   </div>
                   <p>Z: <strong>{otherParticipantName}</strong> ({otherParticipantRole})</p>
@@ -309,6 +321,9 @@ export default function MyChats() {
             currentUserId={currentUser.id}
             userJwt={userJwt}
             onClose={handleCloseChatModal}
+            // Ważne: Jeśli ChatWindow wysyła wiadomości, musi tam być logika,
+            // która aktualizuje 'conversations' i 'conversation_participants'
+            // albo trigger w bazie danych.
           />
         )}
       </Modal>
