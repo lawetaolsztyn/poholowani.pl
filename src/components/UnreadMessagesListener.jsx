@@ -1,4 +1,3 @@
-// src/components/UnreadMessagesListener.jsx
 import { useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
@@ -7,43 +6,33 @@ export default function UnreadMessagesListener() {
   const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
 
   useEffect(() => {
-  console.log('📡 UnreadMessagesListener uruchomiony');
+    console.log('📡 UnreadMessagesListener uruchomiony');
 
-    let participantsChannel = null;
-
-    console.log("UnreadMessagesListener useEffect triggered.");
-    console.log("Current User (inside Listener Effect):", currentUser);
-    console.log("Current User ID (inside Listener Effect):", currentUser?.id);
-    console.log("Auth Loading (inside Listener Effect):", authLoading);
-
-    if (currentUser && currentUser.id && !authLoading) {
-      console.log(`Subskrybuję OGÓLNE zmiany nieprzeczytanych wiadomości (BEZ FILTRA) dla użytkownika: ${currentUser.id}`);
-
-      // ZMIANA TUTAJ: Nowa nazwa kanału i BRAK FILTRA
-      participantsChannel = supabase
-        .channel(`all_participants_updates_test_${currentUser.id}_${Date.now()}`) // Unikalna nazwa z timestampem
-        .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'conversation_participants',
-	 filter: `user_id=eq.${currentUser.id}`
-          // filter: `user_id=eq.${currentUser.id}` // Nadal zakomentowany
-        }, (payload) => {
-          // TEN LOG POWINIEN SIĘ POJAWIĆ, JEŚLI JAKAKOLWIEK ZMIANA W TABELI JEST ODBIERANA
-  console.log('🟢 PRZYCHODZI REAKCJA Z REALTIME:', payload);
-          fetchTotalUnreadMessages(currentUser.id);
-        })
-        .subscribe();
-    } else {
-        console.log("Not subscribing yet: User is null/loading or ID is missing.");
+    if (!currentUser?.id || authLoading) {
+      console.log("Not subscribing yet: User is null/loading or ID is missing.");
+      return;
     }
 
+    console.log(`Subskrybuję zmiany nieprzeczytanych wiadomości dla użytkownika: ${currentUser.id}`);
+
+    const participantsChannel = supabase
+      .channel(`unread_messages_user_listener_${currentUser.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'conversation_participants',
+        filter: `user_id=eq.${currentUser.id}`
+      }, (payload) => {
+        console.log('🟢 PRZYCHODZI REAKCJA Z REALTIME:', payload.new);
+        fetchTotalUnreadMessages(currentUser.id);
+      })
+      .subscribe();
+
     return () => {
-      if (participantsChannel) {
-        console.log(`Usuwam OGÓLNĄ subskrypcję nieprzeczytanych wiadomości dla użytkownika: ${currentUser?.id}`);
-        supabase.removeChannel(participantsChannel);
-      }
+      console.log(`Usuwam subskrypcję nieprzeczytanych wiadomości dla użytkownika: ${currentUser.id}`);
+      supabase.removeChannel(participantsChannel);
     };
+
   }, [currentUser, authLoading, fetchTotalUnreadMessages]);
 
   return null;
