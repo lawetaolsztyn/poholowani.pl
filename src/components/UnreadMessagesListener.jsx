@@ -8,6 +8,9 @@ export default function UnreadMessagesListener() {
 
   useEffect(() => {
     let participantsChannel = null;
+  console.log("UnreadMessagesListener useEffect triggered.");
+    console.log("Current User:", currentUser);
+    console.log("Current User ID:", currentUser?.id);
 
     if (currentUser && currentUser.id) {
       console.log(`Subskrybuję zmiany nieprzeczytanych wiadomości dla użytkownika: ${currentUser.id}`);
