@@ -15,28 +15,29 @@ export default function UnreadMessagesListener() {
     console.log("Auth Loading (inside Listener Effect):", authLoading);
 
     if (currentUser && currentUser.id && !authLoading) {
-      console.log(`Subskrybuję zmiany nieprzeczytanych wiadomości dla użytkownika: ${currentUser.id}`);
+      console.log(`Subskrybuję OGÓLNE zmiany nieprzeczytanych wiadomości (BEZ FILTRA) dla użytkownika: ${currentUser.id}`);
 
-      // PRZYWRÓCONY FILTR: Upewnij się, że jest dokładnie taki
+      // ZMIANA TUTAJ: Nowa nazwa kanału i BRAK FILTRA
       participantsChannel = supabase
-        .channel(`unread_messages_user_listener_${currentUser.id}`)
+        .channel(`all_participants_updates_test_${currentUser.id}_${Date.now()}`) // Unikalna nazwa z timestampem
         .on('postgres_changes', {
           event: 'UPDATE',
           schema: 'public',
           table: 'conversation_participants',
-          filter: `user_id=eq.${currentUser.id}` // FILTR PRZYWRÓCONY
+          // filter: `user_id=eq.${currentUser.id}` // Nadal zakomentowany
         }, (payload) => {
-          console.log('Realtime update for UNREAD messages detected (payload):', payload.new);
+          // TEN LOG POWINIEN SIĘ POJAWIĆ, JEŚLI JAKAKOLWIEK ZMIANA W TABELI JEST ODBIERANA
+          console.log('Realtime update for ANY participant (TEST):', payload.new);
           fetchTotalUnreadMessages(currentUser.id);
         })
         .subscribe();
     } else {
-        console.log("Not subscribing yet: Current User is null/undefined, ID is missing, or AuthContext is still loading.");
+        console.log("Not subscribing yet: User is null/loading or ID is missing.");
     }
 
     return () => {
       if (participantsChannel) {
-        console.log(`Usuwam subskrypcję nieprzeczytanych wiadomości dla użytkownika: ${currentUser?.id}`);
+        console.log(`Usuwam OGÓLNĄ subskrypcję nieprzeczytanych wiadomości dla użytkownika: ${currentUser?.id}`);
         supabase.removeChannel(participantsChannel);
       }
     };
