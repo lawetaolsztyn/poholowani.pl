@@ -7,35 +7,42 @@ export default function UnreadMessagesListener() {
   const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
 
   useEffect(() => {
-    console.log('UnreadMessagesListener useEffect start');
-    console.log('CurrentUser:', currentUser);
-    console.log('Auth Loading:', authLoading);
+    console.log('🔔 UnreadMessagesListener useEffect triggered');
+    console.log('currentUser:', currentUser);
+    console.log('authLoading:', authLoading);
 
-    if (!currentUser?.id || authLoading) {
-      console.log('Listener NIE subskrybuje - user null/loading');
+    if (!(currentUser && currentUser.id) || authLoading) {
+      console.log('🔕 Brak subskrypcji - user lub loading nie gotowe');
       return;
     }
 
-    console.log('Listener subskrybuje zmiany dla user:', currentUser.id);
+    console.log(`🚀 Subskrybuję realtime na conversation_participants dla user_id = ${currentUser.id}`);
 
-    const channel = supabase
-      .channel(`unread_messages_user_listener_${currentUser.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'conversation_participants',
-        filter: `user_id=eq.${currentUser.id}`,
-      }, (payload) => {
-        console.log('Realtime update dla nieprzeczytanych wiadomości (payload):', payload.new);
-        fetchTotalUnreadMessages(currentUser.id);
-      })
-      .subscribe();
+    const channelName = `unread_messages_${currentUser.id}`;
+    const participantsChannel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversation_participants',
+          filter: `user_id=eq.${currentUser.id}`,
+        },
+        (payload) => {
+          console.log('🟢 Realtime update dla nieprzeczytanych wiadomości (payload):', payload.new);
+          fetchTotalUnreadMessages(currentUser.id);
+        }
+      )
+      .subscribe()
+      .then(() => console.log(`✅ Subskrypcja do kanału ${channelName} utworzona`))
+      .catch((error) => console.error('❌ Błąd subskrypcji:', error));
 
     return () => {
-      console.log('Usuwam subskrypcję unread_messages_user_listener dla:', currentUser.id);
-      supabase.removeChannel(channel);
+      console.log(`🗑️ Usuwam subskrypcję dla usera ${currentUser?.id} na kanale ${channelName}`);
+      supabase.removeChannel(participantsChannel);
     };
-  }, [currentUser?.id, authLoading, fetchTotalUnreadMessages]);
+  }, [currentUser, authLoading, fetchTotalUnreadMessages]);
 
   return null;
 }
