@@ -7,40 +7,38 @@ export default function UnreadMessagesListener() {
   const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
 
   useEffect(() => {
-    console.log('🔔 UnreadMessagesListener useEffect triggered');
-    console.log('currentUser:', currentUser);
-    console.log('authLoading:', authLoading);
+    let participantsChannel = null;
 
-    if (!(currentUser && currentUser.id) || authLoading) {
-      console.log('🔕 Brak subskrypcji - user lub loading nie gotowe');
-      return;
-    }
+    console.log("UnreadMessagesListener useEffect triggered.");
+    console.log("Current User (inside Listener Effect):", currentUser);
+    console.log("Current User ID (inside Listener Effect):", currentUser?.id);
+    console.log("Auth Loading (inside Listener Effect):", authLoading);
 
-    console.log(`🚀 Subskrybuję realtime na conversation_participants dla user_id = ${currentUser.id}`);
+    if (currentUser && currentUser.id && !authLoading) {
+      console.log(`Subskrybuję OGÓLNE zmiany nieprzeczytanych wiadomości (BEZ FILTRA) dla użytkownika: ${currentUser.id}`);
 
-    const channelName = `unread_messages_${currentUser.id}`;
-    const participantsChannel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
+      participantsChannel = supabase
+        .channel(`all_participants_updates_test_${currentUser.id}_${Date.now()}`) // WAŻNE: Unikalna nazwa kanału
+        .on('postgres_changes', {
           event: 'UPDATE',
           schema: 'public',
           table: 'conversation_participants',
-          filter: `user_id=eq.${currentUser.id}`,
-        },
-        (payload) => {
-          console.log('🟢 Realtime update dla nieprzeczytanych wiadomości (payload):', payload.new);
+          // filter: `user_id=eq.${currentUser.id}` // MUSI BYĆ ZAKOMENTOWANE LUB USUNIĘTE
+        }, (payload) => {
+          // TEN LOG JEST KLUCZOWY
+          console.log('Realtime update for ANY participant (TEST):', payload.new);
           fetchTotalUnreadMessages(currentUser.id);
-        }
-      )
-      .subscribe();
-
-    console.log(`✅ Subskrypcja do kanału ${channelName} utworzona`);
+        })
+        .subscribe();
+    } else {
+        console.log("Not subscribing yet: User is null/loading or ID is missing.");
+    }
 
     return () => {
-      console.log(`🗑️ Usuwam subskrypcję dla usera ${currentUser?.id} na kanale ${channelName}`);
-      supabase.removeChannel(participantsChannel);
+      if (participantsChannel) {
+        console.log(`Usuwam OGÓLNĄ subskrypcję nieprzeczytanych wiadomości dla użytkownika: ${currentUser?.id}`);
+        supabase.removeChannel(participantsChannel);
+      }
     };
   }, [currentUser, authLoading, fetchTotalUnreadMessages]);
 
