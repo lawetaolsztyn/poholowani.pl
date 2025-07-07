@@ -7,6 +7,8 @@ export default function UnreadMessagesListener() {
   const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
 
   useEffect(() => {
+  console.log('📡 UnreadMessagesListener uruchomiony');
+
     let participantsChannel = null;
 
     console.log("UnreadMessagesListener useEffect triggered.");
@@ -27,7 +29,7 @@ export default function UnreadMessagesListener() {
           // filter: `user_id=eq.${currentUser.id}` // Nadal zakomentowany
         }, (payload) => {
           // TEN LOG POWINIEN SIĘ POJAWIĆ, JEŚLI JAKAKOLWIEK ZMIANA W TABELI JEST ODBIERANA
-          console.log('Realtime update for ANY participant (TEST):', payload.new);
+  console.log('🟢 PRZYCHODZI REAKCJA Z REALTIME:', payload);
           fetchTotalUnreadMessages(currentUser.id);
         })
         .subscribe();
