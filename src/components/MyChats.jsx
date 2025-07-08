@@ -24,15 +24,26 @@ export default function MyChats() {
   const conversationChannelRef = useRef(null);
   const participantsChannelRef = useRef(null);
 
+  // ZMIENIONA FUNKCJA fetchConversations
   const fetchConversations = useCallback(async () => {
-    // console.log("MyChats: Wywołano fetchConversations."); // Dodatkowy log
+    // console.log("MyChats: Wywołano fetchConversations. authLoading:", authLoading, " currentUser:", !!currentUser);
+    // Warunek dla ładowania konwersacji:
+    // Czekamy, aż authLoading będzie false, ORAZ currentUser będzie obiektem.
+    // Jeśli currentUser jest null, ale authLoading już zakończone, oznacza to, że użytkownik nie jest zalogowany.
     if (authLoading || !currentUser) {
-      setLoadingConversations(false);
-      setConversations([]);
-      fetchTotalUnreadMessages();
-      return;
+        if (!authLoading && currentUser === null) { // Użytkownik definitywnie wylogowany (authLoading zakończone, user null)
+             setLoadingConversations(false);
+             setConversations([]);
+             fetchTotalUnreadMessages(); // Zresetuj licznik nieprzeczytanych dla wylogowanego użytkownika
+        } else {
+            // authLoading jest true LUB currentUser jest null (ale authLoading jeszcze trwa)
+            // W tej sytuacji czekamy, nie resetujemy konwersacji, tylko upewniamy się, że loading jest aktywne.
+            setLoadingConversations(true); 
+        }
+        return;
     }
 
+    // Od tego momentu wiemy, że authLoading jest false I currentUser jest dostępne (użytkownik jest zalogowany)
     setLoadingConversations(true);
     setError(null);
 
@@ -91,8 +102,9 @@ export default function MyChats() {
     } finally {
       setLoadingConversations(false);
     }
-  }, [authLoading, currentUser, fetchTotalUnreadMessages]);
+  }, [authLoading, currentUser, fetchTotalUnreadMessages]); // Zależności bez zmian
 
+  // Ten useEffect pobiera początkowy JWT raz po zamontowaniu komponentu
   useEffect(() => {
     async function fetchInitialSessionJwt() {
       const { data } = await supabase.auth.getSession();
@@ -102,11 +114,10 @@ export default function MyChats() {
     fetchInitialSessionJwt();
   }, []);
 
-  // ************************************************
   // NOWY, dedykowany useEffect do zarządzania kanałami Realtime
   // Uruchamia się tylko, gdy currentUser.id lub userJwt się zmieni
   useEffect(() => {
-    // console.log("MyChats: useEffect do zarządzania kanałami Realtime uruchomiony."); // Dodatkowy log
+    // console.log("MyChats: useEffect do zarządzania kanałami Realtime uruchomiony."); 
 
     // Najpierw usuń wszystkie istniejące kanały
     if (conversationChannelRef.current) {
@@ -183,7 +194,12 @@ export default function MyChats() {
     };
   }, [currentUser?.id, userJwt]); // Zależności: tylko ID użytkownika i JWT. NIE fetchConversations
 
-  // ************************************************
+  // Ten useEffect wywołuje fetchConversations na początku i gdy zaleznosci sie zmieniaja.
+  // Jest odpowiedzialny za pobranie danych o konwersacjach.
+  useEffect(() => {
+      // console.log("MyChats: Pierwszy useEffect uruchomiony, wywołuję fetchConversations.");
+      fetchConversations();
+  }, [fetchConversations]); // Zależność tylko od fetchConversations
 
   // useEffect do obsługi Page Visibility API - BEZ ZMIAN W TEJ WERSJI
   useEffect(() => {
@@ -201,8 +217,9 @@ export default function MyChats() {
           setUserJwt(''); 
         }
 
-        // Opóźnienie diagnostyczne, jeśli problemem jest race condition.
+        // DODATKOWE OPÓŹNIENIE - TYLKO DO DIAGNOSTYKI!
         // Jeśli ten krok pomoże, problemem jest race condition.
+        // Po udanej diagnozie, ten Promise.all usuwamy i sprawdzamy inne rozwiązania.
         await new Promise(resolve => setTimeout(resolve, 200)); 
         console.log('MyChats: Opóźnienie zakończone. Wywołuję fetchConversations.');
 
