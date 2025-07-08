@@ -8,7 +8,7 @@ import './App.css';
 import 'leaflet/dist/leaflet.css';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { supabase } from './supabaseClient';
-import Navbar from './components/Navbar'; // Nie używany bezpośrednio tutaj, ale to ok
+import Navbar from './components/Navbar'; 
 
 import LandingPage from './LandingPage';
 import Login from './Login';
@@ -37,8 +37,6 @@ import AnnouncementsPage from './components/AnnouncementsPage';
 import MojeOgloszenia from './components/MojeOgloszenia';
 import MyChats from './components/MyChats';
 import { AuthProvider } from './AuthContext.jsx';
-// Import Font Awesome jest podwójnie, jedno wystarczy, ale to nie krytyczny błąd
-// import '@fortawesome/fontawesome-free/css/all.min.css';
 
 function App() {
   return (

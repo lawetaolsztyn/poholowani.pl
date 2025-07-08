@@ -295,7 +295,7 @@ export default function MyChats() {
           <h1>Moje Chaty</h1>
           <p>Ładowanie Twoich konwersacji...</p>
         </div>
-        <Footer />
+        
       </>
     );
   }
@@ -308,7 +308,7 @@ export default function MyChats() {
           <h1>Moje Chaty</h1>
           <p className="error-message">Błąd: {error}</p>
         </div>
-        <Footer />
+       
       </>
     );
   }
@@ -321,7 +321,7 @@ export default function MyChats() {
           <h1>Moje Chaty</h1>
           <p>Musisz być zalogowany, aby zobaczyć swoje konwersacje.</p>
         </div>
-        <Footer />
+        
       </>
     );
   }
@@ -389,7 +389,7 @@ export default function MyChats() {
           />
         )}
       </Modal>
-      <Footer />
+      
     </>
   );
 }
