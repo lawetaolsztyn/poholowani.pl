@@ -39,14 +39,12 @@ import MyChats from './components/MyChats';
 import { AuthProvider } from './AuthContext.jsx';
 // Import Font Awesome jest podwójnie, jedno wystarczy, ale to nie krytyczny błąd
 // import '@fortawesome/fontawesome-free/css/all.min.css';
-import UnreadMessagesListener from './components/UnreadMessagesListener'; // Import Listenera
 
 function App() {
   return (
     <div className="app">
       <CookieWall />
       {/* 🚀 Przenieś listener tu, działa równolegle z Navbar */}
-      <UnreadMessagesListener />
       <div className="main-content">
         <Routes>
           <Route path="/" element={<LandingPage />} />
