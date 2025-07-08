@@ -1,5 +1,5 @@
 // src/components/MyChats.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react'; // DODAJ useRef
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 import Navbar from './Navbar';
@@ -19,6 +19,10 @@ export default function MyChats() {
   const [showChatModal, setShowChatModal] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [activeAnnouncementTitle, setActiveAnnouncementTitle] = useState('');
+
+  // NOWE: Referencje do kanałów WebSocket
+  const conversationChannelRef = useRef(null);
+  const participantsChannelRef = useRef(null);
 
   const fetchConversations = useCallback(async () => {
     if (authLoading || !currentUser) {
@@ -98,17 +102,20 @@ export default function MyChats() {
 
   // ZMIENIONY useEffect dla subskrypcji Realtime
   useEffect(() => {
-    // Usuń istniejące kanały przed ponownym subskrybowaniem
-    // To jest kluczowe, aby upewnić się, że używamy świeżego tokena
-    supabase.removeChannel(`my_chats_updates_conv_global_${currentUser?.id}`);
-    supabase.removeChannel(`my_chats_updates_part_${currentUser?.id}`);
+    // 1. Najpierw usuń poprzednie kanały, jeśli istnieją
+    // Użyj referencji, a nie nazw kanałów
+    if (conversationChannelRef.current) {
+        supabase.removeChannel(conversationChannelRef.current);
+        conversationChannelRef.current = null;
+    }
+    if (participantsChannelRef.current) {
+        supabase.removeChannel(participantsChannelRef.current);
+        participantsChannelRef.current = null;
+    }
 
-    let conversationChannel;
-    let participantsChannel;
-
-    // Subskrybuj tylko, jeśli mamy zalogowanego użytkownika i aktualny token JWT
+    // 2. Subskrybuj tylko, jeśli mamy zalogowanego użytkownika i aktualny token JWT
     if (currentUser && currentUser.id && userJwt) {
-      conversationChannel = supabase
+      const conversationChannel = supabase
         .channel(`my_chats_updates_conv_global_${currentUser.id}`) 
         .on('postgres_changes', {
           event: '*', 
@@ -126,8 +133,10 @@ export default function MyChats() {
             console.warn('🔴 Problem z subskrypcją WebSocket dla konwersacji:', status);
           }
         });
+        // Zapisz referencję do kanału
+        conversationChannelRef.current = conversationChannel;
 
-      participantsChannel = supabase
+      const participantsChannel = supabase
         .channel(`my_chats_updates_part_${currentUser.id}`) 
         .on('postgres_changes', {
           event: 'UPDATE', 
@@ -145,33 +154,37 @@ export default function MyChats() {
             console.warn('🔴 Problem z subskrypcją WebSocket dla uczestników:', status);
           }
         });
+        // Zapisz referencję do kanału
+        participantsChannelRef.current = participantsChannel;
+
     } else {
-        // Jeśli nie ma użytkownika lub tokena, upewnij się, że kanały są usunięte
         console.log("Brak użytkownika lub JWT, nie subskrybuję kanałów Realtime w MyChats.");
     }
 
     // Funkcja czyszcząca: usuwa kanały przy odmontowaniu komponentu lub zmianie zależności
     return () => {
-      if (conversationChannel) supabase.removeChannel(conversationChannel);
-      if (participantsChannel) supabase.removeChannel(participantsChannel);
+      if (conversationChannelRef.current) {
+          supabase.removeChannel(conversationChannelRef.current);
+          conversationChannelRef.current = null;
+      }
+      if (participantsChannelRef.current) {
+          supabase.removeChannel(participantsChannelRef.current);
+          participantsChannelRef.current = null;
+      }
     };
-  }, [currentUser, userJwt, fetchConversations]); // Dodano userJwt do zależności
+  }, [currentUser, userJwt, fetchConversations]); // userJwt do zależności
 
   // useEffect do obsługi Page Visibility API
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         console.log("👀 Zakładka MyChats stała się widoczna. Odświeżam konwersacje...");
-        // Wymuś odświeżenie sesji
         const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
         if (sessionError) {
           console.error("Błąd odświeżania sesji po wznowieniu widoczności:", sessionError.message);
         } else if (session) {
-          // KLUCZOWE: Zaktualizuj stan userJwt nowym tokenem
           setUserJwt(session.access_token || '');
         }
-        // Wywołaj fetchConversations, co z kolei (poprzez zależności)
-        // spowoduje ponowne nawiązanie kanałów z aktualnym tokenem
         fetchConversations();
       }
     };
@@ -181,7 +194,7 @@ export default function MyChats() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchConversations, setUserJwt]); // Dodano setUserJwt do zależności
+  }, [fetchConversations, setUserJwt]);
 
   const handleOpenChat = async (conversationId, announcementTitle) => {
     setActiveConversationId(conversationId);
