@@ -180,12 +180,12 @@ export default function MyRoutes() {
               <a href={r.messenger_link} target="_blank" rel="noopener noreferrer">Messenger</a>
             ) : '-'}
 
-            {hoveredIndex === idx && (
+            
               <div className="card-buttons-container"> {/* Nowa klasa dla kontenera przycisków */}
                 <button className="card-button delete-button" onClick={() => handleDelete(r.id)}>🗑️ Usuń</button> {/* Nowe klasy */}
                 <button className="card-button edit-button" onClick={() => setEditingRoute(r)}>✏️ Edytuj</button> {/* Nowe klasy */}
               </div>
-            )}
+            
           </div>
         ))}
       </div>
