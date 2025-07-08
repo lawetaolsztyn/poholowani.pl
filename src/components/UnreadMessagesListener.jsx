@@ -1,78 +1,82 @@
 // src/components/UnreadMessagesListener.jsx
-import { useEffect, useRef } from 'react'; // DODANO useRef
+import { useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
 
 export default function UnreadMessagesListener() {
   const { currentUser, loading: authLoading, fetchTotalUnreadMessages } = useAuth();
-  const participantsChannelRef = useRef(null); // Używamy ref, aby przechowywać instancję kanału
+  const participantsChannelRef = useRef(null);
 
   useEffect(() => {
-    // Logi w useEffect
-    console.log("UnreadMessagesListener useEffect triggered.");
-    console.log("Current User (inside Listener Effect):", currentUser);
-    console.log("Current User ID (inside Listener Effect):", currentUser?.id);
-    console.log("Auth Loading (inside Listener Effect):", authLoading);
+    console.log("🔁 UnreadMessagesListener useEffect triggered.");
+    console.log("👤 Current User:", currentUser);
+    console.log("🆔 Current User ID:", currentUser?.id);
+    console.log("⌛ Auth Loading:", authLoading);
 
-    // Warunek do subskrybowania
     if (currentUser && currentUser.id && !authLoading) {
-      // Jeśli już istnieje instancja kanału i jest dla tego samego użytkownika, nie subskrybuj ponownie
-      if (participantsChannelRef.current && participantsChannelRef.current.topic.includes(`all_participants_updates_listener_client_filtered_${currentUser.id}`)) {
-        console.log(`Kanał już aktywny dla ${currentUser.id}, nie subskrybuję ponownie.`);
+      // Jeśli istnieje kanał i dotyczy aktualnego usera — nie subskrybuj ponownie
+      if (
+        participantsChannelRef.current &&
+        participantsChannelRef.current.topic.includes(`all_participants_updates_listener_client_filtered_${currentUser.id}`)
+      ) {
+        console.log(`🔒 Kanał już istnieje dla ${currentUser.id}, nie tworzę ponownie.`);
         return;
       }
-      
-      // Jeśli kanał jest dla innego użytkownika (zmiana użytkownika), usuń stary
+
+      // Jeśli istnieje kanał, ale dla innego usera — usuń go
       if (participantsChannelRef.current) {
-        console.log(`Usuwam stary kanał dla poprzedniego użytkownika.`);
+        console.log(`🧹 Usuwam stary kanał.`);
         supabase.removeChannel(participantsChannelRef.current);
         participantsChannelRef.current = null;
       }
 
-      console.log(`Subskrybuję OGÓLNE zmiany (FILTRACJA PO STRONIE KLIENTA) dla użytkownika: ${currentUser.id}`);
+      console.log(`🚀 Subskrybuję OGÓLNE zmiany (klient filtruje) dla user_id = ${currentUser.id}`);
 
-      // Subskrybujemy do WSZYSTKICH aktualizacji w tabeli conversation_participants
-      // BEZ FILTRA po stronie serwera
       const channel = supabase
-        .channel(`all_participants_updates_listener_client_filtered_${currentUser.id}`) // Unikalna nazwa kanału
-        .on('postgres_changes', {
-          event: 'UPDATE', // Interesują nas tylko aktualizacje
-          schema: 'public',
-          table: 'conversation_participants',
-          // FILTR PO STRONIE SERWERA JEST USUNIĘTY (zakomentowany)
-          // filter: `user_id=eq.${currentUser.id}`
-        }, (payload) => {
-          // FILTRACJA ODBYWA SIĘ TUTAJ, PO STRONIE KLIENTA
-          if (payload.new && payload.new.user_id === currentUser.id) {
-            console.log('Realtime update for CURRENT USER (client-filtered) detected:', payload.new);
-            fetchTotalUnreadMessages(currentUser.id);
-          } else {
-            console.log('Realtime update received for OTHER user (client-filtered out):', payload.new);
+        .channel(`all_participants_updates_listener_client_filtered_${currentUser.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'conversation_participants',
+          },
+          (payload) => {
+            if (payload?.new?.user_id === currentUser.id) {
+              console.log('✅ Realtime update dla bieżącego użytkownika:', payload.new);
+              fetchTotalUnreadMessages(currentUser.id);
+            } else {
+              console.log('🛑 Update odfiltrowany — nie dla tego użytkownika:', payload.new);
+            }
           }
-        })
-        .subscribe();
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('🟢 WebSocket SUBSCRIBED!');
+          } else {
+            console.warn('🔴 Problem z subskrypcją WebSocket:', status);
+          }
+        });
 
-      participantsChannelRef.current = channel; // Zapisz instancję kanału w ref
-
+      participantsChannelRef.current = channel;
     } else {
-        // Jeśli użytkownik jest null, a kanał jest aktywny, usuń go
-        if (participantsChannelRef.current) {
-            console.log(`Użytkownik wylogowany/null, usuwam kanał.`);
-            supabase.removeChannel(participantsChannelRef.current);
-            participantsChannelRef.current = null;
-        }
-        console.log("Not subscribing yet: User is null/undefined, ID is missing, or AuthContext is still loading.");
+      if (participantsChannelRef.current) {
+        console.log(`👋 Użytkownik wylogowany lub brak ID — czyszczę kanał.`);
+        supabase.removeChannel(participantsChannelRef.current);
+        participantsChannelRef.current = null;
+      }
+      console.log("⏳ Nie subskrybuję — user nie gotowy lub auth w toku.");
     }
 
-    // Funkcja czyszcząca subskrypcję przy odmontowaniu komponentu (ważne)
+    // Cleanup przy unmount lub zmianie usera
     return () => {
       if (participantsChannelRef.current) {
-        console.log(`Usuwam subskrypcję podczas czyszczenia useEffect dla użytkownika: ${currentUser?.id}`);
+        console.log(`🧹 Usuwam subskrypcję przy odmontowaniu komponentu dla usera: ${currentUser?.id}`);
         supabase.removeChannel(participantsChannelRef.current);
-        participantsChannelRef.current = null; // Zresetuj ref
+        participantsChannelRef.current = null;
       }
     };
-  }, [currentUser, authLoading, fetchTotalUnreadMessages]); // Zależności: currentUser i funkcje
+  }, [currentUser?.id, authLoading, fetchTotalUnreadMessages]);
 
   return null;
 }
