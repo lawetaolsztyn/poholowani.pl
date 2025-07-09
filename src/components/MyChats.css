@@ -18,32 +18,24 @@
   text-align: center;
 }
 
+/* ZMIENIONY KOD DLA conversations-list */
 .conversations-list {
-  display: grid;
-  /* repeat(auto-fit, minmax(280px, 1fr)) - nadal pozwala na automatyczne dopasowanie i rozciąganie. */
-  /* Lepsze podejście to ustalenie stałej liczby kolumn lub użycie flexboxa z zawijaniem. */
-
-  /* Wersja 1: Użycie display: flex z zawijaniem i wyrównaniem */
-  /* To daje większą kontrolę nad tym, jak elementy się grupują */
-  display: flex;
+  display: flex; /* Zmieniamy z grid na flex */
   flex-wrap: wrap; /* Pozwala elementom zawijać się do następnego wiersza */
   gap: 20px;       /* Zachowaj odstępy między elementami */
-  justify-content: flex-start; /* Wyrównuje elementy do lewej */
-  /* Jeśli chcesz je wyśrodkować, użyj justify-content: center; */
+  justify-content: flex-start; /* Wyrównuje elementy do lewej (zamiast rozciągać) */
+  /* Jeśli chcesz, by pojedyncze elementy były wyśrodkowane, gdy nie wypełniają rzędu, użyj:
+     justify-content: center; */
 }
 
-/* Nadal potrzebujesz stylów dla samej karty, aby określić jej podstawową szerokość */
+/* ZMIENIONY KOD DLA conversation-card */
 .conversation-card {
-  /* Upewnij się, że min-width jest zgodny z minmax z poprzedniego grida, np. 280px */
-  /* i że max-width lub flex-basis kontroluje szerokość. */
-  flex: 0 0 calc(33.333% - (2 * 20px / 3)); /* 33.333% dla 3 kolumn, minus odstępy */
-  /* Lub prostsze: */
-  width: calc((100% - 2 * 20px) / 3); /* szerokość dla 3 kolumn, minus 2x gap */
-  min-width: 280px; /* Minimalna szerokość karty, jeśli 280px to Twój min-size */
-  max-width: 380px; /* Opcjonalnie: maksymalna szerokość karty, jeśli chcesz to ograniczyć */
-
-/* Pojedyncza karta */
-.conversation-card {
+  /* Ustawiamy szerokość tak, aby domyślnie mieściły się 3 kolumny z odstępami */
+  /* (100% szerokości kontenera - 2 * gap) / 3 kolumny */
+  flex: 0 0 calc((100% - 2 * 20px) / 3);
+  min-width: 280px; /* Minimalna szerokość karty */
+  max-width: 380px; /* Opcjonalnie: maksymalna szerokość karty */
+  
   background-color: #f8f8f8;
   border: 1px solid #eee;
   border-radius: 8px;
@@ -55,6 +47,7 @@
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
+  position: relative; /* Potrzebne dla pozycjonowania przycisku usuwania */
 }
 
 /* Hover efekt */
@@ -188,8 +181,8 @@
   }
 }
 
-/* Mniejsze urządzenia */
-@media (max-width: 768px) {
+/* Mniejsze urządzenia (media queries już istniały w Twoim kodzie) */
+@media (max-width: 768px) { /* Użyj swojego break-pointa */
   .my-chats-container {
     padding: 15px;
   }
@@ -198,7 +191,13 @@
     font-size: 2em;
   }
 
+  .conversations-list { /* Upewnij się, że odstęp jest odpowiedni na mniejszych ekranach */
+    gap: 15px;
+  }
+
   .conversation-card {
+    width: 100%; /* Na telefonach karta zajmuje całą szerokość */
+    flex: 0 0 100%; /* Upewnij się, że nie ma problemów z flex */
     padding: 12px;
   }
 
@@ -214,6 +213,8 @@
     font-size: 0.75em;
   }
 }
+
+/* Style dla przycisku usuwania */
 .delete-chat-button {
   position: absolute;
   bottom: 8px;
