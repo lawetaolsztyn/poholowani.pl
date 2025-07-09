@@ -1,3 +1,5 @@
+/* src/components/Footer.css */
+
 .footer {
   background-color: #1e1e1e;
   color: #ccc;
@@ -5,7 +7,8 @@
   font-family: 'Poppins', sans-serif;
 }
 
-.footer-top {
+/* Upewnij się, że ta klasa pasuje do Twojego JSX (footer-top lub footer-content) */
+.footer-top { /* Zgodnie z oryginalnym plikiem Footer.jsx to jest footer-top */
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
@@ -37,43 +40,74 @@
   color: #ffffff;
 }
 
-/* Plik: Footer.css */
-
 .footer-bottom {
   text-align: center;
   font-size: 0.9rem;
   border-top: 1px solid #444;
   padding-top: 1rem;
-  color: #FFFFFF; /* Zmienione z #888 na biały */
+  color: #FFFFFF;
 }
 
 .footer-legal {
   text-align: center;
   font-size: 0.75rem;
-  color: #FFFFFF; /* Zmienione z #999 na biały */
+  color: #FFFFFF;
   margin-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
 
 .footer-legal a {
-  color: #007bff; /* Zmienione z #bbb na standardowy niebieski dla linków */
+  color: #007bff;
   text-decoration: none;
   margin: 0 4px;
 }
 
 .footer-legal a:hover {
-  color: #66b2ff; /* Jasniejszy niebieski dla hover, żeby było widać interakcję */
+  color: #66b2ff;
 }
+
+/* NOWE STYLE DLA KOLUMNY SPOŁECZNOŚCIOWEJ I LINKU FB */
+
+/* Klasa dla kolumny społecznościowej w stopce */
+.footer-social {
+  /* Możesz dodać tutaj specyficzne marginesy, jeśli potrzebne, 
+     ale domyślnie powinna pasować do flexboxa .footer-top */
+}
+
+/* Styl dla linku "Dołącz do grupy na FB" */
+.footer-social .facebook-group-link {
+  display: flex; /* Użyj flexbox, aby wyrównać ikonę i tekst */
+  align-items: center; /* Wyśrodkuj elementy w pionie */
+  color: #1877f2; /* Klasyczny niebieski kolor Facebooka */
+  font-weight: bold;
+  text-decoration: none; /* Upewnij się, że link nie jest podkreślony domyślnie */
+}
+
+.footer-social .facebook-group-link:hover {
+  color: #3b5998; /* Ciemniejszy niebieski na hover */
+}
+
+.footer-social .facebook-group-link .fab { /* Styl dla samej ikony */
+  font-size: 1.5rem; /* Rozmiar ikony */
+  margin-right: 8px; /* Odstęp między ikoną a tekstem */
+}
+
+/* --- Media Queries (istniejące i dostosowane) --- */
 @media (max-width: 768px) {
-  .footer-top {
-padding: 0.5rem 0.5rem 0.5rem;
+  .footer-top { /* Z powrotem do Twojej oryginalnej klasy */
     flex-direction: column; /* Kolumny stopki jedna pod drugą */
     align-items: center; /* Wyśrodkuj kolumny */
+    padding: 0.5rem 0.5rem 0.5rem; /* Dodane padding, jeśli usunięte */
   }
 
   .footer-column {
-max-height: 120px;
+    max-height: 120px; /* Nadal w użyciu, może być dostosowane */
     margin-bottom: 1.5rem; /* Odstęp między kolumnami */
     text-align: center; /* Wyśrodkuj tekst w kolumnach */
+  }
+  
+  /* Na mobilnych ikonka może być wyśrodkowana */
+  .footer-social .facebook-group-link {
+    justify-content: center; /* Wyśrodkuj link w kolumnie mobilnej */
   }
 }

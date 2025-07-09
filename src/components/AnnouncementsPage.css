@@ -1,969 +1,636 @@
 /* src/components/AnnouncementsPage.css */
 
-/* Definicja zmiennej CSS dla odstępu między kolumnami */
-:root {
-    --announcements-gap: 30px;
-}
-
-/* Ogólny kontener strony tablicy ogłoszeń */
 .announcements-page-container {
-    display: flex;
-    gap: var(--announcements-gap); /* Użycie zmiennej */
-    padding: 30px;
-    max-width: 1200px; /* Maksymalna szerokość kontenera */
-    margin: 0 auto; /* Wyśrodkowanie */
-    flex-wrap: nowrap; /* Zapobiega zawijaniu się kolumn */
-    box-sizing: border-box; /* WAŻNA ZMIANA: Zapewnia, że padding/border są wliczone w width */
-    width: 100%; /* Upewnia się, że kontener zajmuje całą dostępną szerokość rodzica */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* LEWA KOLUMNA: formularz, filtry, szczegóły ogłoszenia (przyciski) */
+.announcements-content {
+  display: flex;
+  flex-grow: 1; /* Pozwala zawartości rosnąć i wypychać stopkę na dół */
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+  width: 100%;
+}
+
 .left-panel {
-    /* ZMIANA: flex-basis jako główny kontroler szerokości, ale pozwalamy flex-grow/shrink działać w ramach definicji */
-    flex: 0 0 calc(30% - (var(--announcements-gap) / 2));
-    min-width: 280px;
-    max-width: 350px;
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
+  flex: 0 0 280px; /* Stała szerokość panelu bocznego */
+  background-color: #f8f8f8;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Odstęp między elementami w panelu */
 }
 
-/* Nagłówek dla formularza dodawania ogłoszenia */
-.left-panel .form-header {
-    font-size: 1.8em;
-    color: #333;
-    margin-bottom: 25px;
-    text-align: center;
+.left-panel h3 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 1.3rem;
 }
 
-
-/* PRAWA KOLUMNA: lista ogłoszeń */
-.main-content-area {
-    /* ZMIANA: flex-basis jako główny kontroler szerokości, flex-grow: 1 aby wypełnić resztę */
-    flex: 1 0 calc(70% - (var(--announcements-gap) / 2));
-    min-width: 65%; /* ZMIANA: Upewnienie się, że minimum to ~65% */
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+.add-announcement-button,
+.apply-filters-button,
+.reset-filters-button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Nagłówek "Aktualne Ogłoszenia" w prawej kolumnie */
-.main-content-area h2 {
-    font-size: 2em;
-    color: #333;
-    margin-bottom: 20px;
-    text-align: center;
+.add-announcement-button:hover,
+.apply-filters-button:hover,
+.reset-filters-button:hover {
+  background-color: #0056b3;
 }
 
-/* --- Style dla przycisków akcji w lewej kolumnie --- */
-.add-announcement-button {
-    display: block;
-    width: 100%;
-    padding: 15px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2em;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    transition: background-color 0.2s ease;
-    margin-bottom: 25px;
-}
-
-.add-announcement-button:hover {
-    background-color: #0056b3;
-}
-
-.announcement-detail-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 25px;
-    padding: 20px;
-    background-color: #f8f8f8;
-    border: 1px solid #eee;
-    border-radius: 8px;
-}
-
-.add-announcement-button-side,
-.back-button-side {
-    display: block;
-    width: 100%;
-    padding: 12px 15px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.add-announcement-button-side {
-    background-color: #28a745;
-    color: white;
-}
-.add-announcement-button-side:hover {
-    background-color: #218838;
-}
-
-.back-button-side {
-    background-color: #6c757d;
-    color: white;
-}
-.back-button-side:hover {
-    background-color: #5a6268;
-}
-
-
-/* === STYLE DLA SEKCJI FILTRA === */
-.search-filter-section {
-    background-color: #f8f8f8;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    margin-top: 25px;
-}
-
-.search-filter-section h3 {
-    font-size: 1.5em;
-    color: #333;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.filter-group {
-    margin-bottom: 15px;
-}
-
-.filter-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #555;
-}
-
-/* Styl dla tekstu "Opcjonalnie" */
-.filter-group label .optional-text {
-    font-weight: normal;
-    color: #888;
-    margin-left: 5px;
-}
-
-
-.filter-input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
-    box-sizing: border-box;
-}
-
-/* Styl dla pól zakresu - teraz układane w kolumnie */
-.filter-group .range-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-}
-
-.filter-input-range {
-    flex-grow: 1;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
-    box-sizing: border-box;
-}
-
-.filter-group .range-inputs span {
-    display: none; /* Ukrycie myślnika */
-}
-
-/* NOWY STYL DLA SUWAKA */
-.filter-slider {
-    width: 100%;
-    margin-top: 5px;
-    -webkit-appearance: none;
-    height: 8px;
-    border-radius: 5px;
-    background: #ddd;
-    outline: none;
-    opacity: 0.7;
-    transition: opacity .2s;
-}
-
-.filter-slider:hover {
-    opacity: 1;
-}
-
-.filter-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #007bff;
-    cursor: pointer;
-}
-
-.filter-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #007bff;
-    cursor: pointer;
-}
-
-
-.filter-button, .clear-filter-button {
-    display: block;
-    width: 100%;
-    padding: 12px 15px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    margin-top: 10px;
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .filter-button {
-    background-color: #007bff;
-    color: white;
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s ease;
 }
+
 .filter-button:hover {
-    background-color: #0056b3;
+  background-color: #e0e0e0;
 }
 
-.clear-filter-button {
-    background-color: #6c757d;
-    color: white;
-}
-.clear-filter-button:hover {
-    background-color: #5a6268;
+.filter-button.active {
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
 }
 
-/* === NOWE STYLE DLA PRZYCISKU FILTRA "ULUBIONE OGŁOSZENIA" (Gwiazdka) === */
-.favorite-filter-button {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    color: #333;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1em;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    white-space: nowrap;
-    width: 100%;
-    margin-top: 15px;
-    box-sizing: border-box;
+/* Style dla filtrów wyszukiwania */
+.search-filters .form-group {
+  margin-bottom: 15px;
 }
 
-.favorite-filter-button:hover:not([disabled]) {
-    background-color: #e0e0e0;
-    border-color: #999;
+.search-filters label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+  font-size: 0.95em;
 }
 
-.favorite-filter-button.active {
-    background-color: #dc3545;
-    border-color: #c82333;
-    color: white;
-    font-weight: bolder;
+.search-filters input[type="text"],
+.search-filters input[type="number"] {
+  width: calc(100% - 20px); /* Odlicz padding */
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9em;
+  box-sizing: border-box;
 }
 
-.favorite-filter-button[disabled] {
-    opacity: 0.6;
-    cursor: not-allowed;
+.search-filters small {
+  display: block;
+  font-size: 0.8em;
+  color: #999;
+  margin-top: 5px;
 }
 
-/* Kontener dla górnych przycisków (Dodaj ogłoszenie, Ulubione ogłoszenia) w lewej kolumnie */
-.left-panel > .add-announcement-button + .favorite-filter-button {
-    margin-top: 15px;
+/* Main panel (lista ogłoszeń / szczegóły) */
+.main-panel {
+  flex-grow: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-
-/* --- LISTA OGŁOSZEŃ (PRAWA KOLUMNA) - zachowanie oryginalnego układu single-column --- */
-/* WAŻNE: TA KLASA JEST TERAZ UŻYWANA W JSX DLA KONTENERA OGŁOSZEŃ */
-.announcements-list-single-column {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    margin-top: 20px;
-    width: 100%; /* Upewnij się, że ten kontener zajmuje całą szerokość .main-content-area */
+.announcements-list-view h2 {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-/* Karta ogłoszenia w układzie single-column */
-.announcement-card-wide {
-    background-color: #f8f8f8;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease-in-out;
-    width: 100%;
-    position: relative;
-    overflow: hidden;
+.announcements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
 }
 
-.announcement-card-wide:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+.announcement-card {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Nagłówek i data w karcie listy */
-.announcement-card-wide .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+.announcement-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.announcement-card-wide h3 {
-    font-size: 1.5em;
-    color: #333;
-    margin: 0;
-    line-height: 1.2;
-    flex-grow: 1;
+.announcement-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 15px 15px 0 15px;
 }
 
-.announcement-card-wide .posted-at {
-    font-size: 0.85em;
-    color: #999;
-    text-align: right;
-    white-space: nowrap;
-    margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-    margin-bottom: 0;
-    flex-shrink: 0;
+.announcement-card h4 {
+  font-size: 1.2em;
+  color: #007bff;
+  margin: 0;
+  flex-grow: 1;
+  text-align: left;
 }
 
-.announcement-image-preview {
-    max-width: 100%;
-    height: 150px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    object-fit: cover;
-    display: block;
+.announcement-card .favorite-button {
+  background: none;
+  border: none;
+  font-size: 1.3em;
+  cursor: pointer;
+  color: #ccc; /* Domyślny kolor gwiazdki */
+  transition: color 0.2s ease;
+  margin-left: 10px;
+  padding: 0; /* Usuń padding z przycisku */
 }
 
-.announcement-card-wide p {
-    font-size: 1em;
-    line-height: 1.5;
-    margin-bottom: 8px;
-    color: #555;
-    flex-grow: 1;
+.announcement-card .favorite-button:hover {
+  color: #ffc107; /* Złoty na hover */
 }
 
-.announcement-card-wide p strong {
-    color: #333;
-}
-
-.no-route-info {
-    font-style: italic;
-    color: #888;
-    font-size: 0.9em;
-    margin-top: -5px;
-}
-
-.announcement-card-wide .card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dotted #eee;
-    font-size: 0.95em;
-    color: #666;
-    margin-top: auto;
-}
-.announcement-card-wide .card-meta span strong {
-    color: #333;
-}
-
-/* Przycisk "Zobacz szczegóły" na kartach ogłoszeń */
-.view-details-button {
-    display: block;
-    width: 100%;
-    padding: 10px 15px;
-    background-color: #17a2b8;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    margin-top: 15px;
-    transition: background-color 0.2s ease;
-    text-align: center;
-    text-decoration: none;
-}
-
-.view-details-button:hover {
-    background-color: #138496;
-}
-
-/* --- Serduszko na ogłoszeniu (na liście) --- */
-.favorite-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5em; /* Rozmiar ikony */
-    padding: 5px;
-    position: absolute; /* Pozycjonowanie absolutne względem .announcement-card-wide */
-    top: 35px; /* Obniż serduszko */
-    right: 10px; /* Przesuń trochę w prawo, z dala od daty */
-    z-index: 10;
-    color: gray; /* Domyślny kolor obrysu */
-    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-    opacity: 1; /* Upewnienie się, że jest zawsze widoczne */
-}
-
-.favorite-button:hover:not(:disabled) {
-    color: lightcoral;
-    transform: scale(1.1);
-}
-
-.favorite-button[disabled] {
-    cursor: not-allowed;
-    opacity: 0.6;
+.announcement-card .favorite-button.favorited .fa-star {
+  color: #ffc107; /* Złoty dla ulubionych */
 }
 
 
-/* --- Duży widok szczegółów ogłoszenia w prawej kolumnie --- */
-.full-announcement-details-card {
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
-    min-height: 70vh;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-sizing: border-box;
-    position: relative; /* Dodano to w poprzednim kroku */
+.announcement-card .card-image {
+  width: 100%;
+  height: 180px; /* Stała wysokość obrazu */
+  object-fit: cover; /* Pokryj cały obszar, przytnij, jeśli trzeba */
+  margin-top: 10px;
 }
 
-/* NOWE STYLE: Kontener dla tytułu ogłoszenia i serduszka w widoku szczegółów */
-/* Jeśli serduszko ma być w rogu, a nie obok tytułu, ten blok CSS i jego odpowiednik w JSX są zbędne lub muszą być zmienione */
-.announcement-details-title-row {
-    display: flex; /* Użyj Flexbox do ułożenia elementów obok siebie */
-    align-items: center; /* Wyśrodkuj elementy w pionie */
-    justify-content: center; /* Wyśrodkuj zawartość h4 i przycisku */
-    gap: 15px; /* Odstęp między tytułem a serduszkiem */
-    margin-bottom: 20px; /* Margines pod całą linią tytułową */
-    text-align: center; /* Wyśrodkuj tekst tytułu */
+.announcement-card .card-description {
+  padding: 10px 15px;
+  font-size: 0.9em;
+  color: #666;
+  flex-grow: 1; /* Pozwala opisowi rosnąć */
+  max-height: 60px; /* Ogranicz wysokość opisu */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Ogranicz do 3 linii */
+  -webkit-box-orient: vertical;
 }
 
-/* Zresetuj margines h4 w nowym kontenerze */
-.announcement-details-title-row h4 {
-    margin: 0; /* Usuń domyślny margines z h4, aby uniknąć problemów z Flexbox */
-    line-height: 1.2; /* Dostosuj wysokość linii */
+.announcement-card .card-details {
+  padding: 10px 15px 15px 15px;
+  font-size: 0.9em;
+  color: #555;
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+}
+
+.announcement-card .card-details p {
+  margin-bottom: 5px;
+  text-align: left; /* Upewnij się, że tekst jest wyrównany do lewej */
+}
+
+.announcement-card .card-details p:last-child {
+  margin-bottom: 0;
+}
+
+.announcement-card .card-meta {
+  font-size: 0.8em;
+  color: #888;
+  margin-top: 10px;
+}
+
+.announcement-card .view-details-button {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-top: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+}
+
+.announcement-card .view-details-button:hover {
+  background-color: #218838;
+}
+
+/* Paginacja */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  gap: 8px;
+}
+
+.pagination button {
+  padding: 8px 15px;
+  border: 1px solid #007bff;
+  border-radius: 5px;
+  background-color: white;
+  color: #007bff;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #e0f2ff;
+}
+
+.pagination button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.pagination button:disabled {
+  border-color: #ccc;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Widok szczegółów ogłoszenia */
+.announcement-details-view {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.announcement-details-view .back-to-list-button {
+  background-color: #6c757d;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  transition: background-color 0.2s ease;
+}
+
+.announcement-details-view .back-to-list-button:hover {
+  background-color: #5a6268;
+}
+
+.announcement-details-view .details-card {
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.announcement-details-view h2 {
+  font-size: 2em;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.announcement-details-view p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.announcement-details-view img.announcement-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.announcement-details-view .announcement-user-info {
+  border-top: 1px solid #eee;
+  margin-top: 20px;
+  padding-top: 15px;
+}
+
+.announcement-details-view .announcement-user-info h3 {
+  font-size: 1.3em;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.announcement-details-view .announcement-user-info p {
+  margin-bottom: 8px;
+}
+
+.announcement-details-view .announcement-user-info a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.announcement-details-view .announcement-user-info a:hover {
+  text-decoration: underline;
+}
+
+.announcement-actions-owner {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.edit-announcement-button {
+  background-color: #ffc107;
+  color: #333;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.edit-announcement-button:hover {
+  background-color: #e0a800;
 }
 
 
-.full-announcement-details-card h3 {
-    font-size: 2.2em;
-    color: #007bff;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.full-announcement-details-card h4 {
-    font-size: 1.8em;
-    color: #333;
-    /* Usunięto margin-bottom, bo jest w .announcement-details-title-row */
-    text-align: center;
-}
-
-.announcement-details-image-full {
-    max-width: 80%;
-    height: auto;
-    border-radius: 8px;
-    margin: 20px auto;
-    display: block;
-    object-fit: contain;
-    max-height: 400px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.full-announcement-details-card p {
-    font-size: 1.15em;
-    line-height: 1.7;
-    margin-bottom: 10px;
-    color: #444;
-}
-
-.full-announcement-details-card p strong {
-    color: #222;
-}
-
-/* Dane kontaktowe w widoku szczegółów */
-.contact-info-details {
-    margin-top: 25px;
-    border-top: 1px dashed #bbb;
-    padding-top: 25px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-}
-
-.contact-info-details p {
-    width: 100%;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.2em;
-    color: #333;
-}
-
-.contact-button {
-    display: inline-block;
-    padding: 8px 12px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.9em;
-    text-align: center;
-    transition: background-color 0.2s ease;
-}
-
-.phone-button {
-    background-color: #28a745;
-    color: white;
-}
-.phone-button:hover {
-    background-color: #218838;
-}
-
-.whatsapp-button {
-    background-color: #25d366;
-    color: white;
-}
-.whatsapp-button:hover {
-    background-color: #1DA851;
-}
-
-.messenger-button {
-    background-color: #007bff;
-    color: white;
-}
-.messenger-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-}
-
-/* NOWE STYLE DLA PRZYCISKÓW AKCJI (WhatsApp, Messenger, Zadaj pytanie) W WIDOKU SZCZEGÓŁÓW */
-.chat-and-direct-contact-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
-
-.action-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-    color: white;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.action-button i {
-    margin-right: 10px;
-    font-size: 1.2em;
-}
-
-.whatsapp-action-button {
-    background-color: #25d366;
-}
-.whatsapp-action-button:hover {
-    background-color: #1DA851;
-    transform: translateY(-2px);
-}
-
-.messenger-action-button {
-    background-color: #007bff;
-    color: white;
-}
-.messenger-action-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-}
-
-.ask-question-button {
-    background-color: #ff6600;
-    color: white;
-}
-.ask-question-button:hover {
-    background-color: #e65100;
-    transform: translateY(-2px);
-}
-
-
-/* Komunikaty ładowania, błędów, braku ogłoszeń */
-.loading-message, .error-message-list, .no-announcements-message {
-    text-align: center;
-    font-size: 1.1em;
-    color: #666;
-    padding: 20px;
-}
-
-.error-message-list {
-    color: #dc3545;
-    font-weight: bold;
-}
-
-
-/* === TRYB CIEMNY === */
+/* === Tryb ciemny === */
 @media (prefers-color-scheme: dark) {
-    .left-panel,
-    .main-content-area {
-        background-color: #333;
-        color: #e0e0e0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .left-panel .form-header,
-    .main-content-area h2 {
-        color: #f0f0f0;
-    }
-
-    .add-announcement-button {
-        background-color: #0056b3;
-    }
-    .add-announcement-button:hover {
-        background-color: #003d80;
-    }
-
-    .announcement-detail-buttons {
-        background-color: #444;
-        border-color: #555;
-    }
-    .add-announcement-button-side {
-        background-color: #1e7e34;
-    }
-    .add-announcement-button-side:hover {
-        background-color: #176a2c;
-    }
-    .back-button-side {
-        background-color: #5a6268;
-    }
-    .back-button-side:hover {
-        background-color: #495057;
-    }
-
-    .search-filter-section {
-        background-color: #444;
-        border-color: #555;
-    }
-    .search-filter-section h3 {
-        color: #f0f0f0;
-    }
-    .filter-group label {
-        color: #ccc;
-    }
-    .filter-input, .filter-input-range {
-        background-color: #555;
-        border-color: #666;
-        color: #e0e0e0;
-    }
-    .filter-input::placeholder, .filter-input-range::placeholder {
-        color: #999;
-    }
-    .filter-group .range-inputs span {
-        color: #ccc;
-    }
-    .filter-button {
-        background-color: #0056b3;
-    }
-    .filter-button:hover {
-        background-color: #003d80;
-    }
-    .clear-filter-button {
-        background-color: #5a6268;
-    }
-    .clear-filter-button:hover {
-        background-color: #495057;
-    }
-
-
-    /* Układ single-column w trybie ciemnym */
-    .announcements-list-single-column {
-        /* brak specyficznych zmian dla dark mode tutaj, dziedziczą po .main-content-area */
-    }
-
-    .announcement-card-wide {
-        background-color: #444;
-        border-color: #555;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-    .announcement-card-wide h3 {
-        color: #f0f0f0;
-    }
-    .announcement-card-wide p {
-        color: #ccc;
-    }
-    .announcement-card-wide p strong {
-        color: #f0f0f0;
-    }
-    .announcement-card-wide .posted-at {
-        color: #aaa;
-    }
-    .announcement-card-wide .card-meta {
-        border-color: #555;
-        color: #ccc;
-    }
-    .announcement-card-wide .card-meta span strong {
-        color: #f0f0f0;
-    }
-
-    .view-details-button {
-        background-color: #117a8b;
-    }
-    .view-details-button:hover {
-        background-color: #0e6774;
-    }
-
-    /* === WIDOK SZCZEGÓŁÓW W TRYBIE CIEMNYM === */
-    .full-announcement-details-card {
-        background-color: #444;
-        border: 1px solid #555;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
-    .full-announcement-details-card h3,
-    .full-announcement-details-card h4 {
-        color: #f0f0f0;
-    }
-    .full-announcement-details-card p {
-        color: #ccc;
-    }
-    .full-announcement-details-card p strong {
-        color: #f0f0f0;
-    }
-    .announcement-details-image-full {
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    }
-    .contact-info-details {
-        border-color: #666;
-    }
-    .contact-info-details p {
-        color: #f0f0f0;
-    }
-    /* .contact-button style definitions */
-
-    /* NOWE STYLE AKCJI W WIDOKU SZCZEGÓŁÓW W TRYBIE CIEMNYM */
-    .chat-and-direct-contact-buttons {
-        border-color: #555;
-    }
-    .whatsapp-action-button {
-        background-color: #1f9e4f;
-    }
-    .whatsapp-action-button:hover {
-        background-color: #177a3d;
-    }
-    .messenger-action-button {
-        background-color: #0056b3;
-    }
-    .messenger-action-button:hover {
-        background-color: #003d80;
-    }
-    .ask-question-button {
-        background-color: #e65100;
-    }
-    .ask-question-button:hover {
-        background-color: #c84400;
-    }
-
-
-    .loading-message, .error-message-list, .no-announcements-message {
-        color: #aaa;
-    }
-
-    .error-message-list {
-        color: #ff6b6b;
-    }
-
-    .no-route-info {
-        color: #aaa;
-    }
-}
-
-
-/* === NOWE STYLE DLA KONTROLEK PAGINACJI === */
-.pagination-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
-
-.pagination-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.pagination-button:hover:not(:disabled) {
-    background-color: #0056b3;
-    transform: translateY(-1px);
-}
-
-.pagination-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.pagination-button.active {
-    background-color: #ff6600; /* Aktywna strona ma inny kolor */
-    transform: scale(1.1);
-}
-
-.pagination-button.active:hover {
-    background-color: #e65100;
-}
-
-
-/* === TRYB CIEMNY DLA PAGINACJI === */
-@media (prefers-color-scheme: dark) {
-    .pagination-controls {
-        border-top: 1px solid #555;
-    }
-    .pagination-button {
-        background-color: #0056b3;
-    }
-    .pagination-button:hover:not(:disabled) {
-        background-color: #003d80;
-    }
-    .pagination-button:disabled {
-        background-color: #666;
-    }
-    .pagination-button.active {
-        background-color: #e65100;
-    }
-    .pagination-button.active:hover {
-        background-color: #c84400;
-    }
-}
-
-/* Responsywność dla mniejszych ekranów */
-@media (max-width: 992px) {
-    .announcements-page-container {
-        flex-direction: column;
-        gap: 20px;
-        padding: 20px;
-    }
-
-    .left-panel,
-    .main-content-area {
-        flex: none;
-        width: 100%;
-        /* Dodatkowo dla mobilnych, aby full-announcement-details-card mogło się rozciągać wewnątrz main-content-area */
-        height: auto; /* Upewnij się, że nie ma sztywnej wysokości na mobilnych */
-        min-height: unset; /* Usuń ewentualne min-height, które kolidowałoby */
-    }
-
-    /* Zmiana tutaj: upewnienie się, że ogłoszenia nadal są w kolumnie na małych ekranach */
-    .announcements-list-single-column {
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-    
-    .full-announcement-details-card {
-        padding: 15px; /* Mniejszy padding na mobilnych */
-        min-height: 70vh; /* Utrzymaj minimalną widoczną wysokość, możesz dostosować */
-        max-height: unset; /* Pozwól na rozciąganie na pełną wysokość, jeśli modal jest full screen */
-        overflow-y: auto; /* Nadal przewijanie wewnątrz karty */
-        height: auto; /* Ważne dla elastyczności */
-        width: 100%; /* Upewnij się, że jest pełna szerokość */
-    }
-
-    .full-announcement-details-card .announcement-details-image-full {
-        max-width: 100%;
-    }
-    .chat-and-direct-contact-buttons {
-        width: 100%;
-    }
-    .action-button {
-        padding: 10px 15px;
-        font-size: 1em;
-    }
-    .action-button i {
-        font-size: 1em;
-        margin-right: 5px;
-    }
-
-    /* --- Serduszko w widoku szczegółów ogłoszenia (ZMODYFIKOWANE) --- */
-    .favorite-button-details {
-        /* Poniższe style pozwolą na pozycjonowanie serduszka w rogu karty */
-        position: absolute;
-        top: 15px; /* Dostosuj pozycję pionową od góry karty */
-        right: 15px; /* Dostosuj pozycję poziomą od prawej krawędzi karty */
-        z-index: 20; /* Upewnij się, że jest nad innymi elementami */
-
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1.8em; /* Nieco mniejsze serduszko na mobilnych */
-        padding: 5px;
-        color: gray;
-        transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
-        opacity: 1;
-        width: auto;
-        height: auto;
-        display: flex; /* Zapewnia, że ikonka jest dobrze wyśrodkowana w przycisku */
-        align-items: center;
-        justify-content: center;
-    }
-}
-@media (max-width: 768px) {
-  .announcement-card-wide .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+  .announcements-content {
+    background-color: #282c34;
   }
 
-  .announcement-card-wide .posted-at {
-    text-align: left;
-    margin-top: 5px;
+  .left-panel,
+  .main-panel,
+  .announcement-card,
+  .announcement-details-view .details-card {
+    background-color: #363a42;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .left-panel h3,
+  .main-panel h2,
+  .announcement-card h4,
+  .announcement-details-view h2,
+  .announcement-details-view .announcement-user-info h3 {
+    color: #eee;
+  }
+
+  .left-panel label,
+  .left-panel small,
+  .announcement-card p,
+  .announcement-details-view p {
+    color: #ccc;
+  }
+
+  .left-panel input[type="text"],
+  .left-panel input[type="number"] {
+    background-color: #444;
+    border-color: #555;
+    color: #eee;
+  }
+
+  .left-panel input::placeholder {
+    color: #999;
+  }
+
+  .add-announcement-button,
+  .apply-filters-button,
+  .reset-filters-button {
+    background-color: #0056b3;
+  }
+  .add-announcement-button:hover,
+  .apply-filters-button:hover,
+  .reset-filters-button:hover {
+    background-color: #003d80;
+  }
+
+  .filter-button {
+    background-color: #444;
+    border-color: #555;
+    color: #eee;
+  }
+  .filter-button:hover {
+    background-color: #555;
+  }
+  .filter-button.active {
+    background-color: #1e8449;
+    border-color: #1e8449;
+  }
+
+  .announcement-card {
+    border-color: #444;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .announcement-card:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .announcement-card .favorite-button {
+    color: #bbb;
+  }
+  .announcement-card .favorite-button.favorited .fa-star {
+    color: #ffc107;
+  }
+
+  .announcement-card .card-description,
+  .announcement-card .card-details p,
+  .announcement-card .card-meta {
+    color: #bbb;
+  }
+
+  .announcement-card .view-details-button {
+    background-color: #1e8449;
+  }
+  .announcement-card .view-details-button:hover {
+    background-color: #186a3b;
+  }
+
+  .pagination button {
+    background-color: #363a42;
+    border-color: #0056b3;
+    color: #007bff;
+  }
+  .pagination button:hover:not(:disabled) {
+    background-color: #444;
+  }
+  .pagination button.active {
+    background-color: #0056b3;
+    color: white;
+  }
+  .pagination button:disabled {
+    border-color: #555;
+    color: #555;
+  }
+
+  .announcement-details-view .back-to-list-button {
+    background-color: #5a6268;
+  }
+  .announcement-details-view .back-to-list-button:hover {
+    background-color: #4a5056;
+  }
+
+  .announcement-details-view .announcement-user-info a {
+    color: #6bb3ff;
+  }
+  .edit-announcement-button {
+    background-color: #e0a800;
+    color: #222;
+  }
+  .edit-announcement-button:hover {
+    background-color: #cc9900;
+  }
+}
+
+/* --- Responsywność --- */
+@media (max-width: 768px) {
+  .announcements-content {
+    flex-direction: column;
+    padding: 0 10px;
+    margin: 15px auto;
+  }
+
+  .left-panel {
+    flex: none; /* Usuń stałą szerokość */
+    width: 100%; /* Zajmij całą szerokość */
+    margin-right: 0;
+    margin-bottom: 20px;
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .left-panel h3 {
+    font-size: 1.2rem;
+  }
+
+  .main-panel {
+    padding: 15px;
+  }
+
+  .announcements-list-view h2 {
+    font-size: 1.8em;
+  }
+
+  .announcements-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Mniejsze min-width na mobilnych */
+    gap: 15px;
+  }
+
+  .announcement-card .card-header {
+    padding: 12px 12px 0 12px;
+  }
+
+  .announcement-card h4 {
+    font-size: 1.1em;
+  }
+
+  .announcement-card .favorite-button {
+    font-size: 1.1em;
+  }
+
+  .announcement-card .card-image {
+    height: 150px;
+  }
+
+  .announcement-card .card-description,
+  .announcement-card .card-details p {
+    font-size: 0.85em;
+    padding: 8px 12px;
+  }
+
+  .announcement-card .view-details-button {
+    font-size: 0.85em;
+    padding: 7px 10px;
+  }
+
+  .pagination button {
+    padding: 6px 10px;
+    font-size: 0.8em;
+  }
+
+  .announcement-details-view h2 {
+    font-size: 1.8em;
+  }
+
+  .announcement-details-view p {
+    font-size: 0.9em;
+  }
+}
+
+/* Jeszcze mniejsze ekrany (np. bardzo małe telefony) */
+@media (max-width: 480px) {
+  .announcements-content {
+    padding: 0 5px;
+  }
+
+  .left-panel {
+    padding: 10px;
+    margin-bottom: 15px;
+    gap: 8px;
+  }
+
+  .search-filters input[type="text"],
+  .search-filters input[type="number"] {
+    padding: 6px 8px;
+    font-size: 0.85em;
+  }
+  
+  .add-announcement-button,
+  .apply-filters-button,
+  .reset-filters-button {
+      padding: 8px 12px;
+      font-size: 0.9em;
+  }
+
+  .main-panel {
+    padding: 10px;
+  }
+
+  .announcements-list-view h2 {
+    font-size: 1.5em;
+  }
+
+  .announcement-card .card-header {
+    padding: 10px 10px 0 10px;
+  }
+
+  .announcement-card .card-description {
+    padding: 6px 10px;
+  }
+
+  .announcement-details-view {
+    padding: 15px;
   }
 }

@@ -1,6 +1,9 @@
+import React from 'react'; // Dodaj import React, jeśli go nie ma
 import './Footer.css';
 
 const Footer = () => {
+  const facebookGroupLink = "https://www.facebook.com/groups/1278233000603384"; // Twój link do grupy
+
   return (
     <footer className="footer">
       <div className="footer-top">
@@ -19,13 +22,26 @@ const Footer = () => {
             <li><a href="tel:+48510260270">+48 510 260 270</a></li>
           </ul>
         </div>
+        {/* NOWA KOLUMNA: Społeczność / Facebook */}
+        <div className="footer-column footer-social"> {/* Dodana klasa footer-social dla stylów */}
+          <h4>Społeczność</h4>
+          <ul>
+            <li>
+              <a href={facebookGroupLink} target="_blank" rel="noopener noreferrer" className="facebook-group-link">
+                <i className="fab fa-facebook-square"></i> {/* Ikona Facebooka */}
+                Dołącz do grupy na FB
+              </a>
+            </li>
+          </ul>
+        </div>
+        {/* KONIEC NOWEJ KOLUMNY */}
         <div className="footer-column">
           <h4>Na skróty</h4>
           <ul>
             <li><a href="/">Strona główna</a></li>
             <li><a href="/register">Zarejestruj się</a></li>
             <li><a href="/faq">FAQ / Pomoc</a></li>
-            <li><a href="/kontakt">Kontakt</a></li> {/* ← DODANY LINK */}
+            <li><a href="/kontakt">Kontakt</a></li>
           </ul>
         </div>
       </div>
