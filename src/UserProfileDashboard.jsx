@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import Navbar from './components/Navbar';
-import './UserProfileDashboard.css'; // Ten plik będzie zawierał nowe klasy
+import './UserProfileDashboard.css'; 
 import LocationAutocomplete from './components/LocationAutocomplete';
 const provinces = [
   'Dolnośląskie', 'Kujawsko-Pomorskie', 'Lubelskie', 'Lubuskie',
@@ -38,7 +38,7 @@ export default function UserProfileDashboard() {
   const [mySelectedCitySuggestion, setMySelectedCitySuggestion] = useState(null);
 
   // --- WŁAŚCIWE STANY DLA PÓL KONTAKTOWYCH PROFILU (do auto-podstawiania) ---
-  const [universalContactPhone, setUniversalContactPhone] = useState(''); // ZMIANA: NOWY STAN dla numeru do autopodstawiania
+  const [universalContactPhone, setUniversalContactPhone] = useState(''); 
   const [profileUsesWhatsapp, setProfileUsesWhatsapp] = useState(false);
   const [profileMessengerLink, setProfileMessengerLink] = useState('');
   const [profileConsentPhoneShare, setProfileConsentPhoneShare] = useState(false);
@@ -55,8 +55,7 @@ export default function UserProfileDashboard() {
           setFormData(null);
           setIsPublicProfileAgreed(false);
           setIsRoadsideAssistanceAgreed(false);
-          // Zresetuj stany nowych pól
-          setUniversalContactPhone(''); // ZMIANA: Reset nowego stanu
+          setUniversalContactPhone(''); 
           setProfileUsesWhatsapp(false);
           setProfileMessengerLink('');
           setProfileConsentPhoneShare(false);
@@ -66,7 +65,7 @@ export default function UserProfileDashboard() {
 
         const { data, error } = await supabase
           .from('users_extended')
-          .select('*') // 'select(*)' pobierze wszystkie kolumny, w tym nową universal_contact_phone
+          .select('*') 
           .eq('id', user.id)
           .single();
 
@@ -77,8 +76,7 @@ export default function UserProfileDashboard() {
           setFormData(null);
           setIsPublicProfileAgreed(false);
           setIsRoadsideAssistanceAgreed(false);
-          // Zresetuj stany nowych pól
-          setUniversalContactPhone(''); // ZMIANA: Reset nowego stanu
+          setUniversalContactPhone(''); 
           setProfileUsesWhatsapp(false);
           setProfileMessengerLink('');
           setProfileConsentPhoneShare(false);
@@ -102,7 +100,7 @@ export default function UserProfileDashboard() {
           setFormData(initialFormData); 
 
           // Inicjalizacja stanów dla pól kontaktowych profilu (z nowych/dedykowanych kolumn)
-          setUniversalContactPhone(fetchedData.universal_contact_phone || ''); // ZMIANA: Inicjalizacja z NOWEJ kolumny
+          setUniversalContactPhone(fetchedData.universal_contact_phone || ''); 
           setProfileUsesWhatsapp(fetchedData.profile_uses_whatsapp || false);
           setProfileMessengerLink(fetchedData.profile_messenger_link || '');
           setProfileConsentPhoneShare(fetchedData.profile_consent_phone_share || false);
@@ -112,8 +110,8 @@ export default function UserProfileDashboard() {
           const fullRoadsideStreetValue = initialFormData.roadside_street + (initialFormData.roadside_number ? ' ' + initialFormData.roadside_number : '');
           setRoadsideStreetAutocompleteValue(fullRoadsideStreetValue.trim());
           
-          if (initialFormData.latitude != null && initialFormData.roadside_longitude != null) { // Changed to roadside_longitude based on user provided .css and previous context
-            setRoadsideSelectedCoords({ latitude: initialFormData.latitude, longitude: initialFormData.roadside_longitude }); // Changed to roadside_longitude
+          if (initialFormData.latitude != null && initialFormData.roadside_longitude != null) { 
+            setRoadsideSelectedCoords({ latitude: initialFormData.latitude, longitude: initialFormData.roadside_longitude }); 
           } else {
             setRoadsideSelectedCoords({ latitude: null, longitude: null });
           }
@@ -135,8 +133,7 @@ export default function UserProfileDashboard() {
         setFormData(null);
         setIsPublicProfileAgreed(false);
         setIsRoadsideAssistanceAgreed(false);
-        // Reset nowych stanów
-        setUniversalContactPhone(''); // ZMIANA: Reset nowego stanu
+        setUniversalContactPhone(''); 
         setProfileUsesWhatsapp(false);
         setProfileMessengerLink('');
         setProfileConsentPhoneShare(false);
@@ -273,13 +270,11 @@ export default function UserProfileDashboard() {
     if (activeTab === 'Moje dane') {
         updatedFormData = {
             ...updatedFormData,
-            // 'phone' (firmowy) jest już w updatedFormData z handleChange (jeśli firma)
-            universal_contact_phone: profileConsentPhoneShare ? universalContactPhone : null, // ZMIANA: Zapis do nowej kolumny
+            universal_contact_phone: profileConsentPhoneShare ? universalContactPhone : null, 
             profile_uses_whatsapp: profileUsesWhatsapp,
             profile_messenger_link: profileMessengerLink || null,
             profile_consent_phone_share: profileConsentPhoneShare,
         };
-        // Jeśli zgoda na telefon jest cofnięta, upewnij się, że WhatsApp też jest wyłączony
         if (!profileConsentPhoneShare) {
             updatedFormData.profile_uses_whatsapp = false;
         }
@@ -414,7 +409,7 @@ export default function UserProfileDashboard() {
                   if (sug.center && Array.isArray(sug.center) && sug.center.length >= 2) {
                     setMySelectedCityCoords({ latitude: sug.center[1], longitude: sug.center[0] });
                   } else {
-                    setMySelectedCityCoords({ latitude: null, longitude: null }); // Ustaw na null
+                    setMySelectedCityCoords({ latitude: null, longitude: null }); 
                   }
                 }}
                 placeholder="Wpisz miasto główne"
@@ -452,18 +447,45 @@ export default function UserProfileDashboard() {
 
             {/* === NOWE POLA DANYCH KONTAKTOWYCH PROFILU (do auto-podstawiania) === */}
             <h4 className="form-section-subtitle" >Preferowane dane kontaktowe do formularzy</h4> 
+            
+            {/* ZMIANA: PRZENIESIONY BLOK CHECKBOXA */}
+            <div className="form-group-checkbox" style={{ marginBottom: '10px' }}> 
+              <label htmlFor="profileConsentPhoneShare">
+                <input
+                  type="checkbox"
+                  id="profileConsentPhoneShare"
+                  name="profile_consent_phone_share"
+                  checked={profileConsentPhoneShare}
+                  onChange={(e) => {
+                    setProfileConsentPhoneShare(e.target.checked);
+                    if (!e.target.checked) {
+                      setUniversalContactPhone(''); 
+                      setProfileUsesWhatsapp(false);
+                    }
+                  }}
+                />
+                <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie w formularzach.</span>
+              </label>
+              <small className="form-group-checkbox-small"> 
+                Numer telefonu będzie widoczny dla innych użytkowników w zgłoszeniach i ogłoszeniach.
+              </small>
+            </div>
+            
+            {/* ZMIANA: POLE INPUT DLA NUMERU TELEFONU */}
             <label className="form-label">
               Numer telefonu (do auto-podstawiania): 
               <input
                 type="text"
-                name="universal_contact_phone_input" // ZMIANA: NOWA UNIKALNA NAZWA DLA INPUTA (nie mapuje na formData)
-                value={universalContactPhone || ''} // ZMIANA: Mapowanie na nowy stan
-                onChange={(e) => setUniversalContactPhone(e.target.value)} // ZMIANA: Aktualizacja nowego stanu
+                name="universal_contact_phone_input"
+                value={universalContactPhone || ''} 
+                onChange={(e) => setUniversalContactPhone(e.target.value)}
                 className="form-input"
                 placeholder="Np. +48 123 456 789"
-                disabled={!profileConsentPhoneShare}
+                disabled={!profileConsentPhoneShare} 
               />
             </label>
+
+            {/* RESZTA PÓL (WHATSAPP, MESSENGER) - BEZ ZMIAN */}
             <div className="form-group-checkbox"> 
               <label htmlFor="profileUsesWhatsapp">
                 <input
@@ -493,28 +515,7 @@ export default function UserProfileDashboard() {
                 </a>
               </small>
             </label>
-            <div className="form-group-checkbox"> 
-              <label htmlFor="profileConsentPhoneShare">
-                <input
-                  type="checkbox"
-                  id="profileConsentPhoneShare"
-                  name="profile_consent_phone_share"
-                  checked={profileConsentPhoneShare}
-                  onChange={(e) => {
-                    setProfileConsentPhoneShare(e.target.checked);
-                    if (!e.target.checked) {
-                      setUniversalContactPhone(''); // ZMIANA: Wyczyść universalContactPhone
-                      setProfileUsesWhatsapp(false);
-                    }
-                  }}
-                />
-                <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie w formularzach.</span>
-              </label>
-              <small className="form-group-checkbox-small"> 
-                Numer telefonu będzie widoczny dla innych użytkowników w zgłoszeniach i ogłoszeniach.
-              </small>
-            </div>
-
+            
 
             <button type="submit" disabled={saving} className="form-button">
               {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
