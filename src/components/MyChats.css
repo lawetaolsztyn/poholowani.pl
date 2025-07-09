@@ -20,9 +20,27 @@
 
 .conversations-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  /* repeat(auto-fit, minmax(280px, 1fr)) - nadal pozwala na automatyczne dopasowanie i rozciąganie. */
+  /* Lepsze podejście to ustalenie stałej liczby kolumn lub użycie flexboxa z zawijaniem. */
+
+  /* Wersja 1: Użycie display: flex z zawijaniem i wyrównaniem */
+  /* To daje większą kontrolę nad tym, jak elementy się grupują */
+  display: flex;
+  flex-wrap: wrap; /* Pozwala elementom zawijać się do następnego wiersza */
+  gap: 20px;       /* Zachowaj odstępy między elementami */
+  justify-content: flex-start; /* Wyrównuje elementy do lewej */
+  /* Jeśli chcesz je wyśrodkować, użyj justify-content: center; */
 }
+
+/* Nadal potrzebujesz stylów dla samej karty, aby określić jej podstawową szerokość */
+.conversation-card {
+  /* Upewnij się, że min-width jest zgodny z minmax z poprzedniego grida, np. 280px */
+  /* i że max-width lub flex-basis kontroluje szerokość. */
+  flex: 0 0 calc(33.333% - (2 * 20px / 3)); /* 33.333% dla 3 kolumn, minus odstępy */
+  /* Lub prostsze: */
+  width: calc((100% - 2 * 20px) / 3); /* szerokość dla 3 kolumn, minus 2x gap */
+  min-width: 280px; /* Minimalna szerokość karty, jeśli 280px to Twój min-size */
+  max-width: 380px; /* Opcjonalnie: maksymalna szerokość karty, jeśli chcesz to ograniczyć */
 
 /* Pojedyncza karta */
 .conversation-card {
