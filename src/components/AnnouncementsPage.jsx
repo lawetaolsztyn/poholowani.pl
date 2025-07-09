@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // Dodano useCallback
 import { supabase } from '../supabaseClient';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
@@ -42,7 +42,7 @@ const AnnouncementsPage = () => {
 
   const resultsRef = useRef(null); // Referencja do przewijania
 
-  const fetchFavorites = async (userId) => {
+  const fetchFavorites = useCallback(async (userId) => {
     if (!userId) return [];
     try {
       const { data, error } = await supabase
@@ -55,40 +55,15 @@ const AnnouncementsPage = () => {
       console.error('Błąd pobierania ulubionych:', err.message);
       return [];
     }
-  };
+  }, []); // Pusta tablica zależności, bo nie zależy od żadnych stanów komponentu
 
-  const handleToggleFavorite = async (announcementId) => {
-    if (!currentUser) {
-      alert('Musisz być zalogowany, aby dodawać ogłoszenia do ulubionych.');
-      return;
-    }
+  // Poprawka: handleToggleFavoritesFilter musi być zdefiniowane
+  const handleToggleFavoritesFilter = useCallback(() => {
+    setShowFavoritesOnly(prev => !prev);
+    setPage(0); // Zawsze resetuj paginację przy zmianie filtra
+  }, []);
 
-    const isCurrentlyFavorite = favoriteAnnouncementIds.includes(announcementId);
-    try {
-      if (isCurrentlyFavorite) {
-        // Usuń z ulubionych
-        const { error } = await supabase
-          .from('user_favorites')
-          .delete()
-          .eq('user_id', currentUser.id)
-          .eq('announcement_id', announcementId);
-        if (error) throw error;
-        setFavoriteAnnouncementIds(prev => prev.filter(id => id !== announcementId));
-      } else {
-        // Dodaj do ulubionych
-        const { error } = await supabase
-          .from('user_favorites')
-          .insert({ user_id: currentUser.id, announcement_id });
-        if (error) throw error;
-        setFavoriteAnnouncementIds(prev => [...prev, announcementId]);
-      }
-    } catch (err) {
-      console.error('Błąd zmiany statusu ulubionych:', err.message);
-      alert('Nie udało się zmienić statusu ulubionych.');
-    }
-  };
-
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = useCallback(async () => {
     setLoading(true);
     setError(null);
     let query = supabase.from('announcements').select(`
@@ -171,7 +146,11 @@ const AnnouncementsPage = () => {
         resultsRef.current.scrollIntoView({ behavior: 'smooth' });
       }
     }
-  };
+  }, [page, showFavoritesOnly, currentUser, fetchFavorites, // Dodano fetchFavorites
+    locationFromFilter, locationToFilter, keywordsFilter,
+    budgetMinFilter, budgetMaxFilter, weightMinFilter, weightMaxFilter,
+    radiusFilter, currentCoords // Dodano zależności filtrów
+  ]);
 
   useEffect(() => {
     fetchAnnouncements();
@@ -180,6 +159,7 @@ const AnnouncementsPage = () => {
     budgetMinFilter, budgetMaxFilter, weightMinFilter, weightMaxFilter,
     radiusFilter, currentCoords // Dodano zależności filtrów
   ]);
+
 
   useEffect(() => {
     // Pobierz bieżącą lokalizację użytkownika (tylko raz)
@@ -230,11 +210,15 @@ const AnnouncementsPage = () => {
   };
 
   // Funckja do przekierowania na logowanie z intencją zadania pytania
-  const handleAskQuestionRedirect = () => {
-    localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
-    navigate('/login');
-    return true; // Zwróć true, aby zasygnalizować, że przekierowano
-  };
+  const handleAskQuestionRedirect = useCallback(() => { // Upewniono się, że jest useCallback
+    if (selectedAnnouncement) {
+      localStorage.setItem('redirect_to_announce_details_id', selectedAnnouncement.id);
+      navigate('/login');
+      return true; // Zwróć true, aby zasygnalizować, że przekierowano
+    }
+    return false;
+  }, [navigate, selectedAnnouncement]);
+
 
   const totalPages = Math.ceil(totalCount / limit);
   const paginationButtons = [];
@@ -279,7 +263,7 @@ const AnnouncementsPage = () => {
           <div className="filter-buttons">
             <button
               className={`filter-button ${showFavoritesOnly ? 'active' : ''}`}
-              onClick={handleToggleFavoritesFilter}
+              onClick={handleToggleFavoritesFilter} // Użycie poprawionej funkcji
             >
               {showFavoritesOnly ? 'Pokaż wszystkie ogłoszenia' : 'Pokaż tylko ulubione'}
             </button>
