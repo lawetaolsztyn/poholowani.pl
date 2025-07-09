@@ -298,6 +298,55 @@
 }
 
 
+/* NOWE STYLE DLA BLOKU GRUPY FACEBOOK W PANELU BOCZNYM */
+.facebook-group-sidebar-container {
+    background-color: #e6f7ff; /* Jasnoniebieskie tło */
+    border: 1px solid #91d5ff; /* Niebieska ramka */
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 25px; /* Odstęp od poprzedniego elementu */
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.facebook-group-sidebar-container h4 {
+    font-size: 1.4em;
+    color: #0056b3; /* Ciemniejszy niebieski dla nagłówka */
+    margin-bottom: 10px;
+}
+
+.facebook-group-sidebar-container p {
+    font-size: 0.95em;
+    color: #333;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.facebook-group-link {
+    display: inline-flex; /* Umożliwia ikonę i tekst w jednej linii */
+    align-items: center;
+    gap: 8px; /* Odstęp między ikoną a tekstem */
+    background-color: #1877f2; /* Klasyczny kolor Facebooka */
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.facebook-group-link:hover {
+    background-color: #166fe5; /* Nieco ciemniejszy na hover */
+    transform: translateY(-2px);
+}
+
+.facebook-group-link i {
+    font-size: 3.4em; /* Rozmiar ikony */
+}
+
+
 /* --- LISTA OGŁOSZEŃ (PRAWA KOLUMNA) - zachowanie oryginalnego układu single-column --- */
 /* WAŻNE: TA KLASA JEST TERAZ UŻYWANA W JSX DLA KONTENERA OGŁOSZEŃ */
 .announcements-list-single-column {
@@ -714,6 +763,29 @@
     }
     .clear-filter-button:hover {
         background-color: #495057;
+    }
+
+
+    /* NOWE STYLE DLA BLOKU GRUPY FACEBOOK W PANELU BOCZNYM W TRYBIE CIEMNYM */
+    .facebook-group-sidebar-container {
+        background-color: #2a3a4a; /* Ciemniejsze tło */
+        border-color: #3f5d7a; /* Ciemniejsza ramka */
+    }
+
+    .facebook-group-sidebar-container h4 {
+        color: #8bbcdc; /* Jaśniejszy niebieski dla nagłówka w dark mode */
+    }
+
+    .facebook-group-sidebar-container p {
+        color: #bbb;
+    }
+
+    .facebook-group-link {
+        background-color: #0d47a1; /* Ciemniejszy niebieski Facebooka */
+    }
+
+    .facebook-group-link:hover {
+        background-color: #0a3d82;
     }
 
 

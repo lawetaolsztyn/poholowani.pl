@@ -478,6 +478,14 @@ export default function AnnouncementsPage() {
               )}
             </button>
           )}
+ {/* NOWY BLOK: Link do grupy FB w panelu bocznym */}
+          <div className="facebook-group-sidebar-container">
+            <h4>Dołącz do Społeczności!</h4>
+            <p>Bądź na bieżąco z nowymi ogłoszeniami, zadawaj pytania i dyskutuj z innymi użytkownikami.</p>
+            <a href="https://www.facebook.com/groups/1278233000603384" target="_blank" rel="noopener noreferrer" className="facebook-group-link">
+              <i className="fab fa-facebook-square"></i> Dołącz do grupy na FB
+            </a>
+          </div>
 
           {showForm && (
             <>
