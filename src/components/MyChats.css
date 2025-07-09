@@ -23,7 +23,7 @@
   display: flex; /* Zmieniamy z grid na flex */
   flex-wrap: wrap; /* Pozwala elementom zawijać się do następnego wiersza */
   gap: 20px;       /* Zachowaj odstępy między elementami */
-  justify-content: flex-start; /* Wyrównuje elementy do lewej (zamiast rozciągać) */
+  justify-content: center; /* Wyrównuje elementy do lewej (zamiast rozciągać) */
   /* Jeśli chcesz, by pojedyncze elementy były wyśrodkowane, gdy nie wypełniają rzędu, użyj:
      justify-content: center; */
 }
