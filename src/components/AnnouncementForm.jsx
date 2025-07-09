@@ -354,6 +354,30 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
 
         <div className="form-group-contact">
           <h4>Twoje dane kontaktowe (widoczne dla przewoźników):</h4>
+          
+          {/* PRZENIESIONY BLOK ZGODY - TERAZ BEZPOŚREDNIO PO ETYKIECIE "Telefon" */}
+          <div className="form-group form-group-checkbox consent-checkbox-group">
+            <label htmlFor="consentPhoneShare">
+              <input
+                type="checkbox"
+                id="consentPhoneShare"
+                checked={consentPhoneShare}
+                onChange={(e) => {
+                  setConsentPhoneShare(e.target.checked);
+                  if (!e.target.checked) {
+                    setContactPhone('');
+                    setUsesWhatsapp(false);
+                  }
+                }}
+              />
+              <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie.</span>
+            </label>
+            <small className="help-text">
+              Numer telefonu będzie widoczny dla innych użytkowników.
+            </small>
+          </div>
+
+          {/* POLE INPUT DLA TELEFONU - TERAZ PONIŻEJ CHECKBOXA ZGODY */}
           <div className="form-group">
             <label htmlFor="contactPhone">Telefon (obowiązkowo, jeśli podajesz):</label>
             <input
@@ -362,10 +386,11 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
               placeholder="Np. +48 123 456 789"
-              disabled={!consentPhoneShare}
+              disabled={!consentPhoneShare} // Ten input jest wyłączony, jeśli zgoda nie jest zaznaczona
             />
           </div>
           
+          {/* RESZTA PÓL (WHATSAPP, MESSENGER) - BEZ ZMIAN, SĄ PONIŻEJ */}
           <div className="form-group form-group-checkbox">
             <label htmlFor="usesWhatsapp">
               <input
@@ -393,28 +418,6 @@ export default function AnnouncementForm({ onSuccess, announcementToEdit }) {
                 </a>
             </small>
           </div>
-
-          <div className="form-group form-group-checkbox consent-checkbox-group">
-            <label htmlFor="consentPhoneShare">
-              <input
-                type="checkbox"
-                id="consentPhoneShare"
-                checked={consentPhoneShare}
-                onChange={(e) => {
-                  setConsentPhoneShare(e.target.checked);
-                  if (!e.target.checked) {
-                    setContactPhone('');
-                    setUsesWhatsapp(false);
-                  }
-                }}
-              />
-              <span>Zgadzam się na udostępnienie mojego numeru telefonu publicznie.</span>
-            </label>
-            <small className="help-text">
-              Numer telefonu będzie widoczny dla innych użytkowników.
-            </small>
-          </div>
-
         </div>
 
         {error && <p className="error-message">{error}</p>}
