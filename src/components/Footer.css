@@ -70,26 +70,34 @@
 
 /* Klasa dla kolumny społecznościowej w stopce */
 .footer-social {
-  /* Możesz dodać tutaj specyficzne marginesy, jeśli potrzebne, 
+  /* Możesz dodać tutaj specyficzne marginesy, jeśli potrzebne,
      ale domyślnie powinna pasować do flexboxa .footer-top */
 }
 
 /* Styl dla linku "Dołącz do grupy na FB" */
-.footer-social .facebook-group-link {
+/* WAŻNA ZMIANA: Dodano .footer przed .footer-social dla zwiększenia specyfiki */
+.footer .footer-social .facebook-group-link {
   display: flex; /* Użyj flexbox, aby wyrównać ikonę i tekst */
   align-items: center; /* Wyśrodkuj elementy w pionie */
-  color: #1877f2; /* Klasyczny niebieski kolor Facebooka */
+  color: #1877f2; /* Ustaw kolor tekstu linku na jasnoszary, jak inne linki */
   font-weight: bold;
   text-decoration: none; /* Upewnij się, że link nie jest podkreślony domyślnie */
+
+  /* DODANE ZMIANY ABY USUNĄĆ NIEBIESKI PROSTOKĄT */
+  background-color: transparent; /* Ustaw tło na przezroczyste*/
+  padding: 0; /* Usuń wewnętrzny odstęp, który tworzył prostokąt*/
+  border-radius: 0; /* Usuń zaokrąglenia, jeśli były*/
+  box-shadow: none; /* Usuń cień, jeśli był*/
 }
 
-.footer-social .facebook-group-link:hover {
-  color: #3b5998; /* Ciemniejszy niebieski na hover */
+.footer .footer-social .facebook-group-link:hover { /* Zwiększona specyfika */
+  color: #ffffff; /* Kolor tekstu linku na biały po najechaniu myszką*/
 }
 
-.footer-social .facebook-group-link .fab { /* Styl dla samej ikony */
-  font-size: 1.5rem; /* Rozmiar ikony */
-  margin-right: 8px; /* Odstęp między ikoną a tekstem */
+.footer .footer-social .facebook-group-link .fab { /* Styl dla samej ikony */
+  font-size: 1.5rem; /* Rozmiar ikony*/
+  margin-right: 8px; /* Odstęp między ikoną a tekstem*/
+  color: #1877f2; /* Klasyczny niebieski kolor Facebooka TYLKO DLA IKONY*/
 }
 
 /* --- Media Queries (istniejące i dostosowane) --- */
@@ -105,9 +113,9 @@
     margin-bottom: 1.5rem; /* Odstęp między kolumnami */
     text-align: center; /* Wyśrodkuj tekst w kolumnach */
   }
-  
+
   /* Na mobilnych ikonka może być wyśrodkowana */
-  .footer-social .facebook-group-link {
+  .footer .footer-social .facebook-group-link { /* Zwiększona specyfika */
     justify-content: center; /* Wyśrodkuj link w kolumnie mobilnej */
   }
 }
