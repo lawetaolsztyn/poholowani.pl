@@ -358,7 +358,8 @@ export default function UserProfileDashboard() {
         return (
           <form onSubmit={handleSave} className="dashboard-form-section">
             <h3 className="dashboard-form-heading">Moje dane</h3>
-            {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>}
+            {/* PRZENIESIONY KOMUNIKAT - TUTAJ WIDOCZNY TYLKO W KODZIE ŹRÓDŁOWYM (DOM) */}
+            {/* message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p> */}
 
             <label className="form-label">
               Imię i nazwisko:
@@ -520,6 +521,7 @@ export default function UserProfileDashboard() {
             <button type="submit" disabled={saving} className="form-button">
               {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
             </button>
+            {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>} {/* PRZENIESIONY KOMUNIKAT */}
           </form>
         );
 
@@ -527,7 +529,7 @@ export default function UserProfileDashboard() {
         return (
           <form onSubmit={handlePasswordReset} className="dashboard-form-section">
             <h3 className="dashboard-form-heading">Zmiana hasła</h3> 
-            {passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p>}
+            {/* passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p> */} {/* KOMENTARZ */}
             <label className="form-label">
               Nowe hasło:
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="form-input" />
@@ -539,6 +541,7 @@ export default function UserProfileDashboard() {
             <button type="submit" disabled={saving} className="form-button">
               {saving ? 'Zmienianie...' : 'Zmień hasło'}
             </button>
+            {passwordMessage && <p className={`dashboard-message ${passwordMessage.startsWith('✅') ? 'success' : 'error'}`}>{passwordMessage}</p>} {/* PRZENIESIONY KOMUNIKAT */}
           </form>
         );
 
@@ -582,6 +585,7 @@ export default function UserProfileDashboard() {
             >
                 Przejdź do profilu publicznego
             </button>
+            {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>} {/* PRZENIESIONY KOMUNIKAT */}
           </div>
         );
 
@@ -723,6 +727,7 @@ export default function UserProfileDashboard() {
                 </div>
               </>
             )}
+            {message && <p className={`dashboard-message ${message.startsWith('✅') ? 'success' : 'error'}`}>{message}</p>} {/* PRZENIESIONY KOMUNIKAT */}
           </form>
         );
       default:
