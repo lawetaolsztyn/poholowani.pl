@@ -140,7 +140,7 @@ export default function Navbar() {
               <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
             )}
             {/* NOWY LINK "MÓJ PROFIL" PRZENIESIONY NA KONIEC DRUGIEGO RZĘDU */}
-            <Link to="/profil" className={isActive('/profil')} onClick={closeMobileMenu}>MÓJ PROFIL</Link>
+            <Link to="/profil" className={isActive('/profil')} onClick={closeMobileMenu}>Mój Profil</Link>
           </div>
         )}
       </div>
