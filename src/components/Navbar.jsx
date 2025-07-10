@@ -111,21 +111,11 @@ export default function Navbar() {
             ) : (
               <>
                 <button
-                  onClick={() => { handleLogout(); closeMobileMenu(); }}
-                  style={{
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    padding: '8px 15px',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold',
-                    marginLeft: '10px'
-                  }}
-                >
-                  Wyloguj
-                </button>
+  className="logout-button"
+  onClick={() => { handleLogout(); closeMobileMenu(); }}
+>
+  Wyloguj
+</button>
               </>
             )}
           </div>

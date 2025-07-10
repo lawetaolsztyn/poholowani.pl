@@ -371,3 +371,37 @@
     margin: 0 auto;
   }
 }
+
+.logout-button {
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+/* Efekt hover */
+.logout-button:hover {
+  background-color: #c82333;
+}
+
+/* Na telefonach przenieś przycisk na sam dół */
+@media (max-width: 768px) {
+  .logout-button {
+    order: 9999;
+    width: calc(100% - 2rem);
+    margin: 1rem auto 0 auto;
+    text-align: center;
+    display: block;
+  }
+
+  .nav-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
