@@ -1,45 +1,31 @@
 .navbar {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column; /* Zmieniamy na kolumnę, aby rzędy były pod sobą */
   background-color: #1a2a40; /* Ciemny granat */
-  color: white; /* Tekst nawigacji domyślnie biały */
+  color: white;
   padding: 1rem 2rem;
   position: sticky;
   top: 0;
   z-index: 2000;
-  align-items: center;
+  align-items: center; /* Wyśrodkowanie zawartości navbara */
 }
 
+/* Ukrywamy domyślne style linków dla dużych ekranów, będą nadpisane przez klasy */
 .navbar a {
-  color: white; /* Upewnij się, że linki są białe */
-  margin-right: 0.4rem;
+  color: white;
   text-decoration: none;
   font-weight: 500;
   border-radius: 5px;
   transition: background-color 0.3s;
-  
-  /* Style dla dużych ekranów: */
-  display: flex; /* Link jako flex container */
-  flex-direction: column; /* Ustawienie, aby tekst zawijał się w kolumnie */
-  justify-content: center; /* Wyśrodkowanie pionowe */
-  align-items: center; /* Wyśrodkowanie poziome */
-  text-align: center; /* Zapewnia wyśrodkowanie tekstu */
-  line-height: 1.2; /* Dostosuj wysokość linii */
-  
-  /* ZMIANY TUTAJ - Precyzyjniejsze dopasowanie paddingu i min-height */
-  padding: 0.4rem 0.6rem; /* Lekko zmniejszony padding, aby skrócić wysokość elementu */
-  min-height: 50px; /* Nieco zmniejszona minimalna wysokość. Przetestuj, jeśli tekst będzie obcinany! */
-  font-size: 0.95em; /* Delikatne zmniejszenie czcionki - eksperymentalnie */
-  
-  white-space: normal; /* Pozwalamy na zawijanie tekstu */
-  word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
-  
-  /* ZMIANY TUTAJ - Kluczowe: Zwiększ max-width, aby tekst mieścił się w 2 liniach. Będziesz musiał dostosować! */
-  /* Zacznij od 95px i zwiększaj/zmniejszaj w zależności od potrzeb */
-  max-width: 128px; /* PRZYKŁADOWA WARTOŚĆ! Musisz dostosować tę wartość w zależności od najdłuższego tekstu! */
-
-  /* Eksperymentalna właściwość dla lepszego zawijania, wsparcie przeglądarek może być ograniczone */
-  /* text-wrap: balance; */
+  /* Resetujemy style specyficzne dla zawijania tekstu, które były wcześniej */
+  display: inline-block; /* Domyślnie na duże ekrany niech będzie inline-block */
+  white-space: nowrap; /* Wymuszamy jedną linię */
+  word-break: normal; /* Resetujemy, jeśli było wcześniej */
+  min-height: auto; /* Resetujemy minimalną wysokość */
+  max-width: none; /* Resetujemy maksymalną szerokość */
+  padding: 0.7rem 1rem; /* Standardowy padding */
+  font-size: 1em; /* Standardowy rozmiar czcionki */
+  margin: 0 0.4rem; /* Domyślne marginesy między linkami */
 }
 
 .navbar a:hover {
@@ -50,24 +36,102 @@
   background-color: #ff6600;
   color: white;
 }
-  
+
+/* Kontener dla wszystkich linków i sekcji logowania/rejestracji */
 .nav-links {
   display: flex;
+  flex-direction: column; /* Nowy sposób układania - rzędy będą pod sobą */
   flex-grow: 1;
-  justify-content: space-between;
-  align-items: center;
+  width: 100%; /* Rozciągamy na całą szerokość */
+  align-items: center; /* Wyśrodkowanie w pionie */
   transition: all 0.3s ease-in-out;
 }
 
+/* Główny rząd nawigacji */
+.nav-primary-row {
+  display: flex;
+  justify-content: center; /* Wyśrodkowanie głównego menu */
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* Pozwalamy na zawijanie, jeśli ekran będzie za mały, ale powyżej 768px */
+  padding-bottom: 0.5rem; /* Odstęp od drugiego rzędu */
+}
+
+/* Lewa sekcja głównego rzędu */
 .nav-left {
   display: flex;
   align-items: center;
+  flex-wrap: wrap; /* Pozwalamy na zawijanie linków w tej sekcji, jeśli braknie miejsca */
+  justify-content: center; /* Wyśrodkowanie linków w przypadku zawijania */
 }
 
+/* Prawa sekcja (profil/logowanie) */
 .nav-right {
   display: flex;
   align-items: center;
+  margin-left: auto; /* Wyrównanie do prawej na dużych ekranach */
+  flex-shrink: 0; /* Nie kurcz się */
+  padding-left: 1rem; /* Odstęp od lewej sekcji, jeśli są obok siebie */
 }
+
+/* Styl dla transport-na-juz-link - musi być jednowierszowy na dużych ekranach */
+.transport-na-juz-link {
+    color: #FFA500 !important;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.9),
+                 0 0 10px rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid #FFA500 !important;
+    padding: 0.7rem 1.2rem !important; /* Dostosowany padding */
+    border-radius: 5px !important;
+    transition: all 0.3s ease;
+    
+    /* Zmiany dla trybu jednowierszowego na desktopie */
+    display: inline-block !important; /* Upewniamy się, że jest inline-block */
+    white-space: nowrap !important; /* Wymuszamy jedną linię */
+    min-height: auto !important; /* Resetujemy min-height */
+    max-width: none !important; /* Resetujemy max-width */
+    font-size: 1em !important; /* Standardowy rozmiar czcionki */
+}
+
+.transport-na-juz-link:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    text-shadow: none !important;
+    border-color: transparent !important;
+}
+
+.navbar a.active.transport-na-juz-link {
+    background-color: #ff6600 !important;
+    color: white !important;
+    text-shadow: none !important;
+    border-color: transparent !important;
+}
+
+/* Drugi rząd nawigacji (po zalogowaniu) */
+.nav-secondary-row {
+  display: flex;
+  justify-content: center; /* Wyśrodkowanie drugiego menu */
+  align-items: center;
+  width: 100%;
+  background-color: #0d1e2e; /* Nieco ciemniejsze tło */
+  padding: 0.5rem 0; /* Padding dla tła */
+  border-radius: 5px;
+  flex-wrap: wrap; /* Pozwalamy na zawijanie, jeśli ekran będzie za mały */
+}
+
+/* Style dla linków w drugim rzędzie */
+.nav-secondary-row a {
+  font-size: 0.85em; /* Mniejsza czcionka */
+  padding: 0.5rem 0.8rem; /* Mniejszy padding */
+  margin: 0 0.3rem; /* Mniejsze marginesy między linkami */
+}
+
+.nav-secondary-row a.active {
+    background-color: #ff6600; /* Aktywna zakładka pomarańczowa */
+    color: white;
+}
+
 
 .hamburger-menu {
   display: none;
@@ -87,10 +151,10 @@
   transition: all 0.3s ease;
 }
 
-
+/* Media query dla urządzeń mobilnych - zachowujemy obecne dobre działanie */
 @media (max-width: 768px) {
   .navbar {
-    flex-direction: row;
+    flex-direction: row; /* Wracamy do rzędu na mobilnych */
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
@@ -106,8 +170,7 @@
     top: 100%;
     left: 0;
     width: 100%;
-    /* Tło dla rozwijanego menu mobilnego */
-    background: linear-gradient(135deg, #1a2a40, #0a1a2a); /* Ciemniejszy gradient dla spójności z navbar */
+    background: linear-gradient(135deg, #1a2a40, #0a1a2a);
     flex-direction: column;
     height: 0;
     overflow: hidden;
@@ -124,107 +187,93 @@
     pointer-events: auto;
   }
 
+  /* Na mobilnych, wszystkie rzędy wracają do jednej kolumny */
+  .nav-primary-row,
+  .nav-secondary-row {
+    flex-direction: column;
+    width: 100%;
+    padding: 0; /* Usuwamy padding z rzędów na mobilnych */
+    background-color: transparent; /* Resetujemy tło na mobilnych */
+  }
+
   .nav-left,
   .nav-right {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    margin-left: 0; /* Resetujemy margines */
+    padding-left: 0; /* Resetujemy padding */
   }
-
+  
+  /* Linki na mobilnych - jednowierszowe, ale z elipsą */
   .navbar a {
-    margin: 0.5rem 0; /* Odstępy pionowe w menu mobilnym */
-    width: calc(100% - 2rem); /* Pełna szerokość minus padding */
+    margin: 0.5rem 0;
+    width: calc(100% - 2rem);
     text-align: center;
     margin-right: 0;
-    /* Style dla trybu mobilnego - jednowierszowy tekst */
-    display: block; /* Zmieniamy na block */
-    white-space: nowrap; /* Wymuszamy jedną linię w trybie mobilnym */
-    flex-direction: row; /* W trybie block to nie ma znaczenia */
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: none;
+    font-size: 1em;
     min-height: auto; /* Resetujemy minimalną wysokość */
     padding: 0.5rem 1rem; /* Przywracamy standardowy padding dla mobilnego */
     word-break: normal; /* Resetujemy word-break dla mobilnego */
-    overflow: hidden; /* Ukryj nadmiar tekstu, jeśli się nie mieści w 1 linii */
-    text-overflow: ellipsis; /* Dodaj trzy kropki, jeśli tekst się nie mieści */
-    max-width: none; /* Resetujemy max-width, aby mógł się rozciągnąć */
-    font-size: 1em; /* Resetuj font-size dla mobilnego, jeśli był zmieniony wyżej */
+  }
+
+  /* Specyficzny styl dla transport-na-juz-link na mobilnych */
+  .transport-na-juz-link {
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-height: auto !important;
+    max-width: none !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 1em !important;
+  }
+
+  /* Dodatkowe odstępy między sekcjami na mobilnych */
+  .nav-left > a,
+  .nav-right > * {
+    margin-bottom: 0.5rem;
   }
 }
 
-.transport-na-juz-link {
-    color: #FFA500 !important;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.9),
-                 0 0 10px rgba(255, 255, 255, 0.7);
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid #FFA500 !important;
-    
-    /* ZMIANY TUTAJ - Precyzyjniejsze dopasowanie paddingu i min-height dla tego linku */
-    padding: 0.5rem 1rem !important; /* Pozostawiamy ten padding, bo wyglądał ok na screenie */
-    border-radius: 5px !important;
-    transition: all 0.3s ease;
-    /* Style dla zawijania tekstu w tym konkretnym linku */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    line-height: 1.2;
-    min-height: 55px; /* Zwiększona min-height, aby pomieścić 2 linie z paddingiem */
-    white-space: normal; /* Pozwalamy na zawijanie tekstu */
-    word-break: break-word; /* W razie potrzeby złam bardzo długie słowa */
-    
-    /* ZMIANY TUTAJ - Kluczowe: Zwiększ max-width. Będziesz musiał dostosować! */
-    /* Zacznij od 105px i zwiększaj/zmniejszaj w zależności od potrzeb */
-    max-width: 105px; /* PRZYKŁADOWA WARTOŚĆ! Musisz dostosować tę wartość! */
-}
-
-.transport-na-juz-link:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-    text-shadow: none !important;
-    border-color: transparent !important;
-}
-
-.navbar a.active.transport-na-juz-link {
-    background-color: #ff6600 !important;
-    color: white !important;
-    text-shadow: none !important;
-    border-color: transparent !important;
-}
-
-/* Tryb ciemny dla Navbar */
+/* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
     .navbar {
-        background-color: #000; /* Jeszcze ciemniejszy navbar dla dark mode */
+        background-color: #000;
         color: #f0f0f0;
     }
     .navbar a {
-        color: #f0f0f0; /* Linki w nawigacji powinny być jasne w dark mode */
+        color: #f0f0f0;
     }
     .navbar a:hover {
-        background-color: rgba(255, 255, 255, 0.15); /* Subtelniejszy hover */
+        background-color: rgba(255, 255, 255, 0.15);
     }
     .navbar a.active {
-        background-color: #e65100; /* Akcentowany pomarańczowy */
+        background-color: #e65100;
     }
 
     .hamburger-menu .bar {
-        background-color: #f0f0f0; /* Kreski hamburgera jasne */
+        background-color: #f0f0f0;
     }
 
     .nav-links.open {
-      background: linear-gradient(135deg, #1a1a1a, #000) !important; /* Ciemniejszy gradient dla menu mobilnego */
+      background: linear-gradient(135deg, #1a1a1a, #000) !important;
       border: none;
     }
     
     .nav-right span {
-        color: #fff; /* Kolor tekstu użytkownika powinien pozostać biały */
+        color: #fff;
     }
 
     .transport-na-juz-link {
-        color: #FFBB33 !important; /* Jaśniejszy pomarańcz dla dark mode */
+        color: #FFBB33 !important;
         border-color: #FFBB33 !important;
-        background-color: rgba(255, 255, 255, 0.08) !important; /* Lekko widoczne tło */
+        background-color: rgba(255, 255, 255, 0.08) !important;
         text-shadow: 0 0 5px rgba(0, 0, 0, 0.7),
                      0 0 10px rgba(255, 255, 255, 0.3);
     }
@@ -242,16 +291,21 @@
         text-shadow: none !important;
         border-color: transparent !important;
     }
+
+    /* Dark mode dla drugiego rzędu */
+    .nav-secondary-row {
+      background-color: #000d1a; /* Jeszcze ciemniejsze tło dla dark mode */
+    }
 }
-/* W pliku Navbar.css */
+
 .unread-badge-navbar {
-  background-color: #ff6600; /* Czerwone tło */
+  background-color: #ff6600;
   color: white;
   border-radius: 50%;
   padding: 2px 7px;
   font-size: 0.7em;
   margin-left: 5px;
   vertical-align: super;
-  line-height: 1; /* Zapewnia wyśrodkowanie tekstu */
-  display: inline-block; /* Aby padding i border-radius działały poprawnie */
+  line-height: 1;
+  display: inline-block;
 }
