@@ -309,3 +309,50 @@
   line-height: 1;
   display: inline-block;
 }
+.social-icon-link {
+  /* Aby wyglądał jak inne linki, ale bez podświetlania "active" */
+  color: white;
+  margin: 0 0.4rem; /* Zachowaj odstęp jak dla innych linków */
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  padding: 0.7rem 1rem; /* Podobnie jak inne linki */
+  display: flex; /* Aby ikona była wyśrodkowana */
+  align-items: center;
+  justify-content: center;
+  height: auto; /* Zresetuj, aby nie dziedziczył min-height od .navbar a */
+}
+
+.social-icon-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.facebook-icon {
+  font-size: 1.8em; /* Rozmiar ikony Font Awesome */
+  color: #1877F2; /* Kolor ikony */
+}
+
+/* W dark mode */
+@media (prefers-color-scheme: dark) {
+    .social-icon-link {
+        color: #f0f0f0;
+    }
+    .facebook-icon {
+        color: #1877F2; /* Kolor ikony w dark mode */
+    }
+    .social-icon-link:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+}
+
+/* Dostosowanie na mobilnych - aby ikona FB zachowywała się jak inne linki */
+@media (max-width: 768px) {
+  .social-icon-link {
+    margin: 0.5rem 0; /* Odstępy pionowe jak dla innych linków mobilnych */
+    width: calc(100% - 2rem);
+    display: flex; /* Nadal flex na mobilnych, aby wyśrodkować ikonę */
+    text-align: center; /* Tekst (jeśli byłby) wyśrodkowany */
+    padding: 0.5rem 1rem;
+  }
+}

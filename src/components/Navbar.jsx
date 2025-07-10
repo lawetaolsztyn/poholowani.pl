@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import './Navbar.css';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../AuthContext';
+// DODAJ IMPORT IKONY FACEBOOKA Z FONT AWESOME
+import { FaFacebookSquare } from 'react-icons/fa'; // Lub FaFacebookF, w zależności od preferencji
 
 export default function Navbar() {
   const location = useLocation();
@@ -72,6 +74,8 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
+  const facebookGroupLink = "https://www.facebook.com/groups/1278233000603384"; // Link z Footer.jsx
+
   return (
     <nav className="navbar">
       <div className="hamburger-menu" onClick={toggleMobileMenu}>
@@ -92,6 +96,10 @@ export default function Navbar() {
             </Link>
             <Link to="/katalog-przewoznikow" className={isActive('/katalog-przewoznikow')} onClick={closeMobileMenu}>Katalog Przewoźników</Link>
             <Link to="/kontakt" className={isActive('/kontakt')} onClick={closeMobileMenu}>Kontakt</Link>
+            {/* NOWY LINK DO FACEBOOKA Z IKONĄ FONT AWESOME */}
+            <a href={facebookGroupLink} target="_blank" rel="noopener noreferrer" className="social-icon-link" onClick={closeMobileMenu}>
+              <FaFacebookSquare className="facebook-icon" /> {/* Ikona Font Awesome */}
+            </a>
           </div>
 
           <div className="nav-right">
@@ -102,7 +110,6 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                {/* ZMIENIONO: Przycisk wylogowania pozostaje w pierwszym rzędzie */}
                 <button
                   onClick={() => { handleLogout(); closeMobileMenu(); }}
                   style={{
@@ -139,8 +146,7 @@ export default function Navbar() {
             {email === 'lawetaolsztyn@gmail.com' && (
               <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
             )}
-            {/* NOWY LINK "MÓJ PROFIL" PRZENIESIONY NA KONIEC DRUGIEGO RZĘDU */}
-            <Link to="/profil" className={isActive('/profil')} onClick={closeMobileMenu}>Mój Profil</Link>
+            <Link to="/profil" className={isActive('/profil')} onClick={closeMobileMenu}>MÓJ PROFIL</Link>
           </div>
         )}
       </div>
