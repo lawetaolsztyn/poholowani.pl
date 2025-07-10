@@ -309,6 +309,7 @@
   line-height: 1;
   display: inline-block;
 }
+
 .social-icon-link {
   /* Aby wyglądał jak inne linki, ale bez podświetlania "active" */
   color: white;
@@ -352,6 +353,8 @@
     margin: 0.5rem 0; /* Odstępy pionowe jak dla innych linków mobilnych */
     width: calc(100% - 2rem);
     display: flex; /* Nadal flex na mobilnych, aby wyśrodkować ikonę */
+    justify-content: center; /* Dodane dla wyśrodkowania horyzontalnego */
+    align-items: center;   /* Dodane dla wyśrodkowania wertykalnego */
     text-align: center; /* Tekst (jeśli byłby) wyśrodkowany */
     padding: 0.5rem 1rem;
   }
