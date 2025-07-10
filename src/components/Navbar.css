@@ -45,6 +45,20 @@
   width: 100%; /* Rozciągamy na całą szerokość */
   align-items: center; /* Wyśrodkowanie w pionie */
   transition: all 0.3s ease-in-out;
+
+  /* Ustawienia dla menu na mobilnych - domyślnie ukryte */
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav-links.open {
+  height: auto;
+  max-height: 1000px; /* Wystarczająco duża wartość dla animacji rozwijania */
+  opacity: 1;
+  padding: 1rem 0;
+  pointer-events: auto;
 }
 
 /* Główny rząd nawigacji */
@@ -166,25 +180,15 @@
   }
 
   .nav-links {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, #1a2a40, #0a1a2a);
-    flex-direction: column;
-    height: 0;
-    overflow: hidden;
-    opacity: 0;
-    padding: 0;
-    pointer-events: none;
+    /* Upewnij się, że te style są tutaj, jeśli mają być tylko na mobilnych */
+    background: linear-gradient(135deg, #1a2a40, #0a1a2a); /* Tło dla mobilnego menu */
+    position: relative; /* Zmieniamy na relative, aby menu było w przepływie dokumentu */
+    top: 0; /* Resetujemy top */
+    left: 0; /* Resetujemy left */
   }
 
   .nav-links.open {
-    height: auto;
-    max-height: fit-content;   
-    opacity: 1;
-    padding: 1rem 0;
-    pointer-events: auto;
+    /* Te style już są ok, tylko upewnij się, że nadpisują domyślne 0 height/opacity */
   }
 
   /* Na mobilnych, wszystkie rzędy wracają do jednej kolumny */
@@ -238,6 +242,17 @@
   .nav-left > a,
   .nav-right > * {
     margin-bottom: 0.5rem;
+  }
+
+  /* Dostosowanie na mobilnych - aby ikona FB zachowywała się jak inne linki */
+  .social-icon-link {
+    margin: 0.5rem 0; /* Odstępy pionowe jak dla innych linków mobilnych */
+    width: calc(100% - 2rem);
+    display: flex; /* Nadal flex na mobilnych, aby wyśrodkować ikonę */
+    justify-content: center !important; /* DODANE !important dla wyśrodkowania horyzontalnego */
+    align-items: center !important;   /* DODANE !important dla wyśrodkowania wertykalnego */
+    text-align: center; /* Tekst (jeśli byłby) wyśrodkowany */
+    padding: 0.5rem 1rem;
   }
 }
 
@@ -345,17 +360,4 @@
     .social-icon-link:hover {
         background-color: rgba(255, 255, 255, 0.15);
     }
-}
-
-/* Dostosowanie na mobilnych - aby ikona FB zachowywała się jak inne linki */
-@media (max-width: 768px) {
-  .social-icon-link {
-    margin: 0.5rem 0; /* Odstępy pionowe jak dla innych linków mobilnych */
-    width: calc(100% - 2rem);
-    display: flex; /* Nadal flex na mobilnych, aby wyśrodkować ikonę */
-    justify-content: center; /* Dodane dla wyśrodkowania horyzontalnego */
-    align-items: center;   /* Dodane dla wyśrodkowania wertykalnego */
-    text-align: center; /* Tekst (jeśli byłby) wyśrodkowany */
-    padding: 0.5rem 1rem;
-  }
 }
