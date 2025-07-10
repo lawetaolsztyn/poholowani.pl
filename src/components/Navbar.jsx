@@ -81,7 +81,7 @@ export default function Navbar() {
       </div>
 
       <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
-        <div className="nav-primary-row"> {/* NOWY WRAPPER DLA PIERWSZEGO RZĘDU */}
+        <div className="nav-primary-row">
           <div className="nav-left">
             <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>Strona Główna</Link>
             <Link to="/szukam" className={isActive('/szukam')} onClick={closeMobileMenu}>Szukam Transportu</Link>
@@ -102,20 +102,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <span
-                  style={{
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    marginRight: '12px',
-                    cursor: 'pointer',
-                    textDecoration: 'underline'
-                  }}
-                  onClick={() => { navigate('/profil'); closeMobileMenu(); }}
-                >
-                  🔒 {role === 'klient' ? 'Klient' :
-                       role === 'firma' ? 'Firma' :
-                       'Użytkownik'} ({email})
-                </span>
+                {/* ZMIENIONO: Przycisk wylogowania pozostaje w pierwszym rzędzie */}
                 <button
                   onClick={() => { handleLogout(); closeMobileMenu(); }}
                   style={{
@@ -135,10 +122,10 @@ export default function Navbar() {
               </>
             )}
           </div>
-        </div> {/* KONIEC NOWEGO WRAPPERA DLA PIERWSZEGO RZĘDU */}
+        </div>
 
         {email && (
-          <div className="nav-secondary-row"> {/* NOWY WRAPPER DLA DRUGIEGO RZĘDU (PO ZALOGOWANIU) */}
+          <div className="nav-secondary-row">
             <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje Trasy</Link>
             <Link to="/moje-ogloszenia" className={isActive('/moje-ogloszenia')} onClick={closeMobileMenu}>Moje Ogłoszenia</Link>
             <Link to="/moje-chaty" className={isActive('/moje-chaty')} onClick={closeMobileMenu}>
@@ -152,6 +139,8 @@ export default function Navbar() {
             {email === 'lawetaolsztyn@gmail.com' && (
               <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
             )}
+            {/* NOWY LINK "MÓJ PROFIL" PRZENIESIONY NA KONIEC DRUGIEGO RZĘDU */}
+            <Link to="/profil" className={isActive('/profil')} onClick={closeMobileMenu}>MÓJ PROFIL</Link>
           </div>
         )}
       </div>
