@@ -356,3 +356,18 @@
     padding: 0.5rem 1rem;
   }
 }
+
+@media (max-width: 768px) {
+  .social-icon-link {
+    display: block !important;      /* Tak jak inne linki */
+    width: calc(100% - 2rem);
+    text-align: center !important;  /* Wyśrodkowanie zawartości */
+    margin: 0.5rem 0;
+    padding: 0.5rem 1rem;
+  }
+
+  .facebook-icon {
+    display: inline-block;
+    margin: 0 auto;
+  }
+}
