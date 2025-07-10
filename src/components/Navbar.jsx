@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import './Navbar.css';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '../AuthContext'; // DODANE: Import useAuth
+import { useAuth } from '../AuthContext';
 
 export default function Navbar() {
   const location = useLocation();
@@ -11,8 +11,7 @@ export default function Navbar() {
   const [email, setEmail] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // ZMIENIONO: Pobieramy totalUnreadMessages bezpośrednio z useAuth
-  const { currentUser, totalUnreadMessages } = useAuth(); // <-- ZMIENIONA LINIA
+  const { currentUser, totalUnreadMessages } = useAuth();
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
@@ -52,9 +51,6 @@ export default function Navbar() {
     console.log('👀 Aktualna rola w stanie Reacta:', role);
   }, [role]);
 
-  // USUNIĘTO CAŁY WCZEŚNIEJSZY useEffect ODPOWIEDZIALNY ZA totalUnreadChats.
-  // Ta logika jest teraz zarządzana centralnie w AuthContext.jsx.
-
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -72,99 +68,92 @@ export default function Navbar() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Funkcja do zamykania menu mobilnego po kliknięciu linku
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
 
   return (
     <nav className="navbar">
-      {/* NOWY ELEMENT: Ikona hamburgera */}
       <div className="hamburger-menu" onClick={toggleMobileMenu}>
         <div className="bar"></div>
         <div className="bar"></div>
         <div className="bar"></div>
       </div>
 
-      {/* ZMIANA: Dodajemy klasę 'open' jeśli menu jest otwarte */}
       <div className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
-        <div className="nav-left">
-          {/* USUNIĘTO WSZYSTKIE <br /> - zawijanie będzie kontrolowane przez CSS */}
-          <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>Strona Główna</Link>
-          <Link to="/szukam" className={isActive('/szukam')} onClick={closeMobileMenu}>Szukam Transportu</Link>
-          <Link to="/oferuje" className={isActive('/oferuje')} onClick={closeMobileMenu}>Oferuję Transport</Link>
-          <Link to="/tablica-ogloszen" className={isActive('/tablica-ogloszen')} onClick={closeMobileMenu}>Tablica Ogłoszeń</Link>
-          <Link to="/transport-na-juz" className={`${isActive('/transport-na-juz')} transport-na-juz-link`} onClick={closeMobileMenu}>
-            Transport na Już!
-          </Link>
-          {/* NOWA POZYCJA MENU: KATALOG PRZEWOŹNIKÓW */}
-          <Link to="/katalog-przewoznikow" className={isActive('/katalog-przewoznikow')} onClick={closeMobileMenu}>Katalog Przewoźników</Link>
-          {/* KONIEC NOWEJ POZYCJI MENU */}
-          <Link to="/kontakt" className={isActive('/kontakt')} onClick={closeMobileMenu}>Kontakt</Link>
+        <div className="nav-primary-row"> {/* NOWY WRAPPER DLA PIERWSZEGO RZĘDU */}
+          <div className="nav-left">
+            <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>Strona Główna</Link>
+            <Link to="/szukam" className={isActive('/szukam')} onClick={closeMobileMenu}>Szukam Transportu</Link>
+            <Link to="/oferuje" className={isActive('/oferuje')} onClick={closeMobileMenu}>Oferuję Transport</Link>
+            <Link to="/tablica-ogloszen" className={isActive('/tablica-ogloszen')} onClick={closeMobileMenu}>Tablica Ogłoszeń</Link>
+            <Link to="/transport-na-juz" className={`${isActive('/transport-na-juz')} transport-na-juz-link`} onClick={closeMobileMenu}>
+              Transport na Już!
+            </Link>
+            <Link to="/katalog-przewoznikow" className={isActive('/katalog-przewoznikow')} onClick={closeMobileMenu}>Katalog Przewoźników</Link>
+            <Link to="/kontakt" className={isActive('/kontakt')} onClick={closeMobileMenu}>Kontakt</Link>
+          </div>
 
-          {email && (
-            <>
-              <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje Trasy</Link>
-              <Link to="/moje-ogloszenia" className={isActive('/moje-ogloszenia')} onClick={closeMobileMenu}>Moje Ogłoszenia</Link>
-              {/* ZMODYFIKOWANE: Link do "Moje Chaty" z licznikiem */}
-              <Link to="/moje-chaty" className={isActive('/moje-chaty')} onClick={closeMobileMenu}>
-                Moje Chaty
-                {/* Używamy totalUnreadMessages z AuthContext */}
-                {totalUnreadMessages > 0 && (
-                  <span className="unread-badge-navbar">
-                    {totalUnreadMessages}
-                  </span>
-                )}
-              </Link>
+          <div className="nav-right">
+            {!email ? (
+              <>
+                <Link to="/login" className={isActive('/login')} onClick={closeMobileMenu}>Zaloguj</Link>
+                <Link to="/register" className={isActive('/register')} onClick={closeMobileMenu}>Zarejestruj</Link>
+              </>
+            ) : (
+              <>
+                <span
+                  style={{
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    marginRight: '12px',
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                  onClick={() => { navigate('/profil'); closeMobileMenu(); }}
+                >
+                  🔒 {role === 'klient' ? 'Klient' :
+                       role === 'firma' ? 'Firma' :
+                       'Użytkownik'} ({email})
+                </span>
+                <button
+                  onClick={() => { handleLogout(); closeMobileMenu(); }}
+                  style={{
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    padding: '8px 15px',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    marginLeft: '10px'
+                  }}
+                >
+                  Wyloguj
+                </button>
+              </>
+            )}
+          </div>
+        </div> {/* KONIEC NOWEGO WRAPPERA DLA PIERWSZEGO RZĘDU */}
 
-              {email === 'lawetaolsztyn@gmail.com' && (
-                <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
+        {email && (
+          <div className="nav-secondary-row"> {/* NOWY WRAPPER DLA DRUGIEGO RZĘDU (PO ZALOGOWANIU) */}
+            <Link to="/moje-trasy" className={isActive('/moje-trasy')} onClick={closeMobileMenu}>Moje Trasy</Link>
+            <Link to="/moje-ogloszenia" className={isActive('/moje-ogloszenia')} onClick={closeMobileMenu}>Moje Ogłoszenia</Link>
+            <Link to="/moje-chaty" className={isActive('/moje-chaty')} onClick={closeMobileMenu}>
+              Moje Chaty
+              {totalUnreadMessages > 0 && (
+                <span className="unread-badge-navbar">
+                  {totalUnreadMessages}
+                </span>
               )}
-            </>
-          )}
-        </div>
-
-        <div className="nav-right">
-          {!email ? (
-            <>
-              <Link to="/login" className={isActive('/login')} onClick={closeMobileMenu}>Zaloguj</Link>
-              <Link to="/register" className={isActive('/register')} onClick={closeMobileMenu}>Zarejestruj</Link>
-            </>
-          ) : (
-            <>
-              <span
-                style={{
-                  color: '#fff',
-                  fontWeight: 'bold',
-                  marginRight: '12px',
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-                onClick={() => { navigate('/profil'); closeMobileMenu(); }}
-              >
-                🔒 {role === 'klient' ? 'Klient' :
-       role === 'firma' ? 'Firma' :
-       'Użytkownik'} ({email})
-              </span>
-              <button
-                onClick={() => { handleLogout(); closeMobileMenu(); }}
-                style={{
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  padding: '8px 15px',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: 'bold',
-                  marginLeft: '10px'
-                }}
-              >
-                Wyloguj
-              </button>
-            </>
-          )}
-        </div>
+            </Link>
+            {email === 'lawetaolsztyn@gmail.com' && (
+              <Link to="/admin-dashboard" className={isActive('/admin-dashboard')} onClick={closeMobileMenu}>Admin</Link>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );
