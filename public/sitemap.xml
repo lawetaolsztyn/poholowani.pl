@@ -1,60 +1,69 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-		<!--	created with www.mysitemapgenerator.com	-->
-		<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url>
-	<loc>https://www.poholowani.pl/</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-
-
-<url>
-	<loc>https://www.poholowani.pl/regulamin</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-<url>
-	<loc>https://www.poholowani.pl/szukam</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-<url>
-	<loc>https://www.poholowani.pl/oferuje</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-<url>
-	<loc>https://www.poholowani.pl/kontakt</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-
-<url>
-	<loc>https://www.poholowani.pl/login</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-<url>
-	<loc>https://www.poholowani.pl/register</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-
-<url>
-	<loc>https://www.poholowani.pl/polityka-prywatnosci</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-<url>
-	<loc>https://www.poholowani.pl/rodo</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-<url>
-	<loc>https://www.poholowani.pl/faq</loc>
-	<lastmod>2025-06-22T18:37:20+01:00</lastmod>
-	<priority>1.0</priority>
-</url>
-
-
-</urlset>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://poholowani.pl/</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/szukam</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/oferuje</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/tablica-ogloszen</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/transport-na-juz</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>hourly</changefreq> <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/katalog-przewoznikow</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/kontakt</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/regulamin</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/polityka-prywatnosci</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/rodo</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://poholowani.pl/faq</loc>
+    <lastmod>2025-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  </urlset>
