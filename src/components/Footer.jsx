@@ -39,7 +39,6 @@ const Footer = () => {
           <h4>Na skróty</h4>
           <ul>
             <li><a href="/">Strona główna</a></li>
-            <li><a href="/register">Zarejestruj się</a></li>
             <li><a href="/faq">FAQ / Pomoc</a></li>
             <li><a href="/kontakt">Kontakt</a></li>
           </ul>
