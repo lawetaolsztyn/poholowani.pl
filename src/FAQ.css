@@ -1,0 +1,109 @@
+/* src/FAQ.css */
+
+.faq-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #fff; /* Białe tło dla kontenera */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Delikatny cień */
+  border-radius: 10px; /* Zaokrąglone rogi */
+  margin-top: 20px; /* Odstęp od Navbar */
+  margin-bottom: 20px; /* Odstęp od Footer */
+}
+
+.faq-container h1 {
+  font-size: 2.5rem; /* Większy nagłówek główny */
+  color: #2c3e50; /* Ciemniejszy kolor dla nagłówka */
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0; /* Linia pod nagłówkiem */
+}
+
+.faq-container h2 {
+  font-size: 1.8rem; /* Rozmiar dla nagłówków pytań */
+  color: #34495e; /* Kolor dla nagłówków pytań */
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: bold; /* Pogrubienie H2 */
+}
+
+.faq-container p {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.faq-container a {
+  color: #007bff; /* Kolor linków */
+  text-decoration: underline;
+}
+
+.faq-container a:hover {
+  color: #0056b3; /* Kolor linków po najechaniu */
+}
+
+.faq-list {
+  list-style: none; /* Usuwamy domyślne kropki */
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.faq-list li {
+  position: relative;
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem; /* Odstęp dla niestandardowej kropki */
+}
+
+.faq-list li::before {
+  content: '•'; /* Niestandardowa kropka */
+  color: #007bff; /* Kolor kropki */
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1.5em; /* Przesunięcie kropki na lewo */
+}
+
+.faq-attention {
+  font-weight: bold;
+  color: #e74c3c; /* Czerwony kolor dla uwagi */
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+  .faq-container {
+    padding: 1.5rem;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .faq-container h1 {
+    font-size: 2rem;
+  }
+
+  .faq-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .faq-container p, .faq-list li {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .faq-container {
+    padding: 1rem;
+  }
+
+  .faq-container h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .faq-container h2 {
+    font-size: 1.3rem;
+    margin-top: 1.5rem;
+  }
+}
