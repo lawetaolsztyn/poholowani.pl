@@ -124,8 +124,8 @@ export default function MyRoutes() {
                 via: updatedData.via_label || null,
                 date: updatedData.date,
                 vehicle_type: updatedData.vehicle_type,
-                passenger_count: updatedData.passenger_count,
-                load_capacity: updatedData.load_capacity,
+                passenger_count: updatedData.passenger_count === '' ? null : parseInt(updatedData.passenger_count),
+                load_capacity: updatedData.load_capacity === '' ? null : updatedData.load_capacity,
                 phone: updatedData.phone,
                 messenger_link: updatedData.messenger_link,
                 geojson: geojson // Nowy geojson
