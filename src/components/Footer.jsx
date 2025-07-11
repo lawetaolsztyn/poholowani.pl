@@ -1,8 +1,10 @@
-import React from 'react'; // Dodaj import React, jeśli go nie ma
+import React from 'react';
 import './Footer.css';
+import { FaFacebookSquare, FaYoutube } from 'react-icons/fa'; // Dodaj import FaYoutube
 
 const Footer = () => {
   const facebookGroupLink = "https://www.facebook.com/groups/1278233000603384"; // Twój link do grupy
+  const youtubeChannelLink = "https://www.youtube.com/@poholowani"; // Twój link do kanału YouTube
 
   return (
     <footer className="footer">
@@ -22,23 +24,30 @@ const Footer = () => {
             <li><a href="tel:+48510260270">+48 510 260 270</a></li>
           </ul>
         </div>
-        {/* NOWA KOLUMNA: Społeczność / Facebook */}
-        <div className="footer-column footer-social"> {/* Dodana klasa footer-social dla stylów */}
+        {/* KOLUMNA: Społeczność / Facebook / YouTube */}
+        <div className="footer-column footer-social">
           <h4>Społeczność</h4>
           <ul>
             <li>
               <a href={facebookGroupLink} target="_blank" rel="noopener noreferrer" className="facebook-group-link">
-                <i className="fab fa-facebook-square"></i> {/* Ikona Facebooka */}
+                <FaFacebookSquare /> {/* Ikona Facebooka */}
                 Dołącz do grupy na FB
+              </a>
+            </li>
+            <li> {/* NOWY ELEMENT LISTY DLA YOUTUBE */}
+              <a href={youtubeChannelLink} target="_blank" rel="noopener noreferrer" className="youtube-channel-link">
+                <FaYoutube /> {/* Ikona YouTube */}
+                Oglądaj na YouTube
               </a>
             </li>
           </ul>
         </div>
-        {/* KONIEC NOWEJ KOLUMNY */}
+        {/* KONIEC KOLUMNY SPOŁECZNOŚĆ */}
         <div className="footer-column">
           <h4>Na skróty</h4>
           <ul>
             <li><a href="/">Strona główna</a></li>
+            {/* Usunięto link do rejestracji zgodnie z Twoją decyzją */}
             <li><a href="/faq">FAQ / Pomoc</a></li>
             <li><a href="/kontakt">Kontakt</a></li>
           </ul>
