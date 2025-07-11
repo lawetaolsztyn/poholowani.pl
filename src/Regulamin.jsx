@@ -1,11 +1,12 @@
 import Navbar from './components/Navbar';
-import './Regulamin.css'; // Dodaj import pliku CSS
+import './FAQ.css'; // Zmieniono import na FAQ.css
+import Footer from './components/Footer'; // Zakładam, że Footer jest w components
 
 export default function Regulamin() {
   return (
     <>
       <Navbar />
-      <div className="regulamin-container"> {/* Usunięte style inline, dodana klasa */}
+      <div className="faq-container"> {/* Używamy klasy faq-container */}
         <h1>Regulamin serwisu poholowani.pl</h1>
 
         <h2>1. Postanowienia ogólne</h2>
@@ -38,7 +39,7 @@ export default function Regulamin() {
           4.1. Zabrania się publikowania ogłoszeń niezgodnych z prawem, wprowadzających w błąd lub zawierających treści obraźliwe.<br />
           4.2. Właściciel serwisu zastrzega sobie prawo do usuwania ogłoszeń naruszających zasady regulaminu.<br />
           4.3. Użytkownik ponosi pełną odpowiedzialność za treści, które publikuje.<br />
-	  4.4. Użytkownik, który publikuje dane kontaktowe (np. numer telefonu), wyraża zgodę na ich publiczne udostępnienie w ramach ogłoszenia
+	        4.4. Użytkownik, który publikuje dane kontaktowe (np. numer telefonu), wyraża zgodę na ich publiczne udostępnienie w ramach ogłoszenia
         </p>
 
         <h2>5. Dane osobowe i polityka prywatności</h2>
@@ -55,10 +56,11 @@ export default function Regulamin() {
           6.3. Regulamin wchodzi w życie z dniem publikacji w serwisie.
         </p>
 
-        <p className="regulamin-footer-text"> {/* Usunięte style inline, dodana klasa */}
+        <p className="faq-attention"> {/* Zmieniono klasę na faq-attention */}
           Ten dokument jest dostępny publicznie pod adresem: <strong>http://poholowani.pl/regulamin</strong>
         </p>
       </div>
+      <Footer />
     </>
   );
 }
