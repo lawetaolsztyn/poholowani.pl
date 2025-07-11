@@ -60,7 +60,6 @@ export default function Regulamin() {
           Ten dokument jest dostępny publicznie pod adresem: <strong>http://poholowani.pl/regulamin</strong>
         </p>
       </div>
-      <Footer />
-    </>
+      </>
   );
 }
