@@ -133,7 +133,6 @@ export default function FAQ() {
           <li>System wykorzystuje technologię czasu rzeczywistego (realtime), więc nowe wiadomości pojawiają się natychmiast.</li>
         </ul>
       </div>
-      <Footer />
-    </>
+      </>
   );
 }
