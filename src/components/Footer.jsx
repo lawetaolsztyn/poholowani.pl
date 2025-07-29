@@ -21,7 +21,7 @@ const Footer = () => {
           <h4>Kontakt</h4>
           <ul>
             <li><a href="mailto:kontakt@poholowani.pl">kontakt@poholowani.pl</a></li>
-            <li><a href="tel:+48510260270">+48 510 260 270</a></li>
+           {/* <li><a href="tel:+48510260270">+48 510 260 270</a></li> */}
           </ul>
         </div>
         {/* KOLUMNA: Społeczność / Facebook / YouTube */}
